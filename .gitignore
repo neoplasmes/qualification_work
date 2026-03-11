@@ -1,7 +1,4 @@
 node_modules
 dist
 
-# Заливаем сразу готовый билд, чтобы не пересобирать
-
-# Environment variables (copy from .env.example)
 .env

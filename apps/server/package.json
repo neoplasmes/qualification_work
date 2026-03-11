@@ -10,11 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:up": "docker compose -f ../../docker-compose.yml up postgres -d",
     "db:down": "docker compose -f ../../docker-compose.yml down",
-    "db:logs": "docker compose -f ../../docker-compose.yml logs -f postgres",
-    "db:reset": "docker compose -f ../../docker-compose.yml down -v && docker compose -f ../../docker-compose.yml up postgres -d",
-    "db:generate": "dotenv -e ../../.env -- drizzle-kit generate",
-    "db:migrate": "dotenv -e ../../.env -- drizzle-kit migrate",
-    "db:studio": "dotenv -e ../../.env -- drizzle-kit studio"
+    "test": "pnpm db:up && dotenv -e ../../.env -- vitest run"
   },
   "keywords": [],
   "author": "",

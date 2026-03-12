@@ -1,3 +1,5 @@
+# Запускать только из корня монорепы
+
 # Работаем с node LTS на момент марта 2026 - 24.14.0.
 # alpine - мини версия. ускоряет установку и сборку на CI/CD.
 FROM node:24.14.0-alpine AS builder
@@ -11,9 +13,10 @@ RUN corepack enable && corepack prepare pnpm@10.32.0 --activate
 WORKDIR /app
 
 # Последний аргумент в COPY - это куда копировать. Перед ним - что копировать
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 
 COPY apps/client/package.json ./apps/client/
+# копируем package.json из eslint-plugin только для полноты картины
 COPY packages/eslint-plugin-fsd/package.json ./packages/eslint-plugin-fsd/
 
 # frozen-lockfile запрещает обновлять локфайл, чтобы сборка всегда происходила одинаково
@@ -35,6 +38,10 @@ COPY apps/client/nginx.conf /etc/nginx/conf.d/default.conf
 
 # порт
 EXPOSE 80
+
+# best practices. adduser потому что alpine
+# RUN adduser -D app
+# USER app
 
 # копипаста
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    container_name: postgres
+    build:
+      context: .
+      dockerfile: apps/server/postgres/Dockerfile
+    restart: unless-stopped
+    environment:
+      # ${env_variable:-default_value}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-qualification}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-qualification}']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - '4000:4000'
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-qualification}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  client:
+    build:
+        context: .
+        dockerfile: apps/client/Dockerfile
+    container_name: client
+    restart: unless-stopped
+    ports:
+        # 3000 снаружи - 80 внутри nginx
+        - '3000:80'
+    depends_on:
+        - server
+
+volumes:
+  postgres_data:

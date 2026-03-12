@@ -1,10 +1,14 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { sql } from 'drizzle-orm';
-
 import { database } from './database';
 
 const fastify = Fastify({
     logger: true,
+});
+
+await fastify.register(cors, {
+    origin: true,
 });
 
 fastify.get('/', async function handler(request, reply) {

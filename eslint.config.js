@@ -27,6 +27,7 @@ export default defineConfig(
             prettier: prettierPlugin,
         },
         rules: {
+            'preserve-caught-error': 'off',
             'no-multiple-empty-lines': ['error', { max: 10 }],
             'prettier/prettier': 'off',
             '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],

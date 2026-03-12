@@ -20,7 +20,7 @@ fastify.get('/dbcheck', async function handler(request, reply) {
 // Run the server!
 const start = async () => {
     try {
-        await fastify.listen({ port: 4000 });
+        await fastify.listen({ port: 4000, host: '0.0.0.0' });
         console.log('server runs');
     } catch (err) {
         fastify.log.error(err);

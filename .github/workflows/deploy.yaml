@@ -1,0 +1,124 @@
+# Continuous Deployment на Yandex Cloud VPS
+#
+# Что делает:
+# 1. Прогоняет тесты и тайпчек
+# 2. Билдит Docker-образы server и client
+# 3. Пушит образы в GitHub Container Registry (ghcr.io)
+# 4. Подключается к VPS по SSH и обновляет контейнеры
+#
+# Триггер: пуш в main (мержи PR-ов)
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Флаг ручного запуска
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  # Отменяем деплой старого кода, если вдруг пришёл новый коммит
+  cancel-in-progress: true
+
+# права для пуша образов в ghcr.io (я эти права * *** ****)
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # реестр для докер образов, которые мы будем скачивать на VPS. 
+  REGISTRY: ghcr.io
+  # важно запомнить, что у меня всё называется qualification-.....
+  SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/qualification-server
+  CLIENT_IMAGE: ghcr.io/${{ github.repository_owner }}/qualification-client
+
+jobs:
+  # Сборка и пуш образов
+  build:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    # TODO: добавить тесты
+    # needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      # По названию ясно
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # docker buildx - расширенный билдер с поддержкой кэширования слоёв.
+      # без него каждый билд начинается с нуля. 
+      # TODO: рассмотреть turborepo для какого-то там супер-кэширования
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+ 
+      # - sha-<commit> - уникальный тег для каждого деплоя
+      # - latest - всегда указывает на последний билд
+      # сache-from/cache-to — кэширование слоёв в registry, ускоряет повторные билды.
+      - name: Build & push server
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: true
+          tags: |
+            ${{ env.SERVER_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.SERVER_IMAGE }}:latest
+          cache-from: type=registry,ref=${{ env.SERVER_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.SERVER_IMAGE }}:buildcache,mode=max
+
+      # всё то же самое для клиента
+      - name: Build & push client
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/client/Dockerfile
+          push: true
+          tags: |
+            ${{ env.CLIENT_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.CLIENT_IMAGE }}:latest
+          cache-from: type=registry,ref=${{ env.CLIENT_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.CLIENT_IMAGE }}:buildcache,mode=max
+
+  # деплой на VPS
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    # деплоим только после успешного билда
+    needs: build 
+    steps:
+      # TODO: понять, что ещё за appleboy
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+
+          script: |
+            # переходим в директорию проекта на VPS
+            cd ~/qualification_work
+
+            # подтягиваем свежий docker-compose.prod.yml из репозитория
+            git pull origin main
+
+            # логинимся в ghcr.io для пула приватных образов.
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # тэги
+            export IMAGE_TAG=sha-${{ github.sha }}
+            export SERVER_IMAGE=${{ env.SERVER_IMAGE }}
+            export CLIENT_IMAGE=${{ env.CLIENT_IMAGE }}
+
+            # pull новых образов и пересоздание контейнеров
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull server client
+            # wait, чтобы compose вернул exit code 0 или иной, если контейнер упадёт
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --wait
+
+            # чистим страые образы
+            docker image prune -f

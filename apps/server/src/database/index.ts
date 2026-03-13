@@ -1,6 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import * as schema from './schema';
 
 const connectionString =
     // попадает из докер компоуз
@@ -20,13 +18,11 @@ if (!connectionString) {
     throw new Error('не найдены env переменные');
 }
 
-const pool = new Pool({ connectionString });
+export const pool = new Pool({ connectionString });
 
 try {
     const client = await pool.connect();
     client.release();
 } catch (e) {
-    throw new Error(`Ошибка подключения к бд.\n${e}`);
+    throw new Error(`Ошибка подключения к postgres.\nDATABASE_URL=${connectionString}\n${e}`);
 }
-
-export const database = drizzle(pool, { schema });

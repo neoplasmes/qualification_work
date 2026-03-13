@@ -6,8 +6,10 @@
   "scripts": {
     "dev:client": "pnpm --filter=client dev",
     "dev:server": "pnpm --filter=server dev",
-    "dev": "pnpm --parallel --filter=client --filter=server dev",
-    "test": "pnpm -r test"
+    "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
+    "dev:local": "pnpm --parallel --filter=client --filter=server dev",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
   },
   "keywords": [],
   "author": "",

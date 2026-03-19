@@ -1,4 +1,3 @@
-// @ts-check
 import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
@@ -27,6 +26,7 @@ export default defineConfig(
             prettier: prettierPlugin,
         },
         rules: {
+            curly: ['error', 'all'],
             'preserve-caught-error': 'off',
             'no-multiple-empty-lines': ['error', { max: 10 }],
             'prettier/prettier': 'off',

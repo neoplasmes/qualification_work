@@ -3,6 +3,8 @@ dist
 
 .env
 
+*-logs
+
 package-lock.json
 
 # Это надо держать собранным (наверное)

@@ -8,6 +8,7 @@ import type {
 } from '../types';
 import { AllHttpMethods, AllRouteHookTypes, SegmentType } from '../types';
 import { HandlerStore } from './HandlerStore';
+import { SegmentMap } from './SegmentMap';
 
 /**
  * Класс, описывающий сегмент URL. Экземпляры хранятся в Radix-Tree роутере.
@@ -21,7 +22,7 @@ export class PathSegment {
     readonly segment: string;
     readonly segmentType: SegmentType;
 
-    private readonly staticChildren: Map<string, PathSegment>;
+    private readonly staticChildren: SegmentMap;
     private paramChild: PathSegment | null = null;
     private wildcardChild: PathSegment | null = null;
 
@@ -73,7 +74,7 @@ export class PathSegment {
             this.segmentType = SegmentType.STATIC;
         }
 
-        this.staticChildren = new Map();
+        this.staticChildren = new SegmentMap();
 
         this.assignedHooks = {
             onRequest: [],
@@ -86,6 +87,12 @@ export class PathSegment {
         this.handlers = new HandlerStore();
     }
 
+    /**
+     * только для мерджа
+     *
+     * @param segment
+     * @returns
+     */
     getChild(segment: string): PathSegment | null {
         if (segment === '*') {
             return this.wildcardChild;
@@ -96,8 +103,12 @@ export class PathSegment {
         }
     }
 
-    getStaticChild(segment: string): PathSegment | null {
-        return this.staticChildren.get(segment) ?? null;
+    getStaticChildByRange(
+        source: string,
+        start: number,
+        end: number
+    ): PathSegment | null {
+        return this.staticChildren.getByRange(source, start, end);
     }
 
     getParamChild(): PathSegment | null {

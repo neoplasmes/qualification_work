@@ -253,12 +253,8 @@ export class Router {
                 continue;
             }
 
-            // TODO: оптимизировать этот слайс (убрать).
-            // Это можно сделать с помощью хэш таблицы, которой не нужны аллокации строки
-            const segment = path.slice(start, end);
-
             // static
-            const staticChild = curr.getStaticChild(segment);
+            const staticChild = curr.getStaticChildByRange(path, start, end);
             if (staticChild) {
                 curr = staticChild;
 
@@ -272,6 +268,7 @@ export class Router {
             const paramChild = curr.getParamChild();
             if (paramChild) {
                 // заполнили параметры
+                const segment = path.slice(start, end);
                 lookupResult.params[paramChild.paramName!] = segment;
 
                 curr = paramChild;

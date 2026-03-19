@@ -6,7 +6,8 @@ import type {
     RequestHandler,
     RouteHookType,
 } from '../types';
-import { AllRouteHookTypes, SegmentType } from '../types';
+import { AllHttpMethods, AllRouteHookTypes, SegmentType } from '../types';
+import { HandlerStore } from './HandlerStore';
 
 /**
  * Класс, описывающий сегмент URL. Экземпляры хранятся в Radix-Tree роутере.
@@ -21,8 +22,8 @@ export class PathSegment {
     readonly segmentType: SegmentType;
 
     private readonly staticChildren: Map<string, PathSegment>;
-    private paramChild: PathSegment | null;
-    private wildcardChild: PathSegment | null;
+    private paramChild: PathSegment | null = null;
+    private wildcardChild: PathSegment | null = null;
 
     /**
      * Не null, только если segmentType = PARAMETRIC
@@ -30,7 +31,7 @@ export class PathSegment {
      * @readonly
      * @type {(string | null)}
      */
-    readonly paramName: string | null;
+    readonly paramName: string | null = null;
 
     /**
      * Хуки, которые назначены именно на данный сегмент пути.
@@ -50,13 +51,18 @@ export class PathSegment {
      * @private
      * @type {(PathSegmentHooksStore | null)}
      */
-    private compiledHooks: PathSegmentHooksStore | null;
+    private compiledHooks: PathSegmentHooksStore | null = null;
 
-    private readonly handlers: Map<HttpMethod, RequestHandler>;
+    /**
+     * Заменено на HandlersStore, чтобы при lookUp не тратилось время на вычисление хэшей
+     *
+     * @readonly
+     * @type {HandlerStore}
+     */
+    readonly handlers: HandlerStore;
 
     constructor(segment: string) {
         this.segment = segment;
-        this.paramName = null;
 
         if (segment === '*') {
             this.segmentType = SegmentType.WILDCARD;
@@ -68,8 +74,6 @@ export class PathSegment {
         }
 
         this.staticChildren = new Map();
-        this.paramChild = null;
-        this.wildcardChild = null;
 
         this.assignedHooks = {
             onRequest: [],
@@ -78,9 +82,8 @@ export class PathSegment {
             onResponse: [],
             onError: [],
         };
-        this.compiledHooks = null;
 
-        this.handlers = new Map();
+        this.handlers = new HandlerStore();
     }
 
     getChild(segment: string): PathSegment | null {
@@ -181,7 +184,7 @@ export class PathSegment {
      * @returns true - есть какие-то обработчики, false - нет
      */
     canHandle(): boolean {
-        return this.handlers.size > 0;
+        return this.handlers.hasAny();
     }
 
     hasHandler(method: HttpMethod): boolean {
@@ -197,17 +200,17 @@ export class PathSegment {
     }
 
     getHandler(method: HttpMethod): RequestHandler | null {
-        return this.handlers.get(method) ?? null;
+        return this.handlers.get(method);
     }
 
-    assignHandler(method: HttpMethod, handler: RequestHandler): RequestHandler {
+    assignHandler(method: HttpMethod, handler: RequestHandler): void {
         if (this.handlers.has(method)) {
             console.warn(
-                `Handler function has been replaces for ${method} method of ${this.segment}`
+                `Handler function has been replaced for ${method} method of ${this.segment}`
             );
         }
 
-        return this.handlers.set(method, handler).get(method)!;
+        this.handlers.set(method, handler);
     }
 
     setCompiledHooks(hooks: PathSegmentHooksStore) {
@@ -231,14 +234,19 @@ export class PathSegment {
             const { target, source } = stack.pop()!;
 
             // мердж хэндлеров
-            for (const [method, handler] of source.handlers) {
+            for (const method of AllHttpMethods) {
+                const handler = source.handlers.get(method);
+                if (!handler) {
+                    continue;
+                }
+
                 if (target.handlers.has(method)) {
                     throw new Error(
                         `${method} handler of "${source.segment}" already exists on "${target.segment}"`
                     );
                 }
 
-                target.assignHandler(method, handler);
+                target.handlers.set(method, handler);
             }
 
             // мердж хуков

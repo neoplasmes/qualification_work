@@ -1,7 +1,7 @@
-import { createServer, IncomingMessage, Server, ServerResponse } from 'node:http';
+import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
 import { Router } from './Router';
-import {
-    AllHttpMethods,
+import type {
     AppRequestHookType,
     ErrorHookFn,
     HookFn,
@@ -152,7 +152,9 @@ export class Application {
     }
 
     async close(): Promise<void> {
-        if (!this.nodeServer) return;
+        if (!this.nodeServer) {
+            return;
+        }
 
         await this.runLifecycleHooks('onClose');
 
@@ -188,46 +190,55 @@ export class Application {
 
     private async executePipeline(ctx: RequestContext): Promise<void> {
         const { request, response } = ctx;
-        const routeErrorHooks: ErrorHookFn[] = [];
+        let routeErrorHooks: ErrorHookFn[] | null = null;
 
         try {
             // onRequest на уровне приложения
             await this.runHookChain(this.appRequestHooks.onRequest, ctx);
-            if (response.isSent) return;
+            if (response.isSent) {
+                return;
+            }
 
             const method = request.method;
-            if (!AllHttpMethods.includes(method)) {
-                response.status(501).text('not Implemented');
+            const result = this.router.lookup(request.pathname);
 
+            if (!result.found || !result.handlers) {
+                response.status(404).text('Not Found');
                 return;
             }
 
-            const result = this.router.lookup(method, request.pathname);
+            const { handlers, params, hooks } = result;
 
-            if (!result) {
-                response.status(404).text('route not found');
-
-                // onResponse на уровне приложения
-                await this.runHookChain(this.appRequestHooks.onResponse, ctx);
-
+            // OPTIONS — автоматический ответ с Allow заголовком
+            if (method === 'OPTIONS' && !handlers.OPTIONS) {
+                response.setHeader('Allow', handlers.allowHeader()).status(204).empty();
                 return;
             }
 
-            const { handler, params, hooks } = result;
+            // HEAD — fallback на GET-хэндлер, тело обрезается ниже
+            let handler = handlers.get(method);
+            const isImplicitHead = method === 'HEAD' && !handler && handlers.GET !== null;
+
+            if (isImplicitHead) {
+                handler = handlers.GET;
+            }
+
+            if (!handler) {
+                response.status(405).text('Method Not Allowed');
+                return;
+            }
 
             request.params = params;
 
             if (hooks) {
-                routeErrorHooks.concat(hooks.onError);
+                routeErrorHooks = hooks.onError;
 
                 await this.runHookChain(hooks.onRequest, ctx);
-
                 if (response.isSent) {
                     return;
                 }
 
                 await this.runHookChain(hooks.preHandler, ctx);
-
                 if (response.isSent) {
                     return;
                 }
@@ -235,14 +246,19 @@ export class Application {
 
             await handler(ctx);
 
+            // HEAD — обрезаем тело, оставляем только заголовки
+            if (isImplicitHead && !response.isSent) {
+                response.empty();
+            }
+
             if (hooks) {
                 await this.runHookChain(hooks.postHandler, ctx);
             }
-
-            // Глобальный onResponse
-            await this.runHookChain(this.appRequestHooks.onResponse, ctx);
         } catch (error: unknown) {
             await this.handleError(error, ctx, routeErrorHooks);
+        } finally {
+            // onResponse вызывается всегда, даже после ошибки
+            await this.runHookChain(this.appRequestHooks.onResponse, ctx);
         }
     }
 
@@ -297,7 +313,9 @@ export class Application {
     private async runHookChain(hooks: HookFn[], ctx: RequestContext): Promise<void> {
         for (let i = 0; i < hooks.length; i++) {
             await hooks[i](ctx);
-            if (ctx.response.isSent) return;
+            if (ctx.response.isSent) {
+                return;
+            }
         }
     }
 

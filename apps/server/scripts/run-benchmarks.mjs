@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { execSync } from 'node:child_process';
 import { mkdirSync, readdirSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';

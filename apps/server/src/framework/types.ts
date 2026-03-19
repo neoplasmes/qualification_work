@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { FRequest } from './FRequest';
-import { FResponse } from './FResponse';
+import type { FRequest } from './FRequest';
+import type { FResponse } from './FResponse';
 
 /**
  * Все доступные HTTP методы

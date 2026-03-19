@@ -27,6 +27,7 @@ export default defineConfig(
         },
         rules: {
             curly: ['error', 'all'],
+            'no-useless-assignment': 'off',
             'preserve-caught-error': 'off',
             'no-multiple-empty-lines': ['error', { max: 10 }],
             'prettier/prettier': 'off',

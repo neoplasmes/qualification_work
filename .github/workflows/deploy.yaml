@@ -11,8 +11,8 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   # Флаг ручного запуска
   workflow_dispatch:
 

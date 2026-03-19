@@ -93,6 +93,18 @@ export class PathSegment {
         }
     }
 
+    getStaticChild(segment: string): PathSegment | null {
+        return this.staticChildren.get(segment) ?? null;
+    }
+
+    getParamChild(): PathSegment | null {
+        return this.paramChild;
+    }
+
+    getWildcardChild(): PathSegment | null {
+        return this.wildcardChild;
+    }
+
     getAllChildren(): PathSegment[] {
         const result: PathSegment[] = [];
 

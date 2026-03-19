@@ -9,7 +9,6 @@ import type {
     RouteHookType,
     RouteParams,
 } from '../types';
-import { SegmentType } from '../types';
 import { parsePath } from '../utils';
 
 export type LookupResult = {
@@ -214,39 +213,79 @@ export class Router {
         this.isCompiled = true;
     }
 
+    /**
+     * Бегает по строке path с двумя указателями
+     */
     lookup(method: HttpMethod, path: string): LookupResult | null {
         assert(this.isCompiled, 'Router must be compiled before lookup');
 
-        const segments = parsePath(path);
-
+        const SLASH = 47;
         const params: RouteParams = {};
-        let curr: PathSegment = this.root;
 
-        for (let i = 0; i < segments.length; i++) {
-            const s = segments[i];
+        const len = path.length;
+
+        let curr: PathSegment = this.root;
+        let start = 0;
+
+        // пропускаем ведущий слэш
+        if (len > 0 && path.charCodeAt(0) === SLASH) {
+            start = 1;
+        }
+
+        while (start < len) {
+            // находим конец сегмента
+            let end = start;
+            while (end < len && path.charCodeAt(end) !== SLASH) {
+                end++;
+            }
+
+            // пустой сегмент (двойной слэш) - пропускаем
+            if (end === start) {
+                end++;
+                continue;
+            }
+
+            const segment = path.slice(start, end);
 
             // static
-            const staticChild = curr.getChild(s);
-            if (staticChild && staticChild.segmentType === SegmentType.STATIC) {
+            const staticChild = curr.getStaticChild(segment);
+            if (staticChild) {
                 curr = staticChild;
+
+                // переместили указатель начала сегмента дальше
+                start = end + 1;
+
                 continue;
             }
 
             // parametric
-            const paramChild = curr.getChild(':_');
+            const paramChild = curr.getParamChild();
             if (paramChild) {
-                params[paramChild.paramName!] = s;
+                // заполнили параметры
+                params[paramChild.paramName!] = segment;
+
                 curr = paramChild;
+                start = end + 1;
+
                 continue;
             }
 
             // wildcard
-            const wildcardChild = curr.getChild('*');
+            const wildcardChild = curr.getWildcardChild();
             if (wildcardChild) {
                 const handler = wildcardChild.getHandler(method);
-                if (!handler) return null;
 
-                params['*'] = segments.slice(i).join('/');
+                if (!handler) {
+                    return null;
+                }
+
+                const tail =
+                    path.charCodeAt(len - 1) === SLASH
+                        ? path.slice(start, len - 1)
+                        : path.slice(start);
+
+                params['*'] = tail;
+
                 return { handler, params, hooks: wildcardChild.getCompiledHooks() };
             }
 

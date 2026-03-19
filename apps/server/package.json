@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "db:up": "docker compose -f ../../docker-compose.dev.yml up postgres -d",
     "db:down": "docker compose -f ../../docker-compose.dev.yml down",
-    "test": "pnpm db:up && dotenv -e ../../.env -- vitest run"
+    "test": "pnpm db:up && dotenv -e ../../.env -- vitest run",
+    "bench": "node scripts/run-benchmarks.mjs"
   },
   "keywords": [],
   "author": "",

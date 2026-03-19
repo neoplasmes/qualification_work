@@ -9,10 +9,12 @@ import type {
     RouteHookType,
     RouteParams,
 } from '../types';
+import type { HandlerStore } from '../PathSegment';
 import { parsePath } from '../utils';
 
 export type LookupResult = {
-    handler: RequestHandler;
+    found: boolean;
+    handlers: HandlerStore | null;
     params: RouteParams;
     hooks: PathSegmentHooksStore | null;
 };
@@ -216,11 +218,16 @@ export class Router {
     /**
      * Бегает по строке path с двумя указателями
      */
-    lookup(method: HttpMethod, path: string): LookupResult | null {
+    lookup(path: string): LookupResult {
         assert(this.isCompiled, 'Router must be compiled before lookup');
 
         const SLASH = 47;
-        const params: RouteParams = {};
+        const lookupResult: LookupResult = {
+            found: false,
+            handlers: null,
+            params: {},
+            hooks: null,
+        };
 
         const len = path.length;
 
@@ -242,9 +249,12 @@ export class Router {
             // пустой сегмент (двойной слэш) - пропускаем
             if (end === start) {
                 end++;
+
                 continue;
             }
 
+            // TODO: оптимизировать этот слайс (убрать).
+            // Это можно сделать с помощью хэш таблицы, которой не нужны аллокации строки
             const segment = path.slice(start, end);
 
             // static
@@ -262,7 +272,7 @@ export class Router {
             const paramChild = curr.getParamChild();
             if (paramChild) {
                 // заполнили параметры
-                params[paramChild.paramName!] = segment;
+                lookupResult.params[paramChild.paramName!] = segment;
 
                 curr = paramChild;
                 start = end + 1;
@@ -273,29 +283,36 @@ export class Router {
             // wildcard
             const wildcardChild = curr.getWildcardChild();
             if (wildcardChild) {
-                const handler = wildcardChild.getHandler(method);
-
-                if (!handler) {
-                    return null;
+                if (!wildcardChild.canHandle()) {
+                    return lookupResult;
                 }
 
-                const tail =
+                // Всё, что осталось на потом
+                lookupResult.params['*'] =
                     path.charCodeAt(len - 1) === SLASH
                         ? path.slice(start, len - 1)
                         : path.slice(start);
 
-                params['*'] = tail;
+                lookupResult.found = true;
+                lookupResult.handlers = wildcardChild.handlers;
+                lookupResult.hooks = wildcardChild.getCompiledHooks();
 
-                return { handler, params, hooks: wildcardChild.getCompiledHooks() };
+                // Возвращаем сразу всё здесь, т.к. после wildcard нет смысла смотреть
+                return lookupResult;
             }
 
-            return null;
+            return lookupResult;
         }
 
-        const handler = curr.getHandler(method);
-        if (!handler) return null;
+        if (!curr.canHandle()) {
+            return lookupResult;
+        }
 
-        return { handler, params, hooks: curr.getCompiledHooks() };
+        lookupResult.found = true;
+        lookupResult.handlers = curr.handlers;
+        lookupResult.hooks = curr.getCompiledHooks();
+
+        return lookupResult;
     }
 
     private ensureNotCompiled(): void {

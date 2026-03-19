@@ -32,26 +32,26 @@ const router = createRouter();
 
 describe('Router.lookup', () => {
     bench('static short — /health', () => {
-        router.lookup('GET', '/health');
+        router.lookup('/health');
     });
 
     bench('static deep — /api/users/me/settings', () => {
-        router.lookup('GET', '/api/users/me/settings');
+        router.lookup('/api/users/me/settings');
     });
 
     bench('parametric — /api/users/:id', () => {
-        router.lookup('GET', '/api/users/42');
+        router.lookup('/api/users/42');
     });
 
     bench('parametric deep — /api/posts/:id/comments/:commentId', () => {
-        router.lookup('GET', '/api/posts/7/comments/99');
+        router.lookup('/api/posts/7/comments/99');
     });
 
     bench('wildcard — /static/*', () => {
-        router.lookup('GET', '/static/js/app.bundle.min.js');
+        router.lookup('/static/js/app.bundle.min.js');
     });
 
     bench('not found', () => {
-        router.lookup('GET', '/api/nonexistent/path');
+        router.lookup('/api/nonexistent/path');
     });
 });

@@ -37,7 +37,9 @@ export class FResponse {
     }
 
     json(data: unknown): void {
-        if (this.sent) return;
+        if (this.sent) {
+            return;
+        }
 
         const body = JSON.stringify(data);
 
@@ -51,7 +53,9 @@ export class FResponse {
     }
 
     text(data: string): void {
-        if (this.sent) return;
+        if (this.sent) {
+            return;
+        }
 
         if (!this.headers.has('content-type')) {
             this.headers.set('content-type', 'text/plain; charset=utf-8');
@@ -63,7 +67,9 @@ export class FResponse {
     }
 
     send(data: string | Buffer): void {
-        if (this.sent) return;
+        if (this.sent) {
+            return;
+        }
 
         this.flushHeaders();
         this.raw.end(data);
@@ -71,7 +77,9 @@ export class FResponse {
     }
 
     empty(): void {
-        if (this.sent) return;
+        if (this.sent) {
+            return;
+        }
 
         this.flushHeaders();
         this.raw.end();
@@ -79,7 +87,9 @@ export class FResponse {
     }
 
     redirect(url: string, permanent = false): void {
-        if (this.sent) return;
+        if (this.sent) {
+            return;
+        }
 
         this.statusCode = permanent ? 301 : 302;
         this.headers.set('location', url);

@@ -1,9 +1,9 @@
-import type { Rule } from 'eslint';
 import path from 'path';
 
 const FSDLayers = ['shared', 'entities', 'features', 'widgets', 'pages', 'app'];
 
-const rule: Rule.RuleModule = {
+/** @type {import('eslint').Rule.RuleModule} */
+const rule = {
     meta: {
         type: 'problem',
         docs: {
@@ -17,7 +17,7 @@ const rule: Rule.RuleModule = {
     create(context) {
         return {
             ImportDeclaration(node) {
-                const importPath = node.source.value as string;
+                const importPath = node.source.value;
 
                 if (!importPath.startsWith('@/')) return;
 
@@ -26,8 +26,6 @@ const rule: Rule.RuleModule = {
                 const currentLayerIndex = FSDLayers.findIndex(layer => parts.includes(layer));
 
                 if (currentLayerIndex === -1) return;
-
-                // const currentLayer = FSDLayers[currentLayerIndex];
 
                 const importedLayer = importPath.replace('@/', '').split('/')[0];
                 const importedLayerIndex = FSDLayers.indexOf(importedLayer);

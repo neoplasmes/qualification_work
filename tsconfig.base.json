@@ -1,45 +1,45 @@
 {
-  "compilerOptions": {
-    // До какой версии JS компилировать. ES2020 поддерживается всеми современными браузерами и Node.js 14+
-    "target": "ES2020",
+    "compilerOptions": {
+        // До какой версии JS компилировать. ES2020 поддерживается всеми современными браузерами и Node.js 14+
+        "target": "ES2020",
 
-    // Система модулей в скомпилированном коде. ESNext = import/export (современный стандарт)
-    "module": "ESNext",
+        // Система модулей в скомпилированном коде. ESNext = import/export (современный стандарт)
+        "module": "ESNext",
 
-    // Как TypeScript ищет импортируемые файлы. "bundler" — для работы с Vite/webpack/esbuild
-    "moduleResolution": "bundler",
+        // Как TypeScript ищет импортируемые файлы. "bundler" — для работы с Vite/webpack/esbuild
+        "moduleResolution": "bundler",
 
-    // Какие встроенные типы подключить. ES2020 даёт типы для Promise, Map, Set и т.д.
-    "lib": ["ES2020"],
+        // Какие встроенные типы подключить. ES2020 даёт типы для Promise, Map, Set и т.д.
+        "lib": ["ES2020"],
 
-    // Включает все строгие проверки разом (strict null checks, no implicit any и др.)
-    "strict": true,
+        // Включает все строгие проверки разом (strict null checks, no implicit any и др.)
+        "strict": true,
 
-    // Позволяет писать import React from 'react' вместо import * as React from 'react'
-    "esModuleInterop": true,
+        // Позволяет писать import React from 'react' вместо import * as React from 'react'
+        "esModuleInterop": true,
 
-    // Не проверять типы внутри node_modules. Ускоряет компиляцию и убирает чужие ошибки
-    "skipLibCheck": true,
+        // Не проверять типы внутри node_modules. Ускоряет компиляцию и убирает чужие ошибки
+        "skipLibCheck": true,
 
-    // Ошибка если импортируешь 'MyFile' а файл называется 'myfile.ts' (важно для Linux)
-    "forceConsistentCasingInFileNames": true,
+        // Ошибка если импортируешь 'MyFile' а файл называется 'myfile.ts' (важно для Linux)
+        "forceConsistentCasingInFileNames": true,
 
-    // Позволяет импортировать .json файлы как модули: import data from './data.json'
-    "resolveJsonModule": true,
+        // Позволяет импортировать .json файлы как модули: import data from './data.json'
+        "resolveJsonModule": true,
 
-    // Генерировать .d.ts файлы с типами — нужно чтобы другие пакеты монорепы видели твои типы
-    "declaration": true,
+        // Генерировать .d.ts файлы с типами — нужно чтобы другие пакеты монорепы видели твои типы
+        "declaration": true,
 
-    // Генерировать карту соответствия .d.ts → исходный .ts файл (помогает IDE с навигацией)
-    "declarationMap": true,
+        // Генерировать карту соответствия .d.ts → исходный .ts файл (помогает IDE с навигацией)
+        "declarationMap": true,
 
-    // Генерировать .map файлы для отладки — чтобы в devtools видеть оригинальный TS, а не JS
-    "sourceMap": true,
+        // Генерировать .map файлы для отладки — чтобы в devtools видеть оригинальный TS, а не JS
+        "sourceMap": true,
 
-    // убрал потому что занудство
-    "noUncheckedIndexedAccess": false,
+        // убрал потому что занудство
+        "noUncheckedIndexedAccess": false,
 
-    // Если переопределяешь метод родительского класса — обязан написать ключевое слово override
-    "noImplicitOverride": true
-  }
+        // Если переопределяешь метод родительского класса — обязан написать ключевое слово override
+        "noImplicitOverride": true
+    }
 }

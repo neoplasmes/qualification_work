@@ -18,6 +18,7 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 COPY apps/client/package.json ./apps/client/
 # копируем package.json из eslint-plugin только для полноты картины
 COPY packages/eslint-plugin-fsd/package.json ./packages/eslint-plugin-fsd/
+# здесь копируем остальные пакеты ...
 
 # frozen-lockfile запрещает обновлять локфайл, чтобы сборка всегда происходила одинаково
 RUN pnpm install --frozen-lockfile

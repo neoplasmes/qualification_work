@@ -6,4 +6,4 @@ dist
 package-lock.json
 
 # Это надо держать собранным (наверное)
-!packages/eslint-plugin-fsd/dist/
+# !packages/eslint-plugin-fsd/dist/

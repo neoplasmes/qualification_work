@@ -7,7 +7,7 @@
     "trailingComma": "es5",
     "bracketSpacing": true,
     "arrowParens": "avoid",
-    "printWidth": 120,
+    "printWidth": 90,
     "endOfLine": "lf",
     "jsxSingleQuote": false,
     "bracketSameLine": false,

@@ -1,5 +1,6 @@
 # На VPS у нас 4 GB RAM
-
+# TODO: мигрировать на Yandex Lockbox, чтобы доставать оттуда секреты.
+# TODO: вместе с верхним пунктом нужно добавить некий скрипт, который будет выгружать секреты из Lockbox'а
 services:
   postgres:
     build:
@@ -40,6 +41,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
     healthcheck:
+      # wget и curl недоступны внутри node:alpine
       test: ['CMD', 'node', '-e', "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw r}).catch(()=>process.exit(1))"]
       interval: 15s
       timeout: 5s
@@ -62,6 +64,9 @@ services:
     ports:
       - '${CLIENT_PORT:-80}:80'
     healthcheck:
+      # wget выдаёт: 
+      # wget: can't connect to remote host: Connection refused
+      # меняем на curl
       test: ['CMD-SHELL', 'curl -f http://localhost:80/ || exit 1']
       interval: 15s
       timeout: 5s

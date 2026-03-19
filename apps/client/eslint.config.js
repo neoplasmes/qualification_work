@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig } from 'eslint/config';
 import react from 'eslint-plugin-react';
 
@@ -16,6 +15,7 @@ export default defineConfig(
         files: ['**/*.{ts,tsx}'],
         plugins: {
             react,
+            fsd,
         },
         languageOptions: {
             globals: globals.browser,
@@ -30,8 +30,8 @@ export default defineConfig(
             'react/prop-types': 'off',
             'fsd/no-cross-slice-dependency': 'error',
             'fsd/no-public-api-sidestep': 'error',
-            'fsd/no-upper-layer-imports': 'error',
-            'fsd/prefer-alias-imports': 'error',
+            'fsd/no-upper-layer-import': 'error',
+            'fsd/prefer-alias-import': 'error',
         },
     }
 );

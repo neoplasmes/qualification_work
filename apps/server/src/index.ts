@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { pool } from './database';
+import { pool } from './infrastructure/database';
 
 const setCors = (res: ServerResponse) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

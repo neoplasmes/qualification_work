@@ -2,13 +2,15 @@
   "name": "@qualification-work/eslint-plugin-fsd",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "scripts": {
-    "build": "tsc --declaration false --declarationMap false --sourceMap false",
-    "dev": "tsc --watch"
-  },
-  "devDependencies": {
-    "@types/eslint": "^9.6.0",
-    "@types/node": "^25.4.0"
+  "main": "./src/index.js",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "fsd",
+    "feature-sliced-design"
+  ],
+  "peerDependencies": {
+    "eslint": ">=9.0.0"
   }
 }

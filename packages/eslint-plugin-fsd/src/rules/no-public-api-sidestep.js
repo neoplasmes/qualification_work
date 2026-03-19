@@ -1,8 +1,7 @@
-import type { Rule } from 'eslint';
-
 const FSDLayers = ['entities', 'features', 'widgets', 'pages'];
 
-const rule: Rule.RuleModule = {
+/** @type {import('eslint').Rule.RuleModule} */
+const rule = {
     meta: {
         type: 'problem',
         docs: {
@@ -16,7 +15,7 @@ const rule: Rule.RuleModule = {
     create(context) {
         return {
             ImportDeclaration(node) {
-                const importPath = node.source.value as string;
+                const importPath = node.source.value;
 
                 if (!importPath.startsWith('@/')) return;
 

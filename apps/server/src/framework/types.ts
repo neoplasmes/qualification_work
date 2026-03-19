@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { FRequest } from './FRequest';
-import { FResponse } from './FResponse';
+import type { FRequest } from './FRequest';
+import type { FResponse } from './FResponse';
 
 /**
  * Все доступные HTTP методы
@@ -127,12 +127,24 @@ export class HandlerStore {
      */
     allowHeader(): string {
         let result = '';
-        if (this.GET !== null) { result += 'GET, '; }
-        if (this.POST !== null) { result += 'POST, '; }
-        if (this.PUT !== null) { result += 'PUT, '; }
-        if (this.PATCH !== null) { result += 'PATCH, '; }
-        if (this.DELETE !== null) { result += 'DELETE, '; }
-        if (this.HEAD !== null) { result += 'HEAD, '; }
+        if (this.GET !== null) {
+            result += 'GET, ';
+        }
+        if (this.POST !== null) {
+            result += 'POST, ';
+        }
+        if (this.PUT !== null) {
+            result += 'PUT, ';
+        }
+        if (this.PATCH !== null) {
+            result += 'PATCH, ';
+        }
+        if (this.DELETE !== null) {
+            result += 'DELETE, ';
+        }
+        if (this.HEAD !== null) {
+            result += 'HEAD, ';
+        }
         result += 'OPTIONS';
         return result;
     }

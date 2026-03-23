@@ -1,4 +1,4 @@
-import type { QueryParams } from '@/framework/types';
+import type { QueryParams } from '../../types';
 
 const EQUALS = 61; // '='
 const AMP = 38; // '&'

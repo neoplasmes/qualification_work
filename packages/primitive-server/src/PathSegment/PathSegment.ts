@@ -17,13 +17,13 @@ import { HandlerStore } from './HandlerStore';
  * @export
  * @class PathSegment
  */
-export class PathSegment {
+export class PathSegment<T extends Record<string, unknown> = Record<string, unknown>> {
     readonly segment: string;
     readonly segmentType: SegmentType;
 
-    private readonly staticChildren: Map<string, PathSegment>;
-    private paramChild: PathSegment | null = null;
-    private wildcardChild: PathSegment | null = null;
+    private readonly staticChildren: Map<string, PathSegment<T>>;
+    private paramChild: PathSegment<T> | null = null;
+    private wildcardChild: PathSegment<T> | null = null;
 
     /**
      * Не null, только если segmentType = PARAMETRIC
@@ -37,9 +37,9 @@ export class PathSegment {
      * Хуки, которые назначены именно на данный сегмент пути.
      *
      * @private
-     * @type {PathSegmentHooksStore}
+     * @type {PathSegmentHooksStore<T>}
      */
-    private readonly assignedHooks: PathSegmentHooksStore;
+    private readonly assignedHooks: PathSegmentHooksStore<T>;
 
     /**
      * Хуки, собранные со всех сегментов пути, включая данный.
@@ -49,17 +49,17 @@ export class PathSegment {
      * поэтому overhead из за дубликации указателей несущественный.
      *
      * @private
-     * @type {(PathSegmentHooksStore | null)}
+     * @type {(PathSegmentHooksStore<T> | null)}
      */
-    private compiledHooks: PathSegmentHooksStore | null = null;
+    private compiledHooks: PathSegmentHooksStore<T> | null = null;
 
     /**
      * Заменено на HandlersStore, чтобы при lookUp не тратилось время на вычисление хэшей
      *
      * @readonly
-     * @type {HandlerStore}
+     * @type {HandlerStore<T>}
      */
-    readonly handlers: HandlerStore;
+    readonly handlers: HandlerStore<T>;
 
     constructor(segment: string) {
         this.segment = segment;
@@ -83,10 +83,10 @@ export class PathSegment {
             onError: [],
         };
 
-        this.handlers = new HandlerStore();
+        this.handlers = new HandlerStore<T>();
     }
 
-    getChild(segment: string): PathSegment | null {
+    getChild(segment: string): PathSegment<T> | null {
         if (segment === '*') {
             return this.wildcardChild;
         } else if (segment[0] === ':') {
@@ -96,20 +96,20 @@ export class PathSegment {
         }
     }
 
-    getStaticChild(segment: string): PathSegment | null {
+    getStaticChild(segment: string): PathSegment<T> | null {
         return this.staticChildren.get(segment) ?? null;
     }
 
-    getParamChild(): PathSegment | null {
+    getParamChild(): PathSegment<T> | null {
         return this.paramChild;
     }
 
-    getWildcardChild(): PathSegment | null {
+    getWildcardChild(): PathSegment<T> | null {
         return this.wildcardChild;
     }
 
-    getAllChildren(): PathSegment[] {
-        const result: PathSegment[] = [];
+    getAllChildren(): PathSegment<T>[] {
+        const result: PathSegment<T>[] = [];
 
         this.staticChildren.forEach(value => {
             result.push(value);
@@ -126,8 +126,8 @@ export class PathSegment {
         return result;
     }
 
-    createChild(segment: string): PathSegment {
-        const child = new PathSegment(segment);
+    createChild(segment: string): PathSegment<T> {
+        const child = new PathSegment<T>(segment);
 
         if (child.segmentType === SegmentType.WILDCARD) {
             if (this.wildcardChild) {
@@ -164,17 +164,17 @@ export class PathSegment {
      * Функция для добавления хука конкретно на данный PathSegment
      *
      * @param {RouteHookType} type
-     * @param {(HookFn | ErrorHookFn)} fn
+     * @param {(HookFn<T> | ErrorHookFn<T>)} fn
      */
-    assignHook(type: 'onError', fn: ErrorHookFn): void;
-    assignHook(type: Exclude<RouteHookType, 'onError'>, fn: HookFn): void;
-    assignHook(type: RouteHookType, fn: HookFn | ErrorHookFn): void {
-        (this.assignedHooks[type] as (HookFn | ErrorHookFn)[]).push(fn);
+    assignHook(type: 'onError', fn: ErrorHookFn<T>): void;
+    assignHook(type: Exclude<RouteHookType, 'onError'>, fn: HookFn<T>): void;
+    assignHook(type: RouteHookType, fn: HookFn<T> | ErrorHookFn<T>): void {
+        (this.assignedHooks[type] as (HookFn<T> | ErrorHookFn<T>)[]).push(fn);
     }
 
-    getHooks<T extends RouteHookType>(
-        type: T
-    ): T extends 'onError' ? ReadonlyArray<ErrorHookFn> : ReadonlyArray<HookFn> {
+    getHooks<K extends RouteHookType>(
+        type: K
+    ): K extends 'onError' ? ReadonlyArray<ErrorHookFn<T>> : ReadonlyArray<HookFn<T>> {
         return this.assignedHooks[type];
     }
 
@@ -199,11 +199,11 @@ export class PathSegment {
         }, false);
     }
 
-    getHandler(method: HttpMethod): RequestHandler | null {
+    getHandler(method: HttpMethod): RequestHandler<T> | null {
         return this.handlers.get(method);
     }
 
-    assignHandler(method: HttpMethod, handler: RequestHandler): void {
+    assignHandler(method: HttpMethod, handler: RequestHandler<T>): void {
         if (this.handlers.has(method)) {
             console.warn(
                 `Handler function has been replaced for ${method} method of ${this.segment}`
@@ -213,11 +213,11 @@ export class PathSegment {
         this.handlers.set(method, handler);
     }
 
-    setCompiledHooks(hooks: PathSegmentHooksStore) {
+    setCompiledHooks(hooks: PathSegmentHooksStore<T>) {
         this.compiledHooks = hooks;
     }
 
-    getCompiledHooks(): PathSegmentHooksStore | null {
+    getCompiledHooks(): PathSegmentHooksStore<T> | null {
         return this.compiledHooks;
     }
 
@@ -225,8 +225,8 @@ export class PathSegment {
      * Мерджит содержимое source в this.
      * Нужно для вкладывания роутеров друг в друга.
      */
-    mergeFrom(source: PathSegment): void {
-        const stack: Array<{ target: PathSegment; source: PathSegment }> = [
+    mergeFrom(source: PathSegment<T>): void {
+        const stack: Array<{ target: PathSegment<T>; source: PathSegment<T> }> = [
             { target: this, source },
         ];
 
@@ -253,8 +253,8 @@ export class PathSegment {
             for (const hookType of AllRouteHookTypes) {
                 const sourceHooks = source.assignedHooks[hookType];
                 const targetHooks = target.assignedHooks[hookType] as (
-                    | HookFn
-                    | ErrorHookFn
+                    | HookFn<T>
+                    | ErrorHookFn<T>
                 )[];
 
                 for (const hook of sourceHooks) {
@@ -314,7 +314,7 @@ export class PathSegment {
      * Усыновляет другой PathSegment как статического ребёнка.
      * Если ребёнок с таким сегментом уже есть - мерджит в него.
      */
-    adoptChild(child: PathSegment): void {
+    adoptChild(child: PathSegment<T>): void {
         const existing = this.staticChildren.get(child.segment);
 
         if (existing) {

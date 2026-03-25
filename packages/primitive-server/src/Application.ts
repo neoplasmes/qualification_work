@@ -1,4 +1,4 @@
-import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import type { Server, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 import { Router } from './Router';
 import type {
@@ -18,20 +18,44 @@ import { FResponse } from './FResponse';
 
 type LifecycleHooksStore = Record<LifecycleHookType, LifecycleHookFn[]>;
 
-type AppRequestHooksStore = {
-    [K in AppRequestHookType]: K extends 'onError' ? ErrorHookFn[] : HookFn[];
+type AppRequestHooksStore<T extends Record<string, unknown>> = {
+    [K in AppRequestHookType]: K extends 'onError' ? ErrorHookFn<T>[] : HookFn<T>[];
 };
 
-export class Application {
-    readonly router: Router;
+function banWrite(res: ServerResponse): () => void {
+    const original = res.write;
+
+    res.write = (() => true) as typeof res.write;
+
+    return () => {
+        res.write = original;
+    };
+}
+
+/**
+ * Примитивный фреймворк поверх node:http, вдохновлённый fastify, и обладающий следующими функциями:
+ * radix tree routing - только на уровне сгементов пути.
+ * hook - хуки на любой этап запроса на любом уровне вложенности и с привязкой к конкретному методу без перебора всех подряд как в Express
+ * hooks state - состояние, передающееся между хуками в рамках одного запроса
+ *
+ * @export
+ * @class Application
+ * @typedef {Application}
+ * @template [T=unknown] hooks state type
+ */
+export class Application<T extends Record<string, unknown> = Record<string, unknown>> {
+    readonly router: Router<T>;
     private nodeServer: Server | null;
 
     private readonly lifecycleHooks: LifecycleHooksStore;
 
-    private readonly appRequestHooks: AppRequestHooksStore;
+    private readonly appRequestHooks: AppRequestHooksStore<T>;
+
+    private activeRequests = 0;
+    private onDrained: (() => void) | null = null;
 
     constructor() {
-        this.router = new Router('');
+        this.router = new Router<T>('');
 
         this.nodeServer = null;
 
@@ -48,41 +72,45 @@ export class Application {
         };
     }
 
-    addRoute(method: HttpMethod, path: string, handler: RequestHandler): void {
+    addRoute(method: HttpMethod, path: string, handler: RequestHandler<T>): void {
         this.router.addRoute(method, path, handler);
     }
 
-    get(path: string, handler: RequestHandler): void {
+    get(path: string, handler: RequestHandler<T>): void {
         this.router.get(path, handler);
     }
 
-    post(path: string, handler: RequestHandler): void {
+    post(path: string, handler: RequestHandler<T>): void {
         this.router.post(path, handler);
     }
 
-    put(path: string, handler: RequestHandler): void {
+    put(path: string, handler: RequestHandler<T>): void {
         this.router.put(path, handler);
     }
 
-    patch(path: string, handler: RequestHandler): void {
+    patch(path: string, handler: RequestHandler<T>): void {
         this.router.patch(path, handler);
     }
 
-    delete(path: string, handler: RequestHandler): void {
+    delete(path: string, handler: RequestHandler<T>): void {
         this.router.delete(path, handler);
     }
 
-    assignHook(type: 'onError', path: string, fn: ErrorHookFn): void;
-    assignHook(type: Exclude<RouteHookType, 'onError'>, path: string, fn: HookFn): void;
-    assignHook(type: RouteHookType, path: string, fn: HookFn | ErrorHookFn): void {
+    assignHook(type: 'onError', path: string, fn: ErrorHookFn<T>): void;
+    assignHook(
+        type: Exclude<RouteHookType, 'onError'>,
+        path: string,
+        fn: HookFn<T>
+    ): void;
+    assignHook(type: RouteHookType, path: string, fn: HookFn<T> | ErrorHookFn<T>): void {
         if (type === 'onError') {
-            this.router.assignHook(type, path, fn as ErrorHookFn);
+            this.router.assignHook(type, path, fn as ErrorHookFn<T>);
         } else {
-            this.router.assignHook(type, path, fn as HookFn);
+            this.router.assignHook(type, path, fn as HookFn<T>);
         }
     }
 
-    mount(prefix: string, router: Router): void {
+    mount(prefix: string, router: Router<T>): void {
         this.router.mount(prefix, router);
     }
 
@@ -98,20 +126,21 @@ export class Application {
         this.lifecycleHooks.onClose.push(fn);
     }
 
-    onRequest(fn: HookFn): void {
+    onRequest(fn: HookFn<T>): void {
         this.appRequestHooks.onRequest.push(fn);
     }
 
-    onResponse(fn: HookFn): void {
+    onResponse(fn: HookFn<T>): void {
         this.appRequestHooks.onResponse.push(fn);
     }
 
-    onError(fn: ErrorHookFn): void {
+    onError(fn: ErrorHookFn<T>): void {
         this.appRequestHooks.onError.push(fn);
     }
 
     async listen(options: ListenOptions = {}): Promise<Server> {
-        const { port = 3000, host = '0.0.0.0' } = options;
+        options.port = options.port ?? 3000;
+        options.host = options.host ?? '0.0.0.0';
 
         // компилируем все цепочки хуков, т.е. грубо говоря кэшируем их, чтобы не собирать по дереву
         // при каждом запросе
@@ -121,9 +150,12 @@ export class Application {
         await this.runLifecycleHooks('onCompiled');
 
         // Создаём node http сервер, который будет обрабатывать все наши запросы через handleRequest
-        this.nodeServer = createServer((req, res) => {
-            this.handleRequest(req, res);
-        });
+        this.nodeServer = createServer(
+            { IncomingMessage: FRequest, ServerResponse: FResponse },
+            (req, res) => {
+                this.handleRequest(req, res);
+            }
+        );
 
         try {
             await new Promise<void>((resolve, reject) => {
@@ -135,7 +167,7 @@ export class Application {
                 const oneTimeListener = (err: Error) => reject(err);
                 this.nodeServer!.once('error', oneTimeListener);
 
-                this.nodeServer!.listen(port, host, () => {
+                this.nodeServer!.listen(options, () => {
                     this.nodeServer!.removeListener('error', oneTimeListener);
                     resolve();
                 });
@@ -151,13 +183,14 @@ export class Application {
         return this.nodeServer;
     }
 
-    async close(): Promise<void> {
+    async close(shutdownTimeout = 10_000): Promise<void> {
         if (!this.nodeServer) {
             return;
         }
 
         await this.runLifecycleHooks('onClose');
 
+        // Перестаём принимать новые соединения
         await new Promise<void>((resolve, reject) => {
             this.nodeServer!.close(err => {
                 if (err) {
@@ -168,54 +201,69 @@ export class Application {
             });
         });
 
+        // Ждём завершения активных запросов с таймаутом
+        if (this.activeRequests > 0) {
+            await Promise.race([
+                new Promise<void>(resolve => {
+                    this.onDrained = resolve;
+                }),
+                new Promise<void>(resolve => setTimeout(resolve, shutdownTimeout)),
+            ]);
+
+            this.onDrained = null;
+        }
+
         this.nodeServer = null;
     }
 
-    private handleRequest(rawReq: IncomingMessage, rawRes: ServerResponse): void {
-        const request = new FRequest(rawReq);
-        const response = new FResponse(rawRes);
-
-        const ctx: RequestContext = {
+    private handleRequest(request: FRequest, response: FResponse): void {
+        const ctx: RequestContext<T> = {
             request,
             response,
-            rawRequest: rawReq,
-            rawResponse: rawRes,
-            state: {},
+            state: {} as T,
         };
 
-        this.executePipeline(ctx).catch(_err => {
-            throw new Error('aaaaaa');
-        });
+        this.activeRequests++;
+
+        this.executePipeline(ctx)
+            .catch(_err => {
+                throw new Error('aaaaaa');
+            })
+            .finally(() => {
+                this.activeRequests--;
+
+                if (this.activeRequests === 0 && this.onDrained) {
+                    this.onDrained();
+                }
+            });
     }
 
-    private async executePipeline(ctx: RequestContext): Promise<void> {
+    private async executePipeline(ctx: RequestContext<T>): Promise<void> {
         const { request, response } = ctx;
-        let routeErrorHooks: ErrorHookFn[] | null = null;
+        let routeErrorHooks: ErrorHookFn<T>[] | null = null;
 
         try {
             // onRequest на уровне приложения
             await this.runHookChain(this.appRequestHooks.onRequest, ctx);
-            if (response.isSent) {
+            if (response.sent) {
                 return;
             }
 
-            const method = request.method;
+            const method = request.method as HttpMethod | undefined;
             const result = this.router.lookup(request.pathname);
 
-            if (!result.found || !result.handlers) {
+            if (!method || !result.found || !result.handlers) {
                 response.status(404).text('Not Found');
                 return;
             }
 
             const { handlers, params, hooks } = result;
 
-            // OPTIONS — автоматический ответ с Allow заголовком
             if (method === 'OPTIONS' && !handlers.OPTIONS) {
-                response.setHeader('Allow', handlers.allowHeader()).status(204).empty();
+                response.head('allow', handlers.getAllowedMethods()).status(204).end();
                 return;
             }
 
-            // HEAD — fallback на GET-хэндлер, тело обрезается ниже
             let handler = handlers.get(method);
             const isImplicitHead = method === 'HEAD' && !handler && handlers.GET !== null;
 
@@ -234,21 +282,28 @@ export class Application {
                 routeErrorHooks = hooks.onError;
 
                 await this.runHookChain(hooks.onRequest, ctx);
-                if (response.isSent) {
+                if (response.sent) {
                     return;
                 }
 
                 await this.runHookChain(hooks.preHandler, ctx);
-                if (response.isSent) {
+                if (response.sent) {
                     return;
                 }
             }
 
-            await handler(ctx);
+            if (isImplicitHead) {
+                const allowWrite = banWrite(ctx.response);
 
-            // HEAD — обрезаем тело, оставляем только заголовки
-            if (isImplicitHead && !response.isSent) {
-                response.empty();
+                await handler(ctx);
+
+                allowWrite();
+
+                if (!response.sent) {
+                    response.end();
+                }
+            } else {
+                await handler(ctx);
             }
 
             if (hooks) {
@@ -264,14 +319,14 @@ export class Application {
 
     private async handleError(
         error: unknown,
-        ctx: RequestContext,
-        routeErrorHooks?: ErrorHookFn[] | null
+        ctx: RequestContext<T>,
+        routeErrorHooks?: ErrorHookFn<T>[] | null
     ): Promise<void> {
         if (routeErrorHooks) {
             for (let i = 0; i < routeErrorHooks.length; i++) {
                 try {
                     await routeErrorHooks[i](error, ctx);
-                    if (ctx.response.isSent) {
+                    if (ctx.response.sent) {
                         return;
                     }
                 } catch {
@@ -284,7 +339,7 @@ export class Application {
         for (let i = 0; i < appErrorHooks.length; i++) {
             try {
                 await appErrorHooks[i](error, ctx);
-                if (ctx.response.isSent) {
+                if (ctx.response.sent) {
                     return;
                 }
             } catch {
@@ -295,8 +350,8 @@ export class Application {
         this.handleUncaughtError(error, ctx);
     }
 
-    private handleUncaughtError(error: unknown, ctx: RequestContext): void {
-        if (ctx.response.isSent) {
+    private handleUncaughtError(error: unknown, ctx: RequestContext<T>): void {
+        if (ctx.response.sent) {
             return;
         }
 
@@ -310,10 +365,13 @@ export class Application {
         }
     }
 
-    private async runHookChain(hooks: HookFn[], ctx: RequestContext): Promise<void> {
+    private async runHookChain(
+        hooks: HookFn<T>[],
+        ctx: RequestContext<T>
+    ): Promise<void> {
         for (let i = 0; i < hooks.length; i++) {
             await hooks[i](ctx);
-            if (ctx.response.isSent) {
+            if (ctx.response.sent) {
                 return;
             }
         }

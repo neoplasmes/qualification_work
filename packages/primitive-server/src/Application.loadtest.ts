@@ -1,25 +1,23 @@
 import autocannon from 'autocannon';
 import { Application } from './Application';
-import type { RequestContext } from './types';
-
 const app = new Application();
 
-app.get('/health', (ctx: RequestContext) => {
+app.get('/health', ctx => {
     ctx.response.text('ok');
 });
 
-app.get('/api/users', (ctx: RequestContext) => {
+app.get('/api/users', ctx => {
     ctx.response.json([
         { id: 1, name: 'Alice' },
         { id: 2, name: 'Bob' },
     ]);
 });
 
-app.get('/api/users/:id', (ctx: RequestContext) => {
+app.get('/api/users/:id', ctx => {
     ctx.response.json({ id: ctx.request.params.id, name: 'Alice' });
 });
 
-app.post('/api/posts', async (ctx: RequestContext) => {
+app.post('/api/posts', async ctx => {
     const body = await ctx.request.json();
     ctx.response.status(201).json({ created: true, data: body });
 });

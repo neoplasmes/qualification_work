@@ -6,6 +6,9 @@ dist
 *-logs
 
 package-lock.json
-
+test-results
+playwright-report
+playwright.config.ts
+apps/client/tests
 # Это надо держать собранным (наверное)
 # !packages/eslint-plugin-fsd/dist/

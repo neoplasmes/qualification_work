@@ -13,5 +13,26 @@
     "bracketSameLine": false,
     "singleAttributePerLine": true,
     "proseWrap": "always",
-    "htmlWhitespaceSensitivity": "ignore"
+    "htmlWhitespaceSensitivity": "ignore",
+    "plugins": [
+        "@ianvs/prettier-plugin-sort-imports"
+    ],
+    "importOrder": [
+        "<BUILTIN_MODULES>",
+        "<THIRD_PARTY_MODULES>",
+        "",
+        "^@/",
+        "",
+        "^(\\.\\.\\/){3,}",
+        "",
+        "^(\\.\\.\\/|\\.\\/)(?!.*\\.s?css$)",
+        "",
+        "\\.s?css$"
+    ],
+    "importOrderTypeScriptVersion": "5.0.0",
+    "importOrderParserPlugins": [
+        "typescript",
+        "jsx",
+        "decorators-legacy"
+    ]
 }

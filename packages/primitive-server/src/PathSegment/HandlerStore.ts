@@ -5,23 +5,23 @@ import type { HttpMethod, RequestHandler } from '../types';
  * Класс вместо Map, чтобы V8 создал стабильный hidden class
  * и обращался к свойствам по offset, а не через хеширование.
  */
-export class HandlerStore {
+export class HandlerStore<T extends Record<string, unknown> = Record<string, unknown>> {
     private cachedHasAny: boolean | null = null;
-    private cachedAllowHeader: string | null = null;
+    private cachedAllowedMethods: string | null = null;
 
-    GET: RequestHandler | null = null;
-    POST: RequestHandler | null = null;
-    PUT: RequestHandler | null = null;
-    PATCH: RequestHandler | null = null;
-    DELETE: RequestHandler | null = null;
-    OPTIONS: RequestHandler | null = null;
-    HEAD: RequestHandler | null = null;
+    GET: RequestHandler<T> | null = null;
+    POST: RequestHandler<T> | null = null;
+    PUT: RequestHandler<T> | null = null;
+    PATCH: RequestHandler<T> | null = null;
+    DELETE: RequestHandler<T> | null = null;
+    OPTIONS: RequestHandler<T> | null = null;
+    HEAD: RequestHandler<T> | null = null;
 
-    get(method: HttpMethod): RequestHandler | null {
+    get(method: HttpMethod): RequestHandler<T> | null {
         return this[method];
     }
 
-    set(method: HttpMethod, handler: RequestHandler): void {
+    set(method: HttpMethod, handler: RequestHandler<T>): void {
         this[method] = handler;
     }
 
@@ -32,9 +32,9 @@ export class HandlerStore {
     /**
      * Строка для заголовка Allow, например "GET, POST, OPTIONS"
      */
-    allowHeader(): string {
-        if (!(this.cachedAllowHeader === null)) {
-            return this.cachedAllowHeader;
+    getAllowedMethods(): string {
+        if (!(this.cachedAllowedMethods === null)) {
+            return this.cachedAllowedMethods;
         }
 
         let result = '';

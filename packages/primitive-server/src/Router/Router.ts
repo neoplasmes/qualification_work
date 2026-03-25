@@ -12,15 +12,15 @@ import type {
 import type { HandlerStore } from '../PathSegment';
 import { parsePath } from '../utils';
 
-export type LookupResult = {
+export type LookupResult<T extends Record<string, unknown> = Record<string, unknown>> = {
     found: boolean;
-    handlers: HandlerStore | null;
+    handlers: HandlerStore<T> | null;
     params: RouteParams;
-    hooks: PathSegmentHooksStore | null;
+    hooks: PathSegmentHooksStore<T> | null;
 };
 
-export class Router {
-    readonly root: PathSegment;
+export class Router<T extends Record<string, unknown> = Record<string, unknown>> {
+    readonly root: PathSegment<T>;
 
     private isCompiled: boolean = false;
 
@@ -36,15 +36,15 @@ export class Router {
             `Router prefix must be a static segment, but got "${prefix}"`
         );
 
-        this.root = new PathSegment(prefix);
+        this.root = new PathSegment<T>(prefix);
     }
 
-    addRoute(method: HttpMethod, path: string, handler: RequestHandler): void {
+    addRoute(method: HttpMethod, path: string, handler: RequestHandler<T>): void {
         this.ensureNotCompiled();
 
         const segments = parsePath(path);
 
-        let curr: PathSegment = this.root;
+        let curr: PathSegment<T> = this.root;
         for (const s of segments) {
             curr = curr.getChild(s) ?? curr.createChild(s);
         }
@@ -52,23 +52,23 @@ export class Router {
         curr.assignHandler(method, handler);
     }
 
-    get(path: string, handler: RequestHandler): void {
+    get(path: string, handler: RequestHandler<T>): void {
         this.addRoute('GET', path, handler);
     }
 
-    post(path: string, handler: RequestHandler): void {
+    post(path: string, handler: RequestHandler<T>): void {
         this.addRoute('POST', path, handler);
     }
 
-    put(path: string, handler: RequestHandler): void {
+    put(path: string, handler: RequestHandler<T>): void {
         this.addRoute('PUT', path, handler);
     }
 
-    patch(path: string, handler: RequestHandler): void {
+    patch(path: string, handler: RequestHandler<T>): void {
         this.addRoute('PATCH', path, handler);
     }
 
-    delete(path: string, handler: RequestHandler): void {
+    delete(path: string, handler: RequestHandler<T>): void {
         this.addRoute('DELETE', path, handler);
     }
 
@@ -76,16 +76,20 @@ export class Router {
      * Функция для добавления хука конкретно на данный PathSegment
      *
      * @param {RouteHookType} type
-     * @param {(HookFn | ErrorHookFn)} fn
+     * @param {(HookFn<T> | ErrorHookFn<T>)} fn
      */
-    assignHook(type: 'onError', path: string, fn: ErrorHookFn): void;
-    assignHook(type: Exclude<RouteHookType, 'onError'>, path: string, fn: HookFn): void;
-    assignHook(type: RouteHookType, path: string, fn: HookFn | ErrorHookFn): void {
+    assignHook(type: 'onError', path: string, fn: ErrorHookFn<T>): void;
+    assignHook(
+        type: Exclude<RouteHookType, 'onError'>,
+        path: string,
+        fn: HookFn<T>
+    ): void;
+    assignHook(type: RouteHookType, path: string, fn: HookFn<T> | ErrorHookFn<T>): void {
         this.ensureNotCompiled();
 
         const segments = parsePath(path);
 
-        let curr: PathSegment = this.root;
+        let curr: PathSegment<T> = this.root;
         for (const s of segments) {
             const next = curr.getChild(s);
 
@@ -96,9 +100,9 @@ export class Router {
 
         // boilerplate из-за typescript
         if (type === 'onError') {
-            curr.assignHook(type, fn as ErrorHookFn);
+            curr.assignHook(type, fn as ErrorHookFn<T>);
         } else {
-            curr.assignHook(type, fn as HookFn);
+            curr.assignHook(type, fn as HookFn<T>);
         }
     }
 
@@ -106,19 +110,19 @@ export class Router {
      * Добавить хук на корневой элемент роутера, чтобы хук применялся вообще ко всем маршрутам
      *
      * @param {RouteHookType} type
-     * @param {(HookFn | ErrorHookFn)} fn
+     * @param {(HookFn<T> | ErrorHookFn<T>)} fn
      * @example
      *   router.addGlobalHook("onRequest", loggingHook);
      */
-    assignGlobalHook(type: 'onError', fn: ErrorHookFn): void;
-    assignGlobalHook(type: Exclude<RouteHookType, 'onError'>, fn: HookFn): void;
-    assignGlobalHook(type: RouteHookType, fn: HookFn | ErrorHookFn): void {
+    assignGlobalHook(type: 'onError', fn: ErrorHookFn<T>): void;
+    assignGlobalHook(type: Exclude<RouteHookType, 'onError'>, fn: HookFn<T>): void;
+    assignGlobalHook(type: RouteHookType, fn: HookFn<T> | ErrorHookFn<T>): void {
         this.ensureNotCompiled();
 
         if (type === 'onError') {
-            this.root.assignHook(type, fn as ErrorHookFn);
+            this.root.assignHook(type, fn as ErrorHookFn<T>);
         } else {
-            this.root.assignHook(type, fn as HookFn);
+            this.root.assignHook(type, fn as HookFn<T>);
         }
     }
 
@@ -131,7 +135,7 @@ export class Router {
      * статическим ребёнком mountPoint, или мерджится с уже существующим.
      *
      * @param {string} mountPath
-     * @param {Router} child
+     * @param {Router<T>} child
      * @example
      *   const apiRouter = new Router();
      *   apiRouter.get("/users", listUsers);
@@ -140,7 +144,7 @@ export class Router {
      *   app.mount("/api", apiRouter);
      *   // GET /api/users -> listUsers
      */
-    mount(mountPath: string, child: Router): void {
+    mount(mountPath: string, child: Router<T>): void {
         this.ensureNotCompiled();
 
         const segments = parsePath(mountPath);
@@ -166,12 +170,12 @@ export class Router {
         }
 
         const stack: Array<{
-            node: PathSegment;
-            onRequest: HookFn[];
-            preHandler: HookFn[];
-            postHandler: HookFn[];
-            onResponse: HookFn[];
-            onError: ErrorHookFn[];
+            node: PathSegment<T>;
+            onRequest: HookFn<T>[];
+            preHandler: HookFn<T>[];
+            postHandler: HookFn<T>[];
+            onResponse: HookFn<T>[];
+            onError: ErrorHookFn<T>[];
         }> = [];
 
         stack.push({
@@ -218,11 +222,11 @@ export class Router {
     /**
      * Бегает по строке path с двумя указателями
      */
-    lookup(path: string): LookupResult {
+    lookup(path: string): LookupResult<T> {
         assert(this.isCompiled, 'Router must be compiled before lookup');
 
         const SLASH = 47;
-        const lookupResult: LookupResult = {
+        const lookupResult: LookupResult<T> = {
             found: false,
             handlers: null,
             params: {},
@@ -231,7 +235,7 @@ export class Router {
 
         const len = path.length;
 
-        let curr: PathSegment = this.root;
+        let curr: PathSegment<T> = this.root;
         let start = 0;
 
         // пропускаем ведущий слэш
@@ -255,6 +259,7 @@ export class Router {
 
             // TODO: оптимизировать этот слайс (убрать).
             // Это можно сделать с помощью хэш таблицы, которой не нужны аллокации строки
+            //* Через SegmentMap это не оптимизируется
             const segment = path.slice(start, end);
 
             // static
@@ -280,39 +285,38 @@ export class Router {
                 continue;
             }
 
-            // wildcard
+            // wildcard - захватываем весь оставшийся путь
             const wildcardChild = curr.getWildcardChild();
             if (wildcardChild) {
-                if (!wildcardChild.canHandle()) {
-                    return lookupResult;
-                }
-
-                // Всё, что осталось на потом
-                lookupResult.params['*'] =
+                const tail =
                     path.charCodeAt(len - 1) === SLASH
                         ? path.slice(start, len - 1)
                         : path.slice(start);
 
-                lookupResult.found = true;
-                lookupResult.handlers = wildcardChild.handlers;
-                lookupResult.hooks = wildcardChild.getCompiledHooks();
-
-                // Возвращаем сразу всё здесь, т.к. после wildcard нет смысла смотреть
-                return lookupResult;
+                return this.resolveNode(wildcardChild, lookupResult, tail);
             }
 
             return lookupResult;
         }
 
-        if (!curr.canHandle()) {
-            return lookupResult;
+        return this.resolveNode(curr, lookupResult, '');
+    }
+
+    private resolveNode(
+        node: PathSegment<T>,
+        result: LookupResult<T>,
+        wildcardParam: string
+    ): LookupResult<T> {
+        const target = node.canHandle() ? node : node.getWildcardChild();
+
+        if (target && target.canHandle()) {
+            result.params['*'] = wildcardParam;
+            result.found = true;
+            result.handlers = target.handlers;
+            result.hooks = target.getCompiledHooks();
         }
 
-        lookupResult.found = true;
-        lookupResult.handlers = curr.handlers;
-        lookupResult.hooks = curr.getCompiledHooks();
-
-        return lookupResult;
+        return result;
     }
 
     private ensureNotCompiled(): void {

@@ -1,17 +1,15 @@
-import type { ServerResponse } from 'node:http';
+import type { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { ServerResponse } from 'node:http';
+import type { FRequest } from './FRequest';
 
-export class FResponse {
-    readonly raw: ServerResponse;
-    private statusCode = 200;
-    private headers: Map<string, string | string[]> = new Map();
-    private sent = false;
-
-    constructor(raw: ServerResponse) {
-        this.raw = raw;
+export class FResponse extends ServerResponse<FRequest> {
+    constructor(request: FRequest) {
+        super(request);
     }
 
-    get isSent(): boolean {
-        return this.sent || this.raw.writableEnded;
+    get sent(): boolean {
+        return this.writableEnded;
     }
 
     status(code: number): this {
@@ -20,22 +18,59 @@ export class FResponse {
         return this;
     }
 
-    getHeader(name: string): string | string[] | null {
-        return this.headers.get(name) ?? null;
-    }
-
-    setHeader(name: string, value: string | string[]): this {
-        this.headers.set(name.toLowerCase(), value);
-
-        return this;
-    }
-
+    /**
+     * Установить заголовок content-type
+     *
+     * @param contentType
+     * @returns
+     */
     contentType(contentType: string): this {
-        this.headers.set('content-type', contentType);
+        this.setHeader('content-type', contentType);
 
         return this;
     }
 
+    /**
+     * Установка заголовков с помощью объекта key: value
+     *
+     * @param headers
+     */
+    head(headers: Record<string, string | number>): this;
+    /**
+     * Установка одного заголовка
+     *
+     * @param {string} name
+     * @param {(string | number)} value
+     * @returns {this}
+     */
+    head(name: string, value: string | number): this;
+    /**
+     * Общий метод установки заголовков
+     *
+     * @param nameOrHeaders
+     * @param value
+     * @returns
+     */
+    head(
+        nameOrHeaders: string | Record<string, string | number>,
+        value?: string | number
+    ): this {
+        if (typeof nameOrHeaders === 'string') {
+            this.setHeader(nameOrHeaders.toLowerCase(), String(value));
+        } else {
+            for (const [key, val] of Object.entries(nameOrHeaders)) {
+                this.setHeader(key.toLowerCase(), String(val));
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * content-type: application/json
+     *
+     * @param {unknown} data
+     */
     json(data: unknown): void {
         if (this.sent) {
             return;
@@ -43,47 +78,58 @@ export class FResponse {
 
         const body = JSON.stringify(data);
 
-        if (!this.headers.has('content-type')) {
-            this.headers.set('content-type', 'application/json; charset=utf-8');
-        }
-
-        this.flushHeaders();
-        this.raw.end(body);
-        this.sent = true;
+        this.setHeader('content-type', 'application/json; charset=utf-8');
+        this.setHeader('content-length', Buffer.byteLength(body));
+        this.end(body);
     }
 
+    /**
+     * content-type: text/plain
+     *
+     * @param {string} data
+     */
     text(data: string): void {
         if (this.sent) {
             return;
         }
 
-        if (!this.headers.has('content-type')) {
-            this.headers.set('content-type', 'text/plain; charset=utf-8');
+        if (!this.hasHeader('content-type')) {
+            this.setHeader('content-type', 'text/plain; charset=utf-8');
         }
 
-        this.flushHeaders();
-        this.raw.end(data);
-        this.sent = true;
+        this.setHeader('content-length', Buffer.byteLength(data));
+        this.end(data);
     }
 
+    /**
+     * Использовать для отправки данных с Content-Type, для которого не предоставлен шорткат
+     *
+     * @param data
+     * @returns
+     */
     send(data: string | Buffer): void {
         if (this.sent) {
             return;
         }
 
-        this.flushHeaders();
-        this.raw.end(data);
-        this.sent = true;
+        const length = typeof data === 'string' ? Buffer.byteLength(data) : data.length;
+
+        this.setHeader('content-length', length);
+        this.end(data);
     }
 
-    empty(): void {
+    /**
+     * Стримит указанный поток в овет
+     *
+     * @param readable
+     * @returns
+     */
+    async stream(readable: Readable): Promise<void> {
         if (this.sent) {
             return;
         }
 
-        this.flushHeaders();
-        this.raw.end();
-        this.sent = true;
+        await pipeline(readable, this);
     }
 
     redirect(url: string, permanent = false): void {
@@ -92,17 +138,8 @@ export class FResponse {
         }
 
         this.statusCode = permanent ? 301 : 302;
-        this.headers.set('location', url);
 
-        this.flushHeaders();
-        this.raw.end();
-        this.sent = true;
-    }
-
-    private flushHeaders(): void {
-        this.raw.statusCode = this.statusCode;
-        for (const [key, value] of this.headers) {
-            this.raw.setHeader(key, value);
-        }
+        this.setHeader('location', url);
+        this.end();
     }
 }

@@ -1,13 +1,9 @@
-import type { IncomingMessage } from 'node:http';
-import type { HttpMethod, QueryParams, RouteParams } from './types';
+import { IncomingMessage } from 'node:http';
+import type { QueryParams, RouteParams } from './types';
 import { parseQuery } from './utils/parseQuery';
+import type { Socket } from 'node:net';
 
-export class FRequest {
-    readonly raw: IncomingMessage;
-    readonly method: HttpMethod;
-    readonly url: string;
-    readonly pathname: string;
-
+export class FRequest extends IncomingMessage {
     /**
      * Параметры из /:params
      *
@@ -27,26 +23,51 @@ export class FRequest {
     private bodyPromise: Promise<Buffer> | null = null;
 
     private _query: QueryParams | null = null;
-    private rawQueryString: string;
+    private _pathname: string | null = null;
+    private _rawQueryString: string | null = null;
 
-    constructor(raw: IncomingMessage) {
-        this.raw = raw;
+    constructor(socket: Socket) {
+        super(socket);
+        this.params = {};
+    }
 
-        this.method = (raw.method ?? 'GET').toUpperCase() as HttpMethod;
-
-        const normalizedUrl = raw.url ?? '/';
-        this.url = normalizedUrl;
-
-        const queryIdx = normalizedUrl.indexOf('?');
-        if (queryIdx !== -1) {
-            this.pathname = normalizedUrl.slice(0, queryIdx);
-            this.rawQueryString = normalizedUrl.slice(queryIdx + 1);
-        } else {
-            this.pathname = normalizedUrl;
-            this.rawQueryString = '';
+    get URL(): string {
+        if (!this.url) {
+            throw new Error(
+                'AAAAAAAAAAA AAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            );
         }
 
-        this.params = {};
+        return this.url;
+    }
+
+    get pathname(): string {
+        if (this._pathname === null) {
+            this.parseUrl();
+        }
+
+        return this._pathname!;
+    }
+
+    private get rawQueryString(): string {
+        if (this._rawQueryString === null) {
+            this.parseUrl();
+        }
+
+        return this._rawQueryString!;
+    }
+
+    private parseUrl(): void {
+        const url = this.url ?? '/';
+        const queryIdx = url.indexOf('?');
+
+        if (queryIdx !== -1) {
+            this._pathname = url.slice(0, queryIdx);
+            this._rawQueryString = url.slice(queryIdx + 1);
+        } else {
+            this._pathname = url;
+            this._rawQueryString = '';
+        }
     }
 
     /**
@@ -56,7 +77,7 @@ export class FRequest {
      * @returns
      */
     getHeader(name: string): string | undefined {
-        const val = this.raw.headers[name.toLowerCase()];
+        const val = this.headers[name.toLowerCase()];
 
         return Array.isArray(val) ? val[0] : val;
     }
@@ -90,17 +111,25 @@ export class FRequest {
     }
 
     private readBody(): Promise<Buffer> {
-        const raw = this.raw;
         const chunks: Buffer[] = [];
         const maxBytes = 1 * 1024 * 1024; // 1 MB
         let size = 0;
 
+        const declaredLength = Number(this.getHeader('content-length'));
+        if (declaredLength > maxBytes) {
+            this.destroy();
+
+            return Promise.reject(
+                new Error(`Request body exceeded ${maxBytes} bytes limit`)
+            );
+        }
+
         return new Promise<Buffer>((resolve, reject) => {
-            raw.on('data', (chunk: Buffer) => {
+            this.on('data', (chunk: Buffer) => {
                 size += chunk.length;
 
                 if (size > maxBytes) {
-                    raw.destroy();
+                    this.destroy();
                     reject(new Error(`Request body exceeded ${maxBytes} bytes limit`));
 
                     return;
@@ -109,8 +138,8 @@ export class FRequest {
                 chunks.push(chunk);
             });
 
-            raw.on('end', () => resolve(Buffer.concat(chunks)));
-            raw.on('error', reject);
+            this.on('end', () => resolve(Buffer.concat(chunks)));
+            this.on('error', reject);
         });
     }
 

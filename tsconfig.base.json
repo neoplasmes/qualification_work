@@ -10,7 +10,7 @@
         "moduleResolution": "bundler",
 
         // Какие встроенные типы подключить. ES2020 даёт типы для Promise, Map, Set и т.д.
-        "lib": ["ES2020"],
+        "lib": ["ES2023"],
 
         // Включает все строгие проверки разом (strict null checks, no implicit any и др.)
         "strict": true,

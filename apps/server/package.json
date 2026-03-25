@@ -1,35 +1,35 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "dev": "pnpm db:up && tsx watch --env-file=../../.env src/index.ts",
-    "build": "tsup src/index.ts --format esm --target esnext --out-dir dist",
-    "start": "node dist/index.mjs",
-    "typecheck": "tsc --noEmit",
-    "db:up": "docker compose -f ../../docker-compose.dev.yml up postgres -d",
-    "db:down": "docker compose -f ../../docker-compose.dev.yml down",
-    "test": "pnpm db:up && dotenv -e ../../.env -- vitest run"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.32.0",
-  "dependencies": {
-    "fast-json-stringify": "^6.3.0",
-    "pg": "^8.20.0",
-    "primitive-server": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/node": "^25.4.0",
-    "@types/pg": "^8.18.0",
-    "dotenv": "^17.3.1",
-    "dotenv-cli": "^11.0.0",
-    "eslint-plugin-boundaries": "^6.0.0",
-    "tsup": "^8.5.1",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "dev": "pnpm db:up && tsx watch --env-file=../../.env src/index.ts",
+        "build": "tsup src/index.ts --format esm --target esnext --out-dir dist",
+        "start": "node dist/index.mjs",
+        "typecheck": "tsc --noEmit",
+        "db:up": "docker compose -f ../../docker-compose.dev.yml up postgres -d",
+        "db:down": "docker compose -f ../../docker-compose.dev.yml down",
+        "lint": "eslint . --ext .ts,.tsx"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "packageManager": "pnpm@10.32.0",
+    "dependencies": {
+        "fast-json-stringify": "^6.3.0",
+        "pg": "^8.20.0",
+        "primitive-server": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/node": "^25.4.0",
+        "@types/pg": "^8.18.0",
+        "dotenv": "^17.3.1",
+        "dotenv-cli": "^11.0.0",
+        "eslint-plugin-boundaries": "^6.0.0",
+        "tsup": "^8.5.1",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3"
+    }
 }

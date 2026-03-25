@@ -1,11 +1,2 @@
-export interface AppState {
-    isReady: boolean;
-    locale: string;
-}
-
-export function getInitialAppState(): AppState {
-    return {
-        isReady: false,
-        locale: 'en',
-    };
-}
+export { getRoutes } from '../config/routes';
+export { createStore, type RootState } from './store';

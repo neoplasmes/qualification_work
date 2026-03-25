@@ -1,5 +1,8 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+allowBuilds:
+  '@swc/core': true
+  core-js-pure: false
 
 link-workspace-packages: true

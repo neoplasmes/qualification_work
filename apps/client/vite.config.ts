@@ -1,27 +1,28 @@
 import path from 'path';
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
-// SWC - более быстрый, чем Babel, транспайлер, написанный на Rust.
-import reactswc from '@vitejs/plugin-react-swc';
 
-export default defineConfig({
-    plugins: [reactswc()],
+import { entryScriptRewritePlugin } from './vite/plugins/entryScriptRewritePlugin';
+
+export default defineConfig(({ command }) => ({
+    plugins: [react(), entryScriptRewritePlugin()],
+
     resolve: {
         alias: {
-            '@': path.resolve(process.cwd(), 'src'),
+            '@': path.resolve(import.meta.dirname, 'src'),
         },
     },
-    server: {
-        proxy: {
-            // localhost:5137/api/path => localhost:4000/path
-            // rewrite как раз затирает '/api'
-            '/api': {
-                target: 'http://localhost:4000',
-                rewrite: path => path.replace(/^\/api/, ''),
-            },
+
+    css: {
+        modules: {
+            generateScopedName:
+                command === 'serve'
+                    ? '[name]__[local]--[hash:base64:5]'
+                    : '[hash:base64:8]',
         },
     },
+
     build: {
-        // Явно указал, чтобы запомнить
-        outDir: 'dist',
+        outDir: 'dist/client',
     },
-});
+}));

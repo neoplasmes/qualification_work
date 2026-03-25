@@ -1,29 +1,14 @@
 {
-  // Наследуем базовые настройки из корневого конфига
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    // Добавляем DOM и DOM.Iterable к ES2020 из базового конфига —
-    // они дают типы для браузерных API: document, window, fetch и т.д.
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-
-    // Говорим TS как обрабатывать JSX. "react-jsx" — современный режим,
-    // не требует писать import React from 'react' в каждом файле
-    "jsx": "react-jsx",
-
-    // Базовая папка для разрешения путей — текущая папка (apps/client)
-    "baseUrl": ".",
-
-    // Алиас: import Foo from '@/components/Foo'
-    // вместо import Foo from '../../components/Foo'
-    "paths": {
-      "@/*": ["src/*"]
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
+        "jsx": "react-jsx",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        },
+        "noEmit": true
     },
 
-    // TS не генерирует JS файлы — этим занимается Vite.
-    // TS здесь только проверяет типы
-    "noEmit": true
-  },
-
-  // Проверять типы только в папке src — не трогать vite.config.ts и прочее
-  "include": ["src"]
+    "include": ["src", "server", "vite.config.ts", "vite"]
 }

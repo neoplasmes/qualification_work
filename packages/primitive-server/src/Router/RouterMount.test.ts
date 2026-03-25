@@ -219,6 +219,26 @@ describe('Router.mount', () => {
             expect(api.getChild('v1')!.getChild('users')!.hasHandler('GET')).toBe(true);
             expect(api.getChild('v2')!.getChild('users')!.hasHandler('GET')).toBe(true);
         });
+
+        it('правильно монтирует рядом  с wildcard', () => {
+            const app = new Router();
+            app.get('*', noop);
+
+            const uselessRouter = new Router('');
+            uselessRouter.post('useless', noop);
+
+            app.mount('/', uselessRouter);
+
+            app.compile();
+
+            expect(app.lookup('/useless').found).toBe(true);
+            expect(app.lookup('/useless').handlers?.POST).toBeTypeOf('function');
+            expect(Boolean(app.lookup('/useless').handlers?.GET)).toBe(false);
+
+            expect(app.lookup('/use').found).toBe(true);
+            expect(app.lookup('/use').handlers?.GET).toBeTypeOf('function');
+            expect(Boolean(app.lookup('/use').handlers?.POST)).toBe(false);
+        });
     });
 
     describe('валидация prefix конструктора Router', () => {

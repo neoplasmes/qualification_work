@@ -1,8 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Application } from './Application';
 import { Router } from './Router';
-import type { RequestContext } from './types';
-
 let app: Application;
 
 async function startApp(): Promise<string> {
@@ -33,7 +31,7 @@ describe('порядок хуков', () => {
             order.push('app:onResponse');
         });
 
-        app.get('/test', (ctx: RequestContext) => {
+        app.get('/test', ctx => {
             order.push('handler');
             ctx.response.text('ok');
         });
@@ -75,7 +73,7 @@ describe('порядок хуков', () => {
             order.push('app:onResponse');
         });
 
-        app.get('/test', (ctx: RequestContext) => {
+        app.get('/test', ctx => {
             order.push('handler');
             ctx.response.text('ok');
         });
@@ -105,7 +103,7 @@ describe('порядок хуков', () => {
         const order: string[] = [];
 
         const child = new Router();
-        child.get('/users', (ctx: RequestContext) => {
+        child.get('/users', ctx => {
             order.push('handler');
             ctx.response.text('ok');
         });
@@ -131,7 +129,7 @@ describe('порядок хуков', () => {
         app.onResponse(() => {
             order.push('app:onResponse');
         });
-        app.onError((_err, ctx: RequestContext) => {
+        app.onError((_err, ctx) => {
             order.push('app:onError');
             ctx.response.status(500).text('error');
         });
@@ -151,7 +149,7 @@ describe('порядок хуков', () => {
         app = new Application();
         const order: string[] = [];
 
-        app.onError((_err, ctx: RequestContext) => {
+        app.onError((_err, ctx) => {
             order.push('app:onError');
             ctx.response.status(500).text('error');
         });
@@ -184,7 +182,7 @@ describe('порядок хуков', () => {
             order.push('onClose');
         });
 
-        app.get('/', (ctx: RequestContext) => {
+        app.get('/', ctx => {
             ctx.response.text('ok');
         });
 

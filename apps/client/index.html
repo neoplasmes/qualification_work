@@ -7,12 +7,32 @@
             content="width=device-width, initial-scale=1.0"
         />
         <title>aaaaaaaaaaaaaaaa</title>
+        <script>
+            (function () {
+                var c;
+                window.__TURBO_STREAM__ = new ReadableStream({
+                    start: function (x) {
+                        c = x;
+                        console.log('кто блять это вызывает');
+                    },
+                });
+                window.__TURBO_CTRL__ = {
+                    enqueue: function (s) {
+                        c.enqueue(s);
+                    },
+                    close: function () {
+                        c.close();
+                    },
+                };
+            })();
+        </script>
+        <script
+            async
+            type="module"
+            src="/src/entry.client.tsx"
+        ></script>
     </head>
     <body>
-        <div id="root"></div>
-        <script
-            type="module"
-            src="/src/index.tsx"
-        ></script>
+        <div id="root"><!--ssr-outlet--></div>
     </body>
 </html>

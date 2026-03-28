@@ -8,7 +8,7 @@ const LazyTest = lazy(() => import('./Test2'));
 export const Test = () => {
     const [state, setState] = useState(1);
 
-    const { testData } = useLoaderData<{ testData: Promise<string> }>();
+    const { testData } = useLoaderData();
 
     return (
         <div>
@@ -16,7 +16,7 @@ export const Test = () => {
                 <Await resolve={testData}>
                     {data => (
                         <div>
-                            <span>{data}</span>
+                            <span>{JSON.stringify(data)}</span>
                             <button onClick={() => setState(prev => prev + 1)}>
                                 Click
                             </button>

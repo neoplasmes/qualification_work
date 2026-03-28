@@ -28,6 +28,14 @@ export const Layout = () => {
                     >
                         lazy load
                     </NavLink>
+                    <NavLink
+                        to="/promise-all"
+                        style={({ isActive }) => ({
+                            fontWeight: isActive ? 'bold' : 'normal',
+                        })}
+                    >
+                        promise.all
+                    </NavLink>
                 </nav>
                 <button onClick={() => setState(prev => prev + 1)}>{state}</button>
             </header>

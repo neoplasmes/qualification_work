@@ -21,7 +21,7 @@ export const TestStyleModules = () => {
                             debitis, quis, aperiam quaerat dignissimos deleniti illum ab
                             qui rerum eaque exercitationem, provident corporis? Pariatur?
                         </strong>{' '}
-                        {data?.title}
+                        {data?.body}
                     </div>
                 )}
             </div>

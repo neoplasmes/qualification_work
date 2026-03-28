@@ -9,19 +9,18 @@
         <title>aaaaaaaaaaaaaaaa</title>
         <script>
             (function () {
-                var c;
+                let controller;
                 window.__TURBO_STREAM__ = new ReadableStream({
                     start: function (x) {
-                        c = x;
-                        console.log('кто блять это вызывает');
+                        controller = x;
                     },
                 });
                 window.__TURBO_CTRL__ = {
-                    enqueue: function (s) {
-                        c.enqueue(s);
+                    enqueue: function (chunk) {
+                        controller.enqueue(chunk);
                     },
                     close: function () {
-                        c.close();
+                        controller.close();
                     },
                 };
             })();

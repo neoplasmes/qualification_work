@@ -45,20 +45,28 @@ async function streamTurboChunks(
     const turboStream = encode(routerContext);
     const reader = turboStream.getReader();
 
+    let chunkId = 0;
+
     try {
         let read = await reader.read();
 
         while (!read.done) {
-            console.log(`pushed ${read.value} to the turbostream`);
+            // console.log(`pushed ${read.value} to the turbostream`);
             // __TURBO_CTRL__ уже есть в window, т.к. мы инжектим его в head
             response.write(
-                `<script>window.__TURBO_CTRL__.enqueue('${escapeForScript(read.value)}')</script>`
+                `<script chunk-id="${chunkId}">
+                    window.__TURBO_CTRL__.enqueue('${escapeForScript(read.value)}');
+                    document.querySelector('script[chunk-id="${chunkId}"]').remove();
+                </script>`
             );
 
+            chunkId++;
             read = await reader.read();
         }
     } finally {
-        response.write(`<script>window.__TURBO_CTRL__.close()</script>`);
+        response.write(
+            `<script chunk-id="${chunkId}">window.__TURBO_CTRL__.close();document.querySelector('script[chunk-id="${chunkId}"]').remove();</script>`
+        );
     }
 }
 

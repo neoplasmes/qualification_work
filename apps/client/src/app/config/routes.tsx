@@ -11,17 +11,46 @@ const TestLazyLoading = lazy(
     () => import('../../pages/TestLazyLoading/ui/TestLazyLoading')
 );
 
+const PromiseAllTest = lazy(() =>
+    import('../../pages/PromiseAllTest/ui/PromiseAllTest').then(m => ({
+        default: m.PromiseAllTest,
+    }))
+);
+
 /**
- * Что вообще происходит:
- * мы хотим использовать rtk query и loader'ы из react-router. При этом мы ещё хотим использовать SSR со стримингом и suspense границами.
- * Все данные, которые были получены на сервере, должны прийти на клиент, чтобы там он синхронизовался с тем, что произошло во время SSR.
- * Соответственно с сервера мы должны отправить PRELOADED_STATE и __staticRouterHydrationData.
- * Для того, чтобы отправить адекватно PRELOADED_STATE, мы должны создать на сервере наш Store повыполнять всё что надо, в том числе и запросы ртк квери внутри лоадеров,
- * а затем вызвать store.getState() в конце, после того, как там будут все данные выполневшихся лоадеров и прочее, и записать эти данные в <script />
- * Короче именно поэтому такой поганый метод getRoutes получается.
+ * Убогий workaround, без которого на клиенте опять будет показываться fallback каждый раз.
+ * Спасибо разработчикам redux, что после initiate возвращается thenable обёртка над промисом.
  *
- * На клиенте эта функция уже получит store со всеми данными. Ну и роутер сам данные восстановит
- *
+ * loadings - типо loading, типо загрузка, мы разрешаем разные загрузки, разные fetch'и
+ */
+const loaderData = async <T extends Record<string, Promise<unknown>>>(
+    loadings: T
+): Promise<ReturnType<typeof data> | { [K in keyof T]: Awaited<T[K]> }> => {
+    /**
+     * loaderData: {
+     *  'routeID-routeID': {
+     *      key: value
+     *  } - именно объект key: value сюда попадает. те же самые key в useLoaderData
+     * }
+     */
+    if (typeof window !== 'undefined') {
+        const loadNames = Object.keys(loadings) as (keyof T)[];
+
+        const awaitedLoadings = await Promise.all(loadNames.map(name => loadings[name]));
+
+        const result = {} as { [K in keyof T]: Awaited<T[K]> };
+
+        loadNames.forEach((name, index) => {
+            result[name] = awaitedLoadings[index];
+        });
+
+        return result;
+    }
+
+    return data(loadings);
+};
+
+/**
  *
  * @param store - redux-store, который должен быть использован как параметр в каждом loader'e,
  * чтобы иметь возможность вызывать rtkQuery запросы.
@@ -34,20 +63,10 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
             {
                 path: '/',
                 Component: App,
-                shouldRevalidate: () => false,
-                loader: async () => {
-                    const testData = new Promise<string>(resolve => {
-                        setTimeout(() => {
-                            resolve('long data');
-                        }, 5000);
-                    });
-
-                    await store.dispatch(rtkApi.endpoints.getPost.initiate(1));
-
-                    return data({
-                        testData,
-                    });
-                },
+                loader: () =>
+                    loaderData({
+                        testData: store.dispatch(rtkApi.endpoints.getPost.initiate(1)),
+                    }),
             },
             {
                 path: '/lazy',
@@ -56,6 +75,22 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
                         <TestLazyLoading />
                     </Suspense>
                 ),
+            },
+            {
+                path: '/promise-all',
+                element: (
+                    <Suspense fallback={<div>loading...</div>}>
+                        <PromiseAllTest />
+                    </Suspense>
+                ),
+                loader: () =>
+                    loaderData({
+                        combined: Promise.all([
+                            store.dispatch(rtkApi.endpoints.getPost.initiate(2)),
+                            store.dispatch(rtkApi.endpoints.getUser.initiate(1)),
+                            store.dispatch(rtkApi.endpoints.getComments.initiate(2)),
+                        ]),
+                    }),
             },
         ],
     },

@@ -36,8 +36,4 @@ COPY --from=builder /app/apps/server/dist ./apps/server/dist
 
 EXPOSE 4000
 
-# best practices. adduser потому что alpine
-# RUN adduser -D app
-# USER app
-
 CMD ["node", "apps/server/dist/index.js"]

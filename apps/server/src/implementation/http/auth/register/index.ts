@@ -1,0 +1,1 @@
+export { createRegisterHandler } from './register';

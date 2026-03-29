@@ -15,6 +15,11 @@
     "author": "",
     "license": "ISC",
     "packageManager": "pnpm@10.33.0",
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "argon2"
+        ]
+    },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",

@@ -18,7 +18,33 @@ services:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-qualification}']
       interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
+    
+  redis:
+    container_name: redis
+    image: redis:8.6-alpine
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s       
+      timeout: 5s
+      retries: 3
+
+  redis-insight:
+    container_name: redis-insight
+    image: redis/redis-insight:latest
+    ports:
+     - '5040:5040'
+    volumes:
+     - redisinsight_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
 
   server:
     container_name: server
@@ -38,6 +64,8 @@ services:
       start_period: 10s
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   client:
@@ -65,3 +93,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
+  redisinsight_data:

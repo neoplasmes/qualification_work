@@ -6,6 +6,8 @@ import { decode } from 'turbo-stream';
 import { createStore, getRoutes } from '@/app/model';
 import { rtkApi } from '@/shared/api/api';
 
+import './global.scss';
+
 const node = document.getElementById('root');
 
 if (!node) {

@@ -1,6 +1,5 @@
 /**
- * Класс, осуществляющий шифрование паролей и их сравнение.
- * Для паролей рекомендовано - argon2id + pepper
+ * Service for hashing and verifying passwords
  */
 export interface Hasher {
     /**

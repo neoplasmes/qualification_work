@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+
 import type { FRequest } from './FRequest';
 import type { FResponse } from './FResponse';
 
@@ -78,10 +79,10 @@ export type HookFn<T extends Record<string, unknown> = Record<string, unknown>> 
     context: RequestContext<T>
 ) => void | Promise<void>;
 
-export type ErrorHookFn<T extends Record<string, unknown> = Record<string, unknown>> = (
-    err: unknown,
-    context: RequestContext<T>
-) => void | Promise<void>;
+export type ErrorHookFn<
+    T extends Record<string, unknown> = Record<string, unknown>,
+    E = unknown,
+> = (err: E, context: RequestContext<T>) => void | Promise<void>;
 
 export type LifecycleHookFn = () => void | Promise<void>;
 /**
@@ -89,8 +90,9 @@ export type LifecycleHookFn = () => void | Promise<void>;
  */
 export type PathSegmentHooksStore<
     T extends Record<string, unknown> = Record<string, unknown>,
+    E = unknown,
 > = {
-    [K in RouteHookType]: K extends 'onError' ? ErrorHookFn<T>[] : HookFn<T>[];
+    [K in RouteHookType]: K extends 'onError' ? ErrorHookFn<T, E>[] : HookFn<T>[];
 };
 
 export type QueryParams = Record<string, string | string[]>;

@@ -5,10 +5,11 @@
     "main": "index.js",
     "scripts": {
         "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
-        "dev:hmr": "pnpm --parallel --filter=client --filter=server dev",
-        "test": "pnpm -r test",
-        "typecheck": "pnpm -r typecheck",
-        "lint": "pnpm -r lint",
+        "dev:hmr": "nx run-many -t dev --projects=client,server",
+        "build": "nx run-many -t build",
+        "test": "nx run-many -t test",
+        "typecheck": "nx run-many -t typecheck",
+        "lint": "nx run-many -t lint",
         "prepare": "husky"
     },
     "keywords": [],
@@ -31,6 +32,7 @@
         "globals": "^17.4.0",
         "husky": "^9.1.7",
         "lint-staged": "^16.4.0",
+        "nx": "^22.6.3",
         "prettier": "^3.8.1",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.57.0",

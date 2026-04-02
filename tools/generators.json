@@ -1,0 +1,14 @@
+{
+    "generators": {
+        "cqrs/command-query": {
+            "factory": "./generators/cqrs/index.js",
+            "schema": "./generators/cqrs/schema.json",
+            "description": "Generate handler, schema, types, index boilerplate for command/query"
+        },
+        "repository-service": {
+            "factory": "./generators/repository-service/index.js",
+            "schema": "./generators/repository-service/schema.json",
+            "description": "Generate port interface + implementation class for a repository or service"
+        }
+    }
+}

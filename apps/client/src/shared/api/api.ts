@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-export const rtkApi = createApi({
+export const api = createApi({
     reducerPath: 'rtkApi',
     baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
     keepUnusedDataFor: 300,
@@ -22,4 +22,4 @@ export const rtkApi = createApi({
     }),
 });
 
-export const { useGetPostQuery, useGetUserQuery, useGetCommentsQuery } = rtkApi;
+export const { useGetPostQuery, useGetUserQuery, useGetCommentsQuery } = api;

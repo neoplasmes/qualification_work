@@ -1,0 +1,5 @@
+import type { <%= pascalName %>Input } from './types';
+
+export class <%= pascalName %>Handler {
+    async execute(input: <%= pascalName %>Input): Promise<void> {}
+}

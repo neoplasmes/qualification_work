@@ -21,6 +21,38 @@ declare global {
             close(): void;
         };
     }
+
+    type Spacing =
+        | 'xs'
+        | 'sm'
+        | 'sm-plus'
+        | 'md'
+        | 'md-plus'
+        | 'lg'
+        | 'lg-plus'
+        | 'xl'
+        | '2xl'
+        | '3xl';
+    type Display = 'block' | 'inline' | 'inline-block' | 'flex' | 'grid' | 'none';
+    type Justify = 'start' | 'center' | 'end' | 'between';
+    type Align = 'start' | 'center' | 'end' | 'stretch';
+    type Wrap = 'wrap' | 'nowrap';
 }
 
-export {};
+declare module 'react' {
+    interface HTMLAttributes<T> {
+        'data-stack'?: 'h' | 'v';
+        'data-gap'?: Spacing;
+        'data-p'?: Spacing;
+        'data-px'?: Spacing;
+        'data-py'?: Spacing;
+        'data-pt'?: Spacing;
+        'data-pr'?: Spacing;
+        'data-pb'?: Spacing;
+        'data-pl'?: Spacing;
+        'data-justify'?: Justify;
+        'data-align'?: Align;
+        'data-wrap'?: Wrap;
+        'data-display'?: Display;
+    }
+}

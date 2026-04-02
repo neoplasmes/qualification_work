@@ -1,0 +1,1 @@
+export { parseCookiesMiddleware } from './parseCookie';

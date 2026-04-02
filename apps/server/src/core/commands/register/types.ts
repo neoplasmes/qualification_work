@@ -1,3 +1,4 @@
+import type { z } from 'zod';
 import type { registerSchema } from './schema';
 
-export type RegisterInput = (typeof registerSchema)['_zod']['input'];
+export type RegisterInput = z.infer<typeof registerSchema>;

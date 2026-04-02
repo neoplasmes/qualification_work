@@ -1,5 +1,8 @@
-import type { Server, ServerResponse } from 'node:http';
-import { createServer } from 'node:http';
+import { createServer, type Server, type ServerResponse } from 'node:http';
+import type { ListenOptions } from 'node:net';
+
+import { FRequest } from './FRequest';
+import { FResponse } from './FResponse';
 import { Router } from './Router';
 import type {
     AppRequestHookType,
@@ -12,14 +15,11 @@ import type {
     RequestHandler,
     RouteHookType,
 } from './types';
-import type { ListenOptions } from 'node:net';
-import { FRequest } from './FRequest';
-import { FResponse } from './FResponse';
 
 type LifecycleHooksStore = Record<LifecycleHookType, LifecycleHookFn[]>;
 
-type AppRequestHooksStore<T extends Record<string, unknown>> = {
-    [K in AppRequestHookType]: K extends 'onError' ? ErrorHookFn<T>[] : HookFn<T>[];
+type AppRequestHooksStore<T extends Record<string, unknown>, E> = {
+    [K in AppRequestHookType]: K extends 'onError' ? ErrorHookFn<T, E>[] : HookFn<T>[];
 };
 
 function banWrite(res: ServerResponse): () => void {
@@ -42,20 +42,24 @@ function banWrite(res: ServerResponse): () => void {
  * @class Application
  * @typedef {Application}
  * @template [T=unknown] hooks state type
+ * @template [E=unknown] error type
  */
-export class Application<T extends Record<string, unknown> = Record<string, unknown>> {
-    readonly router: Router<T>;
+export class Application<
+    T extends Record<string, unknown> = Record<string, unknown>,
+    E = unknown,
+> {
+    readonly router: Router<T, E>;
     private nodeServer: Server | null;
 
     private readonly lifecycleHooks: LifecycleHooksStore;
 
-    private readonly appRequestHooks: AppRequestHooksStore<T>;
+    private readonly appRequestHooks: AppRequestHooksStore<T, E>;
 
     private activeRequests = 0;
     private onDrained: (() => void) | null = null;
 
     constructor() {
-        this.router = new Router<T>('');
+        this.router = new Router<T, E>('');
 
         this.nodeServer = null;
 
@@ -96,21 +100,25 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
         this.router.delete(path, handler);
     }
 
-    assignHook(type: 'onError', path: string, fn: ErrorHookFn<T>): void;
+    assignHook(type: 'onError', path: string, fn: ErrorHookFn<T, E>): void;
     assignHook(
         type: Exclude<RouteHookType, 'onError'>,
         path: string,
         fn: HookFn<T>
     ): void;
-    assignHook(type: RouteHookType, path: string, fn: HookFn<T> | ErrorHookFn<T>): void {
+    assignHook(
+        type: RouteHookType,
+        path: string,
+        fn: HookFn<T> | ErrorHookFn<T, E>
+    ): void {
         if (type === 'onError') {
-            this.router.assignHook(type, path, fn as ErrorHookFn<T>);
+            this.router.assignHook(type, path, fn as ErrorHookFn<T, E>);
         } else {
             this.router.assignHook(type, path, fn as HookFn<T>);
         }
     }
 
-    mount(prefix: string, router: Router<T>): void {
+    mount(prefix: string, router: Router<T, E>): void {
         this.router.mount(prefix, router);
     }
 
@@ -134,7 +142,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
         this.appRequestHooks.onResponse.push(fn);
     }
 
-    onError(fn: ErrorHookFn<T>): void {
+    onError(fn: ErrorHookFn<T, E>): void {
         this.appRequestHooks.onError.push(fn);
     }
 
@@ -227,7 +235,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
 
         this.executePipeline(ctx)
             .catch(_err => {
-                throw new Error('aaaaaa');
+                throw new Error('Internal framework pipeline error');
             })
             .finally(() => {
                 this.activeRequests--;
@@ -240,7 +248,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
 
     private async executePipeline(ctx: RequestContext<T>): Promise<void> {
         const { request, response } = ctx;
-        let routeErrorHooks: ErrorHookFn<T>[] | null = null;
+        let routeErrorHooks: ErrorHookFn<T, E>[] | null = null;
 
         try {
             // onRequest на уровне приложения
@@ -254,6 +262,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
 
             if (!method || !result.found || !result.handlers) {
                 response.status(404).text('Not Found');
+
                 return;
             }
 
@@ -261,6 +270,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
 
             if (method === 'OPTIONS' && !handlers.OPTIONS) {
                 response.head('allow', handlers.getAllowedMethods()).status(204).end();
+
                 return;
             }
 
@@ -273,6 +283,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
 
             if (!handler) {
                 response.status(405).text('Method Not Allowed');
+
                 return;
             }
 
@@ -320,12 +331,12 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
     private async handleError(
         error: unknown,
         ctx: RequestContext<T>,
-        routeErrorHooks?: ErrorHookFn<T>[] | null
+        routeErrorHooks?: ErrorHookFn<T, E>[] | null
     ): Promise<void> {
         if (routeErrorHooks) {
             for (let i = 0; i < routeErrorHooks.length; i++) {
                 try {
-                    await routeErrorHooks[i](error, ctx);
+                    await routeErrorHooks[i](error as E, ctx);
                     if (ctx.response.sent) {
                         return;
                     }
@@ -338,7 +349,7 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
         const appErrorHooks = this.appRequestHooks.onError;
         for (let i = 0; i < appErrorHooks.length; i++) {
             try {
-                await appErrorHooks[i](error, ctx);
+                await appErrorHooks[i](error as E, ctx);
                 if (ctx.response.sent) {
                     return;
                 }
@@ -360,8 +371,12 @@ export class Application<T extends Record<string, unknown> = Record<string, unkn
 
         try {
             ctx.response.status(500).json({ error: message });
+
+            console.error('Uncaught error during request handling:', error);
         } catch {
-            // Response stream is broken, nothing we can do
+            throw new Error(
+                'FATAL FRAMEWORK ERROR DURING UNCAUGHT ERROR HANDLING. IMPOSSIBLE TO SEND ERROR RESPONSE'
+            );
         }
     }
 

@@ -1,0 +1,1 @@
+export { <%= pascalName %>Impl } from './<%= fileName %>';

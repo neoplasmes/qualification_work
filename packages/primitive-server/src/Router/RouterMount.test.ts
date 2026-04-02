@@ -135,10 +135,10 @@ describe('Router.mount', () => {
         });
     });
 
-    describe('child с непустым prefix (new Router("v1"))', () => {
+    describe('child с непустым prefix (new Router("/v1"))', () => {
         it('добавляет child.root как статического ребёнка mountPoint', () => {
             const app = new Router();
-            const child = new Router('v1');
+            const child = new Router('/v1');
             child.get('/users', noop);
 
             app.mount('/api', child);
@@ -152,7 +152,7 @@ describe('Router.mount', () => {
             const app = new Router();
             app.get('/api/v1/health', noop);
 
-            const child = new Router('v1');
+            const child = new Router('/v1');
             child.get('/users', noop);
 
             app.mount('/api', child);
@@ -166,7 +166,7 @@ describe('Router.mount', () => {
             const app = new Router();
             app.get('/api/v1/users', noop);
 
-            const child = new Router('v1');
+            const child = new Router('/v1');
             child.get('/users', noop);
 
             expect(() => app.mount('/api', child)).toThrow();
@@ -247,10 +247,10 @@ describe('Router.mount', () => {
         });
 
         it('принимает статический сегмент', () => {
-            expect(() => new Router('api')).not.toThrow();
-            expect(() => new Router('v1')).not.toThrow();
-            expect(() => new Router('my-router')).not.toThrow();
-            expect(() => new Router('my_router')).not.toThrow();
+            expect(() => new Router('/api')).not.toThrow();
+            expect(() => new Router('/v1')).not.toThrow();
+            expect(() => new Router('/my-router')).not.toThrow();
+            expect(() => new Router('/my_router')).not.toThrow();
         });
 
         it('бросает ошибку на параметрический prefix', () => {
@@ -261,9 +261,9 @@ describe('Router.mount', () => {
             expect(() => new Router('*')).toThrow();
         });
 
-        it('бросает ошибку на prefix со слэшами', () => {
-            expect(() => new Router('/api')).toThrow();
+        it('бросает ошибку на prefix с несколькими сегментами', () => {
             expect(() => new Router('api/v1')).toThrow();
+            expect(() => new Router('/api/v1')).toThrow();
         });
     });
 });

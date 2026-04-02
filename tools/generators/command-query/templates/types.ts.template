@@ -1,0 +1,4 @@
+import type { z } from 'zod';
+import type { <%= camelName %>Schema } from './schema';
+
+export type <%= pascalName %>Input = z.infer<typeof <%= camelName %>Schema>;

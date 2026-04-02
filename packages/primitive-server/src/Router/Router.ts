@@ -1,5 +1,6 @@
 import assert from 'node:assert';
-import { PathSegment } from '../PathSegment';
+
+import { PathSegment, type HandlerStore } from '../PathSegment';
 import type {
     ErrorHookFn,
     HookFn,
@@ -9,18 +10,23 @@ import type {
     RouteHookType,
     RouteParams,
 } from '../types';
-import type { HandlerStore } from '../PathSegment';
 import { parsePath } from '../utils';
 
-export type LookupResult<T extends Record<string, unknown> = Record<string, unknown>> = {
+export type LookupResult<
+    T extends Record<string, unknown> = Record<string, unknown>,
+    E = unknown,
+> = {
     found: boolean;
     handlers: HandlerStore<T> | null;
     params: RouteParams;
-    hooks: PathSegmentHooksStore<T> | null;
+    hooks: PathSegmentHooksStore<T, E> | null;
 };
 
-export class Router<T extends Record<string, unknown> = Record<string, unknown>> {
-    readonly root: PathSegment<T>;
+export class Router<
+    T extends Record<string, unknown> = Record<string, unknown>,
+    E = unknown,
+> {
+    readonly root: PathSegment<T, E>;
 
     private isCompiled: boolean = false;
 
@@ -32,11 +38,12 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
      */
     constructor(prefix: string = '') {
         assert(
-            prefix === '' || /^[a-zA-Z0-9_-]+$/.test(prefix),
+            prefix === '' || /^\/[a-zA-Z0-9_-]+$/.test(prefix),
             `Router prefix must be a static segment, but got "${prefix}"`
         );
 
-        this.root = new PathSegment<T>(prefix);
+        const segment = prefix.startsWith('/') ? prefix.slice(1) : prefix;
+        this.root = new PathSegment<T, E>(segment);
     }
 
     addRoute(method: HttpMethod, path: string, handler: RequestHandler<T>): void {
@@ -44,7 +51,7 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
 
         const segments = parsePath(path);
 
-        let curr: PathSegment<T> = this.root;
+        let curr: PathSegment<T, E> = this.root;
         for (const s of segments) {
             curr = curr.getChild(s) ?? curr.createChild(s);
         }
@@ -78,18 +85,22 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
      * @param {RouteHookType} type
      * @param {(HookFn<T> | ErrorHookFn<T>)} fn
      */
-    assignHook(type: 'onError', path: string, fn: ErrorHookFn<T>): void;
+    assignHook(type: 'onError', path: string, fn: ErrorHookFn<T, E>): void;
     assignHook(
         type: Exclude<RouteHookType, 'onError'>,
         path: string,
         fn: HookFn<T>
     ): void;
-    assignHook(type: RouteHookType, path: string, fn: HookFn<T> | ErrorHookFn<T>): void {
+    assignHook(
+        type: RouteHookType,
+        path: string,
+        fn: HookFn<T> | ErrorHookFn<T, E>
+    ): void {
         this.ensureNotCompiled();
 
         const segments = parsePath(path);
 
-        let curr: PathSegment<T> = this.root;
+        let curr: PathSegment<T, E> = this.root;
         for (const s of segments) {
             const next = curr.getChild(s);
 
@@ -100,7 +111,7 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
 
         // boilerplate из-за typescript
         if (type === 'onError') {
-            curr.assignHook(type, fn as ErrorHookFn<T>);
+            curr.assignHook(type, fn as ErrorHookFn<T, E>);
         } else {
             curr.assignHook(type, fn as HookFn<T>);
         }
@@ -114,13 +125,13 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
      * @example
      *   router.addGlobalHook("onRequest", loggingHook);
      */
-    assignGlobalHook(type: 'onError', fn: ErrorHookFn<T>): void;
+    assignGlobalHook(type: 'onError', fn: ErrorHookFn<T, E>): void;
     assignGlobalHook(type: Exclude<RouteHookType, 'onError'>, fn: HookFn<T>): void;
-    assignGlobalHook(type: RouteHookType, fn: HookFn<T> | ErrorHookFn<T>): void {
+    assignGlobalHook(type: RouteHookType, fn: HookFn<T> | ErrorHookFn<T, E>): void {
         this.ensureNotCompiled();
 
         if (type === 'onError') {
-            this.root.assignHook(type, fn as ErrorHookFn<T>);
+            this.root.assignHook(type, fn as ErrorHookFn<T, E>);
         } else {
             this.root.assignHook(type, fn as HookFn<T>);
         }
@@ -144,7 +155,7 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
      *   app.mount("/api", apiRouter);
      *   // GET /api/users -> listUsers
      */
-    mount(mountPath: string, child: Router<T>): void {
+    mount(mountPath: string, child: Router<T, E>): void {
         this.ensureNotCompiled();
 
         const segments = parsePath(mountPath);
@@ -170,12 +181,12 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
         }
 
         const stack: Array<{
-            node: PathSegment<T>;
+            node: PathSegment<T, E>;
             onRequest: HookFn<T>[];
             preHandler: HookFn<T>[];
             postHandler: HookFn<T>[];
             onResponse: HookFn<T>[];
-            onError: ErrorHookFn<T>[];
+            onError: ErrorHookFn<T, E>[];
         }> = [];
 
         stack.push({
@@ -222,11 +233,11 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
     /**
      * Бегает по строке path с двумя указателями
      */
-    lookup(path: string): LookupResult<T> {
+    lookup(path: string): LookupResult<T, E> {
         assert(this.isCompiled, 'Router must be compiled before lookup');
 
         const SLASH = 47;
-        const lookupResult: LookupResult<T> = {
+        const lookupResult: LookupResult<T, E> = {
             found: false,
             handlers: null,
             params: {},
@@ -235,7 +246,7 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
 
         const len = path.length;
 
-        let curr: PathSegment<T> = this.root;
+        let curr: PathSegment<T, E> = this.root;
         let start = 0;
 
         // пропускаем ведущий слэш
@@ -303,10 +314,10 @@ export class Router<T extends Record<string, unknown> = Record<string, unknown>>
     }
 
     private resolveNode(
-        node: PathSegment<T>,
-        result: LookupResult<T>,
+        node: PathSegment<T, E>,
+        result: LookupResult<T, E>,
         wildcardParam: string
-    ): LookupResult<T> {
+    ): LookupResult<T, E> {
         const target = node.canHandle() ? node : node.getWildcardChild();
 
         if (target && target.canHandle()) {

@@ -1,16 +1,15 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
-import { rtkApi } from '@/shared/api/api';
+import { api } from '@/shared/api';
 
 const rootReducer = combineReducers({
-    [rtkApi.reducerPath]: rtkApi.reducer,
+    [api.reducerPath]: api.reducer,
 });
 
 export function createStore(preloadedState?: Partial<RootState>) {
     return configureStore({
         reducer: rootReducer,
-        middleware: getDefaultMiddleware =>
-            getDefaultMiddleware().concat(rtkApi.middleware),
+        middleware: getDefaultMiddleware => getDefaultMiddleware().concat(api.middleware),
         preloadedState,
     });
 }

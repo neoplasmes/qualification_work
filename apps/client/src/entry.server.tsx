@@ -10,7 +10,10 @@ import {
 } from 'react-router';
 import { encode } from 'turbo-stream';
 
-import { createStore, getRoutes } from '@/app/model';
+import { getRoutes } from '@/app/config';
+import { createStore } from '@/app/model';
+
+import { Queue } from '@/shared/lib/queue';
 
 /**
  * без этого ***** не получится нормально передать строку со строками через интернет
@@ -23,50 +26,58 @@ function escapeForScript(str: string): string {
 }
 
 /**
- * turbo-stream - библиотека, которая используется под капотом react-router v7 в FRAMEWORK моде.
- * Я не хочу использовать никакие фреймворки, поэтому я использую Data mode и реимплементирую стратегию передачи промисов на клиент,
- * лежащую в основе фреймворк мода.
+ * turboStream - это ReadableSteam, поток, в который пушатся изначальные данные, а затем доходит по чанку
+ * по мере резолва каждого промиса в потокеы
  *
- * @param response
- * @param loaderData
- * @param actionData
- * @param errors
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream
+ *
+ * @param routerContext - контекст роутера
+ * @param pendingScripts - очередь скриптов, передавать по ссылке
+ * @returns
  */
-async function streamTurboChunks(
-    response: FResponse,
-    routerContext: HydrationState
+function collectTurboChunks(
+    routerContext: HydrationState,
+    pendingScripts: Queue<string>
 ): Promise<void> {
+    const { loaderData, actionData, errors } = routerContext;
     /**
-     * turboStream - это ReadableSteam, поток, в который пушатся изначальные данные, а затем доходит по чанку
-     * по мере резолва каждого промиса в потокеы
-     *
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream
+     * Забавно, что если передать весь routerContext, turboStrem будет стримить даже element.
+     * То есть он стримит реакт компоненты. Это интересно и возможно может быть использовано
+     * где-то когда-то для кастомной реализации RSC???/
      */
-    const turboStream = encode(routerContext);
+    const turboStream = encode({ loaderData, actionData, errors });
     const reader = turboStream.getReader();
 
-    let chunkId = 0;
+    /**
+     * Создаём по сути асинхронный while loop, который будет пушить турбо-чанк сразу, как только он зарезолвится
+     *
+     * @returns
+     */
+    const enqueueDataChunk = async (): Promise<void> => {
+        const read = await reader.read();
 
-    try {
-        let read = await reader.read();
-
-        while (!read.done) {
-            // console.log(`pushed ${read.value} to the turbostream`);
-            // __TURBO_CTRL__ уже есть в window, т.к. мы инжектим его в head
-            response.write(
-                `<script chunk-id="${chunkId}">
-                    window.__TURBO_CTRL__.enqueue('${escapeForScript(read.value)}');
-                    document.querySelector('script[chunk-id="${chunkId}"]').remove();
-                </script>`
-            );
-
-            chunkId++;
-            read = await reader.read();
+        if (read.done) {
+            return;
         }
-    } finally {
-        response.write(
-            `<script chunk-id="${chunkId}">window.__TURBO_CTRL__.close();document.querySelector('script[chunk-id="${chunkId}"]').remove();</script>`
+
+        pendingScripts.enqueue(
+            `<template data-type="streamed-script">window.__TURBO_CTRL__.enqueue('${escapeForScript(read.value)}');</template>`
         );
+
+        return enqueueDataChunk();
+    };
+
+    return enqueueDataChunk();
+}
+
+/**
+ *
+ * @param response
+ * @param pendingScripts - очередь скриптов, передавать по ссылке!!
+ */
+function flushPendingScripts(response: FResponse, pendingScripts: Queue<string>): void {
+    while (!pendingScripts.isEmpty()) {
+        response.write(pendingScripts.dequeue()!);
     }
 }
 
@@ -123,6 +134,7 @@ export async function streamSSR(
                 return response.head('location', location).status(context.status).end();
             }
         }
+
         throw new Error(`Can not handle response ${context.status}`);
     }
 
@@ -132,8 +144,6 @@ export async function streamSSR(
     //*---------------------- Loader'ы выполнились успешно --------------------------
 
     const staticRouter = createStaticRouter(dataRoutes, context);
-
-    let turboPromise: Promise<void> | null = null;
 
     return new Promise((resolve, reject) => {
         let didError = false;
@@ -159,7 +169,8 @@ export async function streamSSR(
                         `<script>window.__PRELOADED_STATE__=${storeData}</script>`
                     );
 
-                    turboPromise = streamTurboChunks(response, context);
+                    const pendingScripts = new Queue<string>();
+                    const turboPromise = collectTurboChunks(context, pendingScripts);
 
                     /**
                      * Используем writable чтобы иметь возможность нормально управлять концом потока
@@ -167,12 +178,22 @@ export async function streamSSR(
                      */
                     const writable = new Writable({
                         write(chunk: Buffer, encoding, callback) {
-                            response.write(chunk, encoding, callback);
+                            response.write(chunk, encoding);
+                            /**
+                             * Стримим наши скрипты между чанками react, потому что если этого не делать, то может оказаться смешная ситуация:
+                             * <a href="__TURBO_CTRL__ и так далее"></a>
+                             */
+                            flushPendingScripts(response, pendingScripts);
+                            callback();
                         },
                         async final(callback) {
-                            if (turboPromise) {
-                                await turboPromise;
-                            }
+                            await turboPromise;
+
+                            flushPendingScripts(response, pendingScripts);
+
+                            response.write(
+                                `<template data-type="streamed-script">window.__TURBO_CTRL__.close();</template>`
+                            );
 
                             response.write(htmlAfter);
                             response.end();

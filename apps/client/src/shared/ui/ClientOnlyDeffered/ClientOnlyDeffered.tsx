@@ -14,6 +14,7 @@ export type ClientOnlyDefferedProps<T extends object> = {
 };
 
 /**
+ * Быстрая и удобная обёртка для lazy компонентов, которые не должны отрендерится при SSR
  *
  * @param param0
  * @returns

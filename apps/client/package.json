@@ -5,7 +5,7 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "dev": "PORT=5173 tsx server/server.ts",
+        "dev": "pnpm typecheck && PORT=5173 tsx server/server.ts",
         "build:client": "vite build",
         "build:server": "tsup && cp server/renderError.html dist/ && vite build --ssr src/entry.server.tsx --outDir dist/server",
         "build": "pnpm build:server && pnpm build:client",
@@ -14,7 +14,10 @@
         "start": "NODE_ENV=production PORT=5173 node dist/server.js",
         "test": "vitest run",
         "test:e2e": "playwright test",
-        "lint": "eslint . --ext .ts,.tsx"
+        "lint:ts": "eslint . --ext .ts,.tsx",
+        "lint:css": "stylelint \"src/**/*.scss\"",
+        "lint": "pnpm lint:ts && pnpm lint:css",
+        "lint:fix": "eslint . --ext .ts,.tsx --fix && stylelint \"src/**/*.scss\" --fix"
     },
     "keywords": [],
     "author": "",
@@ -22,6 +25,8 @@
     "packageManager": "pnpm@10.32.0",
     "dependencies": {
         "@reduxjs/toolkit": "^2.11.2",
+        "lucide-react": "^1.7.0",
+        "motion": "^12.38.0",
         "primitive-server": "workspace:*",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
@@ -40,6 +45,8 @@
         "@vitejs/plugin-react-swc": "^4.3.0",
         "jsdom": "^28.1.0",
         "sass": "^1.97.3",
+        "stylelint": "^17.6.0",
+        "stylelint-config-standard-scss": "^17.0.0",
         "tsup": "^8.5.1",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",

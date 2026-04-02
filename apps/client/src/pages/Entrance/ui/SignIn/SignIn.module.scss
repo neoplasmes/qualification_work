@@ -1,0 +1,12 @@
+.forgot-link {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-outline);
+    text-decoration: underline;
+
+    transition: color 0.5s ease-in-out;
+
+    &:hover {
+        color: var(--color-on-background);
+    }
+}

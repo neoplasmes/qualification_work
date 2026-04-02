@@ -1,11 +1,16 @@
-import { AppError } from './app.error';
+import { BaseError, type ErrorType } from './base';
 
 /**
- * Кидать при конфликтах с UNIQUE полями и проч.
+ * Dshould be thrown on conflict with UNIQUE fields
+ *
+ * @export
+ * @class ConflictError
+ * @extends {BaseError}
  */
-export class ConflictError extends AppError {
+export class ConflictError extends BaseError {
+    errorType: ErrorType = 'ConflictError';
+
     constructor(message: string) {
         super(message, 409);
-        this.name = 'ConflictError';
     }
 }

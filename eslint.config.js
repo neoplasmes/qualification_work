@@ -1,25 +1,16 @@
 import eslint from '@eslint/js';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-    // Игнорируемые папки для всего монорепо
     {
         ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
     },
-
-    // Базовые правила JS
     eslint.configs.recommended,
-
-    // Базовые правила TS
     tseslint.configs.recommended,
-
-    // Отключает ESLint правила конфликтующие с Prettier
     prettier,
-
-    // Общие правила для всего монорепо
     {
         files: ['**/*.{ts,tsx}'],
         plugins: {
@@ -38,6 +29,11 @@ export default defineConfig(
                 { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
             ],
             '@typescript-eslint/no-empty-object-type': 'off',
+            'padding-line-between-statements': [
+                'error',
+                { blankLine: 'always', prev: '*', next: 'return' },
+                { blankLine: 'always', prev: '*', next: 'throw' },
+            ],
         },
     }
 );

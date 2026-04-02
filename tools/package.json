@@ -1,0 +1,10 @@
+{
+    "name": "tools",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "generators": "./generators.json",
+    "devDependencies": {
+        "@nx/devkit": "^22.6.3"
+    }
+}

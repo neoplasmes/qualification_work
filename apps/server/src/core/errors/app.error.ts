@@ -1,15 +1,22 @@
+import { BaseError, type ErrorType } from './base/base.error';
+
 /**
- * Базовый класс всех наших http ошибок
+ * Use when it is not clear which error to throw.
+ * All other errors should extend exactly this class.
+ *
+ * @export
+ * @class AppError
+ * @extends {BaseError}
  */
-export class AppError extends Error {
+export class AppError extends BaseError {
+    errorType: ErrorType;
+
     constructor(
         message: string,
-        /**
-         * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
-         */
-        public readonly statusCode: number
+        statusCode: number,
+        errorType: ErrorType = 'InternalServerError'
     ) {
-        super(message);
-        this.name = 'AppError';
+        super(message, statusCode);
+        this.errorType = errorType;
     }
 }

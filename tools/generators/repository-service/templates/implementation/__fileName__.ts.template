@@ -1,0 +1,3 @@
+import type { <%= pascalName %><%= suffix %> } from '@/core/ports';
+
+export class <%= pascalName %>Repository implements <%= pascalName %><%= suffix %> {}

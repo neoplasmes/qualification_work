@@ -1,0 +1,30 @@
+.link {
+    cursor: pointer;
+
+    border: none;
+
+    font-family: var(--font-headline);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-outline);
+    text-decoration: none;
+
+    background: none;
+
+    transition: color 0.2s;
+
+    &:hover {
+        color: var(--color-on-background);
+    }
+
+    &.active {
+        color: var(--color-on-background);
+    }
+}
+
+.active-link {
+    height: calc(var(--spacing-xs) / 2);
+
+    border-radius: var(--radius-xs);
+    background-color: var(--color-on-background);
+}

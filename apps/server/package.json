@@ -11,7 +11,8 @@
         "typecheck": "tsc --noEmit",
         "db:up": "docker compose -f ../../docker-compose.dev.yml up postgres -d",
         "db:down": "docker compose -f ../../docker-compose.dev.yml down",
-        "lint": "eslint . --ext .ts,.tsx"
+        "lint": "eslint . --ext .ts,.tsx",
+        "test": "pnpm dotenv -e ../../.env -- vitest run"
     },
     "keywords": [],
     "author": "",
@@ -22,6 +23,7 @@
         "fast-json-stringify": "^6.3.0",
         "pg": "^8.20.0",
         "primitive-server": "workspace:*",
+        "redis": "^5.11.0",
         "zod": "^4.3.6"
     },
     "devDependencies": {
@@ -29,6 +31,7 @@
         "@types/pg": "^8.18.0",
         "dotenv": "^17.3.1",
         "dotenv-cli": "^11.0.0",
+        "vitest": "^3.2.4",
         "eslint-plugin-boundaries": "^6.0.0",
         "tsup": "^8.5.1",
         "tsx": "^4.21.0",

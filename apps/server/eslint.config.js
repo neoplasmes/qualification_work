@@ -10,10 +10,17 @@ export default defineConfig(...baseConfig, {
             {
                 patterns: [
                     {
-                        group: ['@/*/index', '@/*/index.ts'],
+                        group: ['**/index', '**/index.ts'],
                     },
                     {
-                        group: ['@/*/*/**'],
+                        regex: '^@/(?!core/ports/)\\w+/\\w+/.+',
+                    },
+                ],
+                paths: [
+                    {
+                        name: 'express',
+                        importNames: ['RequestHandler'],
+                        message: 'use RequestHandlerType instead',
                     },
                 ],
             },

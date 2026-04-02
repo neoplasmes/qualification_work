@@ -1,0 +1,1 @@
+export { createLogoutHandler } from './logout';

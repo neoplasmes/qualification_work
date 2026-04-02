@@ -1,0 +1,117 @@
+.form-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.form-title {
+    margin-bottom: var(--spacing-sm);
+    font-family: var(--font-headline);
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+}
+
+.form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    & > div {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+}
+
+.form-subtitle {
+    padding-bottom: var(--spacing-md);
+    font-size: var(--font-size-md);
+    color: var(--color-outline);
+}
+
+.label {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-outline);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-wrapper {
+    position: relative;
+
+    svg {
+        position: absolute;
+        left: var(--spacing-md);
+
+        width: 1.25rem;
+        height: 1.25rem;
+
+        color: var(--color-outline);
+    }
+}
+
+$standard-transition: 0.5s ease-in-out;
+
+.input {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) var(--spacing-lg-plus);
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-xs);
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-md);
+    color: var(--color-on-surface);
+
+    background-color: var(--color-surface-container-low);
+
+    transition:
+        color $standard-transition,
+        border-color $standard-transition,
+        background-color $standard-transition;
+
+    &::placeholder {
+        color: var(--color-outline-variant);
+    }
+
+    &:focus {
+        border-color: var(--color-secondary);
+        background-color: var(--color-surface-container);
+        outline: none;
+    }
+}
+
+.submit-btn {
+    cursor: pointer;
+
+    margin-top: auto;
+    border: 1px solid var(--color-outline);
+    border-radius: var(--radius-xs);
+
+    font-family: var(--font-headline);
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--color-outline);
+
+    background-color: var(--color-background);
+
+    transition:
+        color $standard-transition,
+        border-color $standard-transition,
+        background-color $standard-transition;
+
+    &:hover,
+    &:focus {
+        // border-color: var(--color-on-background);
+        // color: var(--color-on-background);
+        border-color: var(--color-secondary);
+        color: var(--color-on-background);
+        background-color: var(--color-secondary);
+        outline: none;
+    }
+
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+}

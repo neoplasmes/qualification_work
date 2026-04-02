@@ -1,0 +1,118 @@
+$spacing-map: (
+    'xs': 4,
+    'sm': 8,
+    'sm-plus': 12,
+    'md': 16,
+    'md-plus': 24,
+    'lg': 32,
+    'lg-plus': 48,
+    'xl': 64,
+    '2xl': 128,
+    '3xl': 192,
+);
+
+:root {
+    @each $key, $value in $spacing-map {
+        --spacing-#{$key}: #{$value / 16}rem;
+    }
+
+    --radius-xs: 0.5rem;
+    --radius-sm: 1rem;
+    --radius-md: 1.5rem;
+    --radius-lg: 2rem;
+}
+
+$display-values: block, inline, inline-block, flex, grid, none;
+
+@each $value in $display-values {
+    [data-display='#{$value}'] {
+        display: $value;
+    }
+}
+
+[data-stack='h'] {
+    display: flex;
+    flex-direction: row;
+}
+
+[data-stack='v'] {
+    display: flex;
+    flex-direction: column;
+}
+
+[data-justify='start'] {
+    justify-content: flex-start;
+}
+
+[data-justify='center'] {
+    justify-content: center;
+}
+
+[data-justify='end'] {
+    justify-content: flex-end;
+}
+
+[data-justify='between'] {
+    justify-content: space-between;
+}
+
+[data-align='start'] {
+    align-items: flex-start;
+}
+
+[data-align='center'] {
+    align-items: center;
+}
+
+[data-align='end'] {
+    align-items: flex-end;
+}
+
+[data-align='stretch'] {
+    align-items: stretch;
+}
+
+[data-wrap='wrap'] {
+    flex-wrap: wrap;
+}
+
+[data-wrap='nowrap'] {
+    flex-wrap: nowrap;
+}
+
+@each $key, $value in $spacing-map {
+
+    [data-gap='#{$key}'] {
+        gap: var(--spacing-#{$key});
+    }
+
+    [data-p='#{$key}'] {
+        padding: var(--spacing-#{$key});
+    }
+
+    [data-pt='#{$key}'] {
+        padding-top: var(--spacing-#{$key});
+    }
+
+    [data-pb='#{$key}'] {
+        padding-bottom: var(--spacing-#{$key});
+    }
+
+    [data-pl='#{$key}'] {
+        padding-left: var(--spacing-#{$key});
+    }
+
+    [data-pr='#{$key}'] {
+        padding-right: var(--spacing-#{$key});
+    }
+
+    [data-px='#{$key}'] {
+        padding-right: var(--spacing-#{$key});
+        padding-left: var(--spacing-#{$key});
+    }
+
+    [data-py='#{$key}'] {
+        padding-top: var(--spacing-#{$key});
+        padding-bottom: var(--spacing-#{$key});
+    }
+}

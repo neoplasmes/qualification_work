@@ -3,10 +3,15 @@ import { Provider } from 'react-redux';
 import { createBrowserRouter, RouterProvider, type HydrationState } from 'react-router';
 import { decode } from 'turbo-stream';
 
-import { createStore, getRoutes } from '@/app/model';
-import { rtkApi } from '@/shared/api/api';
+import { getRoutes } from '@/app/config';
+import { createStore } from '@/app/model';
 
-import './global.scss';
+import { api } from '@/shared/api';
+
+import './shared/ui/styles/colors.scss';
+import './shared/ui/styles/layout.scss';
+import './shared/ui/styles/fonts.scss';
+import './index.scss';
 
 const node = document.getElementById('root');
 
@@ -99,7 +104,7 @@ function hydrateRTKFromResolved(resolved: unknown): void {
 
         store.dispatch(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            rtkApi.util.upsertQueryData(endpointName as any, originalArgs, data)
+            api.util.upsertQueryData(endpointName as any, originalArgs, data)
         );
     }
 }

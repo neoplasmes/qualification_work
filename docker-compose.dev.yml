@@ -12,8 +12,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-qualification}
     ports:
       - '${POSTGRES_PORT:-5432}:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-qualification}']
       interval: 30s
@@ -35,8 +33,8 @@ services:
       retries: 3
 
   redis-insight:
-    container_name: redis-insight
-    image: redis/redis-insight:latest
+    container_name: redisinsight
+    image: redis/redisinsight:latest
     ports:
      - '5040:5040'
     volumes:
@@ -92,6 +90,5 @@ services:
           condition: service_healthy
 
 volumes:
-  postgres_data:
   redis_data:
   redisinsight_data:

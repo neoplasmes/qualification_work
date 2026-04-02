@@ -1,5 +1,5 @@
 import { ConflictError } from '@/core/errors';
-import type { Hasher, UserRepository } from '@/core/ports';
+import type { Hasher, OrganizationRepository, UserRepository } from '@/core/ports';
 
 import type { RegisterInput } from './types';
 
@@ -14,25 +14,36 @@ export class RegisterHandler {
          */
         private readonly userRepository: UserRepository,
         /**
+         * Репозиторий организаций
+         */
+        private readonly organizationRepository: OrganizationRepository,
+        /**
          * Сервис, обслуживающий шифрование/дешифрование/верификацию
          */
         private readonly hasher: Hasher
     ) {}
 
-    async execute(input: RegisterInput): Promise<void> {
-        const existingLogin = await this.userRepository.findByLogin(input.login);
+    async execute(input: RegisterInput): Promise<{ id: string }> {
+        const exists = await this.userRepository.findByEmail(input.email);
 
-        if (existingLogin) {
-            throw new ConflictError(`Login ${input.login} уже занят`);
+        if (exists) {
+            throw new ConflictError(`Email ${input.email} is already in use`);
         }
 
         const passwordHash = await this.hasher.hashPassword(input.password);
 
-        this.userRepository.create({
-            login: input.login,
+        const { id } = await this.userRepository.create({
+            login: input.email,
             passwordHash,
             name: input.name,
             family: input.family,
         });
+
+        await this.organizationRepository.create({
+            name: `${input.name}'s organization`,
+            ownerId: id,
+        });
+
+        return { id };
     }
 }

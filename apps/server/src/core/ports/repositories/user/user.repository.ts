@@ -1,23 +1,37 @@
+import type { User } from '@/core/entities';
+
 /**
- * Репозиторий, отвечающий за авторизацию и прочее
+ * User data management
  */
 export interface UserRepository {
     /**
-     * найти по email. Email - UNIQUE
+     * Find user by email. Email is UNIQUE.
      *
      * @param email
+     * @param retrieve fields of User entity to return
      */
-    findByEmail(email: string): Promise<{ id: string } | null>;
+    findByEmail(email: string): Promise<boolean>;
+    findByEmail(email: string, retrieve: []): Promise<boolean>;
+    findByEmail<K extends keyof User>(
+        email: string,
+        retrieve: K[]
+    ): Promise<Pick<User, K> | null>;
 
     /**
-     * найти по email. Email - UNIQUE
+     * Find user by id
      *
-     * @param login
+     * @param id
+     * @param retrieve fields of User entity to return
      */
-    findByLogin(login: string): Promise<{ id: string } | null>;
+    findById(id: string): Promise<boolean>;
+    findById(id: string, retrieve: []): Promise<boolean>;
+    findById<K extends keyof User>(
+        id: string,
+        retrieve: K[]
+    ): Promise<Pick<User, K> | null>;
 
     /**
-     * Создать пользователя
+     * Create a user
      *
      * @param data
      */
@@ -26,5 +40,5 @@ export interface UserRepository {
         passwordHash: string;
         name: string;
         family: string;
-    }): Promise<void>;
+    }): Promise<{ id: string }>;
 }

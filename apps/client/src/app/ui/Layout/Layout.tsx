@@ -1,50 +1,29 @@
-import { Suspense, useState } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { LazyMotion, m } from 'motion/react';
+import { NavLink, Outlet, useLocation } from 'react-router';
 
-import { TestStyleModules } from '@/widgets/TestStyleModules';
+import styles from './Layout.module.scss';
 
-import classes from './Layout.module.scss';
+const motionFeatures = () =>
+    import('../../config/motionFeatures').then(res => res.domMax);
 
 export const Layout = () => {
-    const [state, setState] = useState(1);
+    const location = useLocation();
 
+    if (location.pathname === '/sign-in' || location.pathname === '/sign-up') {
+        return (
+            <LazyMotion features={motionFeatures} strict>
+                <Outlet />
+            </LazyMotion>
+        );
+    }
+
+    // TODO: Layout для основной части приложения
     return (
-        <div className={classes.layout}>
-            <header className={classes.header}>
-                <nav className={classes.nav}>
-                    <NavLink
-                        to="/"
-                        style={({ isActive }) => ({
-                            fontWeight: isActive ? 'bold' : 'normal',
-                        })}
-                    >
-                        main
-                    </NavLink>
-                    <NavLink
-                        to="/lazy"
-                        style={({ isActive }) => ({
-                            fontWeight: isActive ? 'bold' : 'normal',
-                        })}
-                    >
-                        lazy load
-                    </NavLink>
-                    <NavLink
-                        to="/promise-all"
-                        style={({ isActive }) => ({
-                            fontWeight: isActive ? 'bold' : 'normal',
-                        })}
-                    >
-                        promise.all
-                    </NavLink>
-                </nav>
-                <button onClick={() => setState(prev => prev + 1)}>{state}</button>
-            </header>
-            <main className={classes.main}>
-                <TestStyleModules />
-                <Suspense fallback={<div>loading...</div>}>
-                    <Outlet />
-                </Suspense>
-            </main>
-        </div>
+        <LazyMotion features={motionFeatures} strict>
+            <div data-stack="v">
+                <div></div>
+                <Outlet />
+            </div>
+        </LazyMotion>
     );
 };

@@ -1,21 +1,23 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { data, type RouteObject } from 'react-router';
 
-import { rtkApi } from '@/shared/api/api';
+import { Layout } from '@/app/ui/Layout';
+
+import { Entrance, SignIn, SignUp } from '@/pages/Entrance';
+
+import { api } from '@/shared/api';
 
 import type { AppStore } from '../model/store';
-import { App } from '../ui';
-import { Layout } from '../ui/Layout/Layout';
 
-const TestLazyLoading = lazy(
-    () => import('../../pages/TestLazyLoading/ui/TestLazyLoading')
-);
+// const TestLazyLoading = lazy(
+//     () => import('../../pages/TestLazyLoading/ui/TestLazyLoading')
+// );
 
-const PromiseAllTest = lazy(() =>
-    import('../../pages/PromiseAllTest/ui/PromiseAllTest').then(m => ({
-        default: m.PromiseAllTest,
-    }))
-);
+// const PromiseAllTest = lazy(() =>
+//     import('../../pages/PromiseAllTest/ui/PromiseAllTest').then(m => ({
+//         default: m.PromiseAllTest,
+//     }))
+// );
 
 /**
  * Убогий workaround, без которого на клиенте опять будет показываться fallback каждый раз.
@@ -61,18 +63,21 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
         element: <Layout />,
         children: [
             {
-                path: '/',
-                Component: App,
-                loader: () =>
-                    loaderData({
-                        testData: store.dispatch(rtkApi.endpoints.getPost.initiate(1)),
-                    }),
+                index: true,
+                element: <div></div>,
+                loader: ({ request }) => {
+                    const result = store.dispatch(api.endpoints.getPost.initiate(1));
+
+                    request.signal.addEventListener('abort', () => result.abort());
+
+                    return loaderData({ testData: result });
+                },
             },
             {
                 path: '/lazy',
                 element: (
                     <Suspense fallback={<div>loading...</div>}>
-                        <TestLazyLoading />
+                        <div></div>
                     </Suspense>
                 ),
             },
@@ -80,17 +85,38 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
                 path: '/promise-all',
                 element: (
                     <Suspense fallback={<div>loading...</div>}>
-                        <PromiseAllTest />
+                        <div></div>
                     </Suspense>
                 ),
-                loader: () =>
-                    loaderData({
-                        combined: Promise.all([
-                            store.dispatch(rtkApi.endpoints.getPost.initiate(2)),
-                            store.dispatch(rtkApi.endpoints.getUser.initiate(1)),
-                            store.dispatch(rtkApi.endpoints.getComments.initiate(2)),
-                        ]),
-                    }),
+                loader: ({ request }) => {
+                    const post = store.dispatch(api.endpoints.getPost.initiate(2));
+                    const user = store.dispatch(api.endpoints.getUser.initiate(1));
+                    const comments = store.dispatch(
+                        api.endpoints.getComments.initiate(2)
+                    );
+
+                    request.signal.addEventListener('abort', () => {
+                        post.abort();
+                        user.abort();
+                        comments.abort();
+                    });
+
+                    return loaderData({ combined: Promise.all([post, user, comments]) });
+                },
+            },
+            {
+                path: '/',
+                element: <Entrance />,
+                children: [
+                    {
+                        path: 'sign-in',
+                        element: <SignIn />,
+                    },
+                    {
+                        path: 'sign-up',
+                        element: <SignUp />,
+                    },
+                ],
             },
         ],
     },

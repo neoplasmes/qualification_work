@@ -1,6 +1,7 @@
 import type { RequestHandlerType } from '@/common/appState';
 import { parseWithZod } from '@/common/parseWithZod';
-import { loginSchema, SESSION_TTL_SECONDS, type LoginHandler } from '@/core/commands';
+import { loginSchema, type LoginHandler } from '@/core/commands';
+import { SESSION_TTL_SECONDS } from '@/core/entities';
 
 // TODO: add "secure" flag to cookie before moving to https.
 // TODO: maybe add "encrypted" property into AppState for the developer experience

@@ -1,5 +1,5 @@
 import type { Organization } from '@/core/entities';
-import type { OrganizationRepository } from '@/core/ports';
+import type { MeCacheRepository, OrganizationRepository } from '@/core/ports';
 import type { Pool } from 'pg';
 
 /**
@@ -19,9 +19,20 @@ export class PgOrganizationRepository implements OrganizationRepository {
      *
      * @constructor
      * @param {Pool} pool
+     * @param {RedisMeCacheRepository} meCacheRepository
      */
-    constructor(private readonly pool: Pool) {}
+    constructor(
+        private readonly pool: Pool,
+        private readonly meCacheRepository: MeCacheRepository
+    ) {}
 
+    /**
+     * affects user -> has to revalidate the cached /me data
+     *
+     * @async
+     * @param {{ name: string; ownerId: string }} data
+     * @returns {Promise<{ id: string }>}
+     */
     async create(data: { name: string; ownerId: string }): Promise<{ id: string }> {
         const { rows } = await this.pool.query(
             `INSERT INTO orgs.organizations (name, owner_id) VALUES ($1, $2) RETURNING id`,
@@ -35,11 +46,28 @@ export class PgOrganizationRepository implements OrganizationRepository {
             [id, data.ownerId]
         );
 
+        void this.meCacheRepository.upgradeVersion(data.ownerId);
+
         return { id };
     }
 
+    /**
+     * affects user -> has to revalidate the cached /me data
+     *
+     * @async
+     * @param {string} id
+     * @returns {Promise<void>}
+     */
     async delete(id: string): Promise<void> {
+        const { rows } = await this.pool.query<{
+            user_id: string;
+        }>(`SELECT user_id FROM orgs.roles WHERE org_id = $1`, [id]);
+
         await this.pool.query(`DELETE FROM orgs.organizations WHERE id = $1`, [id]);
+
+        for (const r of rows) {
+            void this.meCacheRepository.upgradeVersion(r.user_id);
+        }
     }
 
     findById(id: string): Promise<boolean>;
@@ -61,15 +89,6 @@ export class PgOrganizationRepository implements OrganizationRepository {
             return rows.length > 0;
         }
 
-        // let columnsString = '';
-        // retrieve.forEach((k, i) => {
-        //     const col = organizationColumnMap[k] ?? k;
-        //     columnsString += col;
-
-        //     if (i < retrieve.length - 1) {
-        //         columnsString += ', ';
-        //     }
-        // });
         const columnsMapped = [];
         for (const k of retrieve) {
             columnsMapped.push(organizationColumnMap[k] ?? k);

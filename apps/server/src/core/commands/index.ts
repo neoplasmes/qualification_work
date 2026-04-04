@@ -4,7 +4,7 @@ export type { CreateOrgInput } from './createOrg';
 export { DeleteOrgHandler, deleteOrgSchema } from './deleteOrg';
 export type { DeleteOrgInput } from './deleteOrg';
 
-export { LoginHandler, loginSchema, SESSION_TTL_SECONDS } from './login';
+export { LoginHandler, loginSchema } from './login';
 export type { LoginInput } from './login';
 
 export { LogoutHandler, logoutSchema } from './logout';

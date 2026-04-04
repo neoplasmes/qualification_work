@@ -1,6 +1,13 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { api, startServer, stopServer, truncate } from './setup';
+import {
+    api,
+    redisGet,
+    startServer,
+    stopServer,
+    truncate,
+    waitForRedisKeys,
+} from './setup';
 
 const user = {
     email: 'test@example.com',
@@ -139,6 +146,33 @@ describe('GET /api/auth/me', () => {
         expect(body.name).toBe(user.name);
         expect(body.family).toBe(user.family);
         expect(Array.isArray(body.organizations)).toBe(true);
+    });
+
+    it('stores /me payload in redis and serves the same payload on repeated calls', async () => {
+        const firstRes = await api('/api/auth/me', { headers: { cookie } });
+        expect(firstRes.status).toBe(200);
+
+        const firstBody = (await firstRes.json()) as {
+            id: string;
+            email: string;
+            name: string;
+            family: string;
+            organizations: { id: string; name: string; role: string }[];
+        };
+
+        const keys = await waitForRedisKeys(`me:user:${firstBody.id}:version:*:data`);
+        expect(keys).toHaveLength(1);
+
+        const cachedRaw = await redisGet(keys[0]);
+        expect(cachedRaw).not.toBeNull();
+        const cached = JSON.parse(cachedRaw ?? '{}') as typeof firstBody;
+        expect(cached).toEqual(firstBody);
+
+        const secondRes = await api('/api/auth/me', { headers: { cookie } });
+        expect(secondRes.status).toBe(200);
+        const secondBody = (await secondRes.json()) as typeof firstBody;
+
+        expect(secondBody).toEqual(firstBody);
     });
 
     it('without cookie returns 400 (empty token fails validation)', async () => {

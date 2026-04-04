@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { SESSION_TTL_SECONDS } from '@/core/commands';
+import { SESSION_TTL_SECONDS } from '@/core/entities';
 import { AppError } from '@/core/errors';
 import type { SessionRepository } from '@/core/ports';
 import type { RedisClient } from '@/infrastructure/redis';

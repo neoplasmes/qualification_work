@@ -9,7 +9,7 @@
         "build": "tsup src/index.ts --format esm --target esnext --out-dir dist",
         "start": "node dist/index.mjs",
         "typecheck": "tsc --noEmit",
-        "db:up": "docker compose -f ../../docker-compose.dev.yml up postgres -d",
+        "db:up": "docker compose -f ../../docker-compose.dev.yml up postgres redis redis-insight -d",
         "db:down": "docker compose -f ../../docker-compose.dev.yml down",
         "lint": "eslint . --ext .ts,.tsx",
         "test": "pnpm dotenv -e ../../.env -- vitest run"
@@ -22,6 +22,7 @@
         "argon2": "^0.44.0",
         "fast-json-stringify": "^6.3.0",
         "pg": "^8.20.0",
+        "@qualification-work/types": "workspace:*",
         "primitive-server": "workspace:*",
         "redis": "^5.11.0",
         "zod": "^4.3.6"

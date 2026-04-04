@@ -18,7 +18,7 @@ export default defineConfig(...baseConfig, {
                 ],
                 paths: [
                     {
-                        name: 'express',
+                        name: 'use-only-globally-typed-handlers',
                         importNames: ['RequestHandler'],
                         message: 'use RequestHandlerType instead',
                     },

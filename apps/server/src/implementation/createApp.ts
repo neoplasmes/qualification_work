@@ -14,6 +14,7 @@ import { createAuthRouter, createOrgsRouter } from '@/implementation/http';
 import {
     PgOrganizationRepository,
     PgRedisUserRepository,
+    RedisMeCacheRepository,
     RedisSessionRepository,
 } from '@/implementation/repositories';
 import { Argon2Hasher } from '@/implementation/services';
@@ -37,7 +38,8 @@ export function createApp(
 ): Application<AppState> {
     const userRepo = new PgRedisUserRepository(pool);
     const sessionRepo = new RedisSessionRepository(redis);
-    const orgRepo = new PgOrganizationRepository(pool);
+    const meCacheRepository = new RedisMeCacheRepository(redis);
+    const orgRepo = new PgOrganizationRepository(pool, meCacheRepository);
     const hasher = new Argon2Hasher(pepper);
 
     const registerHandler = new RegisterHandler(userRepo, orgRepo, hasher);
@@ -104,7 +106,9 @@ export function createApp(
         registerHandler,
         loginHandler,
         logoutHandler,
-        meHandler
+        meHandler,
+        meCacheRepository,
+        sessionRepo
     );
     app.mount('/api', authRouter);
 

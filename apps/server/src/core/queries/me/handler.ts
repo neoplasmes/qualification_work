@@ -1,5 +1,6 @@
 import { UnauthorizedError } from '@/core/errors';
 import type {
+    // MeCacheRepository,
     OrganizationRepository,
     SessionRepository,
     UserRepository,
@@ -16,7 +17,6 @@ export class MeHandler {
     ) {}
 
     async execute(input: MeInput): Promise<MeOutput> {
-        // TODO: maybe all "me" data should be stored already in the session??
         /**
          * Research shown that there should be короче сессии кэшируются с одним префиксом
          * /me данные кэшируются с другим. Причём у этого кэша ограниченное количество памяти,
@@ -43,6 +43,13 @@ export class MeHandler {
 
         const organizations = await this.orgRepository.findByUserId(session.userId);
 
-        return { ...user, organizations };
+        const payload = { ...user, organizations };
+
+        //! Data caching is not the responsibility of core business logic
+        // void this.meCacheRepository.save(session.userId, payload).catch(err => {
+        //     console.error('Failed to save /me cache', err);
+        // });
+
+        return payload;
     }
 }

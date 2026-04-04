@@ -1,6 +1,13 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { api, startServer, stopServer, truncate } from './setup';
+import {
+    api,
+    startServer,
+    stopServer,
+    truncate,
+    waitForRedisKeys,
+    waitForRedisVersion,
+} from './setup';
 
 const user = {
     email: 'orgs@example.com',
@@ -40,7 +47,7 @@ describe('POST /api/orgs/create', () => {
     it('successful creation + 201 + id', async () => {
         const res = await api('/api/orgs/create', {
             method: 'POST',
-            body: JSON.stringify({ name: 'Новая организация', ownerId: userId }),
+            body: JSON.stringify({ name: 'newOrganization', ownerId: userId }),
             headers: { cookie },
         });
 
@@ -57,6 +64,39 @@ describe('POST /api/orgs/create', () => {
         });
 
         expect(res.status).toBe(400);
+    });
+
+    it('bumps /me cache version after organization creation', async () => {
+        const meBefore = await api('/api/auth/me', { headers: { cookie } });
+        const meBeforeBody = (await meBefore.json()) as {
+            id: string;
+            organizations: unknown[];
+        };
+
+        const v0Keys = await waitForRedisKeys(`me:user:${meBeforeBody.id}:version:*:data`);
+        expect(v0Keys).toHaveLength(1);
+
+        const createRes = await api('/api/orgs/create', {
+            method: 'POST',
+            body: JSON.stringify({ name: 'Second Org', ownerId: userId }),
+            headers: { cookie },
+        });
+        expect(createRes.status).toBe(201);
+
+        // wait for FAF cache invalidation before requesting /me
+        await waitForRedisVersion(`me:user:${meBeforeBody.id}:version`, 1);
+
+        const meAfter = await api('/api/auth/me', { headers: { cookie } });
+        const meAfterBody = (await meAfter.json()) as {
+            id: string;
+            organizations: unknown[];
+        };
+
+        const v1Keys = await waitForRedisKeys(`me:user:${meAfterBody.id}:version:1:data`);
+        expect(v1Keys).toHaveLength(1);
+        expect(meAfterBody.organizations.length).toBeGreaterThan(
+            meBeforeBody.organizations.length
+        );
     });
 });
 

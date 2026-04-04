@@ -1,0 +1,18 @@
+{
+    "extends": ["../../.oxlintrc.json"],
+    "rules": {
+        "no-restricted-imports": [
+            "error",
+            {
+                "patterns": [
+                    {
+                        "group": ["**/index", "**/index.ts"]
+                    },
+                    {
+                        "regex": "^@/(?!core/ports/)\\w+/\\w+/.+"
+                    }
+                ]
+            }
+        ]
+    }
+}

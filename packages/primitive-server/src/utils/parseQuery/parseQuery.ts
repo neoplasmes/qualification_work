@@ -49,8 +49,8 @@ export function parseQuery(queryString: string): QueryParams {
             valueStart = i + 1;
         } else if (code === AMP) {
             // закончили читать пару ключ-значение
-            if (keyEnd === -1) keyEnd = i;
-            if (valueStart === -1) valueStart = i;
+            if (keyEnd === -1) {keyEnd = i;}
+            if (valueStart === -1) {valueStart = i;}
 
             const key = queryString.slice(keyStart, keyEnd);
             if (key.length !== 0) {

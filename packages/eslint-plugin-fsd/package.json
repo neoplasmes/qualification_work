@@ -1,16 +1,25 @@
 {
-  "name": "@qualification-work/eslint-plugin-fsd",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "./src/index.js",
-  "keywords": [
-    "eslint",
-    "eslintplugin",
-    "eslint-plugin",
-    "fsd",
-    "feature-sliced-design"
-  ],
-  "peerDependencies": {
-    "eslint": ">=9.0.0"
-  }
+    "name": "@qualification-work/eslint-plugin-fsd",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "./src/index.js",
+    "keywords": [
+        "eslint",
+        "eslintplugin",
+        "eslint-plugin",
+        "fsd",
+        "feature-sliced-design"
+    ],
+    "peerDependencies": {
+        "eslint": ">=9.0.0",
+        "oxlint": ">=1.0.0"
+    },
+    "peerDependenciesMeta": {
+        "eslint": {
+            "optional": true
+        },
+        "oxlint": {
+            "optional": true
+        }
+    }
 }

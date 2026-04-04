@@ -1,5 +1,7 @@
 {
-    "*.{ts,tsx,js,jsx}": ["eslint --fix"],
+    "apps/client/**/*.{ts,tsx}": ["oxlint -c apps/client/.oxlintrc.json --fix"],
+    "apps/server/**/*.{ts,tsx}": ["oxlint -c apps/server/.oxlintrc.json --fix"],
+    "packages/primitive-server/**/*.{ts,tsx}": ["oxlint -c .oxlintrc.json --fix"],
     "*.scss": ["pnpm --filter client exec stylelint --fix"],
     "*.json": ["prettier --write"]
 }

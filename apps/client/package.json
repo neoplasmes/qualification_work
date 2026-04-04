@@ -14,10 +14,12 @@
         "start": "NODE_ENV=production PORT=5173 node dist/server.js",
         "test": "vitest run",
         "test:e2e": "playwright test",
-        "lint:ts": "eslint . --ext .ts,.tsx",
+        "lint:ts": "oxlint -c .oxlintrc.json src/",
         "lint:css": "stylelint \"src/**/*.scss\"",
         "lint": "pnpm lint:ts && pnpm lint:css",
-        "lint:fix": "eslint . --ext .ts,.tsx --fix && stylelint \"src/**/*.scss\" --fix"
+        "lint:fix:ts": "oxlint -c .oxlintrc.json --fix src/",
+        "lint:fix:css": "stylelint \"src/**/*.scss\" --fix",
+        "lint:fix": "pnpm lint:fix:ts && pnpm lint:fix:css"
     },
     "keywords": [],
     "author": "",

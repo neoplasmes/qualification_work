@@ -15,8 +15,8 @@
     ],
     "scripts": {
         "build": "tsup",
-        "lint": "oxlint -c ../../.oxlintrc.json src/",
-        "lint:fix": "oxlint -c ../../.oxlintrc.json --fix src/",
+        "lint": "oxlint -c ../../oxlint.config.ts src/",
+        "lint:fix": "oxlint -c ../../oxlint.config.ts --fix src/",
         "typecheck": "tsc --noEmit",
         "test": "vitest run",
         "bench": "vitest bench",

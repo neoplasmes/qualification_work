@@ -1,0 +1,22 @@
+/** @type {import('prettier').Config} */
+export default {
+    tabWidth: 4,
+    useTabs: false,
+    semi: true,
+    singleQuote: true,
+    quoteProps: 'as-needed',
+    trailingComma: 'es5',
+    bracketSpacing: true,
+    arrowParens: 'avoid',
+    printWidth: 90,
+    endOfLine: 'lf',
+    jsxSingleQuote: false,
+    bracketSameLine: false,
+    singleAttributePerLine: false,
+    proseWrap: 'always',
+    htmlWhitespaceSensitivity: 'ignore',
+    plugins: ['@ianvs/prettier-plugin-sort-imports'],
+    importOrder: ['<BUILTIN_MODULES>', '<THIRD_PARTY_MODULES>', '', '^@/', '', '^[./]'],
+    importOrderTypeScriptVersion: '5.0.0',
+    importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+};

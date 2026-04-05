@@ -2,7 +2,7 @@
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
     "namedInputs": {
         "default": ["{projectRoot}/**/*", "sharedGlobals"],
-        "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json", "{workspaceRoot}/.env"],
+        "sharedGlobals": ["{workspaceRoot}/tsconfig.json", "{workspaceRoot}/.env"],
         "production": [
             "default",
             "!{projectRoot}/**/*.test.ts",
@@ -26,6 +26,10 @@
         "lint": {
             "inputs": ["default"],
             "cache": true
+        },
+        "lint:fix": {
+            "inputs": ["default"],
+            "cache": false
         },
         "dev": {
             "cache": false

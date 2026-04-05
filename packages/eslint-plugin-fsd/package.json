@@ -3,6 +3,10 @@
     "version": "1.0.0",
     "type": "module",
     "main": "./src/index.js",
+    "scripts": {
+        "lint": "oxlint -c ../../oxlint.config.ts src/",
+        "lint:fix": "oxlint -c ../../oxlint.config.ts --fix src/"
+    },
     "keywords": [
         "eslint",
         "eslintplugin",

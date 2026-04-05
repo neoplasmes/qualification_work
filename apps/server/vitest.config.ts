@@ -9,9 +9,6 @@ export default defineConfig({
         poolOptions: {
             forks: { singleFork: true },
         },
-        typecheck: {
-            tsconfig: './tsconfig.test.json',
-        },
     },
     resolve: {
         alias: {

@@ -10,6 +10,7 @@
         "test": "nx run-many -t test",
         "typecheck": "nx run-many -t typecheck",
         "lint": "nx run-many -t lint",
+        "lint:fix": "nx run-many -t lint:fix",
         "prepare": "husky"
     },
     "keywords": [],

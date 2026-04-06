@@ -8,7 +8,7 @@ import type { AppState } from '@/common/appState';
 import { createUploadDatasetHandler } from './upload';
 
 /**
- * Complete stream flow looks like this: POST /datasets/upload with multipart/form-data ->
+ * Complete stream flow looks like this: POST /datasets with multipart/form-data ->
  * request validation -> multipart/form-data parser -> uploadDatasetHandler, that orcestrates the work ->
  * datasetRepository -> database actually
  *
@@ -23,10 +23,7 @@ export function createDatasetRouter(
 ): Router<AppState> {
     const router = new Router<AppState>('/datasets');
 
-    router.post(
-        '/upload',
-        createUploadDatasetHandler(uploadDatasetHandler, multipartParser)
-    );
+    router.post('/', createUploadDatasetHandler(uploadDatasetHandler, multipartParser));
 
     return router;
 }

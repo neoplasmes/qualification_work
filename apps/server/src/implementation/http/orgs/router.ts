@@ -11,8 +11,8 @@ export function createOrgsRouter(
 ): Router<AppState> {
     const router = new Router<AppState>('/orgs');
 
-    router.post('/create', createCreateOrgHandler(createOrg));
-    router.post('/delete', createDeleteOrgHandler(deleteOrg));
+    router.post('/', createCreateOrgHandler(createOrg));
+    router.delete('/:id', createDeleteOrgHandler(deleteOrg));
 
     return router;
 }

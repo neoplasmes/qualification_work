@@ -43,9 +43,9 @@ beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-describe('POST /api/orgs/create', () => {
+describe('POST /api/orgs', () => {
     it('successful creation + 201 + id', async () => {
-        const res = await api('/api/orgs/create', {
+        const res = await api('/api/orgs', {
             method: 'POST',
             body: JSON.stringify({ name: 'newOrganization', ownerId: userId }),
             headers: { cookie },
@@ -57,7 +57,7 @@ describe('POST /api/orgs/create', () => {
     });
 
     it('invalid data returns 400', async () => {
-        const res = await api('/api/orgs/create', {
+        const res = await api('/api/orgs', {
             method: 'POST',
             body: JSON.stringify({ name: '', ownerId: 'not-a-uuid' }),
             headers: { cookie },
@@ -76,7 +76,7 @@ describe('POST /api/orgs/create', () => {
         const v0Keys = await waitForRedisKeys(`me:user:${meBeforeBody.id}:version:*:data`);
         expect(v0Keys).toHaveLength(1);
 
-        const createRes = await api('/api/orgs/create', {
+        const createRes = await api('/api/orgs', {
             method: 'POST',
             body: JSON.stringify({ name: 'Second Org', ownerId: userId }),
             headers: { cookie },
@@ -100,18 +100,17 @@ describe('POST /api/orgs/create', () => {
     });
 });
 
-describe('POST /api/orgs/delete', () => {
+describe('DELETE /api/orgs/:id', () => {
     it('successful deletion returns 204', async () => {
-        const createRes = await api('/api/orgs/create', {
+        const createRes = await api('/api/orgs', {
             method: 'POST',
             body: JSON.stringify({ name: 'Deletable Organization', ownerId: userId }),
             headers: { cookie },
         });
         const { id } = (await createRes.json()) as { id: string };
 
-        const res = await api('/api/orgs/delete', {
-            method: 'POST',
-            body: JSON.stringify({ id }),
+        const res = await api(`/api/orgs/${id}`, {
+            method: 'DELETE',
             headers: { cookie },
         });
 
@@ -119,9 +118,8 @@ describe('POST /api/orgs/delete', () => {
     });
 
     it('deleting non-existent organization returns 404', async () => {
-        const res = await api('/api/orgs/delete', {
-            method: 'POST',
-            body: JSON.stringify({ id: '00000000-0000-0000-0000-000000000000' }),
+        const res = await api('/api/orgs/00000000-0000-0000-0000-000000000000', {
+            method: 'DELETE',
             headers: { cookie },
         });
 

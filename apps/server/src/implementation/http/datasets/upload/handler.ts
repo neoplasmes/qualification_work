@@ -6,7 +6,7 @@ import type { RequestHandlerType } from '@/common/appState';
 import { parseWithZod } from '@/common/parseWithZod';
 
 /**
- * handlles POST /datasets/upload request, parses multipart form data and passes it to the handler
+ * handlles POST /datasets request, parses multipart form data and passes it to the handler
  *
  * @header x-org-id header can be specified to provide uuid of organisation, for which dataset has to be created
  *

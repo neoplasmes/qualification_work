@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`POST /api/datasets/upload > csv dataset uploading 1`] = `
+exports[`POST /api/datasets > csv dataset uploading 1`] = `
 {
   "columns": [
     {
@@ -347,7 +347,7 @@ exports[`POST /api/datasets/upload > csv dataset uploading 1`] = `
 }
 `;
 
-exports[`POST /api/datasets/upload > handles five uploads concurrently and stores every dataset completely 1`] = `
+exports[`POST /api/datasets > handles five uploads concurrently and stores every dataset completely 1`] = `
 {
   "columnsCount": 40,
   "datasets": [
@@ -383,7 +383,7 @@ exports[`POST /api/datasets/upload > handles five uploads concurrently and store
 }
 `;
 
-exports[`POST /api/datasets/upload > uploads xlsx dataset and persists typed row values 1`] = `
+exports[`POST /api/datasets > uploads xlsx dataset and persists typed row values 1`] = `
 {
   "columns": [
     {

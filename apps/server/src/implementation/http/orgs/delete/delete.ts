@@ -4,9 +4,11 @@ import { deleteOrgSchema, type DeleteOrgHandler } from '@/core/commands';
 
 export function createDeleteOrgHandler(handler: DeleteOrgHandler): RequestHandlerType {
     return async ({ request, response }) => {
-        const body = await request.json();
-
-        const input = parseWithZod(() => deleteOrgSchema.parse(body));
+        const input = parseWithZod(() =>
+            deleteOrgSchema.parse({
+                id: request.params.id,
+            })
+        );
 
         await handler.execute(input);
 

@@ -117,7 +117,7 @@ async function uploadDataset(
 
     formData.append('file', new Blob([fileBuffer], { type: mimeType }), fileName);
 
-    const res = await api(`/api/datasets/upload?orgId=${orgId}`, {
+    const res = await api(`/api/datasets?orgId=${orgId}`, {
         method: 'POST',
         body: formData,
         headers: { cookie },
@@ -140,7 +140,7 @@ beforeEach(() => {
 });
 
 //! snapshots are .... nemnogo govno
-describe('POST /api/datasets/upload', () => {
+describe('POST /api/datasets', () => {
     it('csv dataset uploading', async () => {
         const { cookie, orgId } = await registerAndLogin();
 

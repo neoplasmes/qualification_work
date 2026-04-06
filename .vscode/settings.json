@@ -2,5 +2,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
     "oxc.lint.run": "onType",
-    "oxc.enable.oxlint": true
+    "oxc.enable.oxlint": true,
+    "js/ts.experimental.useTsgo": false
 }

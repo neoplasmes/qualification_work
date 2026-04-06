@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { Router } from './Router';
+import { describe, expect, it, vi } from 'vitest';
+
 import type { RequestHandler } from '../types';
+import { Router } from './Router';
 
 const noop: RequestHandler = () => {};
 

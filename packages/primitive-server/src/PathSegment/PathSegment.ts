@@ -12,12 +12,15 @@ import {
 import { HandlerStore } from './HandlerStore';
 
 /**
- * Класс, описывающий сегмент URL. Экземпляры хранятся в Radix-Tree роутере.
- * Под сегментом подразумевается то, что находится между слэшами в URI,
- * т.е. www.domenname.com/segment/segment/segment
+ * An instance of this class corresponds to a segment of the path, e.g. for /api/users
+ * there will be a PathSegment with segment = 'api', which has a static child with segment = 'users'.
+ *
+ * All segments are stored in a radix-tree structure (see router implementation).
  *
  * @export
  * @class PathSegment
+ * @template {Record<string, unknown>} [T=Record<string, unknown>] - application state type
+ * @template [E=unknown] - error type for onError hooks
  */
 export class PathSegment<
     T extends Record<string, unknown> = Record<string, unknown>,

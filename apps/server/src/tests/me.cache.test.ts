@@ -91,7 +91,7 @@ describe('/me cache', () => {
             (await redisGet(`me:user:${userId}:version`)) ?? '0'
         );
 
-        await api('/api/orgs/create', {
+        await api('/api/orgs', {
             method: 'POST',
             body: JSON.stringify({ name: 'New org', ownerId: userId }),
             headers: { cookie },
@@ -117,9 +117,8 @@ describe('/me cache', () => {
         );
 
         // delete the default org
-        await api('/api/orgs/delete', {
-            method: 'POST',
-            body: JSON.stringify({ id: meBody.organizations[0].id }),
+        await api(`/api/orgs/${meBody.organizations[0].id}`, {
+            method: 'DELETE',
             headers: { cookie },
         });
 
@@ -137,7 +136,7 @@ describe('/me cache', () => {
         await waitForRedisKeys(`me:user:${userId}:version:*`);
 
         // invalidate via org creation
-        await api('/api/orgs/create', {
+        await api('/api/orgs', {
             method: 'POST',
             body: JSON.stringify({ name: 'Invalidating org', ownerId: userId }),
             headers: { cookie },

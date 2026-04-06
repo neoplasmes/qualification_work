@@ -1,6 +1,9 @@
 export type { Handler } from './handler';
 export type {
+    DatasetMetadata,
     DatasetRepository,
+    DatasetRowsPage,
+    GetDatasetRowsPayload,
     MeCacheRepository,
     OrganizationRepository,
     SessionRepository,

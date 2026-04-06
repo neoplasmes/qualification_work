@@ -11,7 +11,12 @@ import {
 } from '@/core/commands';
 import { ValidationError } from '@/core/errors';
 import { BaseError } from '@/core/errors/';
-import { MeHandler } from '@/core/queries';
+import {
+    GetDatasetMetadataHandler,
+    GetDatasetRowsHandler,
+    GetDatasetsMetadataByOrgIdHandler,
+    MeHandler,
+} from '@/core/queries';
 
 import {
     createAuthRouter,
@@ -66,6 +71,11 @@ export function createApp(
 
     const datasetRepo = new PgDatasetRepository(pool);
     const multipartParserService = new FastifyBusboyMultipartParserService();
+    const getDatasetsMetadataByOrgIdHandler = new GetDatasetsMetadataByOrgIdHandler(
+        datasetRepo
+    );
+    const getDatasetMetadataHandler = new GetDatasetMetadataHandler(datasetRepo);
+    const getDatasetRowsHandler = new GetDatasetRowsHandler(datasetRepo);
     const uploadDatasetHandler = new UploadDatasetHandler(
         DefaultDatasetParserFactoryService.resolveParser,
         datasetRepo
@@ -144,6 +154,9 @@ export function createApp(
     app.mount('/api', orgsRouter);
 
     const datasetRouter = createDatasetRouter(
+        getDatasetsMetadataByOrgIdHandler,
+        getDatasetMetadataHandler,
+        getDatasetRowsHandler,
         uploadDatasetHandler,
         multipartParserService
     );

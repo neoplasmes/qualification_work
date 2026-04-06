@@ -1,1 +1,7 @@
-export type { CreateDatasetPayload, DatasetRepository } from './dataset.repository';
+export type {
+    CreateDatasetPayload,
+    DatasetMetadata,
+    DatasetRepository,
+    DatasetRowsPage,
+    GetDatasetRowsPayload,
+} from './dataset.repository';

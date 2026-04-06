@@ -1,1 +1,1 @@
-export { PgRedisUserRepository } from './user.repository';
+export { PgRedisUserRepository } from './pg.redis.user.repository';

@@ -1,1 +1,1 @@
-export { Argon2Hasher } from './argon2.hasher';
+export { Argon2HasherService } from './argon2.hasher.service';

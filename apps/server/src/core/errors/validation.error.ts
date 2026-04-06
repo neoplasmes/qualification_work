@@ -1,8 +1,8 @@
 import { BaseError, type ErrorType } from './base';
 
 /**
- * should be thrown when request body does not pass validation.
- * actually, should be used only on error after unsuccessfull zod validation
+ * should be thrown when conntent body does not pass validation.
+ * the most frequent use case - throw on the zod validation failure.
  *
  * @export
  * @class ValidationError
@@ -17,7 +17,10 @@ export class ValidationError extends BaseError {
      * @constructor
      * @param {string[]} fields - array of fields that didn't pass validation
      */
-    constructor(public readonly fields: string[]) {
-        super('Ошибка валидации', 400);
+    constructor(
+        public readonly fields: string[] = [],
+        message = 'Validation error'
+    ) {
+        super(message, 400);
     }
 }

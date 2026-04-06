@@ -12,3 +12,6 @@ export type { LogoutInput } from './logout';
 
 export { RegisterHandler, registerSchema } from './register';
 export type { RegisterInput } from './register';
+
+export { UploadDatasetHandler, uploadDatasetSchema } from './uploadDataset';
+export type { UploadDatasetInput } from './uploadDataset';

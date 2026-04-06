@@ -27,7 +27,7 @@ export function createMeHandler(
 
         // We don't wait to this promise because it is more critical to return the reponse
         // as fast as possible.
-        void meCacheRepository.save(result.id, result).catch(err => {
+        void meCacheRepository.save(result.id, result).catch((err: unknown) => {
             console.error('Failed to save /me cache', err);
         });
     };

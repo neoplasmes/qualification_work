@@ -1,1 +1,1 @@
-export { PgOrganizationRepository } from './organization.repository';
+export { PgOrganizationRepository } from './pg.organization.repository';

@@ -1,0 +1,26 @@
+ id , name , department , city , active , score , budget , reviewDate
+
+ 101 , Alice Johnson , Sales , Paris , true , 91 , 120000 , 2024-02-01
+ 102 , Bob Smith , Support , Berlin , false , 84 , 98000 , 2024-02-02
+ 103 , Charlie Brown , Finance , Madrid , true , 88 , 143000 , 2024-02-03
+ 104 , Diana Prince , Product , Rome , true , 95 , 156000 , 2024-02-04
+ 105 , Ethan Clark , HR , Prague , false , 73 , 87000 , 2024-02-05
+
+ 106 , Fiona Green , Legal , Vienna , true , 89 , 132000 , 2024-02-06
+ 107 , George Hall , Sales , Warsaw , true , 90 , 124000 , 2024-02-07
+ 108 , Helen Scott , Support , Oslo , false , 77 , 91000 , 2024-02-08
+ 109 , Ian Lewis , Finance , Stockholm , true , 86 , 149000 , 2024-02-09
+ 110 , Julia Adams , Product , Helsinki , true , 92 , 161000 , 2024-02-10
+ 111 , Kevin Turner , HR , Dublin , false , 81 , 94000 , 2024-02-11
+ 112 , Laura King , Legal , Brussels , true , 87 , 128000 , 2024-02-12
+
+ 113 , Michael Young , Sales , Amsterdam , true , 94 , 137000 , 2024-02-13
+ 114 , Nina Baker , Support , Lisbon , false , 76 , 90000 , 2024-02-14
+ 115 , Oliver Wright , Finance , Copenhagen , true , 85 , 145000 , 2024-02-15
+ 116 , Paula Hill , Product , Zurich , true , 93 , 168000 , 2024-02-16
+ 117 , Quentin Reed , HR , Budapest , false , 79 , 89000 , 2024-02-17
+ 118 , Rachel Cook , Legal , Athens , true , 82 , 121000 , 2024-02-18
+ 119 , Samuel Bell , Sales , Sofia , true , 88 , 130000 , 2024-02-19
+ 120 , Tina Ross , Support , Zagreb , false , 80 , 93000 , 2024-02-20
+ 121 , Uma Price , Finance , Tallinn , true , 91 , 152000 , 2024-02-21
+ 122 , Victor Cox , Product , Riga , true , 83 , 147000 , 2024-02-22

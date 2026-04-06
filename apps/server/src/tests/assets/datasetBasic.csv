@@ -1,0 +1,23 @@
+id,name,age,active,city,country,score,signupDate
+1,Alice Johnson,30,true,Paris,France,91,2024-01-10
+2,Bob Smith,25,false,Berlin,Germany,84,2024-01-11
+3,Charlie Brown,41,true,Madrid,Spain,88,2024-01-12
+4,Diana Prince,29,true,Rome,Italy,95,2024-01-13
+5,Ethan Clark,35,false,Prague,Czechia,73,2024-01-14
+6,Fiona Green,27,true,Vienna,Austria,89,2024-01-15
+7,George Hall,33,true,Warsaw,Poland,90,2024-01-16
+8,Helen Scott,22,false,Oslo,Norway,77,2024-01-17
+9,Ian Lewis,38,true,Stockholm,Sweden,86,2024-01-18
+10,Julia Adams,31,true,Helsinki,Finland,92,2024-01-19
+11,Kevin Turner,28,false,Dublin,Ireland,81,2024-01-20
+12,Laura King,26,true,Brussels,Belgium,87,2024-01-21
+13,Michael Young,44,true,Amsterdam,Netherlands,94,2024-01-22
+14,Nina Baker,24,false,Lisbon,Portugal,76,2024-01-23
+15,Oliver Wright,36,true,Copenhagen,Denmark,85,2024-01-24
+16,Paula Hill,32,true,Zurich,Switzerland,93,2024-01-25
+17,Quentin Reed,40,false,Budapest,Hungary,79,2024-01-26
+18,Rachel Cook,23,true,Athens,Greece,82,2024-01-27
+19,Samuel Bell,37,true,Sofia,Bulgaria,88,2024-01-28
+20,Tina Ross,29,false,Zagreb,Croatia,80,2024-01-29
+21,Uma Price,34,true,Tallinn,Estonia,91,2024-01-30
+22,Victor Cox,39,true,Riga,Latvia,83,2024-01-31

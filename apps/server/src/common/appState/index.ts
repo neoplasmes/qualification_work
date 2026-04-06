@@ -1,1 +1,1 @@
-export type { AppState, RequestHandlerType } from './appState';
+export type { AppState, AuthState, RequestHandlerType } from './appState';

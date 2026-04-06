@@ -1,1 +1,1 @@
-export { RedisSessionRepository } from './session.repository';
+export { RedisSessionRepository } from './redis.session.repository';

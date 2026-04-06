@@ -1,11 +1,14 @@
+import type { Server } from 'node:http';
+
 import { createApp } from '@/implementation/createApp';
 import { createPool } from '@/infrastructure/postgres';
 import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
-import type { Pool } from 'pg';
+import type { Pool, QueryResultRow } from 'pg';
 
 let pool: Pool;
 let redis: RedisClient;
 let baseUrl: string;
+let server: Server | undefined;
 let started = false;
 let refCount = 0;
 
@@ -15,36 +18,59 @@ export async function startServer(): Promise<void> {
     if (started) {
         return;
     }
-    started = true;
 
     const pepper = process.env.PEPPER;
     if (!pepper) {
         throw new Error('PEPPER has not been set');
     }
 
-    pool = await createPool();
-    redis = await createRedisClient();
+    try {
+        pool = await createPool();
+        redis = await createRedisClient();
 
-    const app = createApp(pool, redis, pepper);
-    const server = await app.listen({ port: 0 });
+        const app = createApp(pool, redis, pepper);
+        server = await app.listen({ port: 0 });
 
-    const addr = server.address();
-    if (!addr || typeof addr === 'string') {
-        throw new Error('??????????????????????????????');
+        const addr = server.address();
+        if (!addr || typeof addr === 'string') {
+            throw new Error('??????????????????????????????');
+        }
+
+        baseUrl = `http://127.0.0.1:${addr.port}`;
+        started = true;
+    } catch (error) {
+        refCount--;
+        started = false;
+
+        throw error;
     }
-
-    baseUrl = `http://127.0.0.1:${addr.port}`;
 }
 
 export async function stopServer(): Promise<void> {
     refCount--;
 
-    if (refCount > 0) {
+    if (refCount > 0 || !started) {
         return;
     }
 
-    await pool.end();
-    await redis.quit();
+    started = false;
+
+    await new Promise<void>((resolve, reject) => {
+        server?.close(error => {
+            if (error) {
+                reject(error);
+
+                return;
+            }
+
+            resolve();
+        });
+    });
+
+    await pool?.end();
+    await redis?.quit();
+
+    server = undefined;
 }
 
 export async function truncate(): Promise<void> {
@@ -82,6 +108,15 @@ export async function redisGet(key: string): Promise<string | null> {
     return redis.get(key);
 }
 
+export async function dbQuery<T extends QueryResultRow = QueryResultRow>(
+    text: string,
+    params?: unknown[]
+): Promise<T[]> {
+    const result = await pool.query<T>(text, params);
+
+    return result.rows;
+}
+
 export async function waitForRedisVersion(
     key: string,
     expected: number,
@@ -109,8 +144,14 @@ export async function waitForRedisVersion(
 }
 
 export function api(path: string, init?: RequestInit): Promise<Response> {
+    const headers = new Headers(init?.headers);
+
+    if (!(init?.body instanceof FormData) && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+    }
+
     return fetch(`${baseUrl}${path}`, {
-        headers: { 'Content-Type': 'application/json', ...init?.headers },
+        headers,
         ...init,
     });
 }

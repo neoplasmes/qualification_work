@@ -3,6 +3,7 @@ import { data, type RouteObject } from 'react-router';
 
 import { Layout } from '@/app/ui/Layout';
 
+import { DatasetsPage } from '@/pages/Datasets';
 import { Entrance, SignIn, SignUp } from '@/pages/Entrance';
 
 import { api } from '@/shared/api';
@@ -117,6 +118,10 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
                         element: <SignUp />,
                     },
                 ],
+            },
+            {
+                path: '/datasets',
+                element: <DatasetsPage />,
             },
         ],
     },

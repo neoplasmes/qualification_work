@@ -13,7 +13,7 @@ $spacing-map: (
 
 :root {
     @each $key, $value in $spacing-map {
-        --spacing-#{$key}: #{$value / 16}rem;
+        --spacing-#{$key}: calc(#{$value} / 16 * 1rem);
     }
 
     --radius-xs: 0.5rem;
@@ -81,7 +81,6 @@ $display-values: block, inline, inline-block, flex, grid, none;
 }
 
 @each $key, $value in $spacing-map {
-
     [data-gap='#{$key}'] {
         gap: var(--spacing-#{$key});
     }

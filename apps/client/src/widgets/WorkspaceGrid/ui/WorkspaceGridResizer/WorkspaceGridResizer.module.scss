@@ -1,0 +1,29 @@
+.workspace-grid-resizer-base {
+    position: relative;
+
+    background-color: transparent;
+    flex-shrink: 0;
+    flex-basis: 0;
+
+    z-index: 1;
+}
+
+.workspace-grid-resizer {
+    position: absolute;
+    top: 0;
+    left: calc(0 - var(--spacing-sm, 8px) / 2);
+
+    height: 100%;
+
+    background-color: transparent;
+
+    &.horizontal {
+        cursor: col-resize;
+        width: var(--spacing-sm, 8px);
+    }
+
+    &.vertical {
+        cursor: row-resize;
+        height: var(--spacing-sm, 8px);
+    }
+}

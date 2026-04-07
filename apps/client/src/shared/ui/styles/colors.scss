@@ -3,7 +3,7 @@
     --color-primary-container: #004d2c;
     --color-on-primary: #000;
     --color-on-primary-container: #8cffca;
-    --color-secondary: #872557;
+    --color-secondary-rgb: 135, 37, 87;
     --color-secondary-container: #5d1a3c;
     --color-on-secondary-container: #ff9cc2;
     --color-background: #000;
@@ -21,4 +21,9 @@
     --color-error: #f33;
     --color-error-container: #8c0000;
     --color-on-error-container: #ffb4ab;
+
+    // -----------------------------------------------------------------------------------------------
+    --color-secondary: #872557;
+    --color-surface-new: #131212;
+    --color-outline-new: #2c2a2b;
 }

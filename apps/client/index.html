@@ -2,13 +2,12 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>aaaaaaaaaaaaaaaa</title>
         <script>
             (function () {
+                const unobserveEvent = new CustomEvent('__TURBO_UNOBSERVE__');
+
                 let controller;
                 window.__TURBO_STREAM__ = new ReadableStream({
                     start: function (x) {
@@ -21,9 +20,13 @@
                     },
                     close: function () {
                         controller.close();
+
+                        window.dispatchEvent(unobserveEvent);
                     },
                 };
 
+                //? idk, maybe when I liquidated the streaming race conditions, i do not need a mutation observer.
+                // but this approach is safer anyway
                 const observer = new MutationObserver(function (mutations) {
                     mutations.forEach(function (mutation) {
                         mutation.addedNodes.forEach(function (node) {
@@ -43,13 +46,15 @@
                     childList: true,
                     subtree: true,
                 });
+
+                document.addEventListener('__TURBO_UNOBSERVE__', function () {
+                    observer.disconnect();
+
+                    console.log('unobserved');
+                });
             })();
         </script>
-        <script
-            async
-            type="module"
-            src="/src/entry.client.tsx"
-        ></script>
+        <script async type="module" src="/src/entry.client.tsx"></script>
     </head>
     <body>
         <div id="root"><!--ssr-outlet--></div>

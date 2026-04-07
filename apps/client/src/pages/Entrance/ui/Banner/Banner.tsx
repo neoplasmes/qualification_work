@@ -1,9 +1,10 @@
-import { Landmark } from 'lucide-react';
 import { m } from 'motion/react';
+
+import { Logo } from '@/shared/ui';
 
 import styles from './Banner.module.scss';
 
-const chartHeights = [42, 72, 60, 35, 85, 100, 63, 77, 49];
+const chartHeights = [42, 72, 60, 35, 85, 100, 63, 77, 49, 11];
 
 export const Banner = () => {
     return (
@@ -16,10 +17,7 @@ export const Banner = () => {
             data-pr="md"
             className={styles['banner']}
         >
-            <div data-stack="h" data-gap="sm" className={styles['logo']}>
-                <Landmark size={24} />
-                BI Tool
-            </div>
+            <Logo />
             <h1 className={styles['headline']}>
                 Precision
                 <br />
@@ -36,13 +34,14 @@ export const Banner = () => {
             </p>
             <figure
                 data-stack="v"
-                data-p="md"
-                data-gap="md"
+                data-py="md"
+                data-gap="sm"
                 className={styles['chart-container']}
             >
                 <div
                     data-stack="h"
                     data-gap="sm-plus"
+                    data-pb="md-plus"
                     className={styles['chart']}
                     data-align="end"
                 >
@@ -65,8 +64,7 @@ export const Banner = () => {
                     className={styles['chart-footer']}
                     data-justify="between"
                 >
-                    <span>BI tool</span>
-                    <span>V1.0</span>
+                    &copy; 2026 BI Tool. Open-source.
                 </figcaption>
             </figure>
         </aside>

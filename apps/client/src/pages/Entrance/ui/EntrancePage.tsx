@@ -5,7 +5,7 @@ import { Banner } from './Banner/Banner';
 import { SignIn } from './SignIn';
 import { SignUp } from './SignUp';
 
-import styles from './Entrance.module.scss';
+import styles from './EntrancePage.module.scss';
 
 const navLinks = [
     { to: '/sign-in', label: 'Sign in' },
@@ -92,9 +92,6 @@ export const Entrance = () => {
                                 </div>
                             </m.div>
                         </div>
-                        <footer className={styles['footer']}>
-                            &copy; 2026 BI Tool. Open-source.
-                        </footer>
                     </section>
                 </MotionConfig>
             </main>

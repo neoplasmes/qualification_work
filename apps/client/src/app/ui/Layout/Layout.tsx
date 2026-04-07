@@ -1,5 +1,7 @@
-import { LazyMotion, m } from 'motion/react';
-import { NavLink, Outlet, useLocation } from 'react-router';
+import { LazyMotion } from 'motion/react';
+import { Outlet, useLocation } from 'react-router';
+
+import { NavBar } from '@/widgets/NavBar';
 
 import styles from './Layout.module.scss';
 
@@ -20,8 +22,8 @@ export const Layout = () => {
     // TODO: Layout для основной части приложения
     return (
         <LazyMotion features={motionFeatures} strict>
-            <div data-stack="v">
-                <div></div>
+            <div data-stack="v" data-p="md">
+                <NavBar />
                 <Outlet />
             </div>
         </LazyMotion>

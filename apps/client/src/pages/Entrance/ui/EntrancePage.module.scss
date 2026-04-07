@@ -18,10 +18,9 @@
     height: 100%;
     max-height: 768px;
 
-    border: 3px solid var(--color-surface-container);
     border-radius: var(--radius-md);
 
-    background-color: var(--color-background);
+    background-color: var(--color-surface-new);
 
     @media (width <= 768px) {
         max-width: 600px;
@@ -30,21 +29,41 @@
 
 .content {
     flex: 1.1;
+
+    overflow: hidden;
+
+    mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        rgb(0 0 0 / 35%) calc(var(--spacing-md) * 0.6),
+        #000 calc(var(--spacing-md) * 1.2),
+        #000 calc(100% - (var(--spacing-md) * 1.7)),
+        rgb(0 0 0 / 35%) calc(100% - (var(--spacing-md) * 0.6)),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        rgb(0 0 0 / 35%) calc(var(--spacing-md) * 0.6),
+        #000 calc(var(--spacing-md) * 1.2),
+        #000 calc(100% - (var(--spacing-md) * 1.7)),
+        rgb(0 0 0 / 35%) calc(100% - (var(--spacing-md) * 0.6)),
+        transparent 100%
+    );
 }
 
 .carousel-viewport {
     position: relative;
 
-    overflow: hidden;
     flex: 1;
 
     width: 100%;
-    border-radius: var(--radius-xs);
 }
 
 .carousel-track {
     display: flex;
     gap: var(--spacing-lg);
+
     width: 100%;
     height: 100%;
 }

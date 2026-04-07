@@ -40,6 +40,7 @@ export const SignUp = () => {
                                 id="email"
                                 type="email"
                                 className={styles['input']}
+                                autoComplete="off"
                                 placeholder="name@organization.com"
                             />
                         </div>

@@ -1,0 +1,11 @@
+.logo {
+    z-index: 1;
+
+    font-family: var(--font-headline);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+
+    svg {
+        flex-shrink: 0;
+    }
+}

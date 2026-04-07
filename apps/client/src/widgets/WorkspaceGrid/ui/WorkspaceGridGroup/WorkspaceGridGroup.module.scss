@@ -1,0 +1,6 @@
+.workspace-grid-group {
+    display: flex;
+    flex-direction: var(--direction, row);
+
+    flex-grow: 1;
+}

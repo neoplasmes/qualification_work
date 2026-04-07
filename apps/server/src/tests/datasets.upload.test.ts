@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api, dbQuery, startServer, stopServer, truncate } from './setup';
 
@@ -134,10 +134,12 @@ async function uploadDataset(
 
 beforeAll(startServer);
 afterAll(stopServer);
-beforeEach(truncate);
+
 beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
+
+afterEach(truncate);
 
 //! snapshots are .... nemnogo govno
 describe('POST /api/datasets', () => {

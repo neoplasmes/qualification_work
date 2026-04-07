@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     api,
@@ -18,10 +18,12 @@ const user = {
 
 beforeAll(startServer);
 afterAll(stopServer);
-beforeEach(truncate);
+
 beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
+
+afterEach(truncate);
 
 describe('POST /api/auth/register', () => {
     it('successful registration, returns 201', async () => {

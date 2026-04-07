@@ -1,1 +1,1 @@
-export { BaseError, ErrorType } from './base.error';
+export { BaseError, type ErrorType } from './base.error';

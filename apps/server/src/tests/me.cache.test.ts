@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
     api,
@@ -36,7 +36,8 @@ async function registerAndLogin(): Promise<{ userId: string; cookie: string }> {
 
 beforeAll(startServer);
 afterAll(stopServer);
-beforeEach(truncate);
+
+afterEach(truncate);
 
 describe('/me cache', () => {
     it('first /me request populates the cache in Redis', async () => {

@@ -1,1 +1,0 @@
-SELECT array_agg(user_id) AS user_ids FROM orgs.roles WHERE org_id = '10000000-0000-0000-0000-000000000001';

@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { api, startServer, stopServer, truncate } from './setup';
 
@@ -70,7 +70,8 @@ async function uploadDataset(orgId: string, cookie: string): Promise<string> {
 
 beforeAll(startServer);
 afterAll(stopServer);
-beforeEach(truncate);
+
+afterEach(truncate);
 
 describe('GET /api/datasets/:id/metadata', () => {
     it('returns dataset metadata, columns and totalRows without rows payload', async () => {

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     api,
@@ -23,8 +23,6 @@ beforeAll(startServer);
 afterAll(stopServer);
 
 beforeEach(async () => {
-    await truncate();
-
     const regRes = await api('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify(user),
@@ -42,6 +40,8 @@ beforeEach(async () => {
 beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
+
+afterEach(truncate);
 
 describe('POST /api/orgs', () => {
     it('successful creation + 201 + id', async () => {
@@ -73,7 +73,9 @@ describe('POST /api/orgs', () => {
             organizations: unknown[];
         };
 
-        const v0Keys = await waitForRedisKeys(`me:user:${meBeforeBody.id}:version:*:data`);
+        const v0Keys = await waitForRedisKeys(
+            `me:user:${meBeforeBody.id}:version:*:data`
+        );
         expect(v0Keys).toHaveLength(1);
 
         const createRes = await api('/api/orgs', {

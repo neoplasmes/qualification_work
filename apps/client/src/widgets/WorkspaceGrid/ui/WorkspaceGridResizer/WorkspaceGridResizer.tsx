@@ -4,7 +4,7 @@ import { useRafThrottle } from '@/shared/lib/useRafThrottle';
 
 import {
     type WorkspaceGridGroupDirection,
-    type WorkspaceGridPanelModelHandler,
+    type WorkspaceGridPanelModel,
 } from '../../model';
 
 import styles from './WorkspaceGridResizer.module.scss';
@@ -15,12 +15,12 @@ type WorkspaceGridResizerProps = {
      * vertical: prev - top, next - bottom
      * horizontal: prev - left, next - right
      */
-    prevHandler: WorkspaceGridPanelModelHandler;
+    prev: WorkspaceGridPanelModel;
     /**
      * vertical: prev - top, next - bottom
      * horizontal: prev - left, next - right
      */
-    nextHandler: WorkspaceGridPanelModelHandler;
+    next: WorkspaceGridPanelModel;
 };
 
 type ResizeState = {
@@ -32,8 +32,8 @@ type ResizeState = {
 
 export const WorkspaceGridResizer = ({
     direction,
-    prevHandler,
-    nextHandler,
+    prev,
+    next,
 }: WorkspaceGridResizerProps) => {
     const resizeStateRef = useRef<ResizeState | null>(null);
 
@@ -45,27 +45,31 @@ export const WorkspaceGridResizer = ({
         }
 
         const delta = position - resizeState.startPosition;
-        const nextPrevSize = resizeState.prevStartSize + delta;
-        const nextNextSize = resizeState.nextStartSize - delta;
+        const minDelta = Math.max(
+            prev.getMinSizePx() - resizeState.prevStartSize,
+            resizeState.nextStartSize - next.getMaxSizePx()
+        );
+        const maxDelta = Math.min(
+            prev.getMaxSizePx() - resizeState.prevStartSize,
+            resizeState.nextStartSize - next.getMinSizePx()
+        );
+
+        const nextDelta = Math.min(maxDelta, Math.max(minDelta, delta));
+
+        const nextPrevSize = resizeState.prevStartSize + nextDelta;
+        const nextNextSize = resizeState.nextStartSize - nextDelta;
 
         if (nextPrevSize <= 0 || nextNextSize <= 0) {
             return;
         }
 
-        if (direction === 'row') {
-            prevHandler.setWidth(`${nextPrevSize}px`);
-            nextHandler.setWidth(`${nextNextSize}px`);
-
-            return;
-        }
-
-        prevHandler.setHeight(`${nextPrevSize}px`);
-        nextHandler.setHeight(`${nextNextSize}px`);
+        prev.setSizePx(nextPrevSize);
+        next.setSizePx(nextNextSize);
     });
 
     const onPointerDown: React.PointerEventHandler<HTMLDivElement> = event => {
-        const prevElement = prevHandler.getElement();
-        const nextElement = nextHandler.getElement();
+        const prevElement = prev.getElement();
+        const nextElement = next.getElement();
 
         if (!prevElement || !nextElement) {
             return;

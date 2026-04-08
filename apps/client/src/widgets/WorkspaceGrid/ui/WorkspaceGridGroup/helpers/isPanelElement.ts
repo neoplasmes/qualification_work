@@ -1,7 +1,7 @@
 import {
     WorkspaceGridPanel,
     type WorkspaceGridPanelElementType,
-} from '../WorkspaceGridPanel';
+} from '../../WorkspaceGridPanel';
 
 /**
  * PanelElementValidator

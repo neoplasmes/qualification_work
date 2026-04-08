@@ -1,14 +1,14 @@
-import { Children, useMemo, useRef } from 'react';
+import React, { Children, useLayoutEffect, useMemo, useRef } from 'react';
 
-import type { WorkspaceGridGroupDirection } from '../../model';
-import { WorkspaceGridPanelModelHandler } from '../../model/workspaceGridGroupModel';
+import { WorkspaceGridPanelModel, type WorkspaceGridGroupDirection } from '../../model';
 import {
     WorkspaceGridPanelInternal,
     type WorkspaceGridPanelElementType,
     type WorkspaceGridPanelInternalElementType,
 } from '../WorkspaceGridPanel';
 import { WorkspaceGridResizer } from '../WorkspaceGridResizer';
-import { isPanelElement } from './helpers';
+//@ts-ignore - language server lags
+import { fitPanels, isPanelElement } from './helpers';
 
 import styles from './WorkspaceGridGroup.module.scss';
 
@@ -26,63 +26,122 @@ type WorkspaceGridGroupProps = {
  *
  * @returns
  */
-export const WorkspaceGridGroup = ({ direction, children }: WorkspaceGridGroupProps) => {
-    const panelHandlers = useRef<
-        WeakMap<WorkspaceGridPanelInternalElementType, WorkspaceGridPanelModelHandler>
-    >(new WeakMap());
+export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
+    direction,
+    children,
+}: WorkspaceGridGroupProps) => {
+    const groupRef = useRef<HTMLDivElement>(null);
 
-    const panelsLinked = useMemo(() => {
+    const panelModels = useRef<
+        Map<WorkspaceGridPanelInternalElementType, WorkspaceGridPanelModel>
+    >(new Map());
+
+    const linked = useMemo(() => {
         const childrenArray = Children.toArray(children).filter(
             isPanelElement
         ) as WorkspaceGridPanelElementType[];
 
-        if (childrenArray.length === 1) {
-            return childrenArray[0];
+        panelModels.current = new Map<
+            WorkspaceGridPanelInternalElementType,
+            WorkspaceGridPanelModel
+        >();
+
+        if (childrenArray.length === 0) {
+            return [];
+        } else if (childrenArray.length === 1) {
+            return [childrenArray[0]];
         }
 
         let i = 0;
-        const handler = new WorkspaceGridPanelModelHandler();
-        const linked: WorkspaceGridPanelInternalElementType[] = [
+
+        const firstModel = new WorkspaceGridPanelModel(
+            direction,
+            childrenArray[0].props.initialSize,
+            childrenArray[0].props.minSize,
+            childrenArray[0].props.maxSize,
+            `panel-${i}`
+        );
+        const linked = [
             <WorkspaceGridPanelInternal
-                attach={handler.attach}
+                key={`panel-${i}`}
+                attach={firstModel.attach}
                 external={childrenArray[i++]}
             />,
         ];
-        panelHandlers.current.set(linked[0], handler);
+        panelModels.current.set(linked[0], firstModel);
 
         for (; i < childrenArray.length; ) {
             const prevWrapped = linked[i - 1];
-            const prevHandler = panelHandlers.current.get(prevWrapped)!;
+            const prevModel = panelModels.current.get(prevWrapped)!;
 
-            const nextHandler = new WorkspaceGridPanelModelHandler();
+            const nextKey = `panel-${i}`;
+            const nextModel = new WorkspaceGridPanelModel(
+                direction,
+                childrenArray[i].props.initialSize,
+                childrenArray[i].props.minSize,
+                childrenArray[i].props.maxSize,
+                nextKey
+            );
             const nextWrapped = (
                 <WorkspaceGridPanelInternal
-                    attach={nextHandler.attach}
+                    key={nextKey}
+                    attach={nextModel.attach}
                     external={childrenArray[i++]}
                 />
             );
-            panelHandlers.current.set(nextWrapped, nextHandler);
 
-            const resizer = (
+            panelModels.current.set(nextWrapped, nextModel);
+
+            linked.push(
                 <WorkspaceGridResizer
+                    key={`resizer-${i}`}
                     direction={direction}
-                    prevHandler={prevHandler}
-                    nextHandler={nextHandler}
-                />
+                    prev={prevModel}
+                    next={nextModel}
+                />,
+                nextWrapped
             );
-
-            linked.push(resizer, nextWrapped);
         }
 
         return linked;
-    }, [children]);
+    }, [children, direction]);
+
+    useLayoutEffect(() => {
+        const groupElement = groupRef.current;
+
+        if (!groupElement || panelModels.current.size === 0) {
+            return;
+        }
+
+        const applyFit = () => {
+            const availableSize =
+                direction === 'row'
+                    ? groupElement.clientWidth
+                    : groupElement.clientHeight;
+
+            fitPanels(availableSize, panelModels.current);
+        };
+
+        applyFit();
+
+        const resizeObserver = new ResizeObserver(() => {
+            applyFit();
+        });
+
+        resizeObserver.observe(groupElement);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [direction, panelModels.current]);
 
     return (
         <div
             className={styles['workspace-grid-group']}
+            ref={groupRef}
             style={{ '--direction': direction } as React.CSSProperties}
         >
-            {panelsLinked}
+            {linked}
         </div>
     );
 };

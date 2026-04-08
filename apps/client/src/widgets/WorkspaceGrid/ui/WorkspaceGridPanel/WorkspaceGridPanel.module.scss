@@ -1,0 +1,10 @@
+.workspace-grid-panel {
+    display: flex;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 0;
+
+    background-color: var(--color-surface-new);
+
+    border-radius: var(--radius-sm);
+}

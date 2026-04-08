@@ -1,13 +1,15 @@
 import { useLayoutEffect, useRef } from 'react';
 
+import type { WorkspaceGridPanelModel } from '../../model';
+
+import styles from './WorkspaceGridPanel.module.scss';
+
 type WorkspaceGridPanelProps = React.PropsWithChildren<{
     className?: string;
+    initialSize: WorkspaceGridPanelModel['initialSize'];
+    minSize: WorkspaceGridPanelModel['minSize'];
+    maxSize: WorkspaceGridPanelModel['maxSize'];
 }>;
-
-type WorkspaceGridPanelInternalProps = {
-    attach: (node: HTMLDivElement) => void;
-    external: React.ReactElement<WorkspaceGridPanelProps, typeof WorkspaceGridPanel>;
-};
 
 /**
  * external component for users to use. We can not pass attach function outside of the
@@ -27,6 +29,18 @@ export type WorkspaceGridPanelElementType = React.ReactElement<
     typeof WorkspaceGridPanel
 >;
 
+// ------------------------------------------------------------------------------------------------------------------------
+
+type WorkspaceGridPanelInternalProps = {
+    attach: (node: HTMLDivElement) => void;
+    external: React.ReactElement<WorkspaceGridPanelProps, typeof WorkspaceGridPanel>;
+};
+
+/**
+ * internal representation of workspace grid panel.
+ *
+ * @returns
+ */
 export const WorkspaceGridPanelInternal: React.FC<WorkspaceGridPanelInternalProps> = ({
     attach,
     external,
@@ -42,7 +56,11 @@ export const WorkspaceGridPanelInternal: React.FC<WorkspaceGridPanelInternalProp
     }, [attach]);
 
     return (
-        <div className={external.props.className} ref={panelRef}>
+        <div
+            className={`${styles['workspace-grid-panel']} ${external.props.className}`}
+            data-p="md"
+            ref={panelRef}
+        >
             {external}
         </div>
     );

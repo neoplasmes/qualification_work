@@ -1,0 +1,38 @@
+project:
+  k3d-cluster-name: "local-development"
+  anchors:
+    common-task: &common-task
+      toolchain: "system"
+      options:
+        cache: false
+        outputStyle: "stream"
+
+tasks:
+  #! potentially deprecated
+  dev-docker:
+    command: "docker compose -f docker-compose.dev.yaml up --build"
+    <<: *common-task
+
+  # k3d managment for local testing of kubernetes (k3s) (not for weak machines)
+  # TODO: as project will grow, this set of command should be deleted probably??
+  k3s-local-create:
+    description: "creates k3s kubernetes cluster on localhost for testing the deployment part of the ecosystem"
+    command: "k3d cluster create @meta(k3d-cluster-name) --config ./services/k3d.dev/k3d.config.yaml"
+    <<: *common-task
+
+  k3s-local-run:
+    command: "k3d cluster run @meta(k3d-cluster-name)"
+    <<: *common-task
+  
+  k3s-local-stop:
+    command: "k3d cluster stop @meta(k3d-cluster-name)"
+    <<: *common-task
+  
+  k3s-local-delete:
+    command: "k3d cluster delete @meta(k3d-cluster-name)"
+    <<: *common-task
+
+  
+  
+
+    

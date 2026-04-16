@@ -1,0 +1,18 @@
+node_modules
+dist
+
+# we don't need any tests in image
+playwright-report
+tests
+
+*.test.ts
+*.test.tsx
+
+# we only need tsconfig, tsup and vite
+playwright.config.ts
+oxlint.config.ts
+vitest.config.ts
+prettier.config.js
+stylelint.config.js
+
+NOTES.md

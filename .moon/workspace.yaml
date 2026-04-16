@@ -1,0 +1,37 @@
+# Configures all projects within the workspace to create a project graph.
+# Accepts a list of globs, a mapping of projects to relative file paths,
+# or both values.
+projects:
+  root: "."
+  client: "apps/node/client"
+  server: "apps/node/server"
+  primitive-server: "packages/node/primitive-server"
+  types: "packages/node/types"
+  eslint-plugin-fsd: "packages/node/eslint-plugin-fsd"
+
+# moon run command (without :) will run exactly command for default project 
+# and thus using root "moon.yml"
+defaultProject: "root"
+
+# Configures the version control system (VCS). Also known as
+# source code management (SCM).
+vcs:
+  client: "git"
+  # The default branch / base.
+  defaultBranch: "main"
+
+  # The upstream version control provider, where the repository
+  # source code is stored.
+  # @since 1.8.0
+  # @values "bitbucket" | "github" | "gitlab" | "other"
+  provider: "github"
+
+pipeline:
+  installDependencies: false
+  syncProjects: true
+  syncWorkspace: true
+
+hasher:
+  ignoreMissingPatterns:
+    - "**/.env"
+    - "**/.env.*"

@@ -1,9 +1,0 @@
-{
-    "apps/client/**/*.{ts,tsx}": ["oxlint -c apps/client/oxlint.config.ts --fix"],
-    "apps/server/**/*.{ts,tsx}": ["oxlint -c apps/server/oxlint.config.ts --fix"],
-    "packages/eslint-plugin-fsd/**/*.{ts,js}": ["oxlint -c oxlint.config.ts --fix"],
-    "packages/types/**/*.ts": ["oxlint -c oxlint.config.ts --fix"],
-    "packages/primitive-server/**/*.ts": ["oxlint -c oxlint.config.ts --fix"],
-    "*.scss": ["pnpm --filter client exec stylelint --fix"],
-    "*.json": ["prettier --write"]
-}

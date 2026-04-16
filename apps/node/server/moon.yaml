@@ -1,0 +1,106 @@
+language: "typescript"
+
+tags:
+  - "node"
+
+dependsOn:
+  - "primitive-server"
+  - "types"
+
+fileGroups:
+  configs:
+    - "package.json"
+    - "tsconfig.json"
+    - "*.config.ts"
+  sources:
+    - "src/**/*"
+  tests:
+    - "src/**/*.test.ts"
+    - "src/tests/**/*"
+
+tasks:
+  dev:
+    command: "pnpm dev"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+      - "/.env"
+      - "/docker-compose.dev.yaml"
+    options:
+      cache: false
+      persistent: true
+      outputStyle: "stream"
+
+  build:
+    command: "pnpm build"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    outputs:
+      - "dist"
+
+  start:
+    command: "pnpm start"
+    deps:
+      - "~:build"
+    inputs:
+      - "dist/**/*"
+      - "/.env"
+    options:
+      cache: false
+      persistent: true
+      outputStyle: "stream"
+
+  typecheck:
+    command: "pnpm typecheck"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+
+  db-up:
+    command: "pnpm db:up"
+    inputs:
+      - "/docker-compose.dev.yaml"
+      - "/.env"
+    options:
+      cache: false
+      outputStyle: "stream"
+
+  db-down:
+    command: "pnpm db:down"
+    inputs:
+      - "/docker-compose.dev.yaml"
+    options:
+      cache: false
+      outputStyle: "stream"
+
+  test:
+    command: "pnpm test"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+      - "/.env"
+
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    options:
+      cache: false

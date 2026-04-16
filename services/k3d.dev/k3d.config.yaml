@@ -1,0 +1,33 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+
+# control plane amount
+servers: 1
+# "nodes" amount
+agents: 2
+
+ports:
+  - port: 80:80
+    nodeFilters:
+      - loadbalancer
+  - port: 443:443
+    nodeFilters:
+      - loadbalancer
+
+options:
+  # k3d cluster create will throw zero (0) exit code only 
+  # after full local deployment will be completed.
+  k3d:
+    wait: true
+    timeout: "60s"
+  # we are working with NGINX, not fucking slow traefik
+  k3s:
+    extraArgs:
+      - arg: "--disable=traefik"
+        nodeFilters:
+          - server:*
+  # ~/.kube/config will be updated on your machine
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    # kubectl config use-context k3d-local-development-cluster
+    switchCurrentContext: true

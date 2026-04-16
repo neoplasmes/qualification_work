@@ -1,0 +1,96 @@
+auth:
+  ## @param auth.enablePostgresUser Assign a password to the "postgres" admin user. Otherwise, remote access will be blocked for this user
+  ##
+  enablePostgresUser: false
+  # ## @param auth.postgresPassword Password for the "postgres" admin user. Ignored if `auth.existingSecret` is provided
+  # ##
+  # postgresPassword: ""
+  ## @param auth.username Name for a custom user to create
+  ##
+  username: "admin"
+  # ## @param auth.password Password for the custom user to create. Ignored if `auth.existingSecret` is provided
+  # ##
+  # password: ""
+  ## @param auth.database Name for a custom database to create
+  ##
+  database: "qualification"
+  # ## @param auth.replicationUsername Name of the replication user
+  # ##
+  # replicationUsername: repl_user
+  # ## @param auth.replicationPassword Password for the replication user. Ignored if `auth.existingSecret` is provided
+  # ##
+  # replicationPassword: ""
+  # ## @param auth.metricsUsername Name of the metrics user used by postgresql exporter
+  # ##
+  # metricsUsername: ""
+  # ## @param auth.metricsPassword Password for the metrics user used by postgresql exporter. Ignored if `auth.existingSecret` is provided
+  # ##
+  # metricsPassword: ""
+  ## @param auth.existingSecret Name of existing secret to use for PostgreSQL credentials. `auth.postgresPassword`, `auth.password`, and `auth.replicationPassword` will be ignored and picked up from this secret. The secret might also contains the key `ldap-password` if LDAP is enabled. `ldap.bind_password` will be ignored and picked from this secret in this case.
+  ##
+  existingSecret: "app-secret"
+  ## @param auth.secretKeys.adminPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ## @param auth.secretKeys.userPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ## @param auth.secretKeys.replicationPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ## @param auth.secretKeys.metricsPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ##
+  secretKeys:
+    adminPasswordKey: "POSTGRES_PASSWORD"
+    userPasswordKey: "POSTGRES_PASSWORD"
+  usePasswordFiles: false
+## @param containerPorts.postgresql PostgreSQL container port
+##
+containerPorts:
+  postgresql: 5432
+primary:
+  ## PostgreSQL Primary persistence configuration
+  ##
+  persistence:
+    ## @param primary.persistence.enabled Enable PostgreSQL Primary data persistence using PVC
+    ##
+    enabled: true
+    ## @param primary.persistence.volumeName Name to assign the volume
+    ##
+    volumeName: "data"
+    ## @param primary.persistence.existingClaim Name of an existing PVC to use
+    ##
+    existingClaim: ""
+    ## @param primary.persistence.mountPath The path the volume will be mounted at
+    ## Note: useful when using custom PostgreSQL images
+    ##
+    mountPath: /bitnami/postgresql
+    ## @param primary.persistence.subPath The subdirectory of the volume to mount to
+    ## Useful in dev environments and one PV for multiple services
+    ##
+    subPath: ""
+    ## @param primary.persistence.storageClass PVC Storage Class for PostgreSQL Primary data volume
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClass: ""
+    ## @param primary.persistence.accessModes PVC Access Mode for PostgreSQL volume
+    ##
+    accessModes:
+      - ReadWriteOnce
+    ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
+    ##
+    size: 5Gi
+    ## @param primary.persistence.annotations Annotations for the PVC
+    ##
+    annotations: {}
+    ## @param primary.persistence.labels Labels for the PVC
+    ##
+    labels: {}
+    ## @param primary.persistence.selector Selector to match an existing Persistent Volume (this value is evaluated as a template)
+    ## selector:
+    ##   matchLabels:
+    ##     app: my-app
+    ##
+    selector: {}
+    ## @param primary.persistence.dataSource Custom PVC data source
+    ##
+    dataSource: {}
+  

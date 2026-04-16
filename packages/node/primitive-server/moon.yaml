@@ -1,0 +1,54 @@
+language: "typescript"
+
+tags:
+  - "node"
+
+fileGroups:
+  sources:
+    - "src/**/*"
+  tests:
+    - "src/**/*.test.ts"
+    - "src/**/*.bench.ts"
+  configs:
+    - "package.json"
+    - "tsconfig.json"
+    - "*.config.ts"
+
+tasks:
+  build:
+    command: "pnpm build"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    outputs:
+      - "dist"
+
+  typecheck:
+    command: "pnpm typecheck"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+
+  test:
+    command: "pnpm test"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+
+  # bench and loadtest are skipped
+
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    options:
+      cache: false

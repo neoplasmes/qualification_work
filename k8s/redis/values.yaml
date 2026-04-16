@@ -1,0 +1,88 @@
+auth:
+  ## @param auth.enabled Enable password authentication
+  ##
+  enabled: true
+  # ## @param auth.sentinel Enable authentication on sentinels too
+  # ##
+  # sentinel: true
+  # ## @param auth.password Redis(R) password
+  # ## Defaults to a random 10-character alphanumeric string if not set
+  # ##
+  # password: ""
+  ## @param auth.existingSecret The name of an existing secret with Redis(R) credentials
+  ## NOTE: When it's set, the previous `auth.password` parameter is ignored
+  ##
+  existingSecret: "app-secret"
+  ## @param auth.existingSecretPasswordKey Password key to be retrieved from existing secret
+  ## NOTE: ignored unless `auth.existingSecret` parameter is set
+  ##
+  existingSecretPasswordKey: "REDIS_PASSWORD"
+  ## @param auth.usePasswordFiles Mount credentials as files instead of using an environment variable
+  ##
+  usePasswordFiles: false
+  ## @param auth.usePasswordFileFromSecret Mount password file from secret
+  ##
+  usePasswordFileFromSecret: false
+master:
+  persistence:
+    ## @param master.persistence.enabled Enable persistence on Redis(R) master nodes using Persistent Volume Claims
+    ##
+    enabled: true
+    # ## @param master.persistence.medium Provide a medium for `emptyDir` volumes.
+    # ##
+    # medium: ""
+    # ## @param master.persistence.sizeLimit Set this to enable a size limit for `emptyDir` volumes.
+    # ##
+    # sizeLimit: ""
+    # ## @param master.persistence.path The path the volume will be mounted at on Redis(R) master containers
+    # ## NOTE: Useful when using different Redis(R) images
+    # ##
+    # path: /data
+    # ## @param master.persistence.subPath The subdirectory of the volume to mount on Redis(R) master containers
+    # ## NOTE: Useful in dev environments
+    # ##
+    # subPath: ""
+    # ## @param master.persistence.subPathExpr Used to construct the subPath subdirectory of the volume to mount on Redis(R) master containers
+    # ##
+    # subPathExpr: ""
+    # ## @param master.persistence.storageClass Persistent Volume storage class
+    # ## If defined, storageClassName: <storageClass>
+    # ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    # ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
+    # ##
+    # storageClass: ""
+    ## @param master.persistence.accessModes Persistent Volume access modes
+    ##
+    accessModes:
+      - ReadWriteOnce
+    ## @param master.persistence.size Persistent Volume size
+    ##
+    size: 1Gi
+    # ## @param master.persistence.annotations Additional custom annotations for the PVC
+    # ##
+    # annotations: {}
+    # ## @param master.persistence.labels Additional custom labels for the PVC
+    # ##
+    # labels: {}
+    # ## @param master.persistence.selector Additional labels to match for the PVC
+    # ## e.g:
+    # ## selector:
+    # ##   matchLabels:
+    # ##     app: my-app
+    # ##
+    # selector: {}
+    # ## @param master.persistence.dataSource Custom PVC data source
+    # ##
+    # dataSource: {}
+    # ## @param master.persistence.existingClaim Use a existing PVC which must be created manually before bound
+    # ## NOTE: requires master.persistence.enabled: true
+    # ##
+    # existingClaim: ""
+replica:
+  # ## @param replica.kind Use either DaemonSet or StatefulSet (default)
+  # ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+  # ##
+  # kind: StatefulSet
+  ## @param replica.replicaCount Number of Redis(R) replicas to deploy
+  ##
+  replicaCount: 0

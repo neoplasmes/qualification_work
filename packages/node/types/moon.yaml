@@ -1,0 +1,32 @@
+language: "typescript"
+
+tags:
+  - "node"
+
+fileGroups:
+  sources:
+    - "*.ts"
+  configs:
+    - "package.json"
+    - "tsconfig.json"
+
+tasks:
+  typecheck:
+    command: "pnpm typecheck"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    options:
+      cache: false

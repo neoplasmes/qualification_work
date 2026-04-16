@@ -4,8 +4,8 @@ export default defineConfig({
     jsPlugins: ['@stylistic/eslint-plugin'],
     rules: {
         curly: ['error', 'all'],
-        'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-        'no-explicit-any': 'warn',
+        'no-unused-vars': ['warn'],
+        'no-explicit-any': 'error',
         'consistent-type-imports': [
             'error',
             {

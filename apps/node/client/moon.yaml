@@ -1,0 +1,132 @@
+language: "typescript"
+tags:
+  - "client"
+  - "node"
+
+dependsOn:
+  - "primitive-server"
+
+fileGroups:
+  sources:
+    - "src/**/*"
+    - "server/**/*"
+    - "vite/**/*"
+  styles:
+    - "src/**/*.scss"
+    - "stylelint.config.js"
+  tests:
+    - "src/**/*.test.ts"
+    - "src/**/*.test.tsx"
+    - "server/**/*.test.ts"
+    - "tests/**/*"
+  configs:
+    - "package.json"
+    - "tsconfig.json"
+    - "*.config.js"
+
+tasks:
+  dev:
+    command: "pnpm dev"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(styles)"
+      - "@group(configs)"
+      - "/.env"
+    options:
+      cache: false
+      persistent: true
+      outputStyle: "stream"
+
+  build:
+    command: "pnpm build"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(styles)"
+      - "@group(configs)"
+      - "index.html"
+    outputs:
+      - "dist"
+
+  build-client:
+    command: "pnpm build:client"
+    inputs:
+      - "src/**/*"
+      - "vite.config.ts"
+      - "index.html"
+    outputs:
+      - "dist/client"
+
+  build-server:
+    command: "pnpm build:server"
+    deps:
+      - "^:build"
+    inputs:
+      - "server/**/*"
+      - "src/**/*"
+      - "tsup.config.ts"
+      - "vite.config.ts"
+    outputs:
+      - "dist/server"
+      - "dist/server.js"
+
+  preview:
+    command: "pnpm preview"
+    deps:
+      - "~:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(styles)"
+      - "@group(configs)"
+    options:
+      cache: false
+      persistent: true
+      outputStyle: "stream"
+
+  start:
+    command: "pnpm start"
+    deps:
+      - "~:build"
+    inputs:
+      - "dist/**/*"
+    options:
+      cache: false
+      persistent: true
+      outputStyle: "stream"
+
+  typecheck:
+    command: "pnpm typecheck"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+
+  test:
+    command: "pnpm test"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+      - "@group(configs)"
+
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(sources)"
+      - "@group(styles)"
+      - "@group(configs)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(sources)"
+      - "@group(styles)"
+      - "@group(configs)"
+    options:
+      cache: false

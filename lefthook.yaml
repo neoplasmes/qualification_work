@@ -1,0 +1,39 @@
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: false
+  jobs:
+    - name: prettier
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,scss,html}"
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+    - name: client oxlint
+      glob: "apps/node/client/**/*.{js,jsx,ts,tsx}"
+      run: pnpm exec oxlint -c apps/node/client/oxlint.config.ts --fix {staged_files}
+      stage_fixed: true
+
+    - name: server oxlint
+      glob: "apps/node/server/**/*.{js,jsx,ts,tsx}"
+      run: pnpm exec oxlint -c apps/node/server/oxlint.config.ts --fix {staged_files}
+      stage_fixed: true
+
+    - name: packages oxlint
+      glob: "packages/node/**/*.{js,jsx,ts,tsx}"
+      run: pnpm exec oxlint -c oxlint.config.ts --fix {staged_files}
+      stage_fixed: true
+
+    - name: client stylelint
+      root: apps/node/client
+      glob: "apps/node/client/src/**/*.scss"
+      run: pnpm exec stylelint --fix {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: false
+  jobs:
+    - name: typecheck
+      run: pnpm typecheck
+
+    - name: test
+      run: pnpm test

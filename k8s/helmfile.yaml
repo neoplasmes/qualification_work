@@ -1,0 +1,25 @@
+repositories:
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+
+releases:
+  - name: ingress-nginx
+    namespace: ingress-nginx
+    createNamespace: true
+    chart: ingress-nginx/ingress-nginx
+    values:
+      - ingress-nginx/values.yaml
+
+  - name: postgres
+    namespace: app
+    chart: oci://registry-1.docker.io/bitnamicharts/postgresql
+    version: "18.6.2"
+    values:
+      - postgres/values.yaml
+
+  - name: redis
+    namespace: app
+    chart: oci://registry-1.docker.io/bitnamicharts/redis
+    version: "25.5.2"
+    values:
+      - redis/values.yaml

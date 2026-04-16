@@ -1,1 +1,0 @@
-export type { <%= pascalName %><%= suffix %> } from './<%= fileName %>';

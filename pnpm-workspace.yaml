@@ -1,9 +1,8 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
-  - 'tools'
+  - 'apps/node/*'
+  - 'packages/node/*'
 allowBuilds:
-  '@swc/core': true
-  core-js-pure: false
+  argon2: true
+  lefthook: true
 
 link-workspace-packages: true

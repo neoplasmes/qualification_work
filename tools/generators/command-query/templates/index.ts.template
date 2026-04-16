@@ -1,3 +1,0 @@
-export { <%= pascalName %>Handler } from './handler';
-export { <%= camelName %>Schema } from './schema';
-export type { <%= pascalName %>Input } from './types';

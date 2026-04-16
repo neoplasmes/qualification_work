@@ -1,0 +1,31 @@
+{
+    "name": "primitive-server",
+    "version": "1.0.0",
+    "type": "module",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "lint": "oxlint -c ../../../oxlint.config.ts src/",
+        "lint:fix": "oxlint -c ../../../oxlint.config.ts --fix src/",
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run",
+        "bench": "vitest bench",
+        "loadtest": "tsx src/Application.loadtest.ts"
+    },
+    "devDependencies": {
+        "@types/autocannon": "^7.12.7",
+        "autocannon": "^8.0.0",
+        "tsup": "^8.5.1",
+        "tsx": "^4.21.0"
+    }
+}

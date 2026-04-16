@@ -10,10 +10,8 @@
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
-
-        // убрал потому что занудство
+        "ignoreDeprecations": "6.0",
         "noUncheckedIndexedAccess": false,
-
         "noImplicitOverride": true
     }
 }

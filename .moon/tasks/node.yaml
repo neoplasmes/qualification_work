@@ -1,0 +1,10 @@
+inheritedBy:
+  tags: "node"
+
+implicitInputs:
+  - "/package.json"
+  - "/tsconfig.json"
+  - "/pnpm-lock.yaml"
+  - "/pnpm-workspace.yaml"
+  - "/prettier.config.js"
+  - "/oxlint.config.ts"

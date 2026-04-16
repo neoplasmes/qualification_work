@@ -1,0 +1,25 @@
+language: "javascript"
+
+tags:
+  - "node"
+
+fileGroups:
+  sources:
+    - "src/**/*.js"
+  configs:
+    - "package.json"
+
+tasks:
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    options:
+      cache: false

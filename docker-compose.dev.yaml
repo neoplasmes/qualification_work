@@ -1,0 +1,114 @@
+services:
+  postgres:
+    container_name: postgres
+    build:
+      context: .
+      dockerfile: services/postgres/Dockerfile
+    restart: unless-stopped
+    environment:
+      # ${env_variable:-default_value}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-qualification}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-qualification}']
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    
+  redis:
+    container_name: redis
+    image: redis:8.6-alpine
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning --maxmemory 256mb --maxmemory-policy volatile-ttl
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s       
+      timeout: 5s
+      retries: 3
+
+  redis-insight:
+    container_name: redisinsight
+    image: redis/redisinsight:latest
+    ports:
+     - '5040:5040'
+    volumes:
+     - redisinsight_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: apps/node/server/Dockerfile
+    ports:
+      - '${SERVER_PORT:-4000}:4000'
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-qualification}
+    healthcheck:
+      # wget и curl недоступны внутри node:alpine
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw r}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  client:
+    container_name: client
+    build:
+      context: .
+      dockerfile: apps/node/client/Dockerfile
+    restart: unless-stopped
+    expose:
+      - '5173'
+    environment:
+      NODE_ENV: production
+      PORT: 5173
+    healthcheck:
+      # TODO: in clear alpine there IS a wget. this command should be fixed
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:5173/').then(r=>{if(!r.ok)throw r}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      server:
+        condition: service_healthy
+
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: services/nginx/Dockerfile
+    restart: unless-stopped
+    environment:
+      CLIENT_UPSTREAM: client:5173
+      SERVER_UPSTREAM: server:4000
+    ports:
+      - '${CLIENT_PORT:-80}:80'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O - http://localhost/_nginx/health >/dev/null || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      client:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+  redisinsight_data:

@@ -1,7 +1,26 @@
 {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
+
     "oxc.lint.run": "onType",
     "oxc.enable.oxlint": true,
-    "js/ts.experimental.useTsgo": false
+
+    "npm.packageManager": "pnpm",
+    "npm.scriptRunner": "pnpm",
+
+    "js/ts.experimental.useTsgo": false,
+
+    "files.associations": {
+        "*.conf": "nginx"
+    },
+
+    "yaml.schemas": {
+        "./.moon/cache/schemas/workspace.json": [".moon/workspace.yml"],
+        "./.moon/cache/schemas/toolchains.json": [".moon/toolchains.yml"],
+        "./.moon/cache/schemas/tasks.json": [".moon/tasks.yml", ".moon/tasks/**/*.yml"],
+        "./.moon/cache/schemas/project.json": ["**/moon.yml"],
+        "./.moon/cache/schemas/extensions.json": [".moon/extensions.yml"],
+        "./.moon/cache/schemas/template.json": ["**/template.yml"],
+        "./.moon/cache/schemas/toolchain.json": [".moon/toolchain.yml"]
+    }
 }

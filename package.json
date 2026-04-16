@@ -3,35 +3,29 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "type": "module",
     "scripts": {
-        "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
-        "dev:hmr": "nx run-many -t dev --projects=client,server",
-        "build": "nx run-many -t build",
-        "test": "nx run-many -t test",
-        "typecheck": "nx run-many -t typecheck",
-        "lint": "nx run-many -t lint",
-        "lint:fix": "nx run-many -t lint:fix",
-        "prepare": "husky"
+        "dev:hmr": "moon run client:dev server:dev",
+        "build": "moon run :build",
+        "test": "moon run :test",
+        "typecheck": "moon run :typecheck",
+        "lint": "moon run :lint",
+        "lint:fix": "moon run :lint-fix",
+        "prepare": "lefthook install",
+        "precommit": "lefthook run pre-commit"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "packageManager": "pnpm@10.33.0",
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "argon2"
-        ]
-    },
     "devDependencies": {
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/node": "^25.4.0",
-        "husky": "^9.1.7",
-        "lint-staged": "^16.4.0",
-        "nx": "^22.6.3",
-        "oxlint": "^1.58.0",
-        "prettier": "^3.8.1",
-        "typescript": "^5.9.3",
-        "vitest": "^4.0.18"
+        "lefthook": "^2.1.6",
+        "oxlint": "^1.63.0",
+        "prettier": "^3.8.3",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.5"
     }
 }

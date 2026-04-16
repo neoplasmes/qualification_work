@@ -34,6 +34,7 @@ export class PgOrganizationRepository implements OrganizationRepository {
      * @returns {Promise<{ id: string }>}
      */
     async create(data: { name: string; ownerId: string }): Promise<{ id: string }> {
+        // TODO: aggregate to single query inside anonymous function to reduce round-trip.
         const { rows } = await this.pool.query(
             `INSERT INTO orgs.organizations (name, owner_id) VALUES ($1, $2) RETURNING id`,
             [data.name, data.ownerId]
@@ -59,6 +60,7 @@ export class PgOrganizationRepository implements OrganizationRepository {
      * @returns {Promise<void>}
      */
     async delete(id: string): Promise<void> {
+        // TODO: aggregate to single query
         const { rows } = await this.pool.query<{
             user_id: string;
         }>(`SELECT user_id FROM orgs.roles WHERE org_id = $1`, [id]);

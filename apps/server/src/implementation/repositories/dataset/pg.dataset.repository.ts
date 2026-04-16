@@ -154,6 +154,8 @@ export class PgDatasetRepository implements DatasetRepository {
     async getDatasetMetadataByDatasetId(
         datasetId: string
     ): Promise<DatasetMetadata | null> {
+        // TODO: rewrite in a single JOIN to reduce round-trips. mb have to be benchmarked.
+        
         const [dataset] = await this.pool
             .query<Dataset>(
                 `SELECT
@@ -213,6 +215,7 @@ export class PgDatasetRepository implements DatasetRepository {
      * @returns {Promise<DatasetMetadata[]>}
      */
     async getDatasetsMetadataByOrgId(orgId: string): Promise<DatasetMetadata[]> {
+        // TODO: REWRITE TO SINGLE QUERY!!!!! (mb should be benched)
         // TODO: sync 'order by' with front
         const datasets = await this.pool
             .query<Dataset>(
@@ -294,6 +297,7 @@ export class PgDatasetRepository implements DatasetRepository {
     async getDatasetRowsPageById(
         data: GetDatasetRowsPayload
     ): Promise<DatasetRowsPage | null> {
+        // TODO: REWRITE TO SINGLE QUERY
         const [{ exists }] = await this.pool
             .query<{
                 exists: number;

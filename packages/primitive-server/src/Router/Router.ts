@@ -22,6 +22,7 @@ export type LookupResult<
     hooks: PathSegmentHooksStore<T, E> | null;
 };
 
+// TODO: more optimizations based on flattened data-structures
 export class Router<
     T extends Record<string, unknown> = Record<string, unknown>,
     E = unknown,

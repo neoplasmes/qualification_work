@@ -30,6 +30,7 @@ export class MeHandler {
             throw new UnauthorizedError('');
         }
 
+        // TODO: consider creating a single function with single query inside me.cache.repository. Also me.cache. have to be renamed.
         const user = await this.userRepository.findById(session.userId, [
             'id',
             'email',

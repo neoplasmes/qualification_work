@@ -33,7 +33,7 @@ tasks:
       - "@group(sources)"
       - "@group(styles)"
       - "@group(configs)"
-      - "/.env"
+      - ".env"
     options:
       cache: false
       persistent: true

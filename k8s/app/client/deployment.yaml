@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  namespace: app
+spec:
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+      - name: client
+        image: "ghcr.io/neoplasmes/qualification_work/apps_node_client:custom"  
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000
+        env:
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                name: app-env-config
+                key: CLIENT_PORT
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10

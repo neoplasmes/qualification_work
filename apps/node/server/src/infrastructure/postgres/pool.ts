@@ -20,7 +20,7 @@ function buildConnectionString(): string {
         POSTGRES_PORT &&
         POSTGRES_DB
     ) {
-        return `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`;
+        return `postgres://${POSTGRES_USER}:${encodeURIComponent(POSTGRES_PASSWORD)}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`;
     }
 
     throw new Error('не найдены env переменные');

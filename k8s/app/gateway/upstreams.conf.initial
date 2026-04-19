@@ -1,0 +1,9 @@
+upstream client_backend {
+    least_conn;
+    server 127.0.0.1:65535 down;
+}
+
+upstream server_backend {
+    least_conn;
+    server 127.0.0.1:65535 down;
+}

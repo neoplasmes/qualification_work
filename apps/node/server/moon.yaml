@@ -26,7 +26,7 @@ tasks:
     inputs:
       - "@group(sources)"
       - "@group(configs)"
-      - "/.env"
+      - ".env"
       - "/docker-compose.dev.yaml"
     options:
       cache: false
@@ -49,7 +49,7 @@ tasks:
       - "~:build"
     inputs:
       - "dist/**/*"
-      - "/.env"
+      - ".env"
     options:
       cache: false
       persistent: true
@@ -68,7 +68,7 @@ tasks:
     command: "pnpm db:up"
     inputs:
       - "/docker-compose.dev.yaml"
-      - "/.env"
+      - ".env"
     options:
       cache: false
       outputStyle: "stream"
@@ -89,7 +89,8 @@ tasks:
       - "@group(sources)"
       - "@group(tests)"
       - "@group(configs)"
-      - "/.env"
+      - ".env.test"
+      - "/docker-compose.test.yaml"
 
   lint:
     command: "pnpm lint"

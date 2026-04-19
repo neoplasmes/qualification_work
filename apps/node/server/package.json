@@ -5,15 +5,17 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "dev": "pnpm db:up && tsx watch --env-file=../../../.env src/index.ts",
+        "dev": "pnpm db:up && tsx watch --env-file=.env src/index.ts",
         "build": "tsup src/index.ts --format esm --target esnext --out-dir dist",
         "start": "node dist/index.mjs",
         "typecheck": "tsc --noEmit",
-        "db:up": "docker compose -f ../../../docker-compose.dev.yaml up postgres redis redis-insight -d",
+        "db:up": "docker compose --env-file .env -f ../../../docker-compose.dev.yaml up postgres redis redis-insight -d --wait",
         "db:down": "docker compose -f ../../../docker-compose.dev.yaml down",
+        "db:test:up": "docker compose --env-file .env.test -f ../../../docker-compose.test.yaml up -d --wait --renew-anon-volumes postgres redis",
+        "db:test:down": "docker compose -f ../../../docker-compose.test.yaml down -v",
         "lint": "oxlint -c oxlint.config.ts src/",
         "lint:fix": "oxlint -c oxlint.config.ts --fix src/",
-        "test": "pnpm dotenv -e ../../../.env -- vitest run"
+        "test": "pnpm db:test:up && pnpm dotenv -e .env.test -- vitest run"
     },
     "keywords": [],
     "author": "",

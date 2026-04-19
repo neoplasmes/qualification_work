@@ -33,7 +33,7 @@ pre-push:
   parallel: false
   jobs:
     - name: typecheck
-      run: pnpm typecheck
+      run: moon run :typecheck
 
-    # - name: test
-    #   run: pnpm test
+    - name: test
+      run: moon run :test

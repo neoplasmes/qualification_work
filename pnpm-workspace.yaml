@@ -5,4 +5,4 @@ allowBuilds:
   argon2: true
   lefthook: true
 
-link-workspace-packages: true
+linkWorkspacePackages: true

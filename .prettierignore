@@ -3,3 +3,4 @@ dist
 *.md
 *.yml
 *.yaml
+*.yaml.gotmpl

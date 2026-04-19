@@ -24,7 +24,7 @@ COPY packages/node/primitive-server/package.json    ./packages/node/primitive-se
 
 # we are disabling postinstall scripts natively integrated in npm among which we have "prepare"
 # then we have to rebuild argon2 because it needs a native binary
-RUN pnpm -F server... install --frozen-lockfile --ignore-scripts && pnpm rebuild argon2
+RUN pnpm -F server... i --frozen-lockfile --ignore-scripts && pnpm rebuild argon2
 
 FROM deps AS builder
 
@@ -32,7 +32,7 @@ COPY apps/node/server/               ./apps/node/server/
 COPY packages/node/types/            ./packages/node/types/
 COPY packages/node/primitive-server/ ./packages/node/primitive-server/
 
-RUN pnpm -F primitive-server build && pnpm --filter=server build
+RUN pnpm -F server... --if-present build
 
 FROM builder AS pruned
 
@@ -40,11 +40,16 @@ RUN pnpm -F server deploy -P --legacy --ignore-scripts /deploy
 
 FROM node:${NODE_VERSION} AS runner
 
+LABEL org.opencontainers.image.source=https://github.com/neoplasmes/qualification_work
+
 WORKDIR /app
 
-COPY --from=pruned /deploy .
+COPY --from=pruned --chown=node:node /deploy .
 
 ENV NODE_ENV=production
+ENV SERVER_PORT=3001
 EXPOSE 3001
+
+USER node
 
 CMD ["node", "dist/index.js"]

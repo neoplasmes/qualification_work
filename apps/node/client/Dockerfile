@@ -22,7 +22,7 @@ COPY packages/node/eslint-plugin-fsd/package.json  ./packages/node/eslint-plugin
 COPY packages/node/primitive-server/package.json   ./packages/node/primitive-server/
 
 # we are disabling postinstall scripts natively integrated in npm among which we have "prepare"
-RUN pnpm -F client... install --frozen-lockfile --ignore-scripts
+RUN pnpm -F client... i --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
 
@@ -30,20 +30,28 @@ COPY apps/node/client/                 ./apps/node/client/
 COPY packages/node/eslint-plugin-fsd/  ./packages/node/eslint-plugin-fsd/
 COPY packages/node/primitive-server/   ./packages/node/primitive-server/
 
-RUN pnpm --filter=primitive-server build && pnpm --filter=client build
+# explanation: <pattern>... - these 3 dots means that build command will be performed for "client" package
+# and all packages from which "client" depends.
+# --if-present: Avoid exiting with a non-zero exit code when the script is undefined
+# thus, there will be built ALL packages for "client", so yeah, we managed to save a whole 15 characters
+RUN pnpm -F client... --if-present build
 
 FROM builder AS pruned
 
-# --offline reuses the pnpm store populated by deps stage — no network calls
-RUN pnpm --filter=client deploy -P --legacy --ignore-scripts /deploy
+RUN pnpm -F client deploy -P --legacy --ignore-scripts /deploy
 
 FROM node:${NODE_VERSION} AS runner
 
+LABEL org.opencontainers.image.source=https://github.com/neoplasmes/qualification_work
+
 WORKDIR /app
 
-COPY --from=pruned /deploy .
+COPY --from=pruned --chown=node:node /deploy .
 
 ENV NODE_ENV=production
+ENV PORT=3000
 EXPOSE 3000
+
+USER node
 
 CMD ["node", "dist/server.js"]

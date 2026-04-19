@@ -24,6 +24,9 @@ auth:
   ##
   usePasswordFileFromSecret: false
 master:
+  extraFlags:
+    - "--maxmemory 256mb"
+    - "--maxmemory-policy volatile-ttl"
   persistence:
     ## @param master.persistence.enabled Enable persistence on Redis(R) master nodes using Persistent Volume Claims
     ##

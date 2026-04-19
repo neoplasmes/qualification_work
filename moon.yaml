@@ -8,6 +8,15 @@ project:
         outputStyle: "stream"
 
 tasks:
+  deploy-to-registry:
+    description: "builds image from the Dockerfile at <path-to-Dockerfile> provided and pushes it to ghcr.io (see README.md for more details)"
+    command: "./scripts/ghcr.deploy.sh"
+    toolchain: "system"
+    options:
+      interactive: true
+      cache: false
+      outputStyle: stream
+
   #! potentially deprecated
   dev-docker:
     command: "docker compose -f docker-compose.dev.yaml up --build"
@@ -17,7 +26,7 @@ tasks:
   # TODO: as project will grow, this set of command should be deleted probably??
   k3s-local-create:
     description: "creates k3s kubernetes cluster on localhost for testing the deployment part of the ecosystem"
-    command: "k3d cluster create @meta(k3d-cluster-name) --config ./services/k3d.dev/k3d.config.yaml"
+    command: "k3d cluster create @meta(k3d-cluster-name) --config ./k8s/k3d.config.yaml"
     <<: *common-task
 
   k3s-local-run:

@@ -12,6 +12,6 @@ data:
   REDIS_HOST: "redis-master"
   REDIS_PORT: "6379"
   
-  SERVER_PORT: "3000"
-  CLIENT_PORT: "3001"
-
+  CLIENT_PORT: "3000"
+  SERVER_PORT: "3001"
+  CLIENT_ORIGIN: "http://localhost:3000"

@@ -11,7 +11,8 @@
     "js/ts.experimental.useTsgo": false,
 
     "files.associations": {
-        "*.conf": "nginx"
+        "*.conf": "nginx",
+        "*.yaml.gotmpl": "yaml"
     },
 
     "yaml.schemas": {

@@ -2,17 +2,24 @@ import { createClient } from 'redis';
 
 export type RedisClient = ReturnType<typeof createClient>;
 
-export async function createRedisClient(): Promise<RedisClient> {
-    const { REDIS_HOST, REDIS_PORT } = process.env;
-
-    let url: string;
-
-    if (REDIS_HOST && REDIS_PORT) {
-        url = `redis://${REDIS_HOST}:${REDIS_PORT}`;
-    } else {
-        throw new Error('REDIS_URL env variable has not been found');
+function buildConnectionString(): string {
+    if (process.env.REDIS_URL) {
+        return process.env.REDIS_URL;
     }
 
+    const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = process.env;
+
+    if (REDIS_HOST && REDIS_PORT && REDIS_PASSWORD) {
+        return `redis://:${encodeURIComponent(REDIS_PASSWORD)}@${REDIS_HOST}:${REDIS_PORT}`;
+    }
+
+    throw new Error(
+        'REDIS_URL or REDIS_HOST/REDIS_PORT/REDIS_PASSWORD env variables have not been found'
+    );
+}
+
+export async function createRedisClient(): Promise<RedisClient> {
+    const url = buildConnectionString();
     const client = createClient({ url });
     await client.connect();
 

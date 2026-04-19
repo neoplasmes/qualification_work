@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+  namespace: app
+spec:
+  # The main problem: I DO NOT want to use Ingress Controllers or GatewayApi or some other "black-box" bullshit
+  # and actually i really would like to use Nomad instead of k8s, but unfotunatelly k8s is a big-tech standart.
+  # I personally hate overcomplicated tools that do a lot for you but still require a lot of configuration in the end.
+  # And k8s is one of them. It is not clear how it works at all and it is not impossible to normally navigate through the thousands of .yaml files.
+  # I accept only tools that do your work completely for you, or ones that can be fully controlled. And k8s is not a such tool. But again, it is a standart, so i will use it
+  # But there is a lot of magic specifically in these ingress and gateway apis, that moreover provide absolutely unneccesary abstractions over original config files. 
+  # Thus, my goal is:
+  # 1. Do not use too much native k8s objects.
+  # 2. Do not use black-box like Ingress Controllers and GatewayAPIs.
+  # 3. Focus on shared data, configs and automatic deployments and restarts
+  # 
+  # So because of that we just have to deploy an L7 balancer ir Gateway API (I mean real gateway api, not internal k8s object)
+  # on the dedicated pod and route all incoming traffic with it.
+  # To do this successfully, using very simple OpenResty ('cause it has lua modules') built on the base of beloved nginx,
+  # we have to implement custom ips resolution of the internal coreDNS and set clusterIP: none. Why?
+  # Because if we won't do this, there will be a problem:
+  # https://kubernetes.io/docs/reference/networking/virtual-ips/#proxy-mode-nftables
+  # as it can be seen at this link, new default nfptables and old iptables choose random instance of replicaset by ip
+  # when we access DNS name. So it makes least_conn or iphash impossible to implement on our sevice gateway.
+  # Thus, a service discovery has to be implemented. There are already a great implementation - Consul. But this would be definetly an overengineering for this project/
+  # It would be NOT if I used nomad, but I use k8s (actually k3s), again, because it is a standart. 
+  # So there is a custom tiny implementation (k8s/app/gateway) on go and I happy to use it.
+  # 
+  # :)
+  clusterIP: None
+  selector:
+    app: client
+  ports:
+    - port: 3000
+      targetPort: 3000

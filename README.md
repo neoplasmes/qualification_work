@@ -1,6 +1,6 @@
 node.js version - 24.14.0 (LTS на март 2026)
 
-commands for configuring k3s environment:
+### commands for configuring k3s environment:
 
 1. kubectl (kubernetes control) installation:
 ```bash
@@ -36,3 +36,29 @@ helm plugin install https://github.com/databus23/helm-diff
 cd k8s
 helmfile list
 ```
+
+### To build image locally and push to ghcr.io
+
+1. login to ghcr.io registry via `docker login`
+2. `chmod +x ./scripts/ghcr.deploy.sh`
+3. use `moon run deploy-to-registry -- <path-to-dockerfile>`
+
+
+### To run k3d locally:
+
+```bash
+k3d cluster create --config k8s/k3d.yaml
+
+kubectl apply -f k8s/app/namespace.yaml
+kubectl apply -f k8s/app/secret.yaml
+kubectl apply -f k8s/app/configmap.yaml
+
+cd k8s && helmfile apply
+
+kubectl apply -f k8s/app/
+```
+
+
+# IMPORTANT NOTES
+
+1. Each connection is a socket, so it's a file descriptor. Thus, we have to ensure that on our hosting sustems there is no limit for this. `ulimit -n 100000`

@@ -11,8 +11,8 @@ export type {
 } from './repositories';
 export type {
     Hasher,
-    DatasetParserService,
+    DatasetParserTool,
     ResolveDatasetParser,
     MultipartFile,
-    MultipartParserService,
-} from './services';
+    MultipartParserTool,
+} from './tools';

@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 
-import type { User } from '@/core/entities';
+import type { User } from '@/core/domain';
 
 import type { meSchema } from './schema';
 

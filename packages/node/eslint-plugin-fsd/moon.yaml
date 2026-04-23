@@ -4,22 +4,22 @@ tags:
   - "node"
 
 fileGroups:
-  sources:
-    - "src/**/*.js"
-  configs:
+  cfg:
     - "package.json"
+  src:
+    - "src/**/*.js"
 
 tasks:
   lint:
     command: "pnpm lint"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     options:
       cache: false

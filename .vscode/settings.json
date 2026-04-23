@@ -23,5 +23,9 @@
         "./.moon/cache/schemas/extensions.json": [".moon/extensions.yml"],
         "./.moon/cache/schemas/template.json": ["**/template.yml"],
         "./.moon/cache/schemas/toolchain.json": [".moon/toolchain.yml"]
-    }
+    },
+
+    "go.lintTool": "golangci-lint-v2",
+    "go.lintOnSave": "file",
+    "go.lintFlags": ["--fast", "--config", "${workspaceFolder}/.golangci.yaml"]
 }

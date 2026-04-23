@@ -1,0 +1,40 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - revive
+    - bodyclose
+    - noctx
+    - exhaustive
+    - wrapcheck
+  settings:
+    revive:
+      rules:
+        - name: var-naming
+        - name: exported
+        - name: unused-parameter
+        - name: error-return
+        - name: if-return
+    wrapcheck:
+      ignore-package-globs:
+        - encoding/*
+        - github.com/pkg/*
+  exclusions:
+    paths:
+      - vendor
+      - dist
+      - build
+
+formatters:
+  enable:
+    - goimports
+    - gofumpt
+  settings:
+    goimports:
+      local-prefixes:
+        - qualification-work

@@ -1,0 +1,19 @@
+language: "go"
+
+tags:
+  - "go"
+
+fileGroups:
+  src:
+    - "*.go"
+    - "!*_test.go"
+  test:
+    - "*_test.go"
+
+tasks:
+  test:
+    command: "go test ./..."
+    toolchain: "system"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"

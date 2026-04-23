@@ -4,51 +4,51 @@ tags:
   - "node"
 
 fileGroups:
-  sources:
-    - "src/**/*"
-  tests:
-    - "src/**/*.test.ts"
-    - "src/**/*.bench.ts"
-  configs:
+  cfg:
     - "package.json"
     - "tsconfig.json"
-    - "*.config.ts"
+    - "*.config.{js,ts}"
+  src:
+    - "src/**/*"
+  test:
+    - "src/**/*.test.ts"
+    - "src/**/*.bench.ts"
 
 tasks:
   build:
     command: "pnpm build"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     outputs:
       - "dist"
 
   typecheck:
     command: "pnpm typecheck"
     inputs:
-      - "@group(sources)"
-      - "@group(tests)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
 
   test:
     command: "pnpm test"
     inputs:
-      - "@group(sources)"
-      - "@group(tests)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
 
   # bench and loadtest are skipped
 
   lint:
     command: "pnpm lint"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     options:
       cache: false

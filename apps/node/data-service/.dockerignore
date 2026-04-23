@@ -1,0 +1,15 @@
+node_modules
+dist
+deploy
+
+# we don't need any tests in image
+*.test.ts
+
+# we only need tsconfig, tsup and vite
+oxlint.config.ts
+vitest.config.ts
+prettier.config.js
+
+moon.yaml
+
+README.md

@@ -1,4 +1,4 @@
-import type { ColumnDataType } from '@/core/entities/dataset';
+import type { ColumnDataType } from '@/core/domain';
 
 type JSObjectsRowData = Record<string, unknown>;
 

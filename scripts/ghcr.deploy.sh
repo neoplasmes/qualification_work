@@ -5,7 +5,7 @@ readonly registry="ghcr.io/neoplasmes/qualification_work"
 readonly source_repository="https://github.com/neoplasmes/qualification_work"
 
 if [[ "$#" -ne 1 ]]; then
-  echo "Syntax: $0 <path to dockerfile>" >&2
+  echo "Usage: $0 <path to dockerfile>" >&2
 
   exit 1
 fi

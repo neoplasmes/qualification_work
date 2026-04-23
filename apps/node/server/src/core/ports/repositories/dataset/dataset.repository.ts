@@ -1,4 +1,4 @@
-import type { Dataset, DatasetColumn, DatasetRow } from '@/core/entities/dataset';
+import type { Dataset, DatasetColumn, DatasetRow } from '@/core/domain';
 
 export type CreateDatasetPayload = {
     orgId: string;

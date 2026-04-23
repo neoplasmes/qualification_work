@@ -1,13 +1,12 @@
 {
     "name": "server",
     "version": "1.0.0",
-    "description": "",
     "type": "module",
     "main": "index.js",
     "scripts": {
         "dev": "pnpm db:up && tsx watch --env-file=.env src/index.ts",
         "build": "tsup src/index.ts --format esm --target esnext --out-dir dist",
-        "start": "node dist/index.mjs",
+        "start": "node dist/index.js",
         "typecheck": "tsc --noEmit",
         "db:up": "docker compose --env-file .env -f ../../../docker-compose.dev.yaml up postgres redis redis-insight -d --wait",
         "db:down": "docker compose -f ../../../docker-compose.dev.yaml down",
@@ -30,16 +29,18 @@
         "csv-parse": "^6.2.1",
         "exceljs": "^4.4.0",
         "fast-json-stringify": "^6.3.0",
-        "pg": "^8.20.0",
+        "pg": "catalog:postgres",
         "primitive-server": "workspace:*",
-        "redis": "^5.11.0",
-        "zod": "^4.3.6"
+        "redis": "catalog:backend",
+        "zod": "catalog:backend"
     },
     "devDependencies": {
-        "@types/pg": "^8.18.0",
-        "dotenv": "^17.3.1",
-        "dotenv-cli": "^11.0.0",
-        "tsup": "^8.5.1",
-        "tsx": "^4.21.0"
+        "@qualification-work/microservice-config": "workspace:*",
+        "@qualification-work/types": "workspace:*",
+        "@types/pg": "catalog:postgres",
+        "dotenv": "catalog:devtools",
+        "dotenv-cli": "catalog:devtools",
+        "tsup": "catalog:devtools",
+        "tsx": "catalog:devtools"
     }
 }

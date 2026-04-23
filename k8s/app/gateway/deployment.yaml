@@ -65,7 +65,7 @@ spec:
             periodSeconds: 10
         # Our sidecar for the restarts
         - name: discovery
-          image: ghcr.io/neoplasmes/qualification_work/k8s_app_gateway_discovery:custom
+          image: ghcr.io/neoplasmes/qualification_work/packages_go_openresty-discovery:custom
           env:
             - name: WATCH_SERVICES
               value: |

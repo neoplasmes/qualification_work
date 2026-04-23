@@ -1,9 +1,9 @@
 import type { Readable } from 'node:stream';
 
-import type { ColumnDataType } from '@/core/entities/dataset';
+import type { ColumnDataType } from '@/core/domain';
 import { AppError, ValidationError } from '@/core/errors';
 import type { DatasetRepository } from '@/core/ports/repositories';
-import type { ResolveDatasetParser } from '@/core/ports/services';
+import type { ResolveDatasetParser } from '@/core/ports/tools';
 
 import { inferDatasetTypes } from './inferDatasetTypes';
 import type { UploadDatasetInput } from './types';

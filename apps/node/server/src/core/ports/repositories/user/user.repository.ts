@@ -1,4 +1,4 @@
-import type { User } from '@/core/entities';
+import type { User } from '@/core/domain';
 
 /**
  * User data management

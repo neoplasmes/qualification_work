@@ -1,0 +1,24 @@
+language: "typescript"
+
+tags:
+  - "node"
+
+fileGroups:
+  src: 
+   - "**/*"
+
+tasks:
+  typecheck:
+    command: "pnpm typecheck"
+    inputs: 
+      - "@group(src)"
+
+  lint:
+    command: "pnpm lint"
+    inputs: 
+      - "@group(src)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs: 
+      - "@group(src)"

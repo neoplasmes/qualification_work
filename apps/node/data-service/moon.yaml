@@ -1,0 +1,20 @@
+language: "typescript"
+
+tags:
+  - "node"
+
+dependsOn:
+  - "primitive-server"
+  - "types"
+  - "microservice-config"
+
+fileGroups:
+  cfg:
+    - "package.json"
+    - "tsconfig.json"
+    - "*.config.{js,ts}"
+  src:
+    - "src/**/*"
+  test:
+    - "src/**/*.test.ts"
+    - "src/test/**/*"

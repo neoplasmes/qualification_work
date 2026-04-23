@@ -1,0 +1,5 @@
+inheritedBy:
+  tags: "go"
+
+implicitInputs:
+  - "/.golangci.yaml"

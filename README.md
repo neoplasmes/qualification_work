@@ -46,8 +46,23 @@ helmfile list
 
 ### To run k3d locally:
 
+At first, you have to get token for pulling images from repository, or change container registry in k8s files to yours, push all images to your registry via `/scripts/ghcr.deploy.sh` and then generate ghcr/secret.yaml with the following command:
+
 ```bash
-k3d cluster create --config k8s/k3d.yaml
+kubectl create secret docker-registry ghcr-secret \
+    --namespace app \
+    --docker-server=ghcr.io \
+    --docker-username=<github-username> \
+    --docker-password=<github-token> \
+    --docker-email=<email> \
+    --dry-run=client \
+    -o yaml > k8s/ghcr/secret.yaml
+```
+
+Then you can run:
+
+```bash
+k3d cluster create --config k8s/k3d.config.yaml
 
 kubectl apply -f k8s/app/namespace.yaml
 kubectl apply -f k8s/app/secret.yaml
@@ -61,4 +76,4 @@ kubectl apply -f k8s/app/
 
 # IMPORTANT NOTES
 
-1. Each connection is a socket, so it's a file descriptor. Thus, we have to ensure that on our hosting sustems there is no limit for this. `ulimit -n 100000`
+1. Each connection is a socket, so it's a file descriptor. Thus, we have to ensure that on our hosting sustems there is no limit for this. `ulimit -n 1000000`

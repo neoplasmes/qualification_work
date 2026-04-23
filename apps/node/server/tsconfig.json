@@ -1,11 +1,6 @@
 {
-    "extends": "../../../tsconfig.json",
+    "extends": "@qualification-work/microservice-config/tsconfig.json",
     "compilerOptions": {
-        "lib": ["ES2023"],
-        "module": "ESNext",
-        "moduleResolution": "bundler",
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
         "paths": {
             "@/*": ["./src/*"]
         }

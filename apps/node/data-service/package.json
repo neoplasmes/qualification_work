@@ -1,0 +1,36 @@
+{
+    "name": "data-service",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "build": "tsup",
+        "start": "node dist/index.js",
+        "typecheck": "tsc --noEmit",
+        "db:test:up": "docker compose --env-file .env.test -f ../../../docker-compose.test.yaml up -d --wait --renew-anon-volumes postgres redis",
+        "db:test:down": "docker compose -f ../../../docker-compose.test.yaml down -v",
+        "lint": "oxlint -c oxlint.config.ts src/",
+        "lint:fix": "oxlint -c oxlint.config.ts --fix src/",
+        "test": "pnpm db:test:up && pnpm dotenv -e .env.test -- vitest run"
+    },
+    "keywords": [
+        "microservice"
+    ],
+    "dependencies": {
+        "primitive-server": "workspace:*",
+        "pg": "catalog:postgres",
+        "redis": "catalog:backend",
+        "zod": "catalog:backend"
+    },
+    "devDependencies": {
+        "@qualification-work/types": "workspace:*",
+        "@qualification-work/microservice-config": "workspace:*",
+        "@types/pg": "catalog:postgres",
+        "dotenv": "catalog:devtools",
+        "dotenv-cli": "catalog:devtools",
+        "tsup": "catalog:devtools",
+        "tsx": "catalog:devtools"
+    },
+    "author": "neoplasmes",
+    "license": "ISC",
+    "packageManager": "pnpm@10.33.0"
+}

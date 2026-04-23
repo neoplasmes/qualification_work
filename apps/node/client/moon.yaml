@@ -7,22 +7,16 @@ dependsOn:
   - "primitive-server"
 
 fileGroups:
-  sources:
-    - "src/**/*"
-    - "server/**/*"
-    - "vite/**/*"
-  styles:
-    - "src/**/*.scss"
-    - "stylelint.config.js"
-  tests:
-    - "src/**/*.test.ts"
-    - "src/**/*.test.tsx"
-    - "server/**/*.test.ts"
-    - "tests/**/*"
-  configs:
+  cfg:
     - "package.json"
     - "tsconfig.json"
-    - "*.config.js"
+    - "*.config.{js,ts}"
+  src:
+    - "{src,server,vite}/**/*"
+    - "!**/*.test.{js,ts,tsx}"
+  test:
+    - "{src,server}/*.test.{js,ts,tsx}"
+    - "test/**/*"
 
 tasks:
   dev:
@@ -30,9 +24,8 @@ tasks:
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(styles)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
       - ".env"
     options:
       cache: false
@@ -44,9 +37,8 @@ tasks:
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(styles)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
       - "index.html"
     outputs:
       - "dist"
@@ -78,9 +70,8 @@ tasks:
     deps:
       - "~:build"
     inputs:
-      - "@group(sources)"
-      - "@group(styles)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     options:
       cache: false
       persistent: true
@@ -102,31 +93,29 @@ tasks:
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(tests)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
 
   test:
     command: "pnpm test"
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(tests)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
 
   lint:
     command: "pnpm lint"
     inputs:
-      - "@group(sources)"
-      - "@group(styles)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
-      - "@group(sources)"
-      - "@group(styles)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     options:
       cache: false

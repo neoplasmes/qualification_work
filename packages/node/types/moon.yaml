@@ -4,29 +4,29 @@ tags:
   - "node"
 
 fileGroups:
-  sources:
-    - "*.ts"
-  configs:
+  cfg:
     - "package.json"
     - "tsconfig.json"
+  src:
+    - "*.ts"
 
 tasks:
   typecheck:
     command: "pnpm typecheck"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
 
   lint:
     command: "pnpm lint"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     options:
       cache: false

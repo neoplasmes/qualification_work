@@ -1,4 +1,4 @@
-import type { Organization } from '@/core/entities';
+import type { Organization } from '@/core/domain';
 
 /**
  * Organization management at the data level

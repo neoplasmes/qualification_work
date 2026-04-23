@@ -5,9 +5,13 @@ projects:
   root: "."
   client: "apps/node/client"
   server: "apps/node/server"
+  data-service: "apps/node/data-service"
+  auth: "apps/go/auth"
   primitive-server: "packages/node/primitive-server"
   types: "packages/node/types"
   eslint-plugin-fsd: "packages/node/eslint-plugin-fsd"
+  microservice-config: "packages/node/microservice-config"
+  openresty-discovery: "packages/go/openresty-discovery"
 
 # moon run command (without :) will run exactly command for default project 
 # and thus using root "moon.yml"

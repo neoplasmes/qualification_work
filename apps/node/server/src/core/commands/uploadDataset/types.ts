@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 
-import type { MultipartFile } from '@/core/ports/services';
+import type { MultipartFile } from '@/core/ports/tools';
 
 import type { uploadDatasetSchema } from './schema';
 

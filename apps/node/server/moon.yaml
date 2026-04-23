@@ -6,17 +6,18 @@ tags:
 dependsOn:
   - "primitive-server"
   - "types"
+  - "microservice-config"
 
 fileGroups:
-  configs:
+  cfg:
     - "package.json"
     - "tsconfig.json"
-    - "*.config.ts"
-  sources:
+    - "*.config.{js,ts}"
+  src:
     - "src/**/*"
-  tests:
+  test:
     - "src/**/*.test.ts"
-    - "src/tests/**/*"
+    - "src/test/**/*"
 
 tasks:
   dev:
@@ -24,8 +25,8 @@ tasks:
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
       - ".env"
       - "/docker-compose.dev.yaml"
     options:
@@ -38,8 +39,8 @@ tasks:
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     outputs:
       - "dist"
 
@@ -60,48 +61,31 @@ tasks:
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(tests)"
-      - "@group(configs)"
-
-  db-up:
-    command: "pnpm db:up"
-    inputs:
-      - "/docker-compose.dev.yaml"
-      - ".env"
-    options:
-      cache: false
-      outputStyle: "stream"
-
-  db-down:
-    command: "pnpm db:down"
-    inputs:
-      - "/docker-compose.dev.yaml"
-    options:
-      cache: false
-      outputStyle: "stream"
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
 
   test:
     command: "pnpm test"
     deps:
       - "^:build"
     inputs:
-      - "@group(sources)"
-      - "@group(tests)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
       - ".env.test"
       - "/docker-compose.test.yaml"
 
   lint:
     command: "pnpm lint"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - "@group(src)"
+      - "@group(cfg)"
     options:
       cache: false

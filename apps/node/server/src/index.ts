@@ -1,4 +1,4 @@
-import { createApp } from '@/implementation/createApp';
+import { createApp } from '@/adapters/createApp';
 
 import { createPool } from '@/infrastructure/postgres';
 import { createRedisClient } from '@/infrastructure/redis';

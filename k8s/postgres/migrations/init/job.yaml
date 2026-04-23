@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-init-migration
+  namespace: app
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: app-env-config
+            - secretRef:
+                name: app-secret
+          command:
+            - sh
+            - -ec
+            - |
+              export PGPASSWORD="$POSTGRES_PASSWORD"
+
+              until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
+                sleep 2
+              done
+
+              for file in /migrations/*.sql; do
+                echo "Applying $file"
+                psql \
+                  -v ON_ERROR_STOP=1 \
+                  -h "$POSTGRES_HOST" \
+                  -p "$POSTGRES_PORT" \
+                  -U "$POSTGRES_USER" \
+                  -d "$POSTGRES_DB" \
+                  -f "$file"
+              done
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+              readOnly: true
+      volumes:
+        - name: migrations
+          configMap:
+            name: postgres-init-migration-sql

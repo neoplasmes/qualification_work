@@ -1,0 +1,28 @@
+language: "go"
+
+tags:
+  - "go"
+
+fileGroups:
+  src:
+    - "{cmd,internal}/**/*.go"
+    - "!**/*_test.go"
+  test:
+    - "**/*_test.go"
+
+tasks:
+  lint:
+    command: "golangci-lint run --config ../../../.golangci.yaml ./..."
+    toolchain: "system"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+
+  lint-fix:
+    command: "golangci-lint run --fix --config ../../../.golangci.yaml ./..."
+    toolchain: "system"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+    options:
+      cache: false

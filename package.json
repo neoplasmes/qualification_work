@@ -19,6 +19,8 @@
     "license": "ISC",
     "packageManager": "pnpm@10.33.0",
     "devDependencies": {
+        "@commitlint/cli": "^21.0.1",
+        "@commitlint/config-conventional": "^21.0.1",
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/node": "^25.4.0",

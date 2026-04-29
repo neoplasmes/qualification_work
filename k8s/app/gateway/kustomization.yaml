@@ -8,7 +8,7 @@ configMapGenerator:
     files:
       - nginx.conf
       - default.conf
-      - upstreams.conf.initial
+      - upstreams.initial.conf
 resources:
   - serviceaccount.yaml
   - deployment.yaml

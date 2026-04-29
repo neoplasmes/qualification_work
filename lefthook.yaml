@@ -3,6 +3,9 @@ assert_lefthook_installed: true
 pre-commit:
   parallel: false
   jobs:
+    - name: fix-deps
+      run: moon run auth:tidy
+
     - name: prettier
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,scss,html}"
       run: pnpm exec prettier --write --ignore-unknown {staged_files}

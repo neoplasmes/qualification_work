@@ -33,7 +33,7 @@ linters:
 formatters:
   enable:
     - goimports
-    - gofumpt
+    - swaggo
   settings:
     goimports:
       local-prefixes:

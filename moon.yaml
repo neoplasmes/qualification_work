@@ -17,15 +17,19 @@ tasks:
       cache: false
       outputStyle: stream
 
-  #! potentially deprecated
-  dev-docker:
-    command: "docker compose -f docker-compose.dev.yaml up --build"
+  development-compose-up:
+    description: "locally runs a stack of data storage technologies, used in production, fo local development purposes"
+    command: "docker compose -f docker-compose.database.yaml up -d"
     <<: *common-task
-
-  postgres-migrate-init:
-    description: "runs the init PostgreSQL migration job in kubernetes"
-    command: "./scripts/applyMigration.sh k8s/postgres/migrations/init/job.yaml infrastructure/postgres/init"
+  
+  development-compose-down:
+    command: "docker compose -f docker-compose.database.yaml down"
     <<: *common-task
+  # TODO: universality or delete
+  # postgres-migrate-init:
+  #   description: "runs the init PostgreSQL migration job in kubernetes"
+  #   command: "./scripts/applyMigration.sh k8s/postgres/migrations/init/job.yaml infrastructure/postgres/init"
+  #   <<: *common-task
 
   # k3d managment for local testing of kubernetes (k3s) (not for weak machines)
   # TODO: as project will grow, this set of command should be deleted probably??

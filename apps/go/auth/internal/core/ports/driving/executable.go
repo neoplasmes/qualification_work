@@ -1,8 +1,9 @@
 package driving
 
-// Executable driving port-interface for all read/write operations.
-// Thus, all read and write core business logic operations must implement it.
+import "context"
+
+// Executable describes a command/query use case with typed input and output
 type Executable[I any, O any] interface {
-	// Execute method to execute an operation
-	Execute(args I) (O, error)
+	// Execute runs the use case
+	Execute(ctx context.Context, args I) (O, error)
 }

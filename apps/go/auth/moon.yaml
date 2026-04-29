@@ -1,7 +1,10 @@
-language: "go"
+language: go
 
 tags:
-  - "go"
+  - go
+
+project: 
+  swagger-ui-container-name: auth-swagger
 
 fileGroups:
   src:
@@ -11,18 +14,130 @@ fileGroups:
     - "**/*_test.go"
 
 tasks:
+  dev:
+    script: "echo $PWD && set -a; source .env; set +a; go run ./cmd/auth/main.go"
+    toolchain: system
+    deps: 
+      - root:development-compose-up
+    options:
+      cache: false
+      outputStyle: stream
+
+  build:
+    command: "go build -o ./bin/auth ./cmd/auth"
+    toolchain: system
+    inputs:
+      - "@group(src)"
+      - "go.mod"
+      - "go.sum"
+    options:
+      outputStyle: stream
+
+  tidy:
+    command: "go mod tidy -v"
+    toolchain: system
+    inputs: 
+      - go.mod
+      - go.sum
+  
+  test-compose-up:
+    script: |
+      docker compose -f docker-compose.test.yaml up -d \
+        --force-recreate \
+        --renew-anon-volumes \
+        --build \
+        --wait \
+        --wait-timeout 300
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  test-compose-down:
+    command: "docker compose -f docker-compose.test.yaml down -v"
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  # we do not want to run this test in CI or on git hooks for a while
+  test-integration:
+    script: "go test -tags=integration -count=1 ./test/integration/..."
+    toolchain: system
+    deps:
+      - test-compose-up
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+      - "docker-compose.test.yaml"
+      - "test/integration/openresty/**/*"
+      - "test/integration/pgbouncer/**/*"
+    options:
+      cache: false
+
+  fmt:
+    command: "golangci-lint fmt --config ../../../.golangci.yaml ./..."
+    toolchain: system
+    options:
+      cache: false
+
   lint:
     command: "golangci-lint run --config ../../../.golangci.yaml ./..."
-    toolchain: "system"
+    toolchain: system
     inputs:
       - "@group(src)"
       - "@group(test)"
 
   lint-fix:
     command: "golangci-lint run --fix --config ../../../.golangci.yaml ./..."
-    toolchain: "system"
+    toolchain: system
     inputs:
       - "@group(src)"
       - "@group(test)"
     options:
       cache: false
+
+  swagger:
+    script: |
+      swag init \
+        -d cmd/auth,internal/adapters/driving/http/auth,internal/adapters/driving/http/_helpers,internal/adapters/driving/http/gateway,internal/adapters/driving/http/health \
+        -g main.go \
+        -o docs \
+        --v3.1 \
+        --parseInternal \
+        --outputTypes json
+    toolchain: system
+    inputs:
+      - "@group(src)"
+      - "go.mod"
+      - "go.sum"
+    outputs:
+      - "docs"
+
+  swagger-start:
+    script: |
+      docker rm -f @meta(swagger-ui-container-name) >/dev/null 2>&1 || true
+      docker run --rm -d \
+        --name @meta(swagger-ui-container-name) \
+        --cpus 0.10 \
+        --memory 64m \
+        --memory-swap 64m \
+        -p 13002:8080 \
+        -e SWAGGER_JSON=/docs/swagger.json \
+        -v "$PWD/docs:/docs:ro" \
+        swaggerapi/swagger-ui:v5.32.6
+    toolchain: system
+    deps:
+      - swagger
+    inputs:
+      - "docs/**/*"
+    options:
+      cache: false
+      outputStyle: stream
+
+  swagger-stop:
+    command: "docker rm -f @meta(swagger-ui-container-name)"
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream

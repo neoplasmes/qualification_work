@@ -1,9 +1,13 @@
 package logger
 
-// LoggerRepo is a utility for logging to stdout/stderr and sending logs to external services if needed
+// LoggerRepo logs service events. This is almost useless because i didn't know about gin.Logger()
 type LoggerRepo interface {
-	// LogInfo logs to stdout fd with info prefix
-	LogInfo(msg string)
-	// LogError logs to stderr fd with error prefix
-	LogError(msg string)
+	// Debug logs a debug message
+	Debug(msg string, args ...any)
+	// Info logs an informational message
+	Info(msg string, args ...any)
+	// Warn logs a warning message
+	Warn(msg string, args ...any)
+	// Error logs an error message
+	Error(msg string, args ...any)
 }

@@ -1,1 +1,1 @@
-/home/neoplasmes/qualification_work/apps/go/auth/README.md
+../../go/auth/ARCHITECTURE.md

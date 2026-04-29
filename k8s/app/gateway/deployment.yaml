@@ -23,7 +23,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - "cp /init/upstreams.conf.initial /shared/upstreams.conf"
+            - "cp /init/upstreams.initial.conf /shared/upstreams.conf"
           volumeMounts:
             - name: shared
               mountPath: /shared
@@ -32,7 +32,7 @@ spec:
       containers:
         # Our service gateway
         - name: openresty
-          image: openresty/openresty:alpine-fat
+          image: openresty/openresty:1.29.2.3-alpine-fat
           ports:
             - containerPort: 80
           resources:

@@ -1,0 +1,560 @@
+{
+    "components": {
+        "schemas": {
+            "auth.meBody": {
+                "properties": {
+                    "email": {
+                        "example": "user@example.com",
+                        "type": "string"
+                    },
+                    "family": {
+                        "example": "Doe",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "user_123",
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "Jane",
+                        "type": "string"
+                    },
+                    "organizations": {
+                        "items": {
+                            "$ref": "#/components/schemas/auth.meOrgDTO"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
+            "auth.meOrgDTO": {
+                "properties": {
+                    "id": {
+                        "example": "org_123",
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "Acme",
+                        "type": "string"
+                    },
+                    "role": {
+                        "example": "owner",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.signInBody": {
+                "properties": {
+                    "email": {
+                        "example": "user@example.com",
+                        "type": "string"
+                    },
+                    "password": {
+                        "example": "strong-password",
+                        "minLength": 8,
+                        "type": "string"
+                    }
+                },
+                "required": ["email", "password"],
+                "type": "object"
+            },
+            "auth.signUpBody": {
+                "properties": {
+                    "email": {
+                        "example": "user@example.com",
+                        "type": "string"
+                    },
+                    "family": {
+                        "example": "Doe",
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "Jane",
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "password": {
+                        "example": "strong-password",
+                        "minLength": 8,
+                        "type": "string"
+                    }
+                },
+                "required": ["email", "family", "name", "password"],
+                "type": "object"
+            },
+            "auth.signUpResponse": {
+                "properties": {
+                    "id": {
+                        "example": "018f2f8f-7a0d-7a8c-9d31-0c05f4d90123",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "gateway.JWKDocument": {
+                "properties": {
+                    "alg": {
+                        "example": "RS256",
+                        "type": "string"
+                    },
+                    "e": {
+                        "example": "AQAB",
+                        "type": "string"
+                    },
+                    "kid": {
+                        "example": "auth-key",
+                        "type": "string"
+                    },
+                    "kty": {
+                        "example": "RSA",
+                        "type": "string"
+                    },
+                    "n": {
+                        "example": "base64url-modulus",
+                        "type": "string"
+                    },
+                    "use": {
+                        "example": "sig",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "gateway.JWKSResponse": {
+                "properties": {
+                    "keys": {
+                        "items": {
+                            "$ref": "#/components/schemas/gateway.JWKDocument"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
+            "helpers.ErrorResponse": {
+                "properties": {
+                    "error": {
+                        "example": "validation failed",
+                        "type": "string"
+                    },
+                    "fields": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "SessionCookie": {
+                "in": "cookie",
+                "name": "session",
+                "type": "apiKey"
+            }
+        }
+    },
+    "info": {
+        "description": "Authentication service for sessions and internal JWTs.",
+        "title": "Qualification Auth API",
+        "version": "1.0"
+    },
+    "externalDocs": {
+        "description": "",
+        "url": ""
+    },
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "description": "Verifies credentials and sets a session cookie",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/auth.signInBody",
+                                        "summary": "payload",
+                                        "description": "Credentials"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Credentials",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "description": "No Content",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Session cookie",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "423": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Locked"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Sign in",
+                "tags": ["auth"]
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "description": "Deletes the current session and clears the session cookie",
+                "responses": {
+                    "204": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "description": "No Content",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Cleared session cookie",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "summary": "Log out",
+                "tags": ["auth"]
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "description": "Returns the profile linked to the session cookie",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.meBody"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "summary": "Get current user",
+                "tags": ["auth"]
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "description": "Creates a user account",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/auth.signUpBody",
+                                        "summary": "payload",
+                                        "description": "Registration payload"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Registration payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.signUpResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Register a user",
+                "tags": ["auth"]
+            }
+        },
+        "/gateway/.well-known/jwks.json": {
+            "get": {
+                "description": "Returns public keys used to validate internal JWTs",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/gateway.JWKSResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Get JWKS",
+                "tags": ["gateway"]
+            }
+        },
+        "/gateway/jwt": {
+            "get": {
+                "description": "Issues a signed internal JWT for gateway auth_request",
+                "responses": {
+                    "204": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "description": "No Content",
+                        "headers": {
+                            "X-Internal-Auth": {
+                                "description": "Signed internal JWT",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/helpers.ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "SessionCookie": []
+                    }
+                ],
+                "summary": "Issue internal JWT",
+                "tags": ["gateway"]
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Returns ok when the process is running",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    }
+                },
+                "summary": "Health check",
+                "tags": ["health"]
+            }
+        },
+        "/ready": {
+            "get": {
+                "description": "Checks dependencies required to serve traffic",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Service Unavailable"
+                    }
+                },
+                "summary": "Readiness check",
+                "tags": ["health"]
+            }
+        }
+    },
+    "openapi": "3.1.0",
+    "servers": [
+        {
+            "url": "localhost:3002/"
+        }
+    ]
+}

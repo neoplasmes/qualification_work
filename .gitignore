@@ -1,5 +1,6 @@
 node_modules
 dist
+bin
 
 .env
 k8s/**/secret.yml
@@ -13,6 +14,8 @@ k8s/**/secret.yaml
 # --version 25.5.2 > values.example.yaml 
 k8s/**/values.example.yaml
 
+userlist.txt
+
 deploy
 
 *-logs
@@ -24,11 +27,7 @@ test-results
 playwright-report
 playwright.config.ts
 apps/node/client/tests
-# Это надо держать собранным (наверное)
-# !packages/eslint-plugin-fsd/dist/
+
 # moon
 .moon/cache
 .moon/docker
-
-
-./shortcuts

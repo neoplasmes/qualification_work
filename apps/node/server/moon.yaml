@@ -19,6 +19,7 @@ fileGroups:
     - "src/**/*.test.ts"
     - "src/test/**/*"
 
+# TODO: remove db:up commands from package json and instead add deps on root command
 tasks:
   dev:
     command: "pnpm dev"

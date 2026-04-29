@@ -27,5 +27,9 @@
 
     "go.lintTool": "golangci-lint-v2",
     "go.lintOnSave": "file",
-    "go.lintFlags": ["--fast", "--config", "${workspaceFolder}/.golangci.yaml"]
+    "go.lintFlags": ["--fast", "--config", "${workspaceFolder}/.golangci.yaml"],
+
+    "gopls": {
+        "build.buildFlags": ["-tags=integration"]
+    }
 }

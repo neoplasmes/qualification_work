@@ -2,53 +2,15 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { api, startServer, stopServer, truncate } from './setup';
-
-const user = {
-    email: 'datasets-get@example.com',
-    password: 'password123',
-    name: 'John',
-    family: 'Doe',
-};
+import { api, createTestUserWithOrg, startServer, stopServer, truncate } from './setup';
 
 const mimeType = {
     csv: 'text/csv',
 } as const;
 
-type MeResponse = {
-    organizations: Array<{ id: string }>;
-};
-
 const assetsDir = path.resolve(import.meta.dirname, 'assets');
 
-async function registerAndLogin(): Promise<{ cookie: string; orgId: string }> {
-    await api('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(user),
-    });
-
-    const loginRes = await api('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email: user.email, password: user.password }),
-    });
-    const cookie = loginRes.headers.get('set-cookie');
-
-    if (!cookie) {
-        throw new Error('Missing auth cookie in tests');
-    }
-
-    const meRes = await api('/api/auth/me', {
-        headers: { cookie },
-    });
-    const meBody = (await meRes.json()) as MeResponse;
-
-    return {
-        cookie,
-        orgId: meBody.organizations[0].id,
-    };
-}
-
-async function uploadDataset(orgId: string, cookie: string): Promise<string> {
+async function uploadDataset(orgId: string): Promise<string> {
     const fileName = 'datasetBasic.csv';
     const fileBuffer = await readFile(path.join(assetsDir, fileName));
     const formData = new FormData();
@@ -58,7 +20,6 @@ async function uploadDataset(orgId: string, cookie: string): Promise<string> {
     const res = await api(`/api/datasets?orgId=${orgId}`, {
         method: 'POST',
         body: formData,
-        headers: { cookie },
     });
 
     expect(res.status).toBe(201);
@@ -75,12 +36,10 @@ afterEach(truncate);
 
 describe('GET /api/datasets/:id/metadata', () => {
     it('returns dataset metadata, columns and totalRows without rows payload', async () => {
-        const { cookie, orgId } = await registerAndLogin();
-        const datasetId = await uploadDataset(orgId, cookie);
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
 
-        const res = await api(`/api/datasets/${datasetId}/metadata`, {
-            headers: { cookie },
-        });
+        const res = await api(`/api/datasets/${datasetId}/metadata`);
         expect(res.status).toBe(200);
 
         const response = (await res.json()) as {
@@ -125,13 +84,11 @@ describe('GET /api/datasets/:id/metadata', () => {
 
 describe('GET /api/datasets?orgId=<org_id>', () => {
     it('returns metadata for all datasets in the organization', async () => {
-        const { cookie, orgId } = await registerAndLogin();
-        const firstDatasetId = await uploadDataset(orgId, cookie);
-        const secondDatasetId = await uploadDataset(orgId, cookie);
+        const { orgId } = await createTestUserWithOrg();
+        const firstDatasetId = await uploadDataset(orgId);
+        const secondDatasetId = await uploadDataset(orgId);
 
-        const res = await api(`/api/datasets?orgId=${orgId}`, {
-            headers: { cookie },
-        });
+        const res = await api(`/api/datasets?orgId=${orgId}`);
         expect(res.status).toBe(200);
 
         const response = (await res.json()) as Array<{
@@ -169,12 +126,10 @@ describe('GET /api/datasets?orgId=<org_id>', () => {
 
 describe('GET /api/datasets/:id/rows', () => {
     it('returns paginated dataset rows for tabular view', async () => {
-        const { cookie, orgId } = await registerAndLogin();
-        const datasetId = await uploadDataset(orgId, cookie);
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
 
-        const res = await api(`/api/datasets/${datasetId}/rows?offset=5&limit=3`, {
-            headers: { cookie },
-        });
+        const res = await api(`/api/datasets/${datasetId}/rows?offset=5&limit=3`);
         expect(res.status).toBe(200);
 
         const response = (await res.json()) as {

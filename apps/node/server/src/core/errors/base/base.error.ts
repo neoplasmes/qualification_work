@@ -1,7 +1,6 @@
 export type ErrorType =
     | 'ValidationError'
     | 'NotFoundError'
-    | 'UnauthorizedError'
     | 'ForbiddenError'
     | 'ConflictError'
     | 'InternalServerError';

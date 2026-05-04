@@ -1,13 +1,12 @@
+import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
 import type { Pool, QueryResultRow } from 'pg';
 
 import { createApp } from '@/adapters/createApp';
 
 import { createPool } from '@/infrastructure/postgres';
-import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
 
 let pool: Pool;
-let redis: RedisClient;
 let baseUrl: string;
 let server: Server | undefined;
 let started = false;
@@ -26,38 +25,6 @@ export async function truncate(): Promise<void> {
     for (const { schema_name } of rows) {
         await pool.query('SELECT truncate_all_tables($1)', [schema_name]);
     }
-
-    await redis.flushDb();
-}
-
-export async function redisKeys(pattern: string): Promise<string[]> {
-    return redis.keys(pattern);
-}
-
-export async function waitForRedisKeys(
-    pattern: string,
-    timeoutMs = 1000,
-    intervalMs = 10
-): Promise<string[]> {
-    const startedAt = Date.now();
-
-    while (Date.now() - startedAt < timeoutMs) {
-        const keys = await redis.keys(pattern);
-
-        if (keys.length > 0) {
-            return keys;
-        }
-
-        await new Promise(resolve => {
-            setTimeout(resolve, intervalMs);
-        });
-    }
-
-    return [];
-}
-
-export async function redisGet(key: string): Promise<string | null> {
-    return redis.get(key);
 }
 
 export async function dbQuery<T extends QueryResultRow = QueryResultRow>(
@@ -69,30 +36,60 @@ export async function dbQuery<T extends QueryResultRow = QueryResultRow>(
     return result.rows;
 }
 
-export async function waitForRedisVersion(
-    key: string,
-    expected: number,
-    timeoutMs = 1000,
-    intervalMs = 10
-): Promise<number> {
-    const startedAt = Date.now();
+export async function createTestUser(
+    data: {
+        email?: string;
+        name?: string;
+        family?: string;
+    } = {}
+): Promise<{ id: string }> {
+    const email = data.email ?? `test-${randomUUID()}@example.com`;
+    const name = data.name ?? 'Test';
+    const family = data.family ?? 'User';
 
-    while (Date.now() - startedAt < timeoutMs) {
-        const raw = await redis.get(key);
-        const current = Number(raw ?? '0');
+    const [user] = await dbQuery<{ id: string }>(
+        `INSERT INTO auth.users (email, password_hash, name, family)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id`,
+        [email, 'not-used-by-node-server', name, family]
+    );
 
-        if (current >= expected) {
-            return current;
-        }
+    return user;
+}
 
-        await new Promise(resolve => {
-            setTimeout(resolve, intervalMs);
-        });
-    }
+export async function createTestOrg(
+    userId: string,
+    data: { name?: string } = {}
+): Promise<{ id: string }> {
+    const name = data.name ?? `Test Org ${randomUUID()}`;
 
-    const raw = await redis.get(key);
+    const [organization] = await dbQuery<{ id: string }>(
+        `INSERT INTO orgs.organizations (name, owner_id)
+         VALUES ($1, $2)
+         RETURNING id`,
+        [name, userId]
+    );
 
-    return Number(raw ?? '0');
+    await dbQuery(
+        `INSERT INTO orgs.roles (org_id, user_id, role)
+         VALUES ($1, $2, 'owner')`,
+        [organization.id, userId]
+    );
+
+    return organization;
+}
+
+export async function createTestUserWithOrg(): Promise<{
+    userId: string;
+    orgId: string;
+}> {
+    const user = await createTestUser();
+    const organization = await createTestOrg(user.id);
+
+    return {
+        userId: user.id,
+        orgId: organization.id,
+    };
 }
 
 export function api(path: string, init?: RequestInit): Promise<Response> {
@@ -115,18 +112,12 @@ export async function startServer(): Promise<void> {
         return;
     }
 
-    const pepper = process.env.PEPPER;
-    if (!pepper) {
-        throw new Error('PEPPER has not been set');
-    }
-
     try {
         pool = await createPool();
-        redis = await createRedisClient();
 
         await truncate();
 
-        const app = createApp(pool, redis, pepper);
+        const app = createApp(pool);
         server = await app.listen({ port: 0 });
 
         const addr = server.address();
@@ -166,7 +157,6 @@ export async function stopServer(): Promise<void> {
     });
 
     await pool?.end();
-    await redis?.quit();
 
     server = undefined;
 }

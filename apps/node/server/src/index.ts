@@ -1,17 +1,10 @@
 import { createApp } from '@/adapters/createApp';
 
 import { createPool } from '@/infrastructure/postgres';
-import { createRedisClient } from '@/infrastructure/redis';
-
-const pepper = process.env.PEPPER;
-if (!pepper) {
-    throw new Error('PEPPER env переменная не задана');
-}
 
 const pool = await createPool();
-const redis = await createRedisClient();
 
-const app = createApp(pool, redis, pepper);
+const app = createApp(pool);
 
 const port = Number(process.env.SERVER_PORT ?? 3001);
 if (!Number.isInteger(port) || port <= 0) {

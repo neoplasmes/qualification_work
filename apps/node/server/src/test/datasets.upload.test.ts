@@ -11,24 +11,19 @@ import {
     vi,
 } from 'vitest';
 
-import { api, dbQuery, startServer, stopServer, truncate } from './setup';
-
-const user = {
-    email: 'datasets@example.com',
-    password: 'password123',
-    name: 'John',
-    family: 'Doe',
-};
+import {
+    api,
+    createTestUserWithOrg,
+    dbQuery,
+    startServer,
+    stopServer,
+    truncate,
+} from './setup';
 
 const mimeType = {
     csv: 'text/csv',
     xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 } as const;
-
-type MeResponse = {
-    id: string;
-    organizations: Array<{ id: string; name: string; role: string }>;
-};
 
 type DatasetRecord = {
     id: string;
@@ -88,36 +83,8 @@ async function getDatasetSnapshotPayload(datasetId: string) {
     };
 }
 
-async function registerAndLogin(): Promise<{ cookie: string; orgId: string }> {
-    await api('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(user),
-    });
-
-    const loginRes = await api('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email: user.email, password: user.password }),
-    });
-    const cookie = loginRes.headers.get('set-cookie');
-
-    if (!cookie) {
-        throw new Error('Missing auth cookie in tests');
-    }
-
-    const meRes = await api('/api/auth/me', {
-        headers: { cookie },
-    });
-    const meBody = (await meRes.json()) as MeResponse;
-
-    return {
-        cookie,
-        orgId: meBody.organizations[0].id,
-    };
-}
-
 async function uploadDataset(
     orgId: string,
-    cookie: string,
     fileName: string,
     mimeType: string
 ): Promise<string> {
@@ -129,7 +96,6 @@ async function uploadDataset(
     const res = await api(`/api/datasets?orgId=${orgId}`, {
         method: 'POST',
         body: formData,
-        headers: { cookie },
     });
 
     expect(res.status).toBe(201);
@@ -153,40 +119,30 @@ afterEach(truncate);
 //! snapshots are .... nemnogo govno
 describe('POST /api/datasets', () => {
     it('csv dataset uploading', async () => {
-        const { cookie, orgId } = await registerAndLogin();
+        const { orgId } = await createTestUserWithOrg();
 
-        const datasetId = await uploadDataset(
-            orgId,
-            cookie,
-            'datasetBasic.csv',
-            mimeType.csv
-        );
+        const datasetId = await uploadDataset(orgId, 'datasetBasic.csv', mimeType.csv);
 
         expect(await getDatasetSnapshotPayload(datasetId)).toMatchSnapshot();
     });
 
     it('uploads xlsx dataset and persists typed row values', async () => {
-        const { cookie, orgId } = await registerAndLogin();
+        const { orgId } = await createTestUserWithOrg();
 
-        const datasetId = await uploadDataset(
-            orgId,
-            cookie,
-            'datasetBasic.xlsx',
-            mimeType.xlsx
-        );
+        const datasetId = await uploadDataset(orgId, 'datasetBasic.xlsx', mimeType.xlsx);
 
         expect(await getDatasetSnapshotPayload(datasetId)).toMatchSnapshot();
     });
 
     it('handles five uploads concurrently and stores every dataset completely', async () => {
-        const { cookie, orgId } = await registerAndLogin();
+        const { orgId } = await createTestUserWithOrg();
 
         await Promise.all([
-            uploadDataset(orgId, cookie, 'datasetBasic.csv', mimeType.csv),
-            uploadDataset(orgId, cookie, 'datasetBasic.xlsx', mimeType.xlsx),
-            uploadDataset(orgId, cookie, 'datasetWithWhitespace.csv', mimeType.csv),
-            uploadDataset(orgId, cookie, 'datasetMultiSheet.xlsx', mimeType.xlsx),
-            uploadDataset(orgId, cookie, 'datasetBasic.csv', mimeType.csv),
+            uploadDataset(orgId, 'datasetBasic.csv', mimeType.csv),
+            uploadDataset(orgId, 'datasetBasic.xlsx', mimeType.xlsx),
+            uploadDataset(orgId, 'datasetWithWhitespace.csv', mimeType.csv),
+            uploadDataset(orgId, 'datasetMultiSheet.xlsx', mimeType.xlsx),
+            uploadDataset(orgId, 'datasetBasic.csv', mimeType.csv),
         ]);
 
         const datasets = await dbQuery<DatasetRecord>(

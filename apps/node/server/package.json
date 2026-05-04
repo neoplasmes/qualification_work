@@ -4,17 +4,13 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "dev": "pnpm db:up && tsx watch --env-file=.env src/index.ts",
+        "dev": "pnpm dotenv -e .env -- tsx watch src/index.ts",
         "build": "tsup src/index.ts --format esm --target esnext --out-dir dist",
-        "start": "node dist/index.js",
-        "typecheck": "tsc --noEmit",
-        "db:up": "docker compose --env-file .env -f ../../../docker-compose.dev.yaml up postgres redis redis-insight -d --wait",
-        "db:down": "docker compose -f ../../../docker-compose.dev.yaml down",
-        "db:test:up": "docker compose --env-file .env.test -f ../../../docker-compose.test.yaml up -d --wait --renew-anon-volumes postgres redis",
-        "db:test:down": "docker compose -f ../../../docker-compose.test.yaml down -v",
+        "start": "pnpm dotenv -e .env -- node dist/index.js",
         "lint": "oxlint -c oxlint.config.ts src/",
         "lint:fix": "oxlint -c oxlint.config.ts --fix src/",
-        "test": "pnpm db:test:up && pnpm dotenv -e .env.test -- vitest run"
+        "typecheck": "tsc --noEmit",
+        "test": "pnpm dotenv -e .env.test -- vitest run"
     },
     "keywords": [],
     "author": "",
@@ -25,13 +21,11 @@
     "dependencies": {
         "@fastify/busboy": "^3.2.0",
         "@qualification-work/types": "workspace:*",
-        "argon2": "^0.44.0",
         "csv-parse": "^6.2.1",
         "exceljs": "^4.4.0",
         "fast-json-stringify": "^6.3.0",
         "pg": "catalog:postgres",
         "primitive-server": "workspace:*",
-        "redis": "catalog:backend",
         "zod": "catalog:backend"
     },
     "devDependencies": {

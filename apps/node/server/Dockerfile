@@ -24,8 +24,7 @@ COPY packages/node/primitive-server/package.json        ./packages/node/primitiv
 COPY packages/node/microservice-config/package.json     ./packages/node/microservice-config/
 
 # we are disabling postinstall scripts natively integrated in npm among which we have "prepare"
-# then we have to rebuild argon2 because it needs a native binary
-RUN pnpm -F server... i --frozen-lockfile --ignore-scripts && pnpm rebuild argon2
+RUN pnpm -F server... i --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
 

@@ -1,7 +1,7 @@
 import type { Pool } from 'pg';
 
 import type { Organization } from '@/core/domain';
-import type { MeCacheRepository, OrganizationRepository } from '@/core/ports';
+import type { OrganizationRepository } from '@/core/ports';
 
 /**
  * Translate snake_case to camelCase for organization fields
@@ -20,15 +20,11 @@ export class PgOrganizationRepository implements OrganizationRepository {
      *
      * @constructor
      * @param {Pool} pool
-     * @param {RedisMeCacheRepository} meCacheRepository
      */
-    constructor(
-        private readonly pool: Pool,
-        private readonly meCacheRepository: MeCacheRepository
-    ) {}
+    constructor(private readonly pool: Pool) {}
 
     /**
-     * affects user -> has to revalidate the cached /me data
+     * Creates an organization and assigns the owner role to the owner user.
      *
      * @async
      * @param {{ name: string; ownerId: string }} data
@@ -47,28 +43,18 @@ export class PgOrganizationRepository implements OrganizationRepository {
             [id, data.ownerId]
         );
 
-        void this.meCacheRepository.upgradeVersion(data.ownerId);
-
         return { id };
     }
 
     /**
-     * affects user -> has to revalidate the cached /me data
+     * Deletes an organization by id.
      *
      * @async
      * @param {string} id
      * @returns {Promise<void>}
      */
     async delete(id: string): Promise<void> {
-        const { rows } = await this.pool.query<{
-            user_id: string;
-        }>(`SELECT user_id FROM orgs.roles WHERE org_id = $1`, [id]);
-
         await this.pool.query(`DELETE FROM orgs.organizations WHERE id = $1`, [id]);
-
-        for (const r of rows) {
-            void this.meCacheRepository.upgradeVersion(r.user_id);
-        }
     }
 
     findById(id: string): Promise<boolean>;
@@ -106,19 +92,5 @@ export class PgOrganizationRepository implements OrganizationRepository {
         );
 
         return rows[0] ?? null;
-    }
-
-    async findByUserId(
-        userId: string
-    ): Promise<{ id: string; name: string; role: string }[]> {
-        const { rows } = await this.pool.query(
-            `SELECT o.id, o.name, r.role::text AS role
-             FROM orgs.roles r
-             JOIN orgs.organizations o ON o.id = r.org_id
-             WHERE r.user_id = $1`,
-            [userId]
-        );
-
-        return rows;
     }
 }

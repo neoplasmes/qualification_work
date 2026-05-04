@@ -4,9 +4,6 @@ import { Application } from 'primitive-server';
 import {
     CreateOrgHandler,
     DeleteOrgHandler,
-    LoginHandler,
-    LogoutHandler,
-    RegisterHandler,
     UploadDatasetHandler,
 } from '@/core/commands';
 import { ValidationError } from '@/core/errors';
@@ -15,53 +12,28 @@ import {
     GetDatasetMetadataHandler,
     GetDatasetRowsHandler,
     GetDatasetsMetadataByOrgIdHandler,
-    MeHandler,
 } from '@/core/queries';
 
-import { createAuthRouter, createDatasetRouter, createOrgsRouter } from '@/adapters/http';
+import { createDatasetRouter, createOrgsRouter } from '@/adapters/http';
+import { PgDatasetRepository, PgOrganizationRepository } from '@/adapters/repositories';
 import {
-    PgDatasetRepository,
-    PgOrganizationRepository,
-    PgRedisUserRepository,
-    RedisMeCacheRepository,
-    RedisSessionRepository,
-} from '@/adapters/repositories';
-import {
-    Argon2HasherTool,
     DefaultDatasetParserFactoryTool,
     FastifyBusboyMultipartParserTool,
 } from '@/adapters/tools';
 
 import type { AppState } from '@/shared/appState';
-import { resolveRequestAuth } from '@/shared/auth';
 import { parseCookiesMiddleware } from '@/shared/parseCookie';
-
-import type { RedisClient } from '@/infrastructure/redis';
 
 /**
  * createApp function to reuse in tests
  *
  * @export
  * @param {Pool} pool
- * @param {RedisClient} redis
- * @param {string} pepper
  * @returns {Application<AppState>}
  */
-export function createApp(
-    pool: Pool,
-    redis: RedisClient,
-    pepper: string
-): Application<AppState> {
-    const userRepo = new PgRedisUserRepository(pool);
-    const sessionRepo = new RedisSessionRepository(redis);
-    const meCacheRepository = new RedisMeCacheRepository(redis);
-    const orgRepo = new PgOrganizationRepository(pool, meCacheRepository);
-    const hasher = new Argon2HasherTool(pepper);
+export function createApp(pool: Pool): Application<AppState> {
+    const orgRepo = new PgOrganizationRepository(pool);
 
-    const registerHandler = new RegisterHandler(userRepo, orgRepo, hasher);
-    const loginHandler = new LoginHandler(userRepo, sessionRepo, hasher);
-    const logoutHandler = new LogoutHandler(sessionRepo);
-    const meHandler = new MeHandler(sessionRepo, userRepo, orgRepo);
     const createOrgHandler = new CreateOrgHandler(orgRepo);
     const deleteOrgHandler = new DeleteOrgHandler(orgRepo);
 
@@ -77,7 +49,6 @@ export function createApp(
         datasetRepo
     );
 
-    // TODO: add auth to AppState and secure endpoints.
     const app = new Application<AppState>();
 
     app.onError((err, { response }) => {
@@ -121,11 +92,6 @@ export function createApp(
         const header = request.getHeader('cookie') ?? '';
 
         state.cookies = parseCookiesMiddleware(header);
-
-        state.auth = await resolveRequestAuth(
-            sessionRepo,
-            state.cookies['session'] ?? ''
-        );
     });
 
     app.get('/', ({ response }) => {
@@ -135,16 +101,6 @@ export function createApp(
     app.get('/health', ({ response }) => {
         response.json({ status: 'ok' });
     });
-
-    const authRouter = createAuthRouter(
-        registerHandler,
-        loginHandler,
-        logoutHandler,
-        meHandler,
-        meCacheRepository,
-        sessionRepo
-    );
-    app.mount('/api', authRouter);
 
     const orgsRouter = createOrgsRouter(createOrgHandler, deleteOrgHandler);
     app.mount('/api', orgsRouter);

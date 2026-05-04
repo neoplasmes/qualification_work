@@ -1,4 +1,3 @@
-export type { Hasher } from './hasher';
 export type {
     DatasetFileSourceType,
     DatasetParserTool,

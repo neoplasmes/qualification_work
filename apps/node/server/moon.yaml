@@ -25,11 +25,7 @@ tasks:
     command: "pnpm dev"
     deps:
       - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-      - ".env"
-      - "/docker-compose.dev.yaml"
+      - "root:development-compose-up"
     options:
       cache: false
       persistent: true
@@ -49,33 +45,10 @@ tasks:
     command: "pnpm start"
     deps:
       - "~:build"
-    inputs:
-      - "dist/**/*"
-      - ".env"
     options:
       cache: false
       persistent: true
       outputStyle: "stream"
-
-  typecheck:
-    command: "pnpm typecheck"
-    deps:
-      - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-
-  test:
-    command: "pnpm test"
-    deps:
-      - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-      - ".env.test"
-      - "/docker-compose.test.yaml"
 
   lint:
     command: "pnpm lint"
@@ -90,3 +63,44 @@ tasks:
       - "@group(cfg)"
     options:
       cache: false
+
+  typecheck:
+    command: "pnpm typecheck"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
+  
+  test-compose-up:
+    script: |
+      docker compose -f docker-compose.test.yaml up -d \
+        --force-recreate \
+        --renew-anon-volumes \
+        --build \
+        --wait \
+        --wait-timeout 300
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  test-compose-down:
+    command: "docker compose -f docker-compose.test.yaml down -v"
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+  
+  test:
+    command: "pnpm test"
+    deps:
+      - "^:build"
+      - "~:test-compose-up"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
+      - ".env.test"
+      - "docker-compose.test.yaml"

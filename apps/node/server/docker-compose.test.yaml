@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: server-test-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: qualification_test
+      PGPORT: 5432
+    volumes:
+      - ../../../infrastructure/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U admin -d qualification_test']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.25.1-p0
+    container_name: server-test-pgbouncer
+    volumes:
+      - ./test/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./test/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    ports:
+      - '16432:5432'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    image: redis:8.6-alpine
+    container_name: server-test-redis
+    command: ['redis-server', '--requirepass', 'test_password', '--save', '']
+    ports:
+      - '16379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'test_password', 'ping']
+      interval: 2s
+      timeout: 2s
+      retries: 30

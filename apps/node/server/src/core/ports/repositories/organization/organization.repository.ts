@@ -30,11 +30,4 @@ export interface OrganizationRepository {
         id: string,
         retrieve: K[]
     ): Promise<Pick<Organization, K> | null>;
-
-    /**
-     * Find organizations by user id and returns their role in them
-     *
-     * @param userId
-     */
-    findByUserId(userId: string): Promise<{ id: string; name: string; role: string }[]>;
 }

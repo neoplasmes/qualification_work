@@ -1,1 +1,0 @@
-export { resolveRequestAuth } from './resolveRequestAuth';

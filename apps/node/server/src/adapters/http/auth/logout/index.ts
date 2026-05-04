@@ -1,1 +1,0 @@
-export { createLogoutHandler } from './logout';

@@ -94,7 +94,9 @@ tasks:
       outputStyle: stream
   
   test:
-    command: "pnpm test"
+    script: |
+      trap 'docker compose -f docker-compose.test.yaml down -v' EXIT
+      pnpm test
     deps:
       - "^:build"
       - "~:test-compose-up"
@@ -104,3 +106,5 @@ tasks:
       - "@group(cfg)"
       - ".env.test"
       - "docker-compose.test.yaml"
+    options:
+      outputStyle: stream

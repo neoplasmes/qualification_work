@@ -19,7 +19,7 @@ For `ports/driving` we are actually will use only an `executable.ext` file, whic
 
 On top of this base there are some **modifications**:
 - Instead of `use-cases`, some kind of dumb Command-Query Responsibility Segregation is, used, where all write-related business logic, that will change some data is located in `commands` folder (performs write ops), and all read-related one is in `queries` folder (performs read ops)<br/>
-**Naming convention:** `SignInHandler or SignUpHandler or LogoutHandler` for class name. Each handler **MUST** have an `execute` method. `signUp.command.ext or me.query.ext` for files.
+**Naming convention:** `SignInCommand or SignUpCommand or GetDatasetQuery` for class name. Each handler **MUST** have an `execute` method. `signUp.command.ext or me.query.ext` for files.
 
 - There are actually 2 types of "external dependencies"/driven abstractions (this list actually can be extended):
     1. `Repo` - a substance that works with data storages. E.g. `core/ports/driven/repos/user.repo.ext` and corresponding `adapters/driven/repos/pg.user.repo.ext` and `....../repos/inmemory.user.repo.ext`. In this repository, the data storage is defined as: all kinds and brands of databases, in memory storages (memcache, redis, tarantool etc), message brokers (RabbitMQ etc), event logs (Apache Kafka etc), loggers, application metrics sender (if there is no sidecar implemented) and so on.

@@ -1,1 +1,0 @@
-export { createGetDatasetMetadataHandler } from './handler';

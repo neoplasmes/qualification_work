@@ -1,1 +1,1 @@
-export { Executable } from './executable';
+export type { Executable, ExecutableIO } from './executable';

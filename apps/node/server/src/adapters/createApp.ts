@@ -2,24 +2,23 @@ import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
 import {
-    CreateOrgHandler,
-    DeleteOrgHandler,
-    UploadDatasetHandler,
+    CreateOrgCommand,
+    DeleteOrgCommand,
+    UploadDatasetCommand,
 } from '@/core/commands';
-import { ValidationError } from '@/core/errors';
-import { BaseError } from '@/core/errors/';
+import { BaseError, ValidationError } from '@/core/errors';
 import {
-    GetDatasetMetadataHandler,
-    GetDatasetRowsHandler,
-    GetDatasetsMetadataByOrgIdHandler,
+    GetDatasetMetadataByDatasetIdQuery,
+    GetDatasetRowsQuery,
+    GetDatasetsMetadataByOrgIdQuery,
 } from '@/core/queries';
 
-import { createDatasetRouter, createOrgsRouter } from '@/adapters/http';
-import { PgDatasetRepository, PgOrganizationRepository } from '@/adapters/repositories';
+import { PgDatasetRepo, PgOrgRepo } from '@/adapters/driven/repos';
 import {
     DefaultDatasetParserFactoryTool,
     FastifyBusboyMultipartParserTool,
-} from '@/adapters/tools';
+} from '@/adapters/driven/tools';
+import { createDatasetRouter, createOrgsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
 import { parseCookiesMiddleware } from '@/shared/parseCookie';
@@ -32,19 +31,19 @@ import { parseCookiesMiddleware } from '@/shared/parseCookie';
  * @returns {Application<AppState>}
  */
 export function createApp(pool: Pool): Application<AppState> {
-    const orgRepo = new PgOrganizationRepository(pool);
+    const orgRepo = new PgOrgRepo(pool);
 
-    const createOrgHandler = new CreateOrgHandler(orgRepo);
-    const deleteOrgHandler = new DeleteOrgHandler(orgRepo);
+    const createOrgHandler = new CreateOrgCommand(orgRepo);
+    const deleteOrgHandler = new DeleteOrgCommand(orgRepo);
 
-    const datasetRepo = new PgDatasetRepository(pool);
+    const datasetRepo = new PgDatasetRepo(pool);
     const multipartParserService = new FastifyBusboyMultipartParserTool();
-    const getDatasetsMetadataByOrgIdHandler = new GetDatasetsMetadataByOrgIdHandler(
+    const getDatasetsMetadataByOrgIdHandler = new GetDatasetsMetadataByOrgIdQuery(
         datasetRepo
     );
-    const getDatasetMetadataHandler = new GetDatasetMetadataHandler(datasetRepo);
-    const getDatasetRowsHandler = new GetDatasetRowsHandler(datasetRepo);
-    const uploadDatasetHandler = new UploadDatasetHandler(
+    const getDatasetMetadataHandler = new GetDatasetMetadataByDatasetIdQuery(datasetRepo);
+    const getDatasetRowsHandler = new GetDatasetRowsQuery(datasetRepo);
+    const uploadDatasetHandler = new UploadDatasetCommand(
         DefaultDatasetParserFactoryTool.resolveParser,
         datasetRepo
     );

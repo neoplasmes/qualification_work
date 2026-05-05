@@ -62,7 +62,9 @@ tasks:
 
   # we do not want to run this test in CI or on git hooks for a while
   test-integration:
-    script: "go test -tags=integration -count=1 ./test/integration/..."
+    script: |
+      trap 'docker compose -f docker-compose.test.yaml down -v' EXIT
+      go test -tags=integration -count=1 ./test/integration/...
     toolchain: system
     deps:
       - test-compose-up

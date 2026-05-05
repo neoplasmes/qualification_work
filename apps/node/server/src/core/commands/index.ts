@@ -1,8 +1,8 @@
-export { CreateOrgHandler, createOrgSchema } from './createOrg';
-export type { CreateOrgInput } from './createOrg';
+export { CreateOrgCommand } from './org';
+export type { CreateOrgCommandIO } from './org';
 
-export { DeleteOrgHandler, deleteOrgSchema } from './deleteOrg';
-export type { DeleteOrgInput } from './deleteOrg';
+export { DeleteOrgCommand } from './org';
+export type { DeleteOrgCommandIO } from './org';
 
-export { UploadDatasetHandler, uploadDatasetSchema } from './uploadDataset';
-export type { UploadDatasetInput } from './uploadDataset';
+export { UploadDatasetCommand } from './dataset';
+export type { UploadDatasetCommandIO } from './dataset';

@@ -19,13 +19,11 @@
         "dist"
     ],
     "dependencies": {
-        "@fastify/busboy": "^3.2.0",
         "@qualification-work/types": "workspace:*",
-        "csv-parse": "^6.2.1",
-        "exceljs": "^4.4.0",
         "fast-json-stringify": "^6.3.0",
         "pg": "catalog:postgres",
         "primitive-server": "workspace:*",
+        "redis": "catalog:backend",
         "zod": "catalog:backend"
     },
     "devDependencies": {

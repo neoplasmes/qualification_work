@@ -1,0 +1,9 @@
+{
+    "extends": "@qualification-work/microservice-config/tsconfig.json",
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
+        "noEmit": true
+    },
+    "include": ["."]
+}

@@ -21,7 +21,10 @@ async function collectRows(filePath: string, parser: DatasetParserTool) {
 
 describe('CsvDatasetParserTool', () => {
     const parser = new CsvDatasetParserTool();
-    const assetsDir = path.resolve(import.meta.dirname, '../../../../test/assets');
+    const assetsDir = path.resolve(
+        import.meta.dirname,
+        '../../../../test/datasets/assets'
+    );
 
     it('parses a larger csv dataset into row objects', async () => {
         const rows = await collectRows(path.join(assetsDir, 'datasetBasic.csv'), parser);
@@ -81,7 +84,10 @@ describe('CsvDatasetParserTool', () => {
 
 describe('XlsxDatasetParserTool', () => {
     const parser = new XlsxDatasetParserTool();
-    const assetsDir = path.resolve(import.meta.dirname, '../../../../test/assets');
+    const assetsDir = path.resolve(
+        import.meta.dirname,
+        '../../../../test/datasets/assets'
+    );
 
     it('parses a larger xlsx dataset into row objects', async () => {
         const rows = await collectRows(path.join(assetsDir, 'datasetBasic.xlsx'), parser);

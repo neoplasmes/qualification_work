@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
+import { parseWithZod } from '@qualification-work/microservice-utils';
+
 import type { GetDatasetRowsQuery } from '@/core/queries';
 
 import type { RequestHandlerType } from '@/shared/appState';
-import { parseWithZod } from '@/shared/parseWithZod';
 
 const getDatasetRowsSchema = z.object({
     id: z.uuid(),
@@ -15,13 +16,11 @@ export function createGetDatasetRowsHandler(
     handler: GetDatasetRowsQuery
 ): RequestHandlerType {
     return async ({ request, response }) => {
-        const input = parseWithZod(() =>
-            getDatasetRowsSchema.parse({
-                id: request.params.id,
-                offset: request.query.offset,
-                limit: request.query.limit,
-            })
-        );
+        const input = parseWithZod(getDatasetRowsSchema, {
+            id: request.params.id,
+            offset: request.query.offset,
+            limit: request.query.limit,
+        });
 
         const result = await handler.execute(input.id, input.offset, input.limit);
 

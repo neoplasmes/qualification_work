@@ -1,24 +1,11 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
-import {
-    CreateOrgCommand,
-    DeleteOrgCommand,
-    UploadDatasetCommand,
-} from '@/core/commands';
+import { CreateOrgCommand, DeleteOrgCommand } from '@/core/commands';
 import { BaseError, ValidationError } from '@/core/errors';
-import {
-    GetDatasetMetadataByDatasetIdQuery,
-    GetDatasetRowsQuery,
-    GetDatasetsMetadataByOrgIdQuery,
-} from '@/core/queries';
 
-import { PgDatasetRepo, PgOrgRepo } from '@/adapters/driven/repos';
-import {
-    DefaultDatasetParserFactoryTool,
-    FastifyBusboyMultipartParserTool,
-} from '@/adapters/driven/tools';
-import { createDatasetRouter, createOrgsRouter } from '@/adapters/driving/http';
+import { PgOrgRepo } from '@/adapters/driven/repos';
+import { createOrgsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
 import { parseCookiesMiddleware } from '@/shared/parseCookie';
@@ -35,18 +22,6 @@ export function createApp(pool: Pool): Application<AppState> {
 
     const createOrgHandler = new CreateOrgCommand(orgRepo);
     const deleteOrgHandler = new DeleteOrgCommand(orgRepo);
-
-    const datasetRepo = new PgDatasetRepo(pool);
-    const multipartParserService = new FastifyBusboyMultipartParserTool();
-    const getDatasetsMetadataByOrgIdHandler = new GetDatasetsMetadataByOrgIdQuery(
-        datasetRepo
-    );
-    const getDatasetMetadataHandler = new GetDatasetMetadataByDatasetIdQuery(datasetRepo);
-    const getDatasetRowsHandler = new GetDatasetRowsQuery(datasetRepo);
-    const uploadDatasetHandler = new UploadDatasetCommand(
-        DefaultDatasetParserFactoryTool.resolveParser,
-        datasetRepo
-    );
 
     const app = new Application<AppState>();
 
@@ -103,15 +78,6 @@ export function createApp(pool: Pool): Application<AppState> {
 
     const orgsRouter = createOrgsRouter(createOrgHandler, deleteOrgHandler);
     app.mount('/api', orgsRouter);
-
-    const datasetRouter = createDatasetRouter(
-        getDatasetsMetadataByOrgIdHandler,
-        getDatasetMetadataHandler,
-        getDatasetRowsHandler,
-        uploadDatasetHandler,
-        multipartParserService
-    );
-    app.mount('/api', datasetRouter);
 
     return app;
 }

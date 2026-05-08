@@ -19,10 +19,17 @@ CREATE TABLE IF NOT EXISTS charts.charts (
     updated_at              TIMESTAMPTZ DEFAULT now()
 );
 
--- ? Мб здесь и двойной индекс надо
+-- consider composite index if filtering by both
 CREATE INDEX IF NOT EXISTS charts_dataset_id_idx ON charts.charts (dataset_id);
 CREATE INDEX IF NOT EXISTS charts_org_id_idx ON charts.charts (org_id);
 
 CREATE OR REPLACE TRIGGER trg_charts_updated_at
     BEFORE UPDATE ON charts.charts
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+--------------------------------------------------------------------------------------------------------------
+
+-- data_version is bumped on every dataset upload/replace and is used as a cache-invalidation signal
+-- for chart aggregation results
+ALTER TABLE data.datasets
+    ADD COLUMN IF NOT EXISTS data_version BIGINT NOT NULL DEFAULT 1;

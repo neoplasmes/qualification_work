@@ -3,8 +3,10 @@ import type { Readable } from 'node:stream';
 import type { ColumnDataType } from '@/core/domain';
 import { AppError, ValidationError } from '@/core/errors';
 import type { DatasetRepo } from '@/core/ports/driven/repos';
-import type { MultipartFile, ResolveDatasetParser } from '@/core/ports/driven/tools';
+import type { ResolveDatasetParser } from '@/core/ports/driven/tools';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
+import type { MultipartFile } from '@/adapters/driven/tools/_multipartParser';
 
 import { inferDatasetTypes } from './helpers';
 

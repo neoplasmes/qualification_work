@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
+import { parseWithZod } from '@qualification-work/microservice-utils';
+
 import type { UploadDatasetCommand } from '@/core/commands';
 import { ValidationError } from '@/core/errors';
 
 import type { MultipartParserTool } from '@/adapters/driven/tools/_multipartParser';
 
 import type { RequestHandlerType } from '@/shared/appState';
-import { parseWithZod } from '@/shared/parseWithZod';
 
 const uploadDatasetSchema = z.object({
     orgId: z.uuid(),
@@ -28,11 +29,9 @@ export function createUploadDatasetHandler(
     return async ({ request, response }) => {
         const orgIdFromRequest = request.query.orgId ?? request.getHeader('x-org-id');
 
-        const input = parseWithZod(() =>
-            uploadDatasetSchema.parse({
-                orgId: orgIdFromRequest,
-            })
-        );
+        const input = parseWithZod(uploadDatasetSchema, {
+            orgId: orgIdFromRequest,
+        });
 
         // TODO: handle the uploading of more than one file.
         let result: Awaited<ReturnType<UploadDatasetCommand['execute']>> | undefined;

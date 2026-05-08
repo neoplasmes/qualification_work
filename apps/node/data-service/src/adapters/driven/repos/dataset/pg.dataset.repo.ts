@@ -339,4 +339,8 @@ export class PgDatasetRepo implements DatasetRepo {
             limit: data.limit,
         };
     }
+
+    async deleteById(datasetId: string): Promise<void> {
+        await this.pool.query('DELETE FROM data.datasets WHERE id = $1', [datasetId]);
+    }
 }

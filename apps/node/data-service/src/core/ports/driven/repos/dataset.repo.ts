@@ -69,4 +69,6 @@ export interface DatasetRepo {
      * @returns {Promise<DatasetRowsPage | null>}
      */
     getDatasetRowsPageById(data: GetDatasetRowsPayload): Promise<DatasetRowsPage | null>;
+
+    deleteById(datasetId: string): Promise<void>;
 }

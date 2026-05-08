@@ -137,46 +137,12 @@ importers:
 
   apps/node/data-service:
     dependencies:
-      pg:
-        specifier: catalog:postgres
-        version: 8.20.0
-      primitive-server:
-        specifier: workspace:*
-        version: link:../../../packages/node/primitive-server
-      redis:
-        specifier: catalog:backend
-        version: 5.11.0
-      zod:
-        specifier: catalog:backend
-        version: 4.3.6
-    devDependencies:
-      '@qualification-work/microservice-config':
-        specifier: workspace:*
-        version: link:../../../packages/node/microservice-config
-      '@qualification-work/types':
-        specifier: workspace:*
-        version: link:../../../packages/node/types
-      '@types/pg':
-        specifier: catalog:postgres
-        version: 8.18.0
-      dotenv:
-        specifier: catalog:devtools
-        version: 17.4.2
-      dotenv-cli:
-        specifier: catalog:devtools
-        version: 11.0.0
-      tsup:
-        specifier: catalog:devtools
-        version: 8.5.1(@swc/core@1.15.21)(jiti@2.6.1)(postcss@8.5.14)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.4)
-      tsx:
-        specifier: catalog:devtools
-        version: 4.21.0
-
-  apps/node/server:
-    dependencies:
       '@fastify/busboy':
         specifier: ^3.2.0
         version: 3.2.0
+      '@qualification-work/microservice-utils':
+        specifier: workspace:*
+        version: link:../../../packages/node/microservice-utils
       '@qualification-work/types':
         specifier: workspace:*
         version: link:../../../packages/node/types
@@ -195,6 +161,52 @@ importers:
       primitive-server:
         specifier: workspace:*
         version: link:../../../packages/node/primitive-server
+      redis:
+        specifier: catalog:backend
+        version: 5.11.0
+      zod:
+        specifier: catalog:backend
+        version: 4.3.6
+    devDependencies:
+      '@qualification-work/microservice-config':
+        specifier: workspace:*
+        version: link:../../../packages/node/microservice-config
+      '@types/pg':
+        specifier: catalog:postgres
+        version: 8.18.0
+      dotenv:
+        specifier: catalog:devtools
+        version: 17.4.2
+      dotenv-cli:
+        specifier: catalog:devtools
+        version: 11.0.0
+      tsup:
+        specifier: catalog:devtools
+        version: 8.5.1(@swc/core@1.15.21)(jiti@2.6.1)(postcss@8.5.14)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.4)
+      tsx:
+        specifier: catalog:devtools
+        version: 4.21.0
+
+  apps/node/server:
+    dependencies:
+      '@qualification-work/microservice-utils':
+        specifier: workspace:*
+        version: link:../../../packages/node/microservice-utils
+      '@qualification-work/types':
+        specifier: workspace:*
+        version: link:../../../packages/node/types
+      fast-json-stringify:
+        specifier: ^6.3.0
+        version: 6.3.0
+      pg:
+        specifier: catalog:postgres
+        version: 8.20.0
+      primitive-server:
+        specifier: workspace:*
+        version: link:../../../packages/node/primitive-server
+      redis:
+        specifier: catalog:backend
+        version: 5.11.0
       zod:
         specifier: catalog:backend
         version: 4.3.6
@@ -241,6 +253,16 @@ importers:
       vitest:
         specifier: '>=4.1.5'
         version: 4.1.5(@types/node@25.4.0)(jsdom@28.1.0)(msw@2.12.14(@types/node@25.4.0)(typescript@6.0.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.27.3)(jiti@2.6.1)(sass@1.97.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.4))
+
+  packages/node/microservice-utils:
+    dependencies:
+      zod:
+        specifier: '>=4.0.0'
+        version: 4.3.6
+    devDependencies:
+      '@qualification-work/microservice-config':
+        specifier: workspace:*
+        version: link:../microservice-config
 
   packages/node/primitive-server:
     devDependencies:

@@ -1,20 +1,76 @@
-language: "typescript"
+language: 'typescript'
 
 tags:
-  - "node"
+  - 'node'
 
 dependsOn:
-  - "primitive-server"
-  - "types"
-  - "microservice-config"
+  - 'primitive-server'
+  - 'types'
+  - 'microservice-config'
 
 fileGroups:
   cfg:
-    - "package.json"
-    - "tsconfig.json"
-    - "*.config.{js,ts}"
+    - 'package.json'
+    - 'tsconfig.json'
+    - '*.config.{js,ts}'
   src:
-    - "src/**/*"
+    - 'src/**/*'
+    - '!**/*.test.ts'
   test:
-    - "src/**/*.test.ts"
-    - "src/test/**/*"
+    - 'src/**/*.test.ts'
+    - 'src/test/**/*'
+    - 'docker-compose.test.yaml'
+    - '.env.test'
+
+tasks:
+  dev:
+    command: "pnpm dev"
+    deps:
+      - "^:build"
+      - "root:development-compose-up"
+    options:
+      cache: false
+      persistent: true
+      outputStyle: "stream"
+  typecheck:
+    command: 'pnpm typecheck'
+    deps:
+      - '^:build'
+    inputs:
+      - '@group(src)'
+      - '@group(test)'
+      - '@group(cfg)'
+
+  test-compose-up:
+    script: |
+      docker compose -f docker-compose.test.yaml up -d \
+        --force-recreate \
+        --renew-anon-volumes \
+        --build \
+        --wait \
+        --wait-timeout 300
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  test-compose-down:
+    command: 'docker compose -f docker-compose.test.yaml down -v'
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  test:
+    script: |
+      trap 'docker compose -f docker-compose.test.yaml down -v' EXIT
+      pnpm test
+    deps:
+      - '^:build'
+      - '~:test-compose-up'
+    inputs:
+      - '@group(src)'
+      - '@group(test)'
+      - '@group(cfg)'
+    options:
+      outputStyle: stream

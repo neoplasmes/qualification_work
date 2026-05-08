@@ -1,0 +1,20 @@
+{
+    "name": "@qualification-work/microservice-utils",
+    "version": "1.0.0",
+    "type": "module",
+    "exports": {
+        ".": "./index.ts"
+    },
+    "types": "./index.ts",
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "lint": "oxlint -c ../../../oxlint.config.ts .",
+        "lint:fix": "oxlint -c ../../../oxlint.config.ts --fix ."
+    },
+    "peerDependencies": {
+        "zod": ">=4.0.0"
+    },
+    "devDependencies": {
+        "@qualification-work/microservice-config": "workspace:*"
+    }
+}

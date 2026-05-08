@@ -1,6 +1,6 @@
 import { Router } from 'primitive-server';
 
-import type { UploadDatasetCommand } from '@/core/commands';
+import type { DeleteDatasetCommand, UploadDatasetCommand } from '@/core/commands';
 import type {
     GetDatasetMetadataByDatasetIdQuery,
     GetDatasetRowsQuery,
@@ -11,6 +11,7 @@ import type { MultipartParserTool } from '@/adapters/driven/tools/_multipartPars
 
 import type { AppState } from '@/shared/appState';
 
+import { createDeleteDatasetHandler } from './delete.handler';
 import { createGetDatasetMetadataByDatasetIdHandler } from './getByDatasetId.handler';
 import { createGetDatasetsMetadataByOrgIdHandler } from './getByOrgId.handler';
 import { createGetDatasetRowsHandler } from './getRows.handler';
@@ -31,6 +32,7 @@ export function createDatasetRouter(
     getDatasetMetadataHandler: GetDatasetMetadataByDatasetIdQuery,
     getDatasetRowsHandler: GetDatasetRowsQuery,
     uploadDatasetHandler: UploadDatasetCommand,
+    deleteDatasetHandler: DeleteDatasetCommand,
     multipartParser: MultipartParserTool
 ): Router<AppState> {
     const router = new Router<AppState>('/datasets');
@@ -45,6 +47,7 @@ export function createDatasetRouter(
     );
     router.get('/:id/rows', createGetDatasetRowsHandler(getDatasetRowsHandler));
     router.post('/', createUploadDatasetHandler(uploadDatasetHandler, multipartParser));
+    router.delete('/:id', createDeleteDatasetHandler(deleteDatasetHandler));
 
     return router;
 }

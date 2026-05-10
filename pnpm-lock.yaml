@@ -256,13 +256,19 @@ importers:
 
   packages/node/microservice-utils:
     dependencies:
-      zod:
-        specifier: '>=4.0.0'
-        version: 4.3.6
+      jose:
+        specifier: ^5.9.6
+        version: 5.10.0
     devDependencies:
       '@qualification-work/microservice-config':
         specifier: workspace:*
         version: link:../microservice-config
+      vitest:
+        specifier: ^4.1.5
+        version: 4.1.5(@types/node@25.4.0)(jsdom@28.1.0)(msw@2.12.14(@types/node@25.4.0)(typescript@6.0.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.27.3)(jiti@2.6.1)(sass@1.97.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.4))
+      zod:
+        specifier: catalog:backend
+        version: 4.3.6
 
   packages/node/primitive-server:
     devDependencies:
@@ -2364,6 +2370,9 @@ packages:
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
+
+  jose@5.10.0:
+    resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -5471,6 +5480,8 @@ snapshots:
   isexe@2.0.0: {}
 
   jiti@2.6.1: {}
+
+  jose@5.10.0: {}
 
   joycon@3.1.1: {}
 

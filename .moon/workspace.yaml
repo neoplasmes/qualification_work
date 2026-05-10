@@ -11,6 +11,7 @@ projects:
   types: "packages/node/types"
   eslint-plugin-fsd: "packages/node/eslint-plugin-fsd"
   microservice-config: "packages/node/microservice-config"
+  microservice-utils: "packages/node/microservice-utils"
   openresty-discovery: "packages/go/openresty-discovery"
 
 # moon run command (without :) will run exactly command for default project 

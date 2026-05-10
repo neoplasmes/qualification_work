@@ -5,5 +5,6 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["src/**/*", "oxlint.config.ts", "vitest.config.ts"]
+    "include": ["src/**/*", "oxlint.config.ts", "vitest.config.ts"],
+    "exclude": ["node_modules"]
 }

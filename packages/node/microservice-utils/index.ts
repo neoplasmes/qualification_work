@@ -5,6 +5,6 @@ export {
     NotFoundError,
     ValidationError,
     type ErrorType,
-} from './errors.js';
+} from './errors.ts';
 
-export { parseWithZod } from './parseWithZod.js';
+export { parseWithZod } from './parseWithZod.ts';

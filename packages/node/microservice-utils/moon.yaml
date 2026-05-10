@@ -7,26 +7,50 @@ fileGroups:
   cfg:
     - "package.json"
     - "tsconfig.json"
+    - "*.config.{js,ts}"
   src:
     - "*.ts"
+    - "internalAuth/**/*.ts"
+  test:
+    - "**/*.test.ts"
+    - "test/**/*.ts"
 
 tasks:
   typecheck:
     command: "pnpm typecheck"
     inputs:
       - "@group(src)"
+      - "@group(test)"
       - "@group(cfg)"
 
   lint:
     command: "pnpm lint"
     inputs:
       - "@group(src)"
+      - "@group(test)"
       - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
       - "@group(src)"
+      - "@group(test)"
       - "@group(cfg)"
     options:
       cache: false
+
+  prettier:
+    command: "pnpm prettier"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
+    options:
+      cache: false
+
+  test:
+    command: "pnpm test"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"

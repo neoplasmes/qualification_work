@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
+// TODO: move this thing to microsevice-utils
+
 const schema = z.object({
     port: z.coerce.number().int().positive(),
-    clientOrigin: z.url(),
+    clientOrigin: z.string().min(1),
     postgresConnectionString: z.string().min(1),
     redis: z.object({
         host: z.string().min(1),
@@ -28,7 +30,7 @@ export function loadConfig(): Config {
     const env = process.env;
 
     const result = schema.safeParse({
-        port: env.DATA_SERVICE_PORT,
+        port: env.SERVER_PORT,
         clientOrigin: env.CLIENT_ORIGIN,
         postgresConnectionString: env.DATABASE_URL,
         redis: {

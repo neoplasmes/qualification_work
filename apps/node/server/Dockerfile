@@ -15,8 +15,8 @@ ENV CI=true
 
 FROM base AS deps
 
-COPY package.json tsconfig.json                     ./
-COPY pnpm-lock.yaml pnpm-workspace.yaml             ./
+COPY package.json tsconfig.json                         ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml                 ./
 COPY apps/node/server/package.json                      ./apps/node/server/
 COPY packages/node/types/package.json                   ./packages/node/types/
 COPY packages/node/eslint-plugin-fsd/package.json       ./packages/node/eslint-plugin-fsd/
@@ -28,11 +28,13 @@ RUN pnpm -F server... i --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
 
-COPY apps/node/server/               ./apps/node/server/
-COPY packages/node/types/            ./packages/node/types/
-COPY packages/node/primitive-server/ ./packages/node/primitive-server/
+COPY apps/node/server/                  ./apps/node/server/
+COPY packages/node/types/               ./packages/node/types/
+COPY packages/node/primitive-server/    ./packages/node/primitive-server/
 COPY packages/node/microservice-config/ ./packages/node/microservice-config/
+COPY packages/node/microservice-utils/  ./packages/node/microservice-utils/
 
+#* reminder: --if-present runs build command in dependency packages only if it is present
 RUN pnpm -F server... --if-present build
 
 FROM builder AS pruned

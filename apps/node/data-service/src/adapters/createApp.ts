@@ -27,11 +27,21 @@ import {
 import { createChartsRouter, createDatasetRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
+import { resolveInternalAuthHook, type AuthHook } from '@/shared/resolveInternalAuth';
 
 import type { Config } from '@/infrastructure/config';
 
+export type CreateAppOptions = {
+    /** override auth hook for tests or e2e scenarios */
+    authHook?: AuthHook;
+};
+
 /** Wires the DI graph and returns an Application ready to listen(). */
-export function createApp(pool: Pool, config: Config): Application<AppState> {
+export function createApp(
+    pool: Pool,
+    config: Config,
+    opts: CreateAppOptions = {}
+): Application<AppState> {
     // ----- dataset -----
     const datasetRepo = new PgDatasetRepo(pool);
     const multipartParserService = new FastifyBusboyMultipartParserTool();
@@ -118,6 +128,15 @@ export function createApp(pool: Pool, config: Config): Application<AppState> {
     // gateway rewrites /api/data/* -> /api/* before forwarding here
     app.mount('/api', datasetRouter);
     app.mount('/api', chartsRouter);
+
+    const authHook =
+        opts.authHook ??
+        resolveInternalAuthHook({
+            jwksUrl: config.auth.jwksUrl,
+            issuer: config.auth.jwtIssuer,
+            audience: config.auth.jwtAudience,
+        });
+    app.assignHook('preHandler', '/api', authHook);
 
     return app;
 }

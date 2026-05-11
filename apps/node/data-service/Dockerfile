@@ -31,6 +31,7 @@ COPY apps/node/data-service/            ./apps/node/data-service/
 COPY packages/node/types/               ./packages/node/types/
 COPY packages/node/primitive-server/    ./packages/node/primitive-server/
 COPY packages/node/microservice-config/ ./packages/node/microservice-config/
+COPY packages/node/microservice-utils/  ./packages/node/microservice-utils/
 
 RUN pnpm -F data-service... --if-present build
 

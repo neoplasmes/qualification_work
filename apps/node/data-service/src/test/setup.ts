@@ -1,6 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
 import type { Pool, QueryResultRow } from 'pg';
+import type { FRequest } from 'primitive-server';
+
+import {
+    setInternalIdentity,
+    type InternalIdentity,
+} from '@qualification-work/microservice-utils/internalAuth';
+import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
 
 import { createApp } from '@/adapters/createApp';
 
@@ -12,6 +19,20 @@ let baseUrl: string;
 let server: Server | undefined;
 let started = false;
 let refCount = 0;
+
+let currentIdentity: InternalIdentity = mockInternalIdentity();
+
+export function setTestIdentity(identity: InternalIdentity): void {
+    currentIdentity = identity;
+}
+
+export function resetTestIdentity(): void {
+    currentIdentity = mockInternalIdentity();
+}
+
+const testAuthHook = async ({ request }: { request: FRequest }) => {
+    setInternalIdentity(request, currentIdentity);
+};
 
 export async function truncate(): Promise<void> {
     const { rows } = await pool.query<{ schema_name: string }>(`
@@ -106,6 +127,16 @@ export function api(path: string, init?: RequestInit): Promise<Response> {
     });
 }
 
+export async function apiAs(
+    identity: InternalIdentity,
+    path: string,
+    init?: RequestInit
+): Promise<Response> {
+    setTestIdentity(identity);
+
+    return api(path, init);
+}
+
 export async function startServer(): Promise<void> {
     refCount++;
 
@@ -119,7 +150,7 @@ export async function startServer(): Promise<void> {
 
         await truncate();
 
-        const app = createApp(pool, config);
+        const app = createApp(pool, config, { authHook: testAuthHook });
         server = await app.listen({ port: 0 });
 
         const addr = server.address();

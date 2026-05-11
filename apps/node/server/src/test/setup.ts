@@ -2,8 +2,15 @@ import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
 import type { Pool, QueryResultRow } from 'pg';
 
+import {
+    setInternalIdentity,
+    type InternalIdentity,
+} from '@qualification-work/microservice-utils/internalAuth';
+import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
+
 import { createApp } from '@/adapters/createApp';
 
+import type { Config } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
 
 let pool: Pool;
@@ -11,6 +18,35 @@ let baseUrl: string;
 let server: Server | undefined;
 let started = false;
 let refCount = 0;
+
+let currentIdentity: InternalIdentity = mockInternalIdentity();
+
+export function setTestIdentity(identity: InternalIdentity): void {
+    currentIdentity = identity;
+}
+
+export function resetTestIdentity(): void {
+    currentIdentity = mockInternalIdentity();
+}
+
+const testConfig: Config = {
+    port: 0,
+    clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
+    postgresConnectionString: process.env.DATABASE_URL ?? '',
+    redis: {
+        host: process.env.REDIS_HOST ?? 'localhost',
+        port: Number(process.env.REDIS_PORT ?? 6379),
+    },
+    auth: { jwksUrl: 'unused', jwtIssuer: 'unused', jwtAudience: 'unused' },
+};
+
+const testAuthHook = async ({
+    request,
+}: {
+    request: { getHeader(name: string): string | undefined };
+}) => {
+    setInternalIdentity(request, currentIdentity);
+};
 
 export async function truncate(): Promise<void> {
     const { rows } = await pool.query<{ schema_name: string }>(`
@@ -105,6 +141,21 @@ export function api(path: string, init?: RequestInit): Promise<Response> {
     });
 }
 
+/**
+ * Запустить запрос от имени конкретной identity. Идентичность держится на
+ * модульной переменной — если в тесте параллельно делаешь несколько вызовов,
+ * используй sequentially.
+ */
+export async function apiAs(
+    identity: InternalIdentity,
+    path: string,
+    init?: RequestInit
+): Promise<Response> {
+    setTestIdentity(identity);
+
+    return api(path, init);
+}
+
 export async function startServer(): Promise<void> {
     refCount++;
 
@@ -113,11 +164,11 @@ export async function startServer(): Promise<void> {
     }
 
     try {
-        pool = await createPool();
+        pool = await createPool(testConfig.postgresConnectionString);
 
         await truncate();
 
-        const app = createApp(pool);
+        const app = createApp(pool, testConfig, { authHook: testAuthHook });
         server = await app.listen({ port: 0 });
 
         const addr = server.address();

@@ -9,15 +9,32 @@ import { createOrgsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
 import { parseCookiesMiddleware } from '@/shared/parseCookie';
+import { resolveInternalAuthHook, type AuthHook } from '@/shared/resolveInternalAuth';
+
+import type { Config } from '@/infrastructure/config';
+
+export type CreateAppOptions = {
+    /**
+     * override auth hook for tests or e2e scenarios.
+     * defaults to resolveInternalAuthHook built from config.
+     */
+    authHook?: AuthHook;
+};
 
 /**
  * createApp function to reuse in tests
  *
  * @export
  * @param {Pool} pool
+ * @param {Config} config
+ * @param {CreateAppOptions} [opts]
  * @returns {Application<AppState>}
  */
-export function createApp(pool: Pool): Application<AppState> {
+export function createApp(
+    pool: Pool,
+    config: Config,
+    opts: CreateAppOptions = {}
+): Application<AppState> {
     const orgRepo = new PgOrgRepo(pool);
 
     const createOrgHandler = new CreateOrgCommand(orgRepo);
@@ -54,8 +71,7 @@ export function createApp(pool: Pool): Application<AppState> {
 
     app.onRequest(async ({ response, request, state }) => {
         response.head({
-            'access-control-allow-origin':
-                process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
+            'access-control-allow-origin': config.clientOrigin,
             'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
             'access-control-allow-headers': 'Content-Type',
             'access-control-allow-credentials': 'true',
@@ -78,6 +94,15 @@ export function createApp(pool: Pool): Application<AppState> {
 
     const orgsRouter = createOrgsRouter(createOrgHandler, deleteOrgHandler);
     app.mount('/api', orgsRouter);
+
+    const authHook =
+        opts.authHook ??
+        resolveInternalAuthHook({
+            jwksUrl: config.auth.jwksUrl,
+            issuer: config.auth.jwtIssuer,
+            audience: config.auth.jwtAudience,
+        });
+    app.assignHook('preHandler', '/api', authHook);
 
     return app;
 }

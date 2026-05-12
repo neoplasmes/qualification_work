@@ -33,6 +33,7 @@ tasks:
       cache: false
       persistent: true
       outputStyle: "stream"
+      
   typecheck:
     command: 'pnpm typecheck'
     deps:
@@ -45,7 +46,6 @@ tasks:
   test-compose-up:
     script: |
       docker compose -f docker-compose.test.yaml up -d \
-        --force-recreate \
         --renew-anon-volumes \
         --build \
         --wait \
@@ -64,14 +64,18 @@ tasks:
 
   test:
     script: |
-      trap 'docker compose -f docker-compose.test.yaml down -v' EXIT
-      pnpm test
+      docker compose -f docker-compose.test.yaml up -d \
+        --renew-anon-volumes --build --wait --wait-timeout 300
+      RC=0
+      pnpm test || RC=$?
+      docker compose -f docker-compose.test.yaml down -v
+      exit $RC
     deps:
       - '^:build'
-      - '~:test-compose-up'
     inputs:
       - '@group(src)'
       - '@group(test)'
       - '@group(cfg)'
     options:
       outputStyle: stream
+      mutex: docker-tests

@@ -96,11 +96,14 @@ tasks:
   
   test:
     script: |
-      trap 'docker compose -f docker-compose.test.yaml down -v' EXIT
-      pnpm test
+      docker compose -f docker-compose.test.yaml up -d \
+        --force-recreate --renew-anon-volumes --build --wait --wait-timeout 300
+      RC=0
+      pnpm test || RC=$?
+      docker compose -f docker-compose.test.yaml down -v
+      exit $RC
     deps:
       - "^:build"
-      - "~:test-compose-up"
     inputs:
       - "@group(src)"
       - "@group(test)"
@@ -109,3 +112,4 @@ tasks:
       - "docker-compose.test.yaml"
     options:
       outputStyle: stream
+      mutex: docker-tests

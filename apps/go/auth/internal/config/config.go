@@ -18,8 +18,8 @@ type Config struct {
 	LogLevel    string `envconfig:"AUTH_LOG_LEVEL" default:"info"`
 	CORSEnabled bool   `envconfig:"AUTH_CORS_ENABLED" default:"false"`
 
-	Postgres Postgres
-	Redis    Redis
+	DatabaseURL string `envconfig:"DATABASE_URL" required:"true"`
+	Redis       Redis
 
 	Pepper string `envconfig:"AUTH_PEPPER" required:"true"`
 
@@ -29,15 +29,7 @@ type Config struct {
 	InternalJWT InternalJWT
 }
 
-type Postgres struct {
-	Host     string `envconfig:"POSTGRES_HOST" required:"true"`
-	Port     int    `envconfig:"POSTGRES_PORT" default:"5432"`
-	DB       string `envconfig:"POSTGRES_DB" required:"true"`
-	User     string `envconfig:"POSTGRES_USER" required:"true"`
-	Password string `envconfig:"POSTGRES_PASSWORD" required:"true"`
-	MaxConns int32  `envconfig:"POSTGRES_MAX_CONNS" default:"10"`
-}
-
+// Redis contains Redis connection settings.
 type Redis struct {
 	Host     string `envconfig:"REDIS_HOST" required:"true"`
 	Port     int    `envconfig:"REDIS_PORT" default:"6379"`
@@ -51,7 +43,7 @@ type Session struct {
 
 type Cookie struct {
 	Name     string
-	Secure   bool
+	Secure   bool   `envconfig:"AUTH_COOKIE_SECURE" default:"true"`
 	SameSite string
 	Path     string
 	Domain   string
@@ -78,9 +70,9 @@ func Load() (*Config, error) {
 	}
 
 	cfg.Session = Session{TTL: 168 * time.Hour}
-	cfg.Cookie = Cookie{
-		Name: "session", Secure: false, SameSite: "Strict", Path: "/", Domain: "",
-	}
+	cfg.Cookie.Name = "session"
+	cfg.Cookie.SameSite = "Strict"
+	cfg.Cookie.Path = "/"
 
 	return &cfg, nil
 }

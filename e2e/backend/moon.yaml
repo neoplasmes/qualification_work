@@ -1,0 +1,71 @@
+language: "typescript"
+
+tags:
+  - "e2e"
+  - "node"
+
+fileGroups:
+  src:
+    - "**/*"
+
+tasks:
+  prettier:
+    command: "pnpm prettier"
+    inputs: 
+      - "@group(src)"
+
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(src)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(src)"
+  
+  typecheck:
+    command: "pnpm typecheck"
+    inputs:
+      - "@group(src)"
+
+  test-compose-up:
+    script: |
+      docker compose -f docker-compose/docker-compose.yaml up -d \
+        --renew-anon-volumes \
+        --build \
+        --wait \
+        --wait-timeout 300
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  test-compose-down:
+    command: "docker compose -f docker-compose/docker-compose.yaml down -v"
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  compose-logs:
+    command: "docker compose -f docker-compose/docker-compose.yaml logs --tail=200"
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+
+  e2e:
+    script: |
+      docker compose -f docker-compose/docker-compose.yaml up -d \
+        --renew-anon-volumes --build --wait --wait-timeout 300
+      export NODE_EXTRA_CA_CERTS="$(pwd)/docker-compose/keys/ca.pem"
+      RC=0
+      pnpm test || RC=$?
+      docker compose -f docker-compose/docker-compose.yaml down -v
+      exit $RC
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: stream
+      mutex: docker-tests

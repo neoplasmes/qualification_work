@@ -22,3 +22,10 @@ coverage
 test-results
 playwright-report
 mdnDocsHeaders.html
+
+moon.yaml
+lefthook.yaml
+oxlint.config.ts
+vitest.config.ts
+prettier.config.js
+commitlint.config.js

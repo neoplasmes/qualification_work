@@ -49,8 +49,3 @@ tasks:
   k3s-local-delete:
     command: "k3d cluster delete @meta(k3d-cluster-name)"
     <<: *common-task
-
-  
-  
-
-    

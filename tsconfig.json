@@ -7,6 +7,7 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
+        //?? remove?
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,

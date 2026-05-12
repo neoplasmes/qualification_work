@@ -43,7 +43,6 @@ tasks:
   test-compose-up:
     script: |
       docker compose -f docker-compose.test.yaml up -d \
-        --force-recreate \
         --renew-anon-volumes \
         --build \
         --wait \
@@ -60,14 +59,15 @@ tasks:
       cache: false
       outputStyle: stream
 
-  # we do not want to run this test in CI or on git hooks for a while
-  test-integration:
+  test:
     script: |
-      trap 'docker compose -f docker-compose.test.yaml down -v' EXIT
-      go test -tags=integration -count=1 ./test/integration/...
+      docker compose -f docker-compose.test.yaml up -d \
+        --renew-anon-volumes --build --wait --wait-timeout 300
+      RC=0
+      go test -tags=integration -count=1 ./test/integration/... || RC=$?
+      docker compose -f docker-compose.test.yaml down -v
+      exit $RC
     toolchain: system
-    deps:
-      - test-compose-up
     inputs:
       - "@group(src)"
       - "@group(test)"
@@ -76,6 +76,7 @@ tasks:
       - "test/integration/pgbouncer/**/*"
     options:
       cache: false
+      mutex: docker-tests
 
   fmt:
     command: "golangci-lint fmt --config ../../../.golangci.yaml ./..."

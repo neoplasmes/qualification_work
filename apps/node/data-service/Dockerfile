@@ -22,6 +22,7 @@ COPY packages/node/types/package.json                   ./packages/node/types/
 COPY packages/node/eslint-plugin-fsd/package.json       ./packages/node/eslint-plugin-fsd/
 COPY packages/node/primitive-server/package.json        ./packages/node/primitive-server/
 COPY packages/node/microservice-config/package.json     ./packages/node/microservice-config/
+COPY packages/node/microservice-utils/package.json      ./packages/node/microservice-utils/
 
 RUN pnpm -F data-service... i --frozen-lockfile --ignore-scripts
 

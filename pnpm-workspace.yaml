@@ -1,6 +1,7 @@
 packages:
   - 'apps/node/*'
   - 'packages/node/*'
+  - 'e2e/backend'
 allowBuilds:
   argon2: true
   lefthook: true

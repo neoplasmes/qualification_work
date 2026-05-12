@@ -230,6 +230,12 @@ importers:
         specifier: catalog:devtools
         version: 4.21.0
 
+  e2e/backend:
+    devDependencies:
+      zod:
+        specifier: catalog:backend
+        version: 4.3.6
+
   packages/node/eslint-plugin-fsd:
     dependencies:
       eslint:
@@ -263,9 +269,6 @@ importers:
       '@qualification-work/microservice-config':
         specifier: workspace:*
         version: link:../microservice-config
-      vitest:
-        specifier: ^4.1.5
-        version: 4.1.5(@types/node@25.4.0)(jsdom@28.1.0)(msw@2.12.14(@types/node@25.4.0)(typescript@6.0.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.27.3)(jiti@2.6.1)(sass@1.97.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.4))
       zod:
         specifier: catalog:backend
         version: 4.3.6

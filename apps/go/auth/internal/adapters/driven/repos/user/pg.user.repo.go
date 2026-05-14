@@ -71,9 +71,9 @@ func (repo *Repo) FindProfileByID(ctx context.Context, id string) (*repos.UserPr
 
 	err := repo.pool.QueryRow(
 		ctx,
-		`SELECT id, email, name, family FROM auth.users WHERE id = $1`,
+		`SELECT id, email, name, family, is_initializing FROM auth.users WHERE id = $1`,
 		id,
-	).Scan(&profile.ID, &profile.Email, &profile.Name, &profile.Family)
+	).Scan(&profile.ID, &profile.Email, &profile.Name, &profile.Family, &profile.IsInitializing)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
@@ -91,9 +91,9 @@ func (repo *Repo) Create(ctx context.Context, params repos.UserCreateParams) (st
 
 	err := repo.pool.QueryRow(
 		ctx,
-		`INSERT INTO auth.users (email, password_hash, name, family)
-		 VALUES ($1, $2, $3, $4) RETURNING id`,
-		params.Email, params.PasswordHash, params.Name, params.Family,
+		`INSERT INTO auth.users (email, password_hash, name, family, is_initializing)
+		 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		params.Email, params.PasswordHash, params.Name, params.Family, params.IsInitializing,
 	).Scan(&userID)
 
 	if err != nil {

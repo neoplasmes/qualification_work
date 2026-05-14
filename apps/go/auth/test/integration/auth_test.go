@@ -17,6 +17,7 @@ func TestAuth(t *testing.T) {
 		t.Run("creates a user with valid payload and returns 201 + id", func(t *testing.T) {
 			client := freshClient(t)
 			email := randEmail()
+			beforeEvents := redisStreamLen(t, "auth:user-events")
 			step(t, "registering %s", email)
 
 			response := postJSON(t, client, authBase+"/api/auth/register", map[string]string{
@@ -26,15 +27,21 @@ func TestAuth(t *testing.T) {
 			responseBody := readBody(response)
 			require.Equalf(t, 201, response.StatusCode, "body: %s", responseBody)
 
-			var body map[string]string
+			var body struct {
+				ID             string `json:"id"`
+				IsInitializing bool   `json:"isInitializing"`
+			}
 			require.NoError(t, json.Unmarshal([]byte(responseBody), &body))
-			step(t, "got user id=%s", body["id"])
-			require.NotEmpty(t, body["id"])
+			step(t, "got user id=%s", body.ID)
+			require.NotEmpty(t, body.ID)
+			require.True(t, body.IsInitializing)
+			require.Equal(t, beforeEvents+1, redisStreamLen(t, "auth:user-events"))
 		})
 
 		t.Run("rejects duplicate email with 409", func(t *testing.T) {
 			client := freshClient(t)
 			email := signUpUser(t, client, "password123")
+			beforeEvents := redisStreamLen(t, "auth:user-events")
 
 			step(t, "second register with same email must conflict")
 			response := postJSON(t, client, authBase+"/api/auth/register", map[string]string{
@@ -42,16 +49,19 @@ func TestAuth(t *testing.T) {
 			})
 			defer response.Body.Close()
 			require.Equal(t, 409, response.StatusCode)
+			require.Equal(t, beforeEvents, redisStreamLen(t, "auth:user-events"))
 		})
 
 		t.Run("rejects invalid payload with 400", func(t *testing.T) {
 			client := freshClient(t)
+			beforeEvents := redisStreamLen(t, "auth:user-events")
 			step(t, "sending bad email + short password")
 			response := postJSON(t, client, authBase+"/api/auth/register", map[string]string{
 				"email": "not-an-email", "password": "short", "name": "", "family": "",
 			})
 			defer response.Body.Close()
 			require.Equal(t, 400, response.StatusCode)
+			require.Equal(t, beforeEvents, redisStreamLen(t, "auth:user-events"))
 		})
 	})
 
@@ -120,7 +130,7 @@ func TestAuth(t *testing.T) {
 			require.Equal(t, 401, response.StatusCode)
 		})
 
-		t.Run("returns profile with empty orgs after login (auth does not create orgs)", func(t *testing.T) {
+		t.Run("returns profile with initialization flag after login", func(t *testing.T) {
 			client := freshClient(t)
 			email := signUpUser(t, client, "password123")
 			loginResponse := loginUser(t, client, email, "password123")
@@ -131,17 +141,19 @@ func TestAuth(t *testing.T) {
 			require.Equal(t, 200, response.StatusCode)
 
 			var body struct {
-				ID            string `json:"id"`
-				Email         string `json:"email"`
-				Name          string `json:"name"`
-				Family        string `json:"family"`
-				Organizations []any  `json:"organizations"`
+				ID             string `json:"id"`
+				Email          string `json:"email"`
+				Name           string `json:"name"`
+				Family         string `json:"family"`
+				IsInitializing bool   `json:"isInitializing"`
+				Organizations  []any  `json:"organizations"`
 			}
 			require.NoError(t, json.NewDecoder(response.Body).Decode(&body))
 			step(t, "got id=%s email=%s orgs=%d", body.ID, body.Email, len(body.Organizations))
 			require.Equal(t, email, body.Email)
 			require.NotEmpty(t, body.ID)
-			require.Empty(t, body.Organizations, "auth must return an empty list because it does not create orgs")
+			require.True(t, body.IsInitializing)
+			require.Empty(t, body.Organizations, "auth must return an empty list before server initializes orgs")
 		})
 
 		t.Run("logout clears cookie and subsequent /me returns 401", func(t *testing.T) {

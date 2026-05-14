@@ -55,6 +55,7 @@ func TestOpenResty(t *testing.T) {
 		t.Run("second request with same cookie gets HIT from proxy_cache", func(t *testing.T) {
 			client := freshClient(t)
 			email := signUpUser(t, client, "password123")
+			markUserInitialized(t, email)
 			loginResponse := postJSON(t, client, gatewayBase+"/api/auth/login", map[string]string{
 				"email": email, "password": "password123",
 			})
@@ -77,6 +78,25 @@ func TestOpenResty(t *testing.T) {
 			secondCacheStatus := secondResponse.Header.Get("X-Auth-Cache")
 			step(t, "X-Auth-Cache=%s", secondCacheStatus)
 			require.Equal(t, "HIT", secondCacheStatus, "repeat request must reuse JWT from OpenResty cache")
+		})
+
+		t.Run("initializing users are not cached by proxy_cache", func(t *testing.T) {
+			client := freshClient(t)
+			email := signUpUser(t, client, "password123")
+			loginResponse := postJSON(t, client, gatewayBase+"/api/auth/login", map[string]string{
+				"email": email, "password": "password123",
+			})
+			require.Equal(t, 204, loginResponse.StatusCode)
+			loginResponse.Body.Close()
+
+			firstResponse := get(t, client, gatewayBase+"/api/anything")
+			firstResponse.Body.Close()
+			require.Equal(t, 200, firstResponse.StatusCode)
+
+			secondResponse := get(t, client, gatewayBase+"/api/anything")
+			defer secondResponse.Body.Close()
+			require.Equal(t, 200, secondResponse.StatusCode)
+			require.NotEqual(t, "HIT", secondResponse.Header.Get("X-Auth-Cache"))
 		})
 
 		t.Run("public /api/auth/* is served without auth_request", func(t *testing.T) {

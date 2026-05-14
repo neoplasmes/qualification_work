@@ -7,6 +7,36 @@ export type TestUser = {
     password: string;
     cookie: string;
     rawSetCookie: string;
+    orgId: string;
+};
+
+type MeResponse = {
+    id: string;
+    email: string;
+    isInitializing: boolean;
+    organizations: Array<{ id: string; name: string; role: string }>;
+};
+
+const waitForInitialOrg = async (cookie: string): Promise<MeResponse> => {
+    const deadline = Date.now() + 10_000;
+    let lastBody = '';
+
+    while (Date.now() < deadline) {
+        const response = await api('/api/auth/me', { cookie });
+        lastBody = await response.text();
+
+        if (response.ok) {
+            const me = JSON.parse(lastBody) as MeResponse;
+
+            if (!me.isInitializing && me.organizations.length > 0) {
+                return me;
+            }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 250));
+    }
+
+    throw new Error(`initial org was not ready in time: ${lastBody}`);
 };
 
 /**
@@ -46,5 +76,7 @@ export const registerAndLogin = async (): Promise<TestUser> => {
         throw new Error('login: no session cookie in response');
     }
 
-    return { email, password, cookie, rawSetCookie };
+    const me = await waitForInitialOrg(cookie);
+
+    return { email, password, cookie, rawSetCookie, orgId: me.organizations[0].id };
 };

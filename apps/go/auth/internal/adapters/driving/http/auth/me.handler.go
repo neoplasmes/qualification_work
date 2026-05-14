@@ -16,11 +16,12 @@ type meOrgDTO struct {
 }
 
 type meBody struct {
-	ID            string     `json:"id" example:"user_123"`
-	Email         string     `json:"email" example:"user@example.com"`
-	Name          string     `json:"name" example:"Jane"`
-	Family        string     `json:"family" example:"Doe"`
-	Organizations []meOrgDTO `json:"organizations"`
+	ID             string     `json:"id" example:"user_123"`
+	Email          string     `json:"email" example:"user@example.com"`
+	Name           string     `json:"name" example:"Jane"`
+	Family         string     `json:"family" example:"Doe"`
+	IsInitializing bool       `json:"isInitializing" example:"true"`
+	Organizations  []meOrgDTO `json:"organizations"`
 }
 
 // MeHandler handles /me requests
@@ -69,10 +70,11 @@ func (handler *MeHandler) Handle(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, meBody{
-		ID:            output.ID,
-		Email:         output.Email,
-		Name:          output.Name,
-		Family:        output.Family,
-		Organizations: organizations,
+		ID:             output.ID,
+		Email:          output.Email,
+		Name:           output.Name,
+		Family:         output.Family,
+		IsInitializing: output.IsInitializing,
+		Organizations:  organizations,
 	})
 }

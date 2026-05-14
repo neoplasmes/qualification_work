@@ -10,6 +10,7 @@ const schema = z.object({
         host: z.string().min(1),
         port: z.coerce.number().int().positive(),
         password: z.string().optional(),
+        db: z.coerce.number().int().nonnegative().default(0),
     }),
     auth: z.object({
         jwksUrl: z.url(),
@@ -37,6 +38,7 @@ export function loadConfig(): Config {
             host: env.REDIS_HOST,
             port: env.REDIS_PORT,
             password: env.REDIS_PASSWORD,
+            db: env.REDIS_DB ?? 0,
         },
         auth: {
             jwksUrl: env.AUTH_JWKS_URL,
@@ -54,18 +56,8 @@ export function loadConfig(): Config {
     const { data } = result;
 
     return Object.freeze({
-        port: data.port,
-        clientOrigin: data.clientOrigin,
-        postgresConnectionString: data.postgresConnectionString,
-        redis: Object.freeze({
-            host: data.redis.host,
-            port: data.redis.port,
-            password: data.redis.password,
-        }),
-        auth: Object.freeze({
-            jwksUrl: data.auth.jwksUrl,
-            jwtIssuer: data.auth.jwtIssuer,
-            jwtAudience: data.auth.jwtAudience,
-        }),
+        ...data,
+        redis: Object.freeze(data.redis),
+        auth: Object.freeze(data.auth),
     });
 }

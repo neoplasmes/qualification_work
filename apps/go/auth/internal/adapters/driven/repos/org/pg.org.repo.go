@@ -27,7 +27,7 @@ func NewPg(pool *pgxpool.Pool) *Repo {
 func (repo *Repo) FindByUserID(ctx context.Context, userID string) ([]domain.OrgMembership, error) {
 	rows, err := repo.pool.Query(
 		ctx,
-		`SELECT o.id, o.name, r.role
+		`SELECT o.id, o.display_name, r.role
 		 FROM orgs.roles r
 		 JOIN orgs.organizations o ON o.id = r.org_id
 		 WHERE r.user_id = $1

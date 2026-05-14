@@ -1,7 +1,10 @@
 import type { Pool } from 'pg';
 
 import type { Org } from '@/core/domain';
+import { ConflictError } from '@/core/errors';
 import type { OrgRepo } from '@/core/ports/driven/repos';
+
+import { isUniqueViolation } from '@/shared/postgres/errors';
 
 /**
  * Translate snake_case to camelCase for organization fields
@@ -10,6 +13,7 @@ import type { OrgRepo } from '@/core/ports/driven/repos';
  */
 const organizationColumnMap: Partial<Record<keyof Org, string>> = {
     ownerId: 'owner_id AS "ownerId"',
+    displayName: 'display_name AS "displayName"',
     createdAt: 'created_at AS "createdAt"',
     updatedAt: 'updated_at AS "updatedAt"',
 };
@@ -27,23 +31,35 @@ export class PgOrgRepo implements OrgRepo {
      * Creates an organization and assigns the owner role to the owner user.
      *
      * @async
-     * @param {{ name: string; ownerId: string }} data
+     * @param {{ name: string; displayName: string; ownerId: string }} data
      * @returns {Promise<{ id: string }>}
      */
-    async create(data: { name: string; ownerId: string }): Promise<{ id: string }> {
-        const { rows } = await this.pool.query(
-            `INSERT INTO orgs.organizations (name, owner_id) VALUES ($1, $2) RETURNING id`,
-            [data.name, data.ownerId]
-        );
+    async create(data: {
+        name: string;
+        displayName: string;
+        ownerId: string;
+    }): Promise<{ id: string }> {
+        try {
+            const { rows } = await this.pool.query<{ id: string }>(
+                `WITH new_org AS (
+                    INSERT INTO orgs.organizations (name, display_name, owner_id)
+                    VALUES ($1, $2, $3)
+                    RETURNING id
+                )
+                INSERT INTO orgs.roles (org_id, user_id, role)
+                SELECT id, $3, 'owner' FROM new_org
+                RETURNING org_id AS id`,
+                [data.name, data.displayName, data.ownerId]
+            );
 
-        const { id } = rows[0] as { id: string };
+            return rows[0];
+        } catch (error) {
+            if (isUniqueViolation(error)) {
+                throw new ConflictError('Organization name already exists');
+            }
 
-        await this.pool.query(
-            `INSERT INTO orgs.roles (org_id, user_id, role) VALUES ($1, $2, 'owner')`,
-            [id, data.ownerId]
-        );
-
-        return { id };
+            throw error;
+        }
     }
 
     /**

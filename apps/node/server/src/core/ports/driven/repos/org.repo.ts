@@ -9,7 +9,11 @@ export interface OrgRepo {
      *
      * @param data
      */
-    create(data: { name: string; ownerId: string }): Promise<{ id: string }>;
+    create(data: {
+        name: string;
+        displayName: string;
+        ownerId: string;
+    }): Promise<{ id: string }>;
 
     /**
      * Delete an organization by id

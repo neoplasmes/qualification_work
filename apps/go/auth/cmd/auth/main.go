@@ -19,6 +19,7 @@ import (
 	"auth/internal/core/queries"
 
 	logger "auth/internal/adapters/driven/repos/_logger"
+	eventsRepo "auth/internal/adapters/driven/repos/events"
 	orgRepo "auth/internal/adapters/driven/repos/org"
 	sessionRepo "auth/internal/adapters/driven/repos/session"
 	userRepo "auth/internal/adapters/driven/repos/user"
@@ -93,16 +94,17 @@ func run() error {
 	pgUserRepo := userRepo.NewPg(postgresPool)
 	pgOrgRepo := orgRepo.NewPg(postgresPool)
 	redisSessionRepo := sessionRepo.NewRedis(redisConnection, tokenGeneratorTool, appConfig.Session.TTL)
+	redisEventsRepo := eventsRepo.NewRedis(redisConnection)
 
 	// ——————————————————————————————— HTTP handlers —————————————————————————————————
-	signUpHandler := commands.NewSignUp(pgUserRepo, passwordHasher)
+	signUpHandler := commands.NewSignUp(pgUserRepo, redisEventsRepo, passwordHasher)
 	signInHandler := commands.NewSignIn(pgUserRepo, redisSessionRepo, passwordHasher, commands.LockoutPolicy{
 		MaxFailedAttempts: appConfig.Lockout.MaxFailedAttempts,
 		Duration:          appConfig.Lockout.Duration,
 	})
 	logoutHandler := commands.NewLogout(redisSessionRepo)
 	meHandler := queries.NewMe(redisSessionRepo, pgUserRepo, pgOrgRepo)
-	jwtHandler := queries.NewJWT(redisSessionRepo, pgOrgRepo, jwtIssuer, queries.JWTIssuerPolicy{
+	jwtHandler := queries.NewJWT(redisSessionRepo, pgUserRepo, pgOrgRepo, jwtIssuer, queries.JWTIssuerPolicy{
 		Issuer:   appConfig.InternalJWT.Issuer,
 		Audience: appConfig.InternalJWT.Audience,
 		TTL:      appConfig.InternalJWT.TTL,

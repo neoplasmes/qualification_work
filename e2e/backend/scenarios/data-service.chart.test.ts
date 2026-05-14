@@ -8,7 +8,11 @@ const setupOrgAndDataset = async (cookie: string, userId: string) => {
     const orgResponse = await api('/api/orgs', {
         method: 'POST',
         cookie,
-        body: JSON.stringify({ name: `e2e-chart-${Date.now()}`, ownerId: userId }),
+        body: JSON.stringify({
+            name: `e2e-chart-${Date.now()}`,
+            displayName: 'E2E Chart Org',
+            ownerId: userId,
+        }),
     });
     expect(orgResponse.status).toBe(201);
     const { id: orgId } = (await orgResponse.json()) as { id: string };

@@ -8,6 +8,7 @@ import type { RequestHandlerType } from '@/shared/appState';
 
 const createOrgSchema = z.object({
     name: z.string().min(1),
+    displayName: z.string().min(1),
     ownerId: z.uuid(),
 });
 
@@ -17,7 +18,11 @@ export function createCreateOrgHandler(handler: CreateOrgCommand): RequestHandle
 
         const input = parseWithZod(createOrgSchema, body);
 
-        const { id } = await handler.execute(input.name, input.ownerId);
+        const { id } = await handler.execute(
+            input.name,
+            input.displayName,
+            input.ownerId
+        );
 
         response.status(201).json({ id });
     };

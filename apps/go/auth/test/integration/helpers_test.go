@@ -16,10 +16,13 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,6 +30,8 @@ var (
 	authBase    = envOr("AUTH_BASE", "http://localhost:13002")
 	gatewayBase = envOr("GATEWAY_BASE", "http://localhost:18080")
 	keyPath     = envOr("AUTH_TEST_KEY", "keys/jwt.pem")
+	redisAddr   = envOr("AUTH_TEST_REDIS_ADDR", "localhost:16379")
+	pgURL       = envOr("AUTH_TEST_DATABASE_URL", "postgres://admin:test_password@localhost:16432/qualification_test?sslmode=disable&default_query_exec_mode=simple_protocol")
 )
 
 func envOr(key, defaultValue string) string {
@@ -124,6 +129,43 @@ func readBody(response *http.Response) string {
 	bodyBytes, _ := io.ReadAll(response.Body)
 
 	return string(bodyBytes)
+}
+
+func freshRedis(t *testing.T) *redis.Client {
+	t.Helper()
+	db, err := strconv.Atoi(envOr("AUTH_TEST_REDIS_DB", "0"))
+	require.NoError(t, err, "parse redis db")
+
+	client := redis.NewClient(&redis.Options{
+		Addr:     redisAddr,
+		Password: envOr("AUTH_TEST_REDIS_PASSWORD", "test_password"),
+		DB:       db,
+	})
+	require.NoError(t, client.Ping(t.Context()).Err(), "ping redis")
+
+	return client
+}
+
+func redisStreamLen(t *testing.T, stream string) int64 {
+	t.Helper()
+	client := freshRedis(t)
+	defer client.Close()
+
+	length, err := client.XLen(t.Context(), stream).Result()
+	require.NoError(t, err, "xlen %s", stream)
+
+	return length
+}
+
+func markUserInitialized(t *testing.T, email string) {
+	t.Helper()
+	pool, err := pgxpool.New(t.Context(), pgURL)
+	require.NoError(t, err, "connect postgres")
+	defer pool.Close()
+
+	tag, err := pool.Exec(t.Context(), `UPDATE auth.users SET is_initializing = false WHERE email = $1`, email)
+	require.NoError(t, err, "mark user initialized")
+	require.Equal(t, int64(1), tag.RowsAffected())
 }
 
 // ————————————————————————————— API helpers ——————————————————————————————————

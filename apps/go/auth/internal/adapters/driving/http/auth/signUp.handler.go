@@ -19,7 +19,8 @@ type signUpBody struct {
 }
 
 type signUpResponse struct {
-	ID string `json:"id" example:"018f2f8f-7a0d-7a8c-9d31-0c05f4d90123"`
+	ID             string `json:"id" example:"018f2f8f-7a0d-7a8c-9d31-0c05f4d90123"`
+	IsInitializing bool   `json:"isInitializing" example:"true"`
 }
 
 // SignUpHandler handles /sigup requests
@@ -68,6 +69,7 @@ func (handler *SignUpHandler) Handle(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, signUpResponse{
-		ID: output.ID,
+		ID:             output.ID,
+		IsInitializing: output.IsInitializing,
 	})
 }

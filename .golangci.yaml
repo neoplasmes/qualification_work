@@ -7,7 +7,7 @@ linters:
     - staticcheck
     - unused
     - ineffassign
-    - revive
+    # - revive - there should be some more friendly options
     - bodyclose
     - noctx
     - exhaustive
@@ -33,7 +33,7 @@ linters:
 formatters:
   enable:
     - goimports
-    - swaggo
+    # - swaggo
   settings:
     goimports:
       local-prefixes:

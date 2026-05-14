@@ -16,7 +16,8 @@ type JWTInput struct {
 }
 
 type JWTOutput struct {
-	JWT string
+	JWT            string
+	IsInitializing bool
 }
 
 type JWTIssuerPolicy struct {
@@ -28,6 +29,7 @@ type JWTIssuerPolicy struct {
 // JWTHandler issues internal JWTs
 type JWTHandler struct {
 	sessions repos.SessionRepo
+	users    repos.UserRepo
 	orgs     repos.OrgRepo
 	issuer   tools.JWTIssuerTool
 	policy   JWTIssuerPolicy
@@ -36,12 +38,14 @@ type JWTHandler struct {
 // NewJWT creates a JWTHandler
 func NewJWT(
 	sessions repos.SessionRepo,
+	users repos.UserRepo,
 	orgs repos.OrgRepo,
 	issuer tools.JWTIssuerTool,
 	policy JWTIssuerPolicy,
 ) *JWTHandler {
 	return &JWTHandler{
 		sessions: sessions,
+		users:    users,
 		orgs:     orgs,
 		issuer:   issuer,
 		policy:   policy,
@@ -61,6 +65,14 @@ func (handler *JWTHandler) Execute(ctx context.Context, input JWTInput) (JWTOutp
 		return emptyOutput, fmt.Errorf("jwt: find session: %w", err)
 	}
 	if session == nil {
+		return emptyOutput, appErrors.Unauthorized("")
+	}
+
+	profile, err := handler.users.FindProfileByID(ctx, session.UserID)
+	if err != nil {
+		return emptyOutput, fmt.Errorf("jwt: find profile: %w", err)
+	}
+	if profile == nil {
 		return emptyOutput, appErrors.Unauthorized("")
 	}
 
@@ -91,6 +103,7 @@ func (handler *JWTHandler) Execute(ctx context.Context, input JWTInput) (JWTOutp
 	}
 
 	return JWTOutput{
-		JWT: token,
+		JWT:            token,
+		IsInitializing: profile.IsInitializing,
 	}, nil
 }

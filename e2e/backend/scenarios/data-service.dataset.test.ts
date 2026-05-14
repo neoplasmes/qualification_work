@@ -15,6 +15,7 @@ describe('data-service /api/data via gateway', () => {
             cookie: user.cookie,
             body: JSON.stringify({
                 name: `e2e-ds-${Date.now()}`,
+                displayName: 'E2E Dataset Org',
                 ownerId: me.id,
             }),
         });

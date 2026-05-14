@@ -51,12 +51,12 @@ func (handler *ReadyHandler) Handle(ctx *gin.Context) {
 	ctx.JSON(status, results)
 }
 
-//	@Summary		Health check
-//	@Description	Returns ok when the process is running
-//	@Tags			health
-//	@Produce		json
-//	@Success		200	{object}	map[string]string
-//	@Router			/health [get]
+// @Summary		Health check
+// @Description	Returns ok when the process is running
+// @Tags			health
+// @Produce		json
+// @Success		200	{object}	map[string]string
+// @Router			/health [get]
 func Health(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status": "ok",

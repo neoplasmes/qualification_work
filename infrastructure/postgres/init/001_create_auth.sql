@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS auth.users (
 
     failed_login_attempts   INTEGER DEFAULT 0,
     locked_until            TIMESTAMPTZ DEFAULT NULL,
+    is_initializing         BOOLEAN NOT NULL DEFAULT false,
 
     name                    VARCHAR(127) NOT NULL,
     family                  VARCHAR(127) NOT NULL,

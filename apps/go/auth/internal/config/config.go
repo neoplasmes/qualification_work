@@ -43,7 +43,7 @@ type Session struct {
 
 type Cookie struct {
 	Name     string
-	Secure   bool   `envconfig:"AUTH_COOKIE_SECURE" default:"true"`
+	Secure   bool `envconfig:"AUTH_COOKIE_SECURE" default:"true"`
 	SameSite string
 	Path     string
 	Domain   string

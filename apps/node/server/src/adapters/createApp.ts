@@ -37,8 +37,8 @@ export function createApp(
 ): Application<AppState> {
     const orgRepo = new PgOrgRepo(pool);
 
-    const createOrgHandler = new CreateOrgCommand(orgRepo);
-    const deleteOrgHandler = new DeleteOrgCommand(orgRepo);
+    const createOrgCommand = new CreateOrgCommand(orgRepo);
+    const deleteOrgCommand = new DeleteOrgCommand(orgRepo);
 
     const app = new Application<AppState>();
 
@@ -92,7 +92,7 @@ export function createApp(
         response.json({ status: 'ok' });
     });
 
-    const orgsRouter = createOrgsRouter(createOrgHandler, deleteOrgHandler);
+    const orgsRouter = createOrgsRouter(createOrgCommand, deleteOrgCommand);
     app.mount('/api', orgsRouter);
 
     const authHook =

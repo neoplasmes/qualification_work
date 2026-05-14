@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"net/http"
+
 	helpers "auth/internal/adapters/driving/http/_helpers"
 	"auth/internal/core/queries"
 
@@ -21,16 +23,16 @@ func NewJWT(jwtHandler *queries.JWTHandler, cookieWriter *helpers.CookieWriter) 
 	}
 }
 
-//	@Summary		Issue internal JWT
-//	@Description	Issues a signed internal JWT for gateway auth_request
-//	@Tags			gateway
-//	@Produce		json
-//	@Security		SessionCookie
-//	@Success		204	{string}	string			"No Content"
-//	@Header			204	{string}	X-Internal-Auth	"Signed internal JWT"
-//	@Failure		401	{object}	helpers.ErrorResponse
-//	@Failure		500	{object}	helpers.ErrorResponse
-//	@Router			/gateway/jwt [get]
+// @Summary		Issue internal JWT
+// @Description	Issues a signed internal JWT for gateway auth_request
+// @Tags			gateway
+// @Produce		json
+// @Security		SessionCookie
+// @Success		204	{string}	string			"No Content"
+// @Header			204	{string}	X-Internal-Auth	"Signed internal JWT"
+// @Failure		401	{object}	helpers.ErrorResponse
+// @Failure		500	{object}	helpers.ErrorResponse
+// @Router			/gateway/jwt [get]
 func (handler *JWTHandler) Handle(ctx *gin.Context) {
 	token := handler.cookieWriter.Read(ctx)
 	output, err := handler.jwtHandler.Execute(ctx.Request.Context(), queries.JWTInput{
@@ -43,7 +45,15 @@ func (handler *JWTHandler) Handle(ctx *gin.Context) {
 	}
 
 	ctx.Header("X-Internal-Auth", output.JWT)
-	// This response is personal and cached by OpenResty
-	ctx.Header("Cache-Control", "private, max-age=30")
+	if output.IsInitializing {
+		ctx.Header("X-User-Initializing", "1")
+		ctx.Header("Cache-Control", "no-store")
+		ctx.Status(http.StatusAccepted)
+
+		return
+	} else {
+		// This response is personal and cached by OpenResty.
+		ctx.Header("Cache-Control", "private, max-age=30")
+	}
 	ctx.Status(204)
 }

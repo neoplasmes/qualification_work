@@ -7,10 +7,11 @@ import (
 
 // UserCreateParams contains fields required to create a user.
 type UserCreateParams struct {
-	Email        string
-	PasswordHash string
-	Name         string
-	Family       string
+	Email          string
+	PasswordHash   string
+	Name           string
+	Family         string
+	IsInitializing bool
 }
 
 // UserCredentials is the projection used during sign-in.
@@ -23,10 +24,11 @@ type UserCredentials struct {
 
 // UserProfile is the projection used by the profile endpoint.
 type UserProfile struct {
-	ID     string
-	Email  string
-	Name   string
-	Family string
+	ID             string
+	Email          string
+	Name           string
+	Family         string
+	IsInitializing bool
 }
 
 // UserRepo stores users and login state.

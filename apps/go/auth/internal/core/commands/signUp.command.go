@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"auth/internal/core/ports/driven/repos"
 	"auth/internal/core/ports/driven/tools"
@@ -18,20 +19,26 @@ type SignUpInput struct {
 }
 
 type SignUpOutput struct {
-	ID string
+	ID             string
+	IsInitializing bool
 }
 
-// TODO: redis pub/sub task to create a new organization
 // SignUpHandler registers users
 type SignUpHandler struct {
 	users  repos.UserRepo
+	events repos.EventPublisher
 	hasher tools.HasherTool
 }
 
 // NewSignUp creates a SignUpHandler
-func NewSignUp(users repos.UserRepo, hasher tools.HasherTool) *SignUpHandler {
+func NewSignUp(
+	users repos.UserRepo,
+	events repos.EventPublisher,
+	hasher tools.HasherTool,
+) *SignUpHandler {
 	return &SignUpHandler{
 		users:  users,
+		events: events,
 		hasher: hasher,
 	}
 }
@@ -55,16 +62,26 @@ func (handler *SignUpHandler) Execute(ctx context.Context, input SignUpInput) (S
 	}
 
 	userID, err := handler.users.Create(ctx, repos.UserCreateParams{
-		Email:        input.Email,
-		PasswordHash: hash,
-		Name:         input.Name,
-		Family:       input.Family,
+		Email:          input.Email,
+		PasswordHash:   hash,
+		Name:           input.Name,
+		Family:         input.Family,
+		IsInitializing: true,
 	})
 	if err != nil {
 		return emptyOutput, fmt.Errorf("signUp: create: %w", err)
 	}
 
+	if err := handler.events.PublishUserRegistered(ctx, repos.UserRegisteredEvent{
+		UserID:     userID,
+		Username:   input.Name,
+		OccurredAt: time.Now().UTC(),
+	}); err != nil {
+		fmt.Printf("signUp: publish user registered: %v\n", err)
+	}
+
 	return SignUpOutput{
-		ID: userID,
+		ID:             userID,
+		IsInitializing: true,
 	}, nil
 }

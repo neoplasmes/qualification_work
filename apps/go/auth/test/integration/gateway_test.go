@@ -22,11 +22,13 @@ func TestGateway(t *testing.T) {
 			step(t, "asking auth for internal JWT")
 			response := get(t, client, authBase+"/gateway/jwt")
 			defer response.Body.Close()
-			require.Equal(t, 204, response.StatusCode)
+			require.Equal(t, 202, response.StatusCode)
 
 			token := response.Header.Get("X-Internal-Auth")
 			step(t, "got jwt (len=%d)", len(token))
 			require.NotEmpty(t, token)
+			require.Equal(t, "1", response.Header.Get("X-User-Initializing"))
+			require.Equal(t, "no-store", response.Header.Get("Cache-Control"))
 
 			step(t, "verifying signature with public key from test/integration/keys/jwt.pem")
 			privateKey := loadPrivateKey(t)

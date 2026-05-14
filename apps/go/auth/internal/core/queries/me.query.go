@@ -21,11 +21,12 @@ type MeOrgMemberships struct {
 }
 
 type MeOutput struct {
-	ID            string
-	Email         string
-	Name          string
-	Family        string
-	Orgs []MeOrgMemberships
+	ID             string
+	Email          string
+	Name           string
+	Family         string
+	IsInitializing bool
+	Orgs           []MeOrgMemberships
 }
 
 // MeHandler returns the current user profile and memberships
@@ -84,10 +85,11 @@ func (handler *MeHandler) Execute(ctx context.Context, input MeInput) (MeOutput,
 	}
 
 	return MeOutput{
-		ID:  	profile.ID,
-		Email:  profile.Email,
-		Name:   profile.Name,
-		Family: profile.Family,
-		Orgs: 	normalizedMemberships,
+		ID:             profile.ID,
+		Email:          profile.Email,
+		Name:           profile.Name,
+		Family:         profile.Family,
+		IsInitializing: profile.IsInitializing,
+		Orgs:           normalizedMemberships,
 	}, nil
 }

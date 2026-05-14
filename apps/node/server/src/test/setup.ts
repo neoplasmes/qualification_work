@@ -8,12 +8,19 @@ import {
 } from '@qualification-work/microservice-utils/internalAuth';
 import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
 
+import { InitUserCommand } from '@/core/commands';
+
 import { createApp } from '@/adapters/createApp';
+import { PgUserRepo } from '@/adapters/driven/repos';
+import { RedisUserEventsConsumer } from '@/adapters/driving/consumer';
 
 import type { Config } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
+import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
 
 let pool: Pool;
+let redis: RedisClient;
+let userEventsConsumer: RedisUserEventsConsumer | undefined;
 let baseUrl: string;
 let server: Server | undefined;
 let started = false;
@@ -36,6 +43,8 @@ const testConfig: Config = {
     redis: {
         host: process.env.REDIS_HOST ?? 'localhost',
         port: Number(process.env.REDIS_PORT ?? 6379),
+        password: process.env.REDIS_PASSWORD,
+        db: Number(process.env.REDIS_DB ?? 0),
     },
     auth: { jwksUrl: 'unused', jwtIssuer: 'unused', jwtAudience: 'unused' },
 };
@@ -49,6 +58,10 @@ const testAuthHook = async ({
 };
 
 export async function truncate(): Promise<void> {
+    if (redis?.isReady) {
+        await redis.flushDb();
+    }
+
     const { rows } = await pool.query<{ schema_name: string }>(`
         SELECT schema_name
         FROM information_schema.schemata
@@ -77,20 +90,22 @@ export async function createTestUser(
         email?: string;
         name?: string;
         family?: string;
+        isInitializing?: boolean;
     } = {}
-): Promise<{ id: string }> {
+): Promise<{ id: string; name: string }> {
     const email = data.email ?? `test-${randomUUID()}@example.com`;
     const name = data.name ?? 'Test';
     const family = data.family ?? 'User';
+    const isInitializing = data.isInitializing ?? false;
 
-    const [user] = await dbQuery<{ id: string }>(
-        `INSERT INTO auth.users (email, password_hash, name, family)
-         VALUES ($1, $2, $3, $4)
+    const [user] = await dbQuery<{ id: string; name: string }>(
+        `INSERT INTO auth.users (email, password_hash, name, family, is_initializing)
+         VALUES ($1, $2, $3, $4, $5)
          RETURNING id`,
-        [email, 'not-used-by-node-server', name, family]
+        [email, 'not-used-by-node-server', name, family, isInitializing]
     );
 
-    return user;
+    return { id: user.id, name };
 }
 
 export async function createTestOrg(
@@ -126,6 +141,38 @@ export async function createTestUserWithOrg(): Promise<{
         userId: user.id,
         orgId: organization.id,
     };
+}
+
+export async function publishUserRegisteredEvent(data: {
+    userId: string;
+    username: string;
+}): Promise<string> {
+    return redis.xAdd('auth:user-events', '*', {
+        type: 'user.registered',
+        version: '1',
+        userId: data.userId,
+        username: data.username,
+        occurredAt: new Date().toISOString(),
+    });
+}
+
+export async function waitFor(
+    assertion: () => Promise<boolean>,
+    options: { timeoutMs?: number; intervalMs?: number } = {}
+): Promise<void> {
+    const timeoutMs = options.timeoutMs ?? 5000;
+    const intervalMs = options.intervalMs ?? 100;
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+        if (await assertion()) {
+            return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+
+    throw new Error(`condition was not met in ${timeoutMs}ms`);
 }
 
 export function api(path: string, init?: RequestInit): Promise<Response> {
@@ -165,8 +212,19 @@ export async function startServer(): Promise<void> {
 
     try {
         pool = await createPool(testConfig.postgresConnectionString);
+        redis = await createRedisClient(testConfig.redis);
 
         await truncate();
+
+        const initUserRepo = new PgUserRepo(pool);
+        const initUserCommand = new InitUserCommand(initUserRepo);
+        userEventsConsumer = new RedisUserEventsConsumer(
+            redis,
+            initUserCommand,
+            initUserRepo,
+            { blockTime: 100, reconcileIntervalTime: 200 }
+        );
+        await userEventsConsumer.start();
 
         const app = createApp(pool, testConfig, { authHook: testAuthHook });
         server = await app.listen({ port: 0 });
@@ -195,6 +253,8 @@ export async function stopServer(): Promise<void> {
 
     started = false;
 
+    await userEventsConsumer?.stop();
+
     await new Promise<void>((resolve, reject) => {
         server?.closeAllConnections();
         server?.close(error => {
@@ -208,7 +268,9 @@ export async function stopServer(): Promise<void> {
         });
     });
 
+    await redis?.close();
     await pool?.end();
 
     server = undefined;
+    userEventsConsumer = undefined;
 }

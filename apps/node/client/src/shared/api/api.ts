@@ -1,8 +1,20 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const browserApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const serverApiBaseUrl =
+    typeof process !== 'undefined'
+        ? (process.env.SSR_API_BASE_URL ?? browserApiBaseUrl)
+        : browserApiBaseUrl;
+
+const apiBaseUrl =
+    typeof window === 'undefined' ? serverApiBaseUrl : browserApiBaseUrl;
+
 export const api = createApi({
     reducerPath: 'rtkApi',
-    baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com' }),
+    baseQuery: fetchBaseQuery({
+        baseUrl: apiBaseUrl,
+        credentials: 'include',
+    }),
     keepUnusedDataFor: 300,
     extractRehydrationInfo(action, { reducerPath }) {
         if (action.type === 'HYDRATE') {

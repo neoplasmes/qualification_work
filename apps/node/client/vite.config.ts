@@ -4,8 +4,24 @@ import { defineConfig } from 'vite';
 
 import { entryScriptRewritePlugin } from './vite/plugins/entryScriptRewritePlugin';
 
+const hmrClientPort = Number(process.env.VITE_HMR_CLIENT_PORT);
+const hmr =
+    process.env.VITE_HMR_HOST || process.env.VITE_HMR_PROTOCOL || hmrClientPort
+        ? {
+              protocol: process.env.VITE_HMR_PROTOCOL as 'ws' | 'wss' | undefined,
+              host: process.env.VITE_HMR_HOST,
+              clientPort: Number.isFinite(hmrClientPort)
+                  ? hmrClientPort
+                  : undefined,
+          }
+        : undefined;
+
 export default defineConfig(({ command }) => ({
     plugins: [react(), entryScriptRewritePlugin()],
+
+    server: {
+        hmr,
+    },
 
     resolve: {
         alias: {

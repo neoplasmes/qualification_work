@@ -32,6 +32,23 @@ tasks:
       persistent: true
       outputStyle: "stream"
 
+  dev-compose-up:
+    command: "DOCKER_BUILDKIT=0 docker compose -f docker-compose.dev.yaml up -d --build --wait --wait-timeout 300"
+    toolchain: system
+    inputs:
+      - "docker-compose.dev.yaml"
+      - "docker-compose/**/*"
+    options:
+      cache: false
+      outputStyle: "stream"
+
+  dev-compose-down:
+    command: "docker compose -f docker-compose.dev.yaml down"
+    toolchain: system
+    options:
+      cache: false
+      outputStyle: "stream"
+
   build:
     command: "pnpm build"
     deps:

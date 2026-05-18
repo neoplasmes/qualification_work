@@ -11,7 +11,30 @@ data:
 
   REDIS_HOST: "redis-master"
   REDIS_PORT: "6379"
-  
+  REDIS_DB: "0"
+
   CLIENT_PORT: "3000"
   SERVER_PORT: "3001"
+  AUTH_PORT: "3002"
+  DATA_SERVICE_PORT: "3003"
+
   CLIENT_ORIGIN: "http://localhost:3000"
+
+  # auth service internal endpoints
+  AUTH_JWKS_URL: "http://auth:3002/gateway/.well-known/jwks.json"
+  AUTH_JWT_ISSUER: "qualification-auth"
+  AUTH_JWT_AUDIENCE: "internal"
+  AUTH_INTERNAL_JWT_TTL: "60s"
+  AUTH_JWT_KID: "k8s-local-1"
+  AUTH_LOG_LEVEL: "info"
+  AUTH_CORS_ENABLED: "false"
+  AUTH_MAX_FAILED_ATTEMPTS: "5"
+  AUTH_LOCKOUT_DURATION: "15m"
+
+  # data-service merge sessions
+  MERGE_TMP_DIR: "/tmp/datasets"
+  MERGE_SESSION_TTL_SECONDS: "1800"
+  MERGE_MAX_FILE_BYTES: "524288000"
+  MERGE_MAX_ROWS_IN_MEMORY: "100000"
+  MERGE_MAX_EXISTING_ROWS: "1000000"
+  MERGE_CLEANUP_INTERVAL_MS: "300000"

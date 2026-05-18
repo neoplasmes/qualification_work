@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: auth
+          image: "ghcr.io/neoplasmes/qualification_work/apps_go_auth:custom"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3002
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "200m"
+            limits:
+              memory: "192Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: AUTH_JWT_PRIVATE_KEY_PATH
+              value: /etc/auth/jwt.private.pem
+          envFrom:
+            - configMapRef:
+                name: app-env-config
+            - secretRef:
+                name: app-secret
+          volumeMounts:
+            - name: jwt-key
+              mountPath: /etc/auth
+              readOnly: true
+      volumes:
+        - name: jwt-key
+          secret:
+            secretName: auth-jwt-key
+            items:
+              - key: jwt.private.pem
+                path: jwt.private.pem

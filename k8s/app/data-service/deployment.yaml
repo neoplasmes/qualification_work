@@ -1,43 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: server
+  name: data-service
   namespace: app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: server
+      app: data-service
   template:
     metadata:
       labels:
-        app: server
+        app: data-service
     spec:
       imagePullSecrets:
         - name: ghcr-secret
       containers:
-        - name: server
-          image: "ghcr.io/neoplasmes/qualification_work/apps_node_server:custom"
+        - name: data-service
+          image: "ghcr.io/neoplasmes/qualification_work/apps_node_data-service:custom"
           imagePullPolicy: Always
           ports:
-            - containerPort: 3001
+            - containerPort: 3003
           resources:
             requests:
-              memory: "128Mi"
+              memory: "192Mi"
               cpu: "500m"
             limits:
-              memory: "256Mi"
-              cpu: "500m"
+              memory: "512Mi"
+              cpu: "1000m"
           livenessProbe:
             httpGet:
               path: /health
-              port: 3001
+              port: 3003
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
-              port: 3001
+              port: 3003
             initialDelaySeconds: 10
             periodSeconds: 10
           envFrom:
@@ -45,4 +45,10 @@ spec:
                 name: app-env-config
             - secretRef:
                 name: app-secret
-          
+          # pending-merge tmp storage; image creates /tmp/datasets, mount keeps it writable
+          volumeMounts:
+            - name: merge-tmp
+              mountPath: /tmp/datasets
+      volumes:
+        - name: merge-tmp
+          emptyDir: {}

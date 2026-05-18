@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: app
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: postgres-init-migration-sql
+    namespace: app
+    # files live outside this dir, so kustomize must be built with --load-restrictor=LoadRestrictionsNone
+    files:
+      - ../../../../infrastructure/postgres/init/000_setup.sql
+      - ../../../../infrastructure/postgres/init/001_create_auth.sql
+      - ../../../../infrastructure/postgres/init/002_create_orgs.sql
+      - ../../../../infrastructure/postgres/init/003_create_data.sql
+      - ../../../../infrastructure/postgres/init/004_create_charts.sql
+      - ../../../../infrastructure/postgres/init/005_create_dashboards.sql
+      - ../../../../infrastructure/postgres/init/006_create_dashboard_variables.sql
+      - ../../../../infrastructure/postgres/init/007_create_actions.sql
+resources:
+  - job.yaml

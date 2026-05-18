@@ -16,7 +16,8 @@ spec:
         - name: ghcr-secret
       containers:
       - name: client
-        image: "ghcr.io/neoplasmes/qualification_work/apps_node_client:custom"  
+        image: "ghcr.io/neoplasmes/qualification_work/apps_node_client:custom"
+        imagePullPolicy: Always
         resources:
           requests:
             memory: "128Mi"

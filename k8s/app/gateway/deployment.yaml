@@ -66,11 +66,11 @@ spec:
         # Our sidecar for the restarts
         - name: discovery
           image: ghcr.io/neoplasmes/qualification_work/packages_go_openresty-discovery:custom
+          imagePullPolicy: Always
           env:
+            # comma-separated upstream:port:service[:algo]; service names match k8s Services in this namespace
             - name: WATCH_SERVICES
-              value: |
-                client_backend:3000:client:least_conn,
-                server_backend:3001:server:least_conn
+              value: "client_backend:3000:client:least_conn,server_backend:3001:server:least_conn,auth_backend:3002:auth:least_conn,data_service_backend:3003:data-service:least_conn"
             - name: NGINX_PID_FILE
               value: "/shared/nginx.pid"
             - name: UPSTREAMS_OUTPUT

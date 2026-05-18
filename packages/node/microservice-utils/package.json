@@ -5,6 +5,7 @@
     "exports": {
         ".": "./index.ts",
         "./internalAuth": "./internalAuth/index.ts",
+        "./pg": "./pg/index.ts",
         "./test": "./test/index.ts"
     },
     "types": "./index.ts",
@@ -19,10 +20,13 @@
         "jose": "^5.9.6"
     },
     "peerDependencies": {
+        "pg": ">=8",
         "zod": ">=4.0.0"
     },
     "devDependencies": {
         "@qualification-work/microservice-config": "workspace:*",
+        "@types/pg": "catalog:postgres",
+        "pg": "catalog:postgres",
         "zod": "catalog:backend"
     }
 }

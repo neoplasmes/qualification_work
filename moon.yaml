@@ -39,7 +39,7 @@ tasks:
     <<: *common-task
 
   k3s-local-run:
-    command: "k3d cluster run @meta(k3d-cluster-name)"
+    command: "k3d cluster start @meta(k3d-cluster-name)"
     <<: *common-task
   
   k3s-local-stop:

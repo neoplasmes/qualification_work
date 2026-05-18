@@ -1,6 +1,5 @@
-import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
-import type { Pool, QueryResultRow } from 'pg';
+import type { Pool } from 'pg';
 
 import {
     setInternalIdentity,
@@ -36,6 +35,18 @@ export function resetTestIdentity(): void {
     currentIdentity = mockInternalIdentity();
 }
 
+export function getPool(): Pool {
+    return pool;
+}
+
+export function getRedis(): RedisClient {
+    return redis;
+}
+
+export function getBaseUrl(): string {
+    return baseUrl;
+}
+
 const testConfig: Config = {
     port: 0,
     clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
@@ -63,144 +74,17 @@ export async function truncate(): Promise<void> {
     }
 
     const { rows } = await pool.query<{ schema_name: string }>(`
-        SELECT schema_name
-        FROM information_schema.schemata
-        WHERE schema_name NOT IN ('pg_catalog', 'information_schema')
-          AND schema_name NOT LIKE 'pg_toast%'
-          AND schema_name NOT LIKE 'pg_temp_%'
-        ORDER BY schema_name
-    `);
+		SELECT schema_name
+		FROM information_schema.schemata
+		WHERE schema_name NOT IN ('pg_catalog', 'information_schema')
+			AND schema_name NOT LIKE 'pg_toast%'
+			AND schema_name NOT LIKE 'pg_temp_%'
+		ORDER BY schema_name
+	`);
 
     for (const { schema_name } of rows) {
         await pool.query('SELECT truncate_all_tables($1)', [schema_name]);
     }
-}
-
-export async function dbQuery<T extends QueryResultRow = QueryResultRow>(
-    text: string,
-    params?: unknown[]
-): Promise<T[]> {
-    const result = await pool.query<T>(text, params);
-
-    return result.rows;
-}
-
-export async function createTestUser(
-    data: {
-        email?: string;
-        name?: string;
-        family?: string;
-        isInitializing?: boolean;
-    } = {}
-): Promise<{ id: string; name: string }> {
-    const email = data.email ?? `test-${randomUUID()}@example.com`;
-    const name = data.name ?? 'Test';
-    const family = data.family ?? 'User';
-    const isInitializing = data.isInitializing ?? false;
-
-    const [user] = await dbQuery<{ id: string; name: string }>(
-        `INSERT INTO auth.users (email, password_hash, name, family, is_initializing)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
-        [email, 'not-used-by-node-server', name, family, isInitializing]
-    );
-
-    return { id: user.id, name };
-}
-
-export async function createTestOrg(
-    userId: string,
-    data: { name?: string } = {}
-): Promise<{ id: string }> {
-    const name = data.name ?? `Test Org ${randomUUID()}`;
-
-    const [organization] = await dbQuery<{ id: string }>(
-        `INSERT INTO orgs.organizations (name, owner_id)
-         VALUES ($1, $2)
-         RETURNING id`,
-        [name, userId]
-    );
-
-    await dbQuery(
-        `INSERT INTO orgs.roles (org_id, user_id, role)
-         VALUES ($1, $2, 'owner')`,
-        [organization.id, userId]
-    );
-
-    return organization;
-}
-
-export async function createTestUserWithOrg(): Promise<{
-    userId: string;
-    orgId: string;
-}> {
-    const user = await createTestUser();
-    const organization = await createTestOrg(user.id);
-
-    return {
-        userId: user.id,
-        orgId: organization.id,
-    };
-}
-
-export async function publishUserRegisteredEvent(data: {
-    userId: string;
-    username: string;
-}): Promise<string> {
-    return redis.xAdd('auth:user-events', '*', {
-        type: 'user.registered',
-        version: '1',
-        userId: data.userId,
-        username: data.username,
-        occurredAt: new Date().toISOString(),
-    });
-}
-
-export async function waitFor(
-    assertion: () => Promise<boolean>,
-    options: { timeoutMs?: number; intervalMs?: number } = {}
-): Promise<void> {
-    const timeoutMs = options.timeoutMs ?? 5000;
-    const intervalMs = options.intervalMs ?? 100;
-    const deadline = Date.now() + timeoutMs;
-
-    while (Date.now() < deadline) {
-        if (await assertion()) {
-            return;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, intervalMs));
-    }
-
-    throw new Error(`condition was not met in ${timeoutMs}ms`);
-}
-
-export function api(path: string, init?: RequestInit): Promise<Response> {
-    const headers = new Headers(init?.headers);
-
-    if (!(init?.body instanceof FormData) && !headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
-    }
-
-    return fetch(`${baseUrl}${path}`, {
-        headers,
-        ...init,
-    });
-}
-
-/**
- * Запустить запрос от имени конкретной identity. Идентичность держится на
- * модульной переменной — если в тесте параллельно делаешь несколько вызовов,
- * используй sequentially.
- */
-export async function apiAs(
-    identity: InternalIdentity,
-    path: string,
-    init?: RequestInit
-): Promise<Response> {
-    setTestIdentity(identity);
-
-    return api(path, init);
 }
 
 export async function startServer(): Promise<void> {

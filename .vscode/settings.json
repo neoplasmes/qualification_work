@@ -15,6 +15,9 @@
         "*.yaml.gotmpl": "yaml"
     },
 
+    "jsdoc-generator.includeTypes": false,
+    "jsdoc-generator.singleLineComments": true,
+
     "yaml.schemas": {
         "./.moon/cache/schemas/workspace.json": [".moon/workspace.yml"],
         "./.moon/cache/schemas/toolchains.json": [".moon/toolchains.yml"],

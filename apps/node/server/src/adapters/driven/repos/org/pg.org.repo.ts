@@ -1,10 +1,10 @@
 import type { Pool } from 'pg';
 
+import { isUniqueViolation } from '@qualification-work/microservice-utils/pg';
+
 import type { Org } from '@/core/domain';
 import { ConflictError } from '@/core/errors';
 import type { OrgRepo } from '@/core/ports/driven/repos';
-
-import { isUniqueViolation } from '@/shared/postgres/errors';
 
 /**
  * Translate snake_case to camelCase for organization fields

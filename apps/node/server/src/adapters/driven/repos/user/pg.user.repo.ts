@@ -1,9 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import type { Pool } from 'pg';
 
-import type { UserRepo } from '@/core/ports/driven/repos';
+import { isUniqueViolation } from '@qualification-work/microservice-utils/pg';
 
-import { isUniqueViolation } from '@/shared/postgres/errors';
+import type { UserRepo } from '@/core/ports/driven/repos';
 
 import type { ReconciliationRepo } from './_reconciliation.repo';
 

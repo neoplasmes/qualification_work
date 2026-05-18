@@ -8,7 +8,7 @@ import {
     stopServer,
     truncate,
     waitFor,
-} from './setup';
+} from '../lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

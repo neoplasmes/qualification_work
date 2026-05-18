@@ -9,7 +9,7 @@ import {
     vi,
 } from 'vitest';
 
-import { api, createTestUser, startServer, stopServer, truncate } from './setup';
+import { api, createTestUser, startServer, stopServer, truncate } from '../lib';
 
 let userId: string;
 

@@ -21,6 +21,7 @@
     "dependencies": {
         "@qualification-work/microservice-utils": "workspace:*",
         "@qualification-work/types": "workspace:*",
+        "es-toolkit": "^1.46.1",
         "fast-json-stringify": "^6.3.0",
         "pg": "catalog:postgres",
         "primitive-server": "workspace:*",

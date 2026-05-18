@@ -3,8 +3,12 @@ packages:
   - 'packages/node/*'
   - 'e2e/backend'
 allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
   argon2: true
+  esbuild: true
   lefthook: true
+  msw: true
 
 linkWorkspacePackages: true
 

@@ -20,8 +20,8 @@ export abstract class BaseError extends Error {
 }
 
 /**
- * should be thrown when content body does not pass validation.
- * the most frequent use case - throw on the zod validation failure.
+ * should be thrown when content body does not pass validation
+ * the most frequent use case - throw on the zod validation failure
  */
 export class ValidationError extends BaseError {
     errorType: ErrorType = 'ValidationError';
@@ -43,7 +43,18 @@ export class NotFoundError extends BaseError {
 }
 
 /**
- * Should be thrown on conflict with UNIQUE fields
+ * Should be thrown when caller is authenticated but hasn't access to the resource
+ */
+export class ForbiddenError extends BaseError {
+    errorType: ErrorType = 'ForbiddenError';
+
+    constructor(message: string = 'Forbidden') {
+        super(message, 403);
+    }
+}
+
+/**
+ * should be thrown on conflict with UNIQUE fields
  */
 export class ConflictError extends BaseError {
     errorType: ErrorType = 'ConflictError';
@@ -54,7 +65,7 @@ export class ConflictError extends BaseError {
 }
 
 /**
- * Use when it is not clear which error to throw.
+ * use when it is not clear which error to throw
  */
 export class AppError extends BaseError {
     errorType: ErrorType;

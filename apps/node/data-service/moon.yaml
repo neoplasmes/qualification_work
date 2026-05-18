@@ -33,7 +33,21 @@ tasks:
       cache: false
       persistent: true
       outputStyle: "stream"
-      
+  
+  lint:
+    command: "pnpm lint"
+    inputs:
+      - "@group(src)"
+      - "@group(cfg)"
+
+  lint-fix:
+    command: "pnpm lint:fix"
+    inputs:
+      - "@group(src)"
+      - "@group(cfg)"
+    options:
+      cache: false
+
   typecheck:
     command: 'pnpm typecheck'
     deps:

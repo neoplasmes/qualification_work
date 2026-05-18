@@ -86,8 +86,8 @@ export async function createTestOrg(
     const name = data.name ?? `Test Org ${randomUUID()}`;
 
     const [organization] = await dbQuery<{ id: string }>(
-        `INSERT INTO orgs.organizations (name, owner_id)
-         VALUES ($1, $2)
+        `INSERT INTO orgs.organizations (name, display_name, owner_id)
+         VALUES ($1, $1, $2)
          RETURNING id`,
         [name, userId]
     );

@@ -1,0 +1,30 @@
+.dropzone {
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-outline);
+    border-radius: var(--radius-sm);
+
+    background: transparent;
+
+    transition: border-color 0.2s ease;
+
+    &:hover,
+    &:focus-within {
+        border-color: var(--color-on-surface);
+    }
+}
+
+.file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

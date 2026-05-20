@@ -11,5 +11,13 @@
         "noEmit": true,
         "allowImportingTsExtensions": true
     },
-    "include": ["src", "server", "vite.config.ts", "vite", "oxlint.config.ts"]
+    "include": [
+        "src",
+        "server",
+        "vite.config.ts",
+        "vite",
+        "oxlint.config.ts",
+        "playwright.config.ts",
+        "e2e"
+    ]
 }

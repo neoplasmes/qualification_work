@@ -1,0 +1,124 @@
+import { Pie } from '@visx/shape';
+import { Group } from '@visx/group';
+import { scaleOrdinal } from '@visx/scale';
+import { ParentSize } from '@visx/responsive';
+import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+import { localPoint } from '@visx/event';
+
+import type { ChartDataPoint } from '../lib/parseChartData';
+import { formatChartCell } from '../lib/formatChartCell';
+
+const C = {
+    outline: '#2c2a2b',
+    surfaceHigh: '#242424',
+    onSurface: '#fff',
+} as const;
+
+const PIE_COLORS = [
+    '#872557',
+    '#b03070',
+    '#c85080',
+    '#5a1a3a',
+    '#d4709a',
+    '#3e1228',
+    '#e090b8',
+    '#6e1f47',
+];
+
+const CHART_HEIGHT = 260;
+
+type PieChartInnerProps = {
+    data: ChartDataPoint[];
+    width: number;
+    height: number;
+};
+
+const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
+    const { showTooltip, hideTooltip, tooltipData, tooltipLeft, tooltipTop, tooltipOpen } =
+        useTooltip<ChartDataPoint & { pct: string }>();
+
+    const total = data.reduce((sum, d) => sum + d.value, 0);
+    const outerRadius = Math.min(width, height) / 2 - 16;
+    const innerRadius = outerRadius * 0.5;
+    const cx = width / 2;
+    const cy = height / 2;
+
+    const colorScale = scaleOrdinal<string, string>({
+        domain: data.map(d => d.label),
+        range: PIE_COLORS,
+    });
+
+    return (
+        <div style={{ position: 'relative' }}>
+            <svg
+                width={width}
+                height={height}
+                role="img"
+                aria-label="Pie chart"
+                data-testid="pie-chart-svg"
+            >
+                <Group top={cy} left={cx}>
+                    <Pie
+                        data={data}
+                        pieValue={d => d.value}
+                        outerRadius={outerRadius}
+                        innerRadius={innerRadius}
+                        padAngle={0.02}
+                    >
+                        {({ arcs, path }) =>
+                            arcs.map(arc => (
+                                <path
+                                    key={arc.data.label}
+                                    d={path(arc) ?? ''}
+                                    fill={colorScale(arc.data.label)}
+                                    onMouseMove={event => {
+                                        const point = localPoint(event);
+                                        const pct = total > 0
+                                            ? ((arc.data.value / total) * 100).toFixed(1)
+                                            : '0.0';
+                                        showTooltip({
+                                            tooltipData: { ...arc.data, pct },
+                                            tooltipLeft: point?.x,
+                                            tooltipTop: point?.y,
+                                        });
+                                    }}
+                                    onMouseLeave={hideTooltip}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            ))
+                        }
+                    </Pie>
+                </Group>
+            </svg>
+            {tooltipOpen && tooltipData && (
+                <TooltipWithBounds
+                    left={tooltipLeft}
+                    top={tooltipTop}
+                    style={{
+                        ...defaultStyles,
+                        background: C.surfaceHigh,
+                        color: C.onSurface,
+                        border: `1px solid ${C.outline}`,
+                        fontSize: 12,
+                    }}
+                >
+                    <strong>{tooltipData.label}</strong>: {formatChartCell(tooltipData.value)} ({tooltipData.pct}%)
+                </TooltipWithBounds>
+            )}
+        </div>
+    );
+};
+
+type PieChartProps = {
+    data: ChartDataPoint[];
+};
+
+export const PieChart = ({ data }: PieChartProps) => (
+    <ParentSize style={{ height: CHART_HEIGHT }}>
+        {({ width }) =>
+            width > 0 ? (
+                <PieChartInner data={data} width={width} height={CHART_HEIGHT} />
+            ) : null
+        }
+    </ParentSize>
+);

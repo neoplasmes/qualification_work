@@ -114,12 +114,25 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         }
 
         const applyFit = () => {
-            const availableSize =
+            const fullSize =
                 direction === 'row'
                     ? groupElement.clientWidth
                     : groupElement.clientHeight;
 
-            fitPanels(availableSize, panelModels.current);
+            const gapPx =
+                parseFloat(
+                    window
+                        .getComputedStyle(groupElement)
+                        .getPropertyValue(
+                            direction === 'row' ? 'column-gap' : 'row-gap'
+                        )
+                ) || 0;
+
+            // n panels + (n-1) resizerss = 2n-1 flex items, total gaps = 2(n-1)
+            const n = panelModels.current.size;
+            const totalGapPx = n > 1 ? gapPx * 2 * (n - 1) : 0;
+
+            fitPanels(fullSize - totalGapPx, panelModels.current);
         };
 
         applyFit();

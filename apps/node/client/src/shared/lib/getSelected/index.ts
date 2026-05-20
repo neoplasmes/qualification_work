@@ -1,0 +1,1 @@
+export { getSelected } from './getSelected';

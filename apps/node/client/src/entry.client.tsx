@@ -34,8 +34,6 @@ const hydrationData = window.__TURBO_STREAM__
     ? ((await decode(window.__TURBO_STREAM__)) as HydrationState)
     : undefined;
 
-console.dir(hydrationData);
-
 /**
  * Данная конструкция работает потому, что после await decode(window.__TURBO_STREAM__),
  * мы уже получаем все деревья с промисами и их pending состояниями (спасибо turbo-stream).
@@ -103,8 +101,8 @@ function hydrateRTKFromResolved(resolved: unknown): void {
         };
 
         store.dispatch(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            api.util.upsertQueryData(endpointName as any, originalArgs, data)
+            // oxlint-disable-next-line typescript/no-explicit-any
+            (api.util.upsertQueryData as any)(endpointName, originalArgs, data)
         );
     }
 }

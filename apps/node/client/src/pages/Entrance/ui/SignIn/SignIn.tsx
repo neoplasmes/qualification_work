@@ -1,11 +1,36 @@
 import { ArrowRight, Lock, Mail } from 'lucide-react';
+import { useState } from 'react';
 
-import signUpStyles from '../SignUp/SignUp.module.scss';
+import { useLoginMutation, useWaitForWorkspace } from '@/features/auth';
+import { getApiErrorMessage } from '@/shared/api';
+
+import formStyles from '../form.module.scss';
 import signInStyles from './SignIn.module.scss';
 
-const styles = { ...signUpStyles, ...signInStyles };
+const styles = { ...formStyles, ...signInStyles };
 
 export const SignIn = () => {
+    const [login, loginState] = useLoginMutation();
+    const { waitForWorkspace, isPreparingWorkspace } = useWaitForWorkspace();
+    const [error, setError] = useState('');
+    const isBusy = loginState.isLoading || isPreparingWorkspace;
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setError('');
+
+        const form = new FormData(event.currentTarget);
+        const email = String(form.get('email') ?? '').trim();
+        const password = String(form.get('password') ?? '');
+
+        try {
+            await login({ email, password }).unwrap();
+            await waitForWorkspace();
+        } catch (submitError) {
+            setError(getApiErrorMessage(submitError, 'Unable to sign in right now.'));
+        }
+    };
+
     return (
         <div data-stack="v" className={styles['form-container']}>
             <h2 className={styles['form-title']}>Welcome Back</h2>
@@ -13,10 +38,14 @@ export const SignIn = () => {
                 Enter your credentials to access the analytics.
             </p>
 
-            <form className={styles['form']} onSubmit={e => e.preventDefault()}>
+            <form
+                aria-label="Sign in"
+                className={styles['form']}
+                onSubmit={handleSubmit}
+            >
                 <div data-stack="v" data-gap="md-plus">
                     <div data-stack="v" data-gap="sm" className={styles['field']}>
-                        <label htmlFor="email" className={styles['label']}>
+                        <label htmlFor="sign-in-email" className={styles['label']}>
                             Email Address
                         </label>
                         <div
@@ -28,9 +57,13 @@ export const SignIn = () => {
                             <Mail size={18} />
                             <input
                                 type="email"
-                                id="email"
+                                id="sign-in-email"
+                                name="email"
                                 className={styles['input']}
                                 placeholder="name@organization.com"
+                                autoComplete="email"
+                                required
+                                disabled={isBusy}
                             />
                         </div>
                     </div>
@@ -41,7 +74,7 @@ export const SignIn = () => {
                             data-justify="between"
                             className={styles['label-row']}
                         >
-                            <label htmlFor="password" className={styles['label']}>
+                            <label htmlFor="sign-in-password" className={styles['label']}>
                                 Password
                             </label>
                             <a href="#" className={styles['forgot-link']}>
@@ -56,13 +89,23 @@ export const SignIn = () => {
                         >
                             <Lock size={18} />
                             <input
-                                id="password"
+                                id="sign-in-password"
+                                name="password"
                                 className={styles['input']}
                                 type="password"
                                 placeholder="••••••••"
+                                autoComplete="current-password"
+                                minLength={8}
+                                required
+                                disabled={isBusy}
                             />
                         </div>
                     </div>
+                    {error && (
+                        <p role="alert" className={styles['form-error']}>
+                            {error}
+                        </p>
+                    )}
                     <button
                         type="submit"
                         data-stack="h"
@@ -71,8 +114,9 @@ export const SignIn = () => {
                         data-align="center"
                         data-py="md"
                         className={styles['submit-btn']}
+                        disabled={isBusy}
                     >
-                        Sign in
+                        {isPreparingWorkspace ? 'Preparing workspace' : 'Sign in'}
                         <ArrowRight size={18} />
                     </button>
                 </div>

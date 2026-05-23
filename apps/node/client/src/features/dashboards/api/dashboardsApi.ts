@@ -7,9 +7,9 @@ import type {
     CreateDashboardPayload,
     CreateDashboardResponse,
     Dashboard,
-    ReorderDashboardItemsPayload,
     RemoveDashboardItemPayload,
     RenameDashboardPayload,
+    ReorderDashboardItemsPayload,
 } from './types';
 
 export const dashboardsApi = api.injectEndpoints({

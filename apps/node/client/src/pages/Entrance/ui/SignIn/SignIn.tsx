@@ -2,6 +2,7 @@ import { ArrowRight, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 
 import { useLoginMutation, useWaitForWorkspace } from '@/features/auth';
+
 import { getApiErrorMessage } from '@/shared/api';
 
 import formStyles from '../form.module.scss';
@@ -38,11 +39,7 @@ export const SignIn = () => {
                 Enter your credentials to access the analytics.
             </p>
 
-            <form
-                aria-label="Sign in"
-                className={styles['form']}
-                onSubmit={handleSubmit}
-            >
+            <form aria-label="Sign in" className={styles['form']} onSubmit={handleSubmit}>
                 <div data-stack="v" data-gap="md-plus">
                     <div data-stack="v" data-gap="sm" className={styles['field']}>
                         <label htmlFor="sign-in-email" className={styles['label']}>

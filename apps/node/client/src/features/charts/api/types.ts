@@ -63,6 +63,13 @@ export type GetChartDataPayload = {
     filterOverrides?: FilterClause[];
 };
 
+export type PreviewChartPayload = {
+    datasetId: string;
+    chartType: ChartType;
+    config: Record<string, unknown>;
+    filterOverrides?: FilterClause[];
+};
+
 export type ChartResultColumn = {
     name: string;
     role: 'dim' | 'series' | 'measure';

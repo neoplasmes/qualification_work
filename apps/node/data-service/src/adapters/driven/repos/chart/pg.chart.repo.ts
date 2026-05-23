@@ -7,6 +7,7 @@ import type {
     ChartCompilationContext,
     ChartRepo,
     CreateChartPayload,
+    DatasetContext,
     UpdateChartPayload,
 } from '@/core/ports/driven/repos';
 
@@ -105,6 +106,34 @@ export class PgChartRepo implements ChartRepo {
 
     async delete(chartId: string): Promise<void> {
         await this.pool.query(`DELETE FROM charts.charts WHERE id = $1`, [chartId]);
+    }
+
+    async getDatasetContext(datasetId: string): Promise<DatasetContext | null> {
+        const [versionRow] = await this.pool
+            .query<{ dataVersion: string }>(
+                `SELECT data_version::text AS "dataVersion"
+                 FROM data.datasets WHERE id = $1`,
+                [datasetId]
+            )
+            .then(r => r.rows);
+
+        if (!versionRow) {
+            return null;
+        }
+
+        const { rows: columns } = await this.pool.query<{
+            id: string;
+            key: string;
+            dataType: 'number' | 'string' | 'date' | 'bool';
+        }>(
+            `SELECT id, key, data_type AS "dataType"
+             FROM data.dataset_columns
+             WHERE dataset_id = $1
+             ORDER BY order_index`,
+            [datasetId]
+        );
+
+        return { datasetId, dataVersion: Number(versionRow.dataVersion), columns };
     }
 
     async getCompilationContext(

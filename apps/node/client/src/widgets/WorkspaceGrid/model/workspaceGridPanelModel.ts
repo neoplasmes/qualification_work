@@ -22,9 +22,10 @@ export class WorkspaceGridPanelModel {
         public readonly initialSize: CSSPixelSize,
         public readonly minSize: CSSPixelSize,
         public readonly maxSize: CSSPixelSize,
-        private readonly id: string = ''
+        private readonly id: string = '',
+        savedSize?: number
     ) {
-        this.initialSizePx = this.parsePixelSize(initialSize);
+        this.initialSizePx = savedSize ?? this.parsePixelSize(initialSize);
         this.minSizePx = this.parsePixelSize(minSize);
         this.maxSizePx = this.parsePixelSize(maxSize);
 

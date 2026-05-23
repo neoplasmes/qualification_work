@@ -1,8 +1,9 @@
 import { Trash2 } from 'lucide-react';
 
 import type { DatasetMetadata } from '@/features/datasets';
-import { Button } from '@/shared/ui';
+
 import { formatDate } from '@/shared/lib/formatDate';
+import { Button } from '@/shared/ui';
 
 import styles from './DatasetsPage.module.scss';
 
@@ -25,9 +26,7 @@ export const DatasetDetails = ({
         <div className={styles['details-header']}>
             <div data-stack="v" data-gap="xs">
                 <span className={styles['eyebrow']}>Dataset</span>
-                <h2 className={styles['detail-title']}>
-                    {selectedDataset.dataset.name}
-                </h2>
+                <h2 className={styles['detail-title']}>{selectedDataset.dataset.name}</h2>
             </div>
             <Button variant="danger" disabled={deleting} onClick={onDelete}>
                 <Trash2 size={18} />
@@ -38,10 +37,7 @@ export const DatasetDetails = ({
         </div>
 
         {error && (
-            <div
-                role="alert"
-                className={`${styles['status']} ${styles['error']}`}
-            >
+            <div role="alert" className={`${styles['status']} ${styles['error']}`}>
                 {error}
             </div>
         )}

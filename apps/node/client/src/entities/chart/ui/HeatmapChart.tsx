@@ -17,6 +17,7 @@ const C = {
 } as const;
 
 const CHART_HEIGHT = 300;
+const MIN_CHART_WIDTH = 220;
 
 export type HeatmapCell = {
     x: string;
@@ -31,8 +32,14 @@ type HeatmapChartInnerProps = {
 };
 
 const HeatmapChartInner = ({ data, width, height }: HeatmapChartInnerProps) => {
-    const { showTooltip, hideTooltip, tooltipData, tooltipLeft, tooltipTop, tooltipOpen } =
-        useTooltip<HeatmapCell>();
+    const {
+        showTooltip,
+        hideTooltip,
+        tooltipData,
+        tooltipLeft,
+        tooltipTop,
+        tooltipOpen,
+    } = useTooltip<HeatmapCell>();
 
     const margin = { top: 16, right: 16, bottom: 64, left: 96 };
     const xMax = width - margin.left - margin.right;
@@ -50,9 +57,12 @@ const HeatmapChartInner = ({ data, width, height }: HeatmapChartInnerProps) => {
         domain: yValues,
         padding: 0.08,
     });
+    const values = data.map(cell => cell.value);
+    const minValue = Math.min(...values, 0);
+    const maxValue = Math.max(...values, 1);
     const colorScale = scaleLinear<string>({
         range: [C.low, C.high],
-        domain: [0, Math.max(...data.map(cell => cell.value), 1)],
+        domain: [minValue, maxValue],
     });
 
     return (
@@ -140,8 +150,10 @@ type HeatmapChartProps = {
 export const HeatmapChart = ({ data }: HeatmapChartProps) => (
     <ParentSize style={{ height: CHART_HEIGHT }}>
         {({ width }) =>
-            width > 0 ? (
+            width >= MIN_CHART_WIDTH ? (
                 <HeatmapChartInner data={data} width={width} height={CHART_HEIGHT} />
+            ) : width > 0 ? (
+                <div style={{ height: CHART_HEIGHT }} />
             ) : null
         }
     </ParentSize>

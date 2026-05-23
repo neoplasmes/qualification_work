@@ -281,6 +281,12 @@ importers:
         specifier: catalog:backend
         version: 4.3.6
 
+  generation:
+    dependencies:
+      exceljs:
+        specifier: ^4.4.0
+        version: 4.4.0
+
   packages/node/eslint-plugin-fsd:
     dependencies:
       eslint:

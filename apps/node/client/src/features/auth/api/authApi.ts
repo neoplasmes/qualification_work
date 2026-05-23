@@ -1,6 +1,11 @@
 import { api } from '@/shared/api';
 
-import type { LoginPayload, MeResponse, RegisterPayload, RegisterResponse } from './types';
+import type {
+    LoginPayload,
+    MeResponse,
+    RegisterPayload,
+    RegisterResponse,
+} from './types';
 
 export const authApi = api.injectEndpoints({
     endpoints: builder => ({

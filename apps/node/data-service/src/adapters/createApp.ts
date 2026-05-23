@@ -16,6 +16,7 @@ import {
     GetDatasetMetadataByDatasetIdQuery,
     GetDatasetRowsQuery,
     GetDatasetsMetadataByOrgIdQuery,
+    PreviewChartDataQuery,
 } from '@/core/queries';
 
 import { PgChartRepo, PgDatasetRepo } from '@/adapters/driven/repos';
@@ -67,6 +68,7 @@ export function createApp(
     const getChartByIdHandler = new GetChartByIdQuery(chartRepo);
     const getChartsByOrgIdHandler = new GetChartsByOrgIdQuery(chartRepo);
     const getChartDataHandler = new GetChartDataQuery(chartRepo, chartCompiler);
+    const previewChartDataHandler = new PreviewChartDataQuery(chartRepo, chartCompiler);
 
     const app = new Application<AppState>();
 
@@ -122,7 +124,8 @@ export function createApp(
         deleteChartHandler,
         getChartByIdHandler,
         getChartsByOrgIdHandler,
-        getChartDataHandler
+        getChartDataHandler,
+        previewChartDataHandler
     );
 
     // gateway rewrites /api/data/* -> /api/* before forwarding here

@@ -1,4 +1,4 @@
-export { GetChartByIdQuery, GetChartsByOrgIdQuery, GetChartDataQuery } from './chart';
+export { GetChartByIdQuery, GetChartsByOrgIdQuery, GetChartDataQuery, PreviewChartDataQuery } from './chart';
 export {
     GetDatasetMetadataByDatasetIdQuery,
     GetDatasetRowsQuery,

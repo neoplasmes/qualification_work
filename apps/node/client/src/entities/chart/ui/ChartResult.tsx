@@ -3,11 +3,11 @@ import type { ReactNode } from 'react';
 import type { ChartKind } from '../lib/chartKind';
 import { formatChartCell } from '../lib/formatChartCell';
 import { parseChartResult } from '../lib/parseChartData';
-
 import { BarChart } from './BarChart';
 import { HeatmapChart, type HeatmapCell } from './HeatmapChart';
 import { LineChart } from './LineChart';
 import { PieChart } from './PieChart';
+
 import styles from './ChartResult.module.scss';
 
 type ChartResultData = {
@@ -33,11 +33,19 @@ export const ChartResult = ({
 }: ChartResultProps) => {
     const activeKind = kind ?? 'bar';
     const chart = parseChartResult(data, activeKind, barsLimit);
-    const heatmapCells: HeatmapCell[] = data.rows.map(row => ({
+    const heatmapRows = data.rows.filter(
+        row => typeof row[2] === 'number' && Number.isFinite(row[2])
+    );
+    const heatmapCells: HeatmapCell[] = heatmapRows.map(row => ({
         x: String(row[0] ?? ''),
         y: String(row[1] ?? ''),
-        value: typeof row[2] === 'number' ? row[2] : 0,
+        value: row[2] as number,
     }));
+    const heatmapWarnings =
+        activeKind === 'heatmap' && heatmapRows.length !== data.rows.length
+            ? ['Rows with non-numeric measure values were omitted.']
+            : [];
+    const warnings = [...new Set([...chart.warnings, ...heatmapWarnings])];
 
     const renderChart = () => {
         if (activeKind === 'heatmap') {
@@ -62,11 +70,11 @@ export const ChartResult = ({
 
         switch (activeKind) {
             case 'line':
-                return <LineChart data={chart.points} />;
+                return <LineChart series={chart.series} labels={chart.labels} />;
             case 'pie':
                 return <PieChart data={chart.points} />;
             default:
-                return <BarChart data={chart.points} />;
+                return <BarChart series={chart.series} labels={chart.labels} />;
         }
     };
 
@@ -74,7 +82,7 @@ export const ChartResult = ({
         <div className={styles['root']} aria-label={ariaLabel}>
             <div className={styles['chart-wrap']}>{renderChart()}</div>
 
-            {chart.warnings.map(warning => (
+            {warnings.map(warning => (
                 <div key={warning} role="status" className={styles['chart-warning']}>
                     {warning}
                 </div>

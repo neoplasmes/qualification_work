@@ -21,6 +21,7 @@ type WorkspaceGridResizerProps = {
      * horizontal: prev - left, next - right
      */
     next: WorkspaceGridPanelModel;
+    onResizeEnd?: React.MutableRefObject<() => void>;
 };
 
 type ResizeState = {
@@ -34,6 +35,7 @@ export const WorkspaceGridResizer = ({
     direction,
     prev,
     next,
+    onResizeEnd,
 }: WorkspaceGridResizerProps) => {
     const resizeStateRef = useRef<ResizeState | null>(null);
 
@@ -102,6 +104,7 @@ export const WorkspaceGridResizer = ({
         }
 
         resizeStateRef.current = null;
+        onResizeEnd?.current();
     };
 
     const orientation = direction === 'row' ? styles['horizontal'] : styles['vertical'];

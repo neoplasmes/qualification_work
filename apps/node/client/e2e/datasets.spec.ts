@@ -62,15 +62,11 @@ const uploadFixture = async (
     await expect(
         page.getByRole('button', { name: new RegExp(expected.datasetName) })
     ).toBeVisible({ timeout: 30_000 });
-    await expect(
-        page.getByRole('heading', { name: expected.datasetName })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: expected.datasetName })).toBeVisible();
     await expect(page.getByText(`${expected.rows} rows`)).toBeVisible();
     await expect(page.getByText(`${expected.columns} columns`)).toBeVisible();
     await expect(
-        page
-            .getByLabel('Dataset details')
-            .getByText(expected.sourceType, { exact: true })
+        page.getByLabel('Dataset details').getByText(expected.sourceType, { exact: true })
     ).toBeVisible();
     await expect(page.getByText(expected.cell, { exact: true })).toBeVisible({
         timeout: 30_000,
@@ -118,11 +114,11 @@ test.describe('dataset upload through gateway', () => {
         const chartResult = page.getByLabel('Chart result');
         await expect(chartResult).toBeVisible();
         await expect(chartResult.getByTestId('bar-chart-svg')).toBeVisible();
-        await expect(chartResult.getByTestId('bar-chart-svg').locator('rect')).toHaveCount(3);
-        await expect(page.getByText('Chart ID:')).toBeVisible();
         await expect(
-            chartResult.getByRole('cell', { name: 'Hardware' })
-        ).toBeVisible();
+            chartResult.getByTestId('bar-chart-svg').locator('rect')
+        ).toHaveCount(3);
+        await expect(page.getByText('Chart ID:')).toBeVisible();
+        await expect(chartResult.getByRole('cell', { name: 'Hardware' })).toBeVisible();
         await expect(chartResult.getByRole('cell', { name: '60' })).toHaveCount(3);
 
         await chartBuilder.getByLabel('Name').fill('Sales pie');
@@ -144,7 +140,9 @@ test.describe('dataset upload through gateway', () => {
         expect((await createPieResponse).status()).toBe(201);
         expect((await pieDataResponse).status()).toBe(200);
         await expect(chartResult.getByTestId('pie-chart-svg')).toBeVisible();
-        await expect(chartResult.getByTestId('pie-chart-svg').locator('path')).toHaveCount(3);
+        await expect(
+            chartResult.getByTestId('pie-chart-svg').locator('path')
+        ).toHaveCount(3);
 
         await chartBuilder.getByLabel('Name').fill('Sales heatmap');
         await chartBuilder.getByLabel('Type').selectOption('heatmap');
@@ -211,9 +209,7 @@ test.describe('dataset upload through gateway', () => {
         );
         await page.getByRole('button', { name: /^create$/i }).click();
         expect((await createDashboardResponse).status()).toBe(201);
-        await expect(
-            page.getByRole('button', { name: /Sales dashboard/ })
-        ).toBeVisible();
+        await expect(page.getByRole('button', { name: /Sales dashboard/ })).toBeVisible();
 
         const addChartResponse = page.waitForResponse(
             response =>
@@ -246,9 +242,7 @@ test.describe('dataset upload through gateway', () => {
         );
         await addMetricForm.getByRole('button', { name: /add metric/i }).click();
         expect((await addMetricResponse).status()).toBe(201);
-        await expect(
-            page.getByRole('heading', { name: 'Average sales' })
-        ).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Average sales' })).toBeVisible();
 
         const reorderResponse = page.waitForResponse(
             response =>
@@ -292,7 +286,9 @@ test.describe('dataset upload through gateway', () => {
         );
         await page.getByRole('button', { name: /Remove Average sales/ }).click();
         expect((await removeMetricResponse).status()).toBe(204);
-        await expect(page.getByText('Add a saved chart to this dashboard.')).toBeVisible();
+        await expect(
+            page.getByText('Add a saved chart to this dashboard.')
+        ).toBeVisible();
 
         const deleteDashboardResponse = page.waitForResponse(
             response =>
@@ -361,11 +357,7 @@ test.describe('dataset upload through gateway', () => {
         await page.getByRole('button', { name: 'Delete', exact: true }).click();
         await page.getByRole('button', { name: 'Confirm delete', exact: true }).click();
         expect((await deleteResponse).status()).toBe(204);
-        await expect(
-            page.getByRole('heading', { name: 'wide-accounts' })
-        ).toBeHidden();
-        await expect(
-            page.getByRole('button', { name: /wide-accounts/ })
-        ).toBeHidden();
+        await expect(page.getByRole('heading', { name: 'wide-accounts' })).toBeHidden();
+        await expect(page.getByRole('button', { name: /wide-accounts/ })).toBeHidden();
     });
 });

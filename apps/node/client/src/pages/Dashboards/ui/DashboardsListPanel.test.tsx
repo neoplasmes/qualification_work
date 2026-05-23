@@ -1,63 +1,85 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { dashboardsPageSlice } from '../model/dashboardsPageSlice';
 import { DashboardsListPanel } from './DashboardsListPanel';
 
+const createDashboard = vi.fn();
+
+vi.mock('@/features/auth', () => ({
+    useGetMeQuery: () => ({ data: { id: 'user-1' }, isLoading: false }),
+    useActiveOrganization: () => ({
+        activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
+    }),
+}));
+
+vi.mock('@/features/charts', () => ({
+    useListChartsQuery: () => ({ data: [], isLoading: false, isFetching: false }),
+}));
+
+vi.mock('@/features/dashboards', () => ({
+    useListDashboardsQuery: () => ({
+        data: [
+            {
+                id: 'dashboard-1',
+                orgId: 'org-1',
+                name: 'Revenue',
+                items: [],
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+            },
+        ],
+        isLoading: false,
+        isFetching: false,
+        refetch: vi.fn(),
+    }),
+    useCreateDashboardMutation: () => [createDashboard, { isLoading: false }],
+}));
+
+const makeStore = () =>
+    configureStore({
+        reducer: combineReducers({ [dashboardsPageSlice.name]: dashboardsPageSlice.reducer }),
+    });
+
+const renderPanel = () =>
+    render(
+        <Provider store={makeStore()}>
+            <DashboardsListPanel />
+        </Provider>
+    );
+
 describe('DashboardsListPanel', () => {
+    beforeEach(() => {
+        createDashboard.mockReset();
+    });
+
     it('validates empty dashboard names before calling create', async () => {
         const user = userEvent.setup();
-        const onCreate = vi.fn();
-
-        render(
-            <DashboardsListPanel
-                dashboards={[]}
-                loading={false}
-                selectedDashboard={undefined}
-                creating={false}
-                onSelect={vi.fn()}
-                onCreate={onCreate}
-            />
-        );
+        renderPanel();
 
         await user.click(screen.getByRole('button', { name: /create/i }));
 
-        expect(screen.getByRole('alert')).toHaveTextContent(
-            'Dashboard name can not be empty.'
-        );
-        expect(onCreate).not.toHaveBeenCalled();
+        expect(screen.getByRole('alert')).toHaveTextContent('Dashboard name can not be empty.');
+        expect(createDashboard).not.toHaveBeenCalled();
     });
 
-    it('creates a dashboard and renders selectable existing dashboards', async () => {
+    it('shows existing dashboards and creates a new one', async () => {
         const user = userEvent.setup();
-        const onCreate = vi.fn().mockResolvedValue(undefined);
-        const onSelect = vi.fn();
+        createDashboard.mockReturnValue({
+            unwrap: () => Promise.resolve({ id: 'dashboard-2' }),
+        });
 
-        render(
-            <DashboardsListPanel
-                dashboards={[
-                    {
-                        id: 'dashboard-1',
-                        orgId: 'org-1',
-                        name: 'Revenue',
-                        items: [],
-                        createdAt: '2026-01-01T00:00:00.000Z',
-                        updatedAt: '2026-01-01T00:00:00.000Z',
-                    },
-                ]}
-                loading={false}
-                selectedDashboard={undefined}
-                creating={false}
-                onSelect={onSelect}
-                onCreate={onCreate}
-            />
-        );
+        renderPanel();
+
+        expect(screen.getByRole('button', { name: /Revenue/ })).toBeInTheDocument();
 
         await user.type(screen.getByLabelText('New dashboard'), 'Operations');
         await user.click(screen.getByRole('button', { name: /create/i }));
-        await waitFor(() => expect(onCreate).toHaveBeenCalledWith('Operations'));
-
-        await user.click(screen.getByRole('button', { name: /Revenue/ }));
-        expect(onSelect).toHaveBeenCalledWith('dashboard-1');
+        await waitFor(() =>
+            expect(createDashboard).toHaveBeenCalledWith({ orgId: 'org-1', name: 'Operations' })
+        );
     });
 });

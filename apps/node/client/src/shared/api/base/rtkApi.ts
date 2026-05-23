@@ -6,8 +6,7 @@ const serverApiBaseUrl =
         ? (process.env.SSR_API_BASE_URL ?? browserApiBaseUrl)
         : browserApiBaseUrl;
 
-const apiBaseUrl =
-    typeof window === 'undefined' ? serverApiBaseUrl : browserApiBaseUrl;
+const apiBaseUrl = typeof window === 'undefined' ? serverApiBaseUrl : browserApiBaseUrl;
 
 export const api = createApi({
     reducerPath: 'rtkApi',

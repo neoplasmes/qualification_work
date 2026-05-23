@@ -2,10 +2,11 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { ChevronLeft, ChevronRight, FileSpreadsheet, Table2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { IconButton } from '@/shared/ui';
-
 import { useGetDatasetRowsQuery, type DatasetMetadata } from '@/features/datasets';
+
 import { formatChartCell } from '@/entities/chart';
+
+import { IconButton } from '@/shared/ui';
 
 import styles from './DatasetsPage.module.scss';
 
@@ -76,9 +77,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             </div>
 
             {!selectedDataset && (
-                <div className={styles['empty']}>
-                    Select a dataset to preview rows.
-                </div>
+                <p className={styles['panel-placeholder']}>Select a dataset to preview rows.</p>
             )}
 
             {selectedDataset && rowsQuery.isLoading && (
@@ -90,9 +89,13 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                     <table className={styles['table']}>
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th></th>
                                 {columns.map(column => (
-                                    <th key={column.id}>{column.displayName}</th>
+                                    <th key={column.id}>
+                                        <div className={styles['th-inner']}>
+                                            <span>{column.displayName}</span>
+                                        </div>
+                                    </th>
                                 ))}
                             </tr>
                         </thead>
@@ -102,7 +105,9 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                                     <td>{row.rowIndex + 1}</td>
                                     {columns.map(column => (
                                         <td key={column.id}>
-                                            {formatChartCell(row.data[column.key])}
+                                            <div className={styles['td-inner']}>
+                                                {formatChartCell(row.data[column.key])}
+                                            </div>
                                         </td>
                                     ))}
                                 </tr>

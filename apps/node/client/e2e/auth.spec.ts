@@ -34,8 +34,7 @@ const signUpThroughUi = async (page: Page, user: TestUser) => {
 
     const registerRequest = page.waitForRequest(
         request =>
-            request.url().includes('/api/auth/register') &&
-            request.method() === 'POST'
+            request.url().includes('/api/auth/register') && request.method() === 'POST'
     );
     const loginRequest = page.waitForRequest(
         request =>
@@ -71,9 +70,7 @@ test.describe('auth through gateway', () => {
                 response.url().includes('/api/orgs') &&
                 response.request().method() === 'POST'
         );
-        await createWorkspaceForm
-            .getByRole('button', { name: 'Save workspace' })
-            .click();
+        await createWorkspaceForm.getByRole('button', { name: 'Save workspace' }).click();
         expect((await createOrgResponse).status()).toBe(201);
         await expect(page.getByTestId('workspace-select')).toContainText(workspaceName);
 
@@ -108,8 +105,7 @@ test.describe('auth through gateway', () => {
 
         const loginRequest = page.waitForRequest(
             request =>
-                request.url().includes('/api/auth/login') &&
-                request.method() === 'POST'
+                request.url().includes('/api/auth/login') && request.method() === 'POST'
         );
 
         await form.getByRole('button', { name: /sign in/i }).click();

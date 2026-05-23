@@ -1,6 +1,12 @@
 import React, { Children, useLayoutEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { WorkspaceGridPanelModel, type WorkspaceGridGroupDirection } from '../../model';
+import {
+    WorkspaceGridPanelModel,
+    type WorkspaceGridGroupDirection,
+    selectPanelSizes,
+    setPanelSizes,
+} from '../../model';
 import {
     WorkspaceGridPanelInternal,
     type WorkspaceGridPanelElementType,
@@ -14,6 +20,9 @@ import styles from './WorkspaceGridGroup.module.scss';
 
 type WorkspaceGridGroupProps = {
     direction: WorkspaceGridGroupDirection;
+    pageKey?: string;
+    collapseLeft?: boolean;
+    collapseRight?: boolean;
     /**
      * only WorkspaceGridPanel elements are allowed as children, otherwise behaviour is undefined
      */
@@ -29,12 +38,35 @@ type WorkspaceGridGroupProps = {
 export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
     direction,
     children,
+    pageKey,
+    collapseLeft = false,
+    collapseRight = false,
 }: WorkspaceGridGroupProps) => {
     const groupRef = useRef<HTMLDivElement>(null);
+    const dispatch = useDispatch();
+
+    const savedSizes = useSelector(selectPanelSizes(pageKey ?? ''));
+
+    // always-fresh ref: updated before useMemo so re-runs always get current Redux sizes
+    const savedSizesRef = useRef(savedSizes);
+    savedSizesRef.current = savedSizes;
 
     const panelModels = useRef<
         Map<WorkspaceGridPanelInternalElementType, WorkspaceGridPanelModel>
     >(new Map());
+
+    // always-fresh callback: reads current sizes of all panels and persists to Redux
+    const onResizeEndRef = useRef<() => void>(() => {});
+    onResizeEndRef.current = () => {
+        if (!pageKey) {
+            return;
+        }
+
+        const sizes = [...panelModels.current.values()].map(model =>
+            model.getCurrentSizePx()
+        );
+        dispatch(setPanelSizes({ pageKey, sizes }));
+    };
 
     const linked = useMemo(() => {
         const childrenArray = Children.toArray(children).filter(
@@ -59,7 +91,8 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
             childrenArray[0].props.initialSize,
             childrenArray[0].props.minSize,
             childrenArray[0].props.maxSize,
-            `panel-${i}`
+            `panel-${i}`,
+            savedSizesRef.current?.[0]
         );
         const linked = [
             <WorkspaceGridPanelInternal
@@ -80,7 +113,8 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
                 childrenArray[i].props.initialSize,
                 childrenArray[i].props.minSize,
                 childrenArray[i].props.maxSize,
-                nextKey
+                nextKey,
+                savedSizesRef.current?.[i]
             );
             const nextWrapped = (
                 <WorkspaceGridPanelInternal
@@ -98,6 +132,7 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
                     direction={direction}
                     prev={prevModel}
                     next={nextModel}
+                    onResizeEnd={onResizeEndRef}
                 />,
                 nextWrapped
             );
@@ -153,6 +188,8 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
             className={styles['workspace-grid-group']}
             ref={groupRef}
             style={{ '--direction': direction } as React.CSSProperties}
+            data-collapse-left={collapseLeft || undefined}
+            data-collapse-right={collapseRight || undefined}
         >
             {linked}
         </div>

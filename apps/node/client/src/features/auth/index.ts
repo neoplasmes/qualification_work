@@ -12,5 +12,8 @@ export type {
     RegisterPayload,
     RegisterResponse,
 } from './api';
-export { getActiveOrganization, useActiveOrganization } from './lib/useActiveOrganization';
+export {
+    getActiveOrganization,
+    useActiveOrganization,
+} from './lib/useActiveOrganization';
 export { useWaitForWorkspace } from './lib/useWaitForWorkspace';

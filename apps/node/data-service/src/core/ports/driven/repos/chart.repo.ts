@@ -28,6 +28,12 @@ export type ChartCompilationContext = {
     }>;
 };
 
+export type DatasetContext = {
+    datasetId: string;
+    dataVersion: number;
+    columns: Array<{ id: string; key: string; dataType: 'number' | 'string' | 'date' | 'bool' }>;
+};
+
 export interface ChartRepo {
     create(data: CreateChartPayload): Promise<{ id: string }>;
 
@@ -40,4 +46,6 @@ export interface ChartRepo {
     delete(chartId: string): Promise<void>;
 
     getCompilationContext(chartId: string): Promise<ChartCompilationContext | null>;
+
+    getDatasetContext(datasetId: string): Promise<DatasetContext | null>;
 }

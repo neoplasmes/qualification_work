@@ -2,9 +2,10 @@ import { RefreshCcw, X } from 'lucide-react';
 
 import { useLazyGetChartDataQuery, type Chart } from '@/features/charts';
 import type { DashboardChartItem } from '@/features/dashboards';
-import { Button, IconButton } from '@/shared/ui';
 
 import { ChartResult } from '@/entities/chart';
+
+import { Button, IconButton } from '@/shared/ui';
 
 import styles from './DashboardsPage.module.scss';
 

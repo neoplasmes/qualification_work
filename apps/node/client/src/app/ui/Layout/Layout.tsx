@@ -20,7 +20,12 @@ export const Layout = () => {
     // TODO: Layout для основной части приложения
     return (
         <LazyMotion features={motionFeatures} strict>
-            <div data-stack="v" data-gap="md" data-p="md" style={{ height: '100vh', overflow: 'hidden' }}>
+            <div
+                data-stack="v"
+                data-gap="md"
+                data-p="md"
+                style={{ height: '100vh', overflow: 'hidden' }}
+            >
                 <NavBar />
                 <Outlet />
             </div>

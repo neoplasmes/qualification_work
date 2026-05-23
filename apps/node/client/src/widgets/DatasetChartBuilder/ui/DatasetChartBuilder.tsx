@@ -1,24 +1,27 @@
-import { ChartNoAxesColumnIncreasing, FolderKanban, Play } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing, FolderKanban, Play, Save } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
-
-import { Button, ButtonLink } from '@/shared/ui';
 
 import {
     useCreateChartMutation,
-    useLazyGetChartDataQuery,
+    usePreviewChartDataMutation,
     type Aggregate,
     type AxisGrouping,
+    type ChartResponse,
     type ChartType,
     type FilterClause,
     type FilterOperation,
     type TimeGranularity,
 } from '@/features/charts';
 import type { DatasetColumn, DatasetMetadata } from '@/features/datasets';
-import { getApiErrorMessage } from '@/shared/api';
+
+import { useChartBuilderState } from '../lib/useChartBuilderState';
 
 import { ChartResult } from '@/entities/chart';
 
-import styles from './DatasetsPage.module.scss';
+import { getApiErrorMessage } from '@/shared/api';
+import { Button, ButtonLink } from '@/shared/ui';
+
+import styles from './DatasetChartBuilder.module.scss';
 
 const CHART_RESULT_LIMIT = 24;
 const chartTypes = ['bar', 'line', 'pie', 'heatmap'] as const;
@@ -70,11 +73,7 @@ const buildGrouping = (
     return undefined;
 };
 
-const buildMeasure = (
-    aggregate: Aggregate,
-    measureColumnId: string,
-    alias?: string
-) =>
+const buildMeasure = (aggregate: Aggregate, measureColumnId: string, alias?: string) =>
     aggregate === 'count'
         ? { aggregate, ...(alias ? { alias } : {}) }
         : { aggregate, columnId: measureColumnId, ...(alias ? { alias } : {}) };
@@ -89,12 +88,17 @@ const buildFilter = (
     }
 
     if (operation === 'between') {
-        const parts = rawValue.split(',').map(part => part.trim()).filter(Boolean);
+        const parts = rawValue
+            .split(',')
+            .map(part => part.trim())
+            .filter(Boolean);
 
         return {
             columnId: column.id,
             op: operation,
-            value: parts.slice(0, 2).map(part => parsePrimitiveValue(part, column.dataType)),
+            value: parts
+                .slice(0, 2)
+                .map(part => parsePrimitiveValue(part, column.dataType)),
         };
     }
 
@@ -178,8 +182,14 @@ const buildChartConfig = ({
         return {
             ...base,
             kind: 'heatmap',
-            x: { columnId: dimensionColumnId, ...(dimensionGrouping ? { grouping: dimensionGrouping } : {}) },
-            y: { columnId: heatmapYColumnId, ...(heatmapYGrouping ? { grouping: heatmapYGrouping } : {}) },
+            x: {
+                columnId: dimensionColumnId,
+                ...(dimensionGrouping ? { grouping: dimensionGrouping } : {}),
+            },
+            y: {
+                columnId: heatmapYColumnId,
+                ...(heatmapYGrouping ? { grouping: heatmapYGrouping } : {}),
+            },
             measure: firstMeasure,
         };
     }
@@ -216,60 +226,67 @@ const needsColumn = (aggregate: Aggregate) => aggregate !== 'count';
 type DatasetChartBuilderProps = {
     orgId: string;
     selectedDataset: DatasetMetadata;
+    onChartCreated?: (chartId: string) => void;
 };
 
 export const DatasetChartBuilder = ({
     orgId,
     selectedDataset,
+    onChartCreated,
 }: DatasetChartBuilderProps) => {
-    const [chartName, setChartName] = useState('');
-    const [chartType, setChartType] = useState<ChartType>('bar');
-    const [dimensionColumnId, setDimensionColumnId] = useState('');
-    const [dimensionGroupingMode, setDimensionGroupingMode] =
-        useState<GroupingMode>('none');
-    const [dimensionGranularity, setDimensionGranularity] =
-        useState<TimeGranularity>('month');
-    const [dimensionStep, setDimensionStep] = useState(10);
-    const [heatmapYColumnId, setHeatmapYColumnId] = useState('');
-    const [heatmapYGroupingMode, setHeatmapYGroupingMode] =
-        useState<GroupingMode>('none');
-    const [heatmapYGranularity, setHeatmapYGranularity] =
-        useState<TimeGranularity>('month');
-    const [heatmapYStep, setHeatmapYStep] = useState(10);
-    const [aggregate, setAggregate] = useState<Aggregate>('count');
-    const [measureColumnId, setMeasureColumnId] = useState('');
-    const [secondMeasureEnabled, setSecondMeasureEnabled] = useState(false);
-    const [secondAggregate, setSecondAggregate] = useState<Aggregate>('avg');
-    const [secondMeasureColumnId, setSecondMeasureColumnId] = useState('');
-    const [limit, setLimit] = useState(CHART_RESULT_LIMIT);
-    const [topN, setTopN] = useState(12);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-    const [seriesEnabled, setSeriesEnabled] = useState(false);
-    const [seriesColumnId, setSeriesColumnId] = useState('');
-    const [seriesTopN, setSeriesTopN] = useState(8);
-    const [seriesOtherBucket, setSeriesOtherBucket] = useState(true);
-    const [filterEnabled, setFilterEnabled] = useState(false);
-    const [filterColumnId, setFilterColumnId] = useState('');
-    const [filterOperation, setFilterOperation] = useState<FilterOperation>('eq');
-    const [filterValue, setFilterValue] = useState('');
+    const [step, setStep] = useState<'config' | 'preview'>('config');
     const [chartError, setChartError] = useState('');
-    const [createdChartId, setCreatedChartId] = useState<string | null>(null);
+    const [previewData, setPreviewData] = useState<ChartResponse | null>(null);
+    const [savedConfig, setSavedConfig] = useState<Record<string, unknown> | null>(null);
 
+    const {
+        chartName, setChartName,
+        chartType, setChartType,
+        dimensionColumnId, setDimensionColumnId,
+        dimensionGroupingMode, setDimensionGroupingMode,
+        dimensionGranularity, setDimensionGranularity,
+        dimensionStep, setDimensionStep,
+        heatmapYColumnId, setHeatmapYColumnId,
+        heatmapYGroupingMode, setHeatmapYGroupingMode,
+        heatmapYGranularity, setHeatmapYGranularity,
+        heatmapYStep, setHeatmapYStep,
+        aggregate, setAggregate,
+        measureColumnId, setMeasureColumnId,
+        secondMeasureEnabled, setSecondMeasureEnabled,
+        secondAggregate, setSecondAggregate,
+        secondMeasureColumnId, setSecondMeasureColumnId,
+        limit, setLimit,
+        topN, setTopN,
+        sortDirection, setSortDirection,
+        seriesEnabled, setSeriesEnabled,
+        seriesColumnId, setSeriesColumnId,
+        seriesTopN, setSeriesTopN,
+        seriesOtherBucket, setSeriesOtherBucket,
+        filterEnabled, setFilterEnabled,
+        filterColumnId, setFilterColumnId,
+        filterOperation, setFilterOperation,
+        filterValue, setFilterValue,
+    } = useChartBuilderState(selectedDataset.dataset.id);
+
+    const [previewChart, previewState] = usePreviewChartDataMutation();
     const [createChart, createChartState] = useCreateChartMutation();
-    const [getChartData, chartDataQuery] = useLazyGetChartDataQuery();
 
     const columns = selectedDataset.columns;
     const numericColumns = useMemo(
         () => columns.filter(column => column.dataType === 'number'),
         [columns]
     );
-    const activeDimensionColumnId = columns.some(column => column.id === dimensionColumnId)
+    const activeDimensionColumnId = columns.some(
+        column => column.id === dimensionColumnId
+    )
         ? dimensionColumnId
         : (columns[0]?.id ?? '');
     const activeHeatmapYColumnId = columns.some(column => column.id === heatmapYColumnId)
         ? heatmapYColumnId
         : (columns[1]?.id ?? columns[0]?.id ?? '');
-    const activeMeasureColumnId = numericColumns.some(column => column.id === measureColumnId)
+    const activeMeasureColumnId = numericColumns.some(
+        column => column.id === measureColumnId
+    )
         ? measureColumnId
         : (numericColumns[0]?.id ?? '');
     const activeSecondMeasureColumnId = numericColumns.some(
@@ -282,9 +299,8 @@ export const DatasetChartBuilder = ({
         : (columns[0]?.id ?? '');
     const activeFilterColumn =
         columns.find(column => column.id === filterColumnId) ?? columns[0];
-    const nullaryFilter =
-        filterOperation === 'is_null' || filterOperation === 'not_null';
-    const canCreateChart =
+    const nullaryFilter = filterOperation === 'is_null' || filterOperation === 'not_null';
+    const canPreview =
         Boolean(activeDimensionColumnId) &&
         (chartType !== 'heatmap' || Boolean(activeHeatmapYColumnId)) &&
         (!needsColumn(aggregate) || Boolean(activeMeasureColumnId)) &&
@@ -293,26 +309,26 @@ export const DatasetChartBuilder = ({
             Boolean(activeSecondMeasureColumnId)) &&
         (!seriesEnabled || Boolean(activeSeriesColumnId));
 
-    const handleCreateChart = async (event: FormEvent<HTMLFormElement>) => {
+    const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (!canCreateChart) {
+        if (!canPreview) {
             setChartError('Choose compatible columns for this chart.');
-
             return;
         }
 
         if (filterEnabled && !nullaryFilter && !filterValue.trim()) {
             setChartError('Fill filter value or turn the filter off.');
-
             return;
         }
 
         if (filterEnabled && filterOperation === 'between') {
-            const parts = filterValue.split(',').map(part => part.trim()).filter(Boolean);
+            const parts = filterValue
+                .split(',')
+                .map(part => part.trim())
+                .filter(Boolean);
             if (parts.length !== 2) {
                 setChartError('Between filter expects two comma-separated values.');
-
                 return;
             }
         }
@@ -324,8 +340,6 @@ export const DatasetChartBuilder = ({
 
         setChartError('');
 
-        const fallbackName = `${selectedDataset.dataset.name} ${chartType}`;
-        const name = chartName.trim() || fallbackName;
         const config = buildChartConfig({
             chartType,
             dimensionColumnId: activeDimensionColumnId,
@@ -342,13 +356,15 @@ export const DatasetChartBuilder = ({
             ),
             aggregate,
             measureColumnId: activeMeasureColumnId,
-            secondMeasureEnabled: secondMeasureEnabled && chartType !== 'pie' && chartType !== 'heatmap',
+            secondMeasureEnabled:
+                secondMeasureEnabled && chartType !== 'pie' && chartType !== 'heatmap',
             secondAggregate,
             secondMeasureColumnId: activeSecondMeasureColumnId,
             limit,
             topN,
             sortDirection,
-            seriesEnabled: seriesEnabled && chartType !== 'pie' && chartType !== 'heatmap',
+            seriesEnabled:
+                seriesEnabled && chartType !== 'pie' && chartType !== 'heatmap',
             seriesColumnId: activeSeriesColumnId,
             seriesTopN,
             seriesOtherBucket,
@@ -356,20 +372,109 @@ export const DatasetChartBuilder = ({
         });
 
         try {
+            const data = await previewChart({
+                datasetId: selectedDataset.dataset.id,
+                chartType,
+                config,
+            }).unwrap();
+
+            setSavedConfig(config);
+            setPreviewData(data);
+            setStep('preview');
+        } catch (error) {
+            setChartError(getApiErrorMessage(error, 'Unable to preview this chart.'));
+        }
+    };
+
+    const handleSave = async () => {
+        if (!savedConfig) return;
+
+        const fallbackName = `${selectedDataset.dataset.name} ${chartType}`;
+        const name = chartName.trim() || fallbackName;
+
+        try {
             const chart = await createChart({
                 orgId,
                 datasetId: selectedDataset.dataset.id,
                 name,
                 chartType,
-                config,
+                config: savedConfig,
             }).unwrap();
 
-            setCreatedChartId(chart.id);
-            await getChartData(chart.id, false).unwrap();
+            onChartCreated?.(chart.id);
         } catch (error) {
-            setChartError(getApiErrorMessage(error, 'Unable to build this chart.'));
+            setChartError(getApiErrorMessage(error, 'Unable to save this chart.'));
         }
     };
+
+    if (step === 'preview' && previewData) {
+        return (
+            <section className={styles['chart-builder']} aria-label="Chart builder">
+                <div data-stack="h" data-gap="sm" data-align="center">
+                    <ChartNoAxesColumnIncreasing size={20} />
+                    <span className={styles['eyebrow']}>Chart builder</span>
+                </div>
+
+                <ChartResult
+                    data={previewData}
+                    kind={previewData.kind}
+                    ariaLabel="Chart preview"
+                    barsLimit={8}
+                >
+                    <span>
+                        Dataset:{' '}
+                        {selectedDataset.dataset.name}
+                    </span>
+                    <span>
+                        Dimension:{' '}
+                        {columns.find(c => c.id === activeDimensionColumnId)
+                            ?.displayName ?? activeDimensionColumnId}
+                    </span>
+                </ChartResult>
+
+                <div data-stack="v" data-gap="sm">
+                    <label className={styles['control']}>
+                        <span>Chart name</span>
+                        <input
+                            value={chartName}
+                            placeholder={`${selectedDataset.dataset.name} ${chartType}`}
+                            onChange={event => setChartName(event.target.value)}
+                        />
+                    </label>
+
+                    <div data-stack="h" data-gap="sm">
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                setChartError('');
+                                setStep('config');
+                            }}
+                        >
+                            ← Edit
+                        </Button>
+                        <Button
+                            type="button"
+                            disabled={createChartState.isLoading}
+                            onClick={() => void handleSave()}
+                        >
+                            <Save size={18} />
+                            {createChartState.isLoading ? 'Saving...' : 'Save chart'}
+                        </Button>
+                        <ButtonLink to="/charts">
+                            <FolderKanban size={18} />
+                            Open charts
+                        </ButtonLink>
+                    </div>
+
+                    {chartError && (
+                        <div role="alert" className={`${styles['status']} ${styles['error']}`}>
+                            {chartError}
+                        </div>
+                    )}
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className={styles['chart-builder']} aria-label="Chart builder">
@@ -378,7 +483,7 @@ export const DatasetChartBuilder = ({
                 <span className={styles['eyebrow']}>Chart builder</span>
             </div>
 
-            <form className={styles['chart-form']} onSubmit={handleCreateChart}>
+            <form className={styles['chart-form']} onSubmit={handlePreview}>
                 <label className={styles['control']}>
                     <span>Name</span>
                     <input
@@ -584,43 +689,47 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
-                {secondMeasureEnabled && chartType !== 'pie' && chartType !== 'heatmap' && (
-                    <>
-                        <label className={styles['control']}>
-                            <span>Second aggregate</span>
-                            <select
-                                value={secondAggregate}
-                                onChange={event =>
-                                    setSecondAggregate(event.target.value as Aggregate)
-                                }
-                            >
-                                {aggregates.map(item => (
-                                    <option key={item} value={item}>
-                                        {item}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        {needsColumn(secondAggregate) && (
+                {secondMeasureEnabled &&
+                    chartType !== 'pie' &&
+                    chartType !== 'heatmap' && (
+                        <>
                             <label className={styles['control']}>
-                                <span>Second measure column</span>
+                                <span>Second aggregate</span>
                                 <select
-                                    data-testid="second-measure-select"
-                                    value={activeSecondMeasureColumnId}
+                                    value={secondAggregate}
                                     onChange={event =>
-                                        setSecondMeasureColumnId(event.target.value)
+                                        setSecondAggregate(
+                                            event.target.value as Aggregate
+                                        )
                                     }
                                 >
-                                    {numericColumns.map(column => (
-                                        <option key={column.id} value={column.id}>
-                                            {column.displayName}
+                                    {aggregates.map(item => (
+                                        <option key={item} value={item}>
+                                            {item}
                                         </option>
                                     ))}
                                 </select>
                             </label>
-                        )}
-                    </>
-                )}
+                            {needsColumn(secondAggregate) && (
+                                <label className={styles['control']}>
+                                    <span>Second measure column</span>
+                                    <select
+                                        data-testid="second-measure-select"
+                                        value={activeSecondMeasureColumnId}
+                                        onChange={event =>
+                                            setSecondMeasureColumnId(event.target.value)
+                                        }
+                                    >
+                                        {numericColumns.map(column => (
+                                            <option key={column.id} value={column.id}>
+                                                {column.displayName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
+                        </>
+                    )}
 
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
                     <label className={styles['control']}>
@@ -661,7 +770,10 @@ export const DatasetChartBuilder = ({
                                 value={seriesTopN}
                                 onChange={event =>
                                     setSeriesTopN(
-                                        Math.max(1, Math.min(50, Number(event.target.value)))
+                                        Math.max(
+                                            1,
+                                            Math.min(50, Number(event.target.value))
+                                        )
                                     )
                                 }
                             />
@@ -732,9 +844,7 @@ export const DatasetChartBuilder = ({
                     <span>Filter</span>
                     <select
                         value={filterEnabled ? 'on' : 'off'}
-                        onChange={event =>
-                            setFilterEnabled(event.target.value === 'on')
-                        }
+                        onChange={event => setFilterEnabled(event.target.value === 'on')}
                     >
                         <option value="off">off</option>
                         <option value="on">on</option>
@@ -783,7 +893,8 @@ export const DatasetChartBuilder = ({
                                     placeholder={
                                         filterOperation === 'between'
                                             ? 'min, max'
-                                            : filterOperation === 'in' || filterOperation === 'nin'
+                                            : filterOperation === 'in' ||
+                                                filterOperation === 'nin'
                                               ? 'a, b, c'
                                               : undefined
                                     }
@@ -796,46 +907,17 @@ export const DatasetChartBuilder = ({
 
                 <Button
                     type="submit"
-                    disabled={
-                        !canCreateChart ||
-                        createChartState.isLoading ||
-                        chartDataQuery.isFetching
-                    }
+                    disabled={!canPreview || previewState.isLoading}
                 >
                     <Play size={18} />
-                    {createChartState.isLoading ? 'Building' : 'Build chart'}
+                    {previewState.isLoading ? 'Loading...' : 'Preview'}
                 </Button>
             </form>
 
             {chartError && (
-                <div
-                    role="alert"
-                    className={`${styles['status']} ${styles['error']}`}
-                >
+                <div role="alert" className={`${styles['status']} ${styles['error']}`}>
                     {chartError}
                 </div>
-            )}
-
-            {createdChartId && chartDataQuery.data && (
-                <ChartResult
-                    data={chartDataQuery.data}
-                    kind={chartDataQuery.data.kind}
-                    ariaLabel="Chart result"
-                    barsLimit={8}
-                >
-                    <span>
-                        Chart ID: <code>{createdChartId}</code>
-                    </span>
-                    <span>
-                        Dimension:{' '}
-                        {columns.find(c => c.id === activeDimensionColumnId)
-                            ?.displayName ?? activeDimensionColumnId}
-                    </span>
-                    <ButtonLink to="/charts">
-                        <FolderKanban size={18} />
-                        Open saved charts
-                    </ButtonLink>
-                </ChartResult>
             )}
         </section>
     );

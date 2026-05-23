@@ -6,6 +6,7 @@ import {
     useRegisterMutation,
     useWaitForWorkspace,
 } from '@/features/auth';
+
 import { getApiErrorMessage } from '@/shared/api';
 
 import styles from '../form.module.scss';
@@ -45,11 +46,7 @@ export const SignUp = () => {
             <p className={styles['form-subtitle']}>
                 Create an account to start managing your data.
             </p>
-            <form
-                aria-label="Sign up"
-                className={styles['form']}
-                onSubmit={handleSubmit}
-            >
+            <form aria-label="Sign up" className={styles['form']} onSubmit={handleSubmit}>
                 <div data-stack="v" data-gap="md">
                     <div data-stack="v" data-gap="sm" className={styles['field']}>
                         <label htmlFor="sign-up-name" className={styles['label']}>

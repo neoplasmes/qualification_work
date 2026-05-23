@@ -9,6 +9,7 @@ import type {
     GetChartByIdQuery,
     GetChartDataQuery,
     GetChartsByOrgIdQuery,
+    PreviewChartDataQuery,
 } from '@/core/queries';
 
 import type { AppState } from '@/shared/appState';
@@ -18,6 +19,7 @@ import { createDeleteChartHandler } from './delete.handler';
 import { createGetChartByIdHandler } from './getById.handler';
 import { createGetChartsByOrgIdHandler } from './getByOrgId.handler';
 import { createGetChartDataHandler } from './getData.handler';
+import { createPreviewChartDataHandler } from './preview.handler';
 import { createUpdateChartHandler } from './update.handler';
 
 export function createChartsRouter(
@@ -26,11 +28,13 @@ export function createChartsRouter(
     deleteChartHandler: DeleteChartCommand,
     getChartByIdHandler: GetChartByIdQuery,
     getChartsByOrgIdHandler: GetChartsByOrgIdQuery,
-    getChartDataHandler: GetChartDataQuery
+    getChartDataHandler: GetChartDataQuery,
+    previewChartDataHandler: PreviewChartDataQuery
 ): Router<AppState> {
     const router = new Router<AppState>('/charts');
 
     router.get('/', createGetChartsByOrgIdHandler(getChartsByOrgIdHandler));
+    router.post('/preview', createPreviewChartDataHandler(previewChartDataHandler));
     router.get('/:id', createGetChartByIdHandler(getChartByIdHandler));
     router.post('/', createCreateChartHandler(createChartHandler));
     router.put('/:id', createUpdateChartHandler(updateChartHandler));

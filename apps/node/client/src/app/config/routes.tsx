@@ -1,10 +1,8 @@
 import { redirect, type RouteObject } from 'react-router';
 
 import { Layout } from '@/app/ui/Layout';
+import { WorkspaceLayout } from '../layouts/WorkspaceLayout';
 
-import { ChartsPage } from '@/pages/Charts';
-import { DashboardsPage } from '@/pages/Dashboards';
-import { DatasetsPage } from '@/pages/Datasets';
 import { Entrance, SignIn, SignUp } from '@/pages/Entrance';
 import { ProfilePage } from '@/pages/Profile';
 
@@ -39,16 +37,12 @@ export const getRoutes = (_store: AppStore): RouteObject[] => [
                 ],
             },
             {
-                path: '/datasets',
-                element: <DatasetsPage />,
-            },
-            {
-                path: '/charts',
-                element: <ChartsPage />,
-            },
-            {
-                path: '/dashboards',
-                element: <DashboardsPage />,
+                element: <WorkspaceLayout />,
+                children: [
+                    { path: '/charts' },
+                    { path: '/datasets' },
+                    { path: '/dashboards' },
+                ],
             },
             {
                 path: '/profile',

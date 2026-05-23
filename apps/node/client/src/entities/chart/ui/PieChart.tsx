@@ -1,12 +1,12 @@
-import { Pie } from '@visx/shape';
-import { Group } from '@visx/group';
-import { scaleOrdinal } from '@visx/scale';
-import { ParentSize } from '@visx/responsive';
-import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
+import { Group } from '@visx/group';
+import { ParentSize } from '@visx/responsive';
+import { scaleOrdinal } from '@visx/scale';
+import { Pie } from '@visx/shape';
+import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
 
-import type { ChartDataPoint } from '../lib/parseChartData';
 import { formatChartCell } from '../lib/formatChartCell';
+import type { ChartDataPoint } from '../lib/parseChartData';
 
 const C = {
     outline: '#2c2a2b',
@@ -26,6 +26,7 @@ const PIE_COLORS = [
 ];
 
 const CHART_HEIGHT = 260;
+const MIN_CHART_WIDTH = 180;
 
 type PieChartInnerProps = {
     data: ChartDataPoint[];
@@ -34,8 +35,14 @@ type PieChartInnerProps = {
 };
 
 const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
-    const { showTooltip, hideTooltip, tooltipData, tooltipLeft, tooltipTop, tooltipOpen } =
-        useTooltip<ChartDataPoint & { pct: string }>();
+    const {
+        showTooltip,
+        hideTooltip,
+        tooltipData,
+        tooltipLeft,
+        tooltipTop,
+        tooltipOpen,
+    } = useTooltip<ChartDataPoint & { pct: string }>();
 
     const total = data.reduce((sum, d) => sum + d.value, 0);
     const outerRadius = Math.min(width, height) / 2 - 16;
@@ -73,9 +80,13 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
                                     fill={colorScale(arc.data.label)}
                                     onMouseMove={event => {
                                         const point = localPoint(event);
-                                        const pct = total > 0
-                                            ? ((arc.data.value / total) * 100).toFixed(1)
-                                            : '0.0';
+                                        const pct =
+                                            total > 0
+                                                ? (
+                                                      (arc.data.value / total) *
+                                                      100
+                                                  ).toFixed(1)
+                                                : '0.0';
                                         showTooltip({
                                             tooltipData: { ...arc.data, pct },
                                             tooltipLeft: point?.x,
@@ -102,7 +113,8 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
                         fontSize: 12,
                     }}
                 >
-                    <strong>{tooltipData.label}</strong>: {formatChartCell(tooltipData.value)} ({tooltipData.pct}%)
+                    <strong>{tooltipData.label}</strong>:{' '}
+                    {formatChartCell(tooltipData.value)} ({tooltipData.pct}%)
                 </TooltipWithBounds>
             )}
         </div>
@@ -116,8 +128,10 @@ type PieChartProps = {
 export const PieChart = ({ data }: PieChartProps) => (
     <ParentSize style={{ height: CHART_HEIGHT }}>
         {({ width }) =>
-            width > 0 ? (
+            width >= MIN_CHART_WIDTH ? (
                 <PieChartInner data={data} width={width} height={CHART_HEIGHT} />
+            ) : width > 0 ? (
+                <div style={{ height: CHART_HEIGHT }} />
             ) : null
         }
     </ParentSize>

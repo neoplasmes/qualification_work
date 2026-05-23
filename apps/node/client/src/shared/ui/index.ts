@@ -4,3 +4,4 @@ export type { ClientOnlyDefferedProps } from './ClientOnlyDeffered/ui/ClientOnly
 export { Dropzone } from './Dropzone';
 export { Logo } from './Logo';
 export type { LogoProps } from './Logo';
+export { Modal } from './Modal';

@@ -1,15 +1,14 @@
-import { LinePath } from '@visx/shape';
+import { AxisBottom, AxisLeft } from '@visx/axis';
 import { curveMonotoneX } from '@visx/curve';
-import { Group } from '@visx/group';
-import { scalePoint, scaleLinear } from '@visx/scale';
-import { AxisLeft, AxisBottom } from '@visx/axis';
-import { Line } from '@visx/shape';
-import { ParentSize } from '@visx/responsive';
-import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
+import { Group } from '@visx/group';
+import { ParentSize } from '@visx/responsive';
+import { scaleLinear, scalePoint } from '@visx/scale';
+import { Line, LinePath } from '@visx/shape';
+import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
 
-import type { ChartDataPoint } from '../lib/parseChartData';
 import { formatChartCell } from '../lib/formatChartCell';
+import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
 
 const C = {
     primary: '#872557',
@@ -21,29 +20,40 @@ const C = {
 } as const;
 
 const CHART_HEIGHT = 260;
+const MIN_CHART_WIDTH = 180;
+const SERIES_COLORS = ['#872557', '#c85080', '#4a8f8f', '#d09a3a', '#7c6bc4', '#78a95a'];
 
 type LineChartInnerProps = {
-    data: ChartDataPoint[];
+    series: ChartSeries[];
+    labels: string[];
     width: number;
     height: number;
 };
 
-const LineChartInner = ({ data, width, height }: LineChartInnerProps) => {
-    const { showTooltip, hideTooltip, tooltipData, tooltipLeft, tooltipTop, tooltipOpen } =
-        useTooltip<ChartDataPoint>();
+const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) => {
+    const {
+        showTooltip,
+        hideTooltip,
+        tooltipData,
+        tooltipLeft,
+        tooltipTop,
+        tooltipOpen,
+    } = useTooltip<ChartDataPoint & { series: string }>();
 
-    const margin = { top: 16, right: 16, bottom: 48, left: 52 };
+    const rotateLabels = labels.length > 6;
+    const margin = { top: 16, right: 16, bottom: rotateLabels ? 64 : 48, left: 52 };
     const xMax = width - margin.left - margin.right;
     const yMax = height - margin.top - margin.bottom;
 
     const xScale = scalePoint<string>({
         range: [0, xMax],
-        domain: data.map(d => d.label),
+        domain: labels,
         padding: 0.1,
     });
 
-    const minValue = Math.min(...data.map(d => d.value));
-    const maxValue = Math.max(...data.map(d => d.value), 1);
+    const values = series.flatMap(item => item.points.map(point => point.value));
+    const minValue = Math.min(...values, 0);
+    const maxValue = Math.max(...values, 1);
 
     const yScale = scaleLinear<number>({
         range: [yMax, 0],
@@ -81,12 +91,14 @@ const LineChartInner = ({ data, width, height }: LineChartInnerProps) => {
                     <AxisBottom
                         top={yMax}
                         scale={xScale}
-                        numTicks={data.length}
+                        numTicks={labels.length}
                         tickLabelProps={() => ({
                             fill: C.muted,
                             fontSize: 11,
-                            textAnchor: 'middle' as const,
-                            dy: '0.33em',
+                            textAnchor: rotateLabels ? ('end' as const) : ('middle' as const),
+                            transform: rotateLabels ? 'rotate(-30)' : undefined,
+                            dx: rotateLabels ? '-0.33em' : '0',
+                            dy: rotateLabels ? '-0.1em' : '0.33em',
                         })}
                         tickStroke={C.outline}
                         stroke={C.outline}
@@ -99,35 +111,46 @@ const LineChartInner = ({ data, width, height }: LineChartInnerProps) => {
                             strokeWidth={1}
                         />
                     )}
-                    <LinePath<ChartDataPoint>
-                        data={data}
-                        x={d => xScale(d.label) ?? 0}
-                        y={d => yScale(d.value)}
-                        stroke={C.primary}
-                        strokeWidth={2}
-                        curve={curveMonotoneX}
-                    />
-                    {data.map(d => (
-                        <circle
-                            key={d.label}
-                            cx={xScale(d.label) ?? 0}
-                            cy={yScale(d.value)}
-                            r={4}
-                            fill={C.primary}
-                            stroke={C.surfaceHigh}
-                            strokeWidth={1.5}
-                            style={{ cursor: 'crosshair' }}
-                            onMouseMove={event => {
-                                const point = localPoint(event);
-                                showTooltip({
-                                    tooltipData: d,
-                                    tooltipLeft: point?.x,
-                                    tooltipTop: point?.y,
-                                });
-                            }}
-                            onMouseLeave={hideTooltip}
-                        />
-                    ))}
+                    {series.map((seriesItem, seriesIndex) => {
+                        const color = SERIES_COLORS[seriesIndex % SERIES_COLORS.length];
+
+                        return (
+                            <g key={seriesItem.name}>
+                                <LinePath<ChartDataPoint>
+                                    data={seriesItem.points}
+                                    x={d => xScale(d.label) ?? 0}
+                                    y={d => yScale(d.value)}
+                                    stroke={color}
+                                    strokeWidth={2}
+                                    curve={curveMonotoneX}
+                                />
+                                {seriesItem.points.map(point => (
+                                    <circle
+                                        key={`${seriesItem.name}:${point.label}`}
+                                        cx={xScale(point.label) ?? 0}
+                                        cy={yScale(point.value)}
+                                        r={4}
+                                        fill={color}
+                                        stroke={C.surfaceHigh}
+                                        strokeWidth={1.5}
+                                        style={{ cursor: 'crosshair' }}
+                                        onMouseMove={event => {
+                                            const cursorPoint = localPoint(event);
+                                            showTooltip({
+                                                tooltipData: {
+                                                    ...point,
+                                                    series: seriesItem.name,
+                                                },
+                                                tooltipLeft: cursorPoint?.x,
+                                                tooltipTop: cursorPoint?.y,
+                                            });
+                                        }}
+                                        onMouseLeave={hideTooltip}
+                                    />
+                                ))}
+                            </g>
+                        );
+                    })}
                 </Group>
             </svg>
             {tooltipOpen && tooltipData && (
@@ -142,7 +165,9 @@ const LineChartInner = ({ data, width, height }: LineChartInnerProps) => {
                         fontSize: 12,
                     }}
                 >
-                    <strong>{tooltipData.label}</strong>: {formatChartCell(tooltipData.value)}
+                    <strong>{tooltipData.label}</strong>
+                    {series.length > 1 ? ` / ${tooltipData.series}` : ''}:{' '}
+                    {formatChartCell(tooltipData.value)}
                 </TooltipWithBounds>
             )}
         </div>
@@ -150,14 +175,22 @@ const LineChartInner = ({ data, width, height }: LineChartInnerProps) => {
 };
 
 type LineChartProps = {
-    data: ChartDataPoint[];
+    series: ChartSeries[];
+    labels: string[];
 };
 
-export const LineChart = ({ data }: LineChartProps) => (
+export const LineChart = ({ series, labels }: LineChartProps) => (
     <ParentSize style={{ height: CHART_HEIGHT }}>
         {({ width }) =>
-            width > 0 ? (
-                <LineChartInner data={data} width={width} height={CHART_HEIGHT} />
+            width >= MIN_CHART_WIDTH ? (
+                <LineChartInner
+                    series={series}
+                    labels={labels}
+                    width={width}
+                    height={CHART_HEIGHT}
+                />
+            ) : width > 0 ? (
+                <div style={{ height: CHART_HEIGHT }} />
             ) : null
         }
     </ParentSize>

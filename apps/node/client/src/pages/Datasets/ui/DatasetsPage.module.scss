@@ -55,18 +55,126 @@
     background-color: rgb(140 0 0 / 18%);
 }
 
+.full-button {
+    width: 100%;
+}
 
-.toolbar {
+.filter-panel {
+    overflow: auto;
     display: flex;
+    flex: 1;
+    flex-direction: column;
     gap: var(--spacing-md);
+
+    min-width: 0;
+    min-height: 0;
+}
+
+.filter-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xs);
+}
+
+.filter-tab {
+    display: flex;
+    gap: var(--spacing-xs);
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-on-surface-variant);
+    cursor: pointer;
+
+    background-color: var(--color-surface-container-low);
+
+    &.active {
+        border-color: var(--color-on-surface);
+        color: var(--color-on-surface);
+        background-color: var(--color-surface-container);
+    }
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.filter-tab-count {
+    min-width: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    font-size: 10px;
+    color: var(--color-on-primary);
+    background-color: var(--color-primary);
+}
+
+.filter-chip-list {
+    overflow: auto;
+    display: grid;
+    gap: var(--spacing-xs);
+    align-content: start;
+}
+
+.filter-chip {
+    cursor: pointer;
+
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    color: inherit;
+    text-align: left;
+
+    background-color: var(--color-surface-container-low);
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+
+    &:focus {
+        outline: none;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &.selected {
+        border-color: var(--color-primary);
+        background-color: var(--color-surface-container);
+    }
+}
+
+.filter-chip-name {
+    overflow: hidden;
+
+    font-family: var(--font-headline);
+    font-size: var(--font-size-sm);
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-chip-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs) var(--spacing-sm);
+
+    margin-top: 2px;
+
+    font-size: var(--font-size-xs);
+    color: var(--color-on-surface-variant);
 }
 
 .dataset-list {
     overflow: auto;
     display: grid;
     gap: var(--spacing-sm);
+    align-content: start;
 
     min-height: 140px;
     padding-right: var(--spacing-xs);
@@ -317,11 +425,9 @@
 }
 
 .columns-list {
-    overflow: auto;
     display: flex;
+    flex-wrap: wrap;
     gap: var(--spacing-sm);
-
-    padding-bottom: var(--spacing-xs);
 }
 
 .column-chip {
@@ -374,34 +480,50 @@
 }
 
 .table {
-    width: 100%;
-    min-width: 760px;
     border-collapse: collapse;
 
     font-size: var(--font-size-sm);
 
     th,
     td {
-        max-width: 280px;
-        padding: var(--spacing-sm) var(--spacing-md);
         border-bottom: 1px solid var(--color-outline-new);
-
-        overflow-wrap: anywhere;
         vertical-align: top;
+    }
+
+    th:not(:last-child),
+    td:not(:last-child) {
+        border-right: 1px solid var(--color-outline-new);
+    }
+
+    // row number column: shrinks to fit content
+    th:first-child,
+    td:first-child {
+        width: 1px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        white-space: nowrap;
+        color: var(--color-on-surface-variant);
+    }
+
+    // data column headers: take no in-flow space (inner span is absolute)
+    th:not(:first-child) {
+        position: relative;
+        padding: 0;
+
+        background-color: var(--color-surface-container);
     }
 
     th {
         position: sticky;
         z-index: 1;
         top: 0;
-
-        font-family: var(--font-headline);
-        font-size: var(--font-size-xs);
-        text-align: left;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        height: 40px;
 
         background-color: var(--color-surface-container);
+    }
+
+    // data column cells: no padding (inner div handles it)
+    td:not(:first-child) {
+        padding: 0;
     }
 
     tbody tr:nth-child(even) {
@@ -409,14 +531,53 @@
     }
 }
 
-.empty {
-    display: grid;
+.th-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+
+    padding: 0 var(--spacing-md);
+    overflow: hidden;
+
+    font-family: var(--font-headline);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    > span {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+}
+
+.td-inner {
+    min-width: 100px;
+    max-width: 250px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    overflow-wrap: anywhere;
+}
+
+.panel-placeholder {
+    display: flex;
     flex: 1;
-    place-items: center;
+    min-height: 240px;
+    align-items: center;
+    justify-content: center;
 
-    min-height: 180px;
-    border: 1px dashed var(--color-outline-new);
-    border-radius: var(--radius-xs);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: rgb(255 255 255 / 25%);
+}
 
+.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+
+    font-size: var(--font-size-sm);
     color: var(--color-on-surface-variant);
 }

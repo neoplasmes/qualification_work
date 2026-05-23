@@ -5,6 +5,7 @@ export {
     useLazyGetChartDataQuery,
     useLazyGetChartQuery,
     useListChartsQuery,
+    usePreviewChartDataMutation,
     useUpdateChartMutation,
 } from './chartsApi';
 export type {
@@ -19,6 +20,7 @@ export type {
     FilterClause,
     FilterOperation,
     GetChartDataPayload,
+    PreviewChartPayload,
     TimeGranularity,
     UpdateChartPayload,
 } from './types';

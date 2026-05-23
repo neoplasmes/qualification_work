@@ -6,6 +6,7 @@ import type {
     CreateChartPayload,
     CreateChartResponse,
     GetChartDataPayload,
+    PreviewChartPayload,
     UpdateChartPayload,
 } from './types';
 
@@ -19,10 +20,7 @@ const encodeFilterOverrides = (filters: GetChartDataPayload['filterOverrides']) 
         typeof btoa === 'function'
             ? btoa(json)
             : Buffer.from(json, 'utf-8').toString('base64');
-    const encoded = base64
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/g, '');
+    const encoded = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 
     return `?filterOverrides=${encoded}`;
 };
@@ -36,6 +34,13 @@ export const chartsApi = api.injectEndpoints({
                 body,
             }),
             invalidatesTags: ['Charts'],
+        }),
+        previewChartData: builder.mutation<ChartResponse, PreviewChartPayload>({
+            query: body => ({
+                url: '/data/charts/preview',
+                method: 'POST',
+                body,
+            }),
         }),
         listCharts: builder.query<Chart[], string>({
             query: orgId => `/data/charts?orgId=${encodeURIComponent(orgId)}`,
@@ -52,9 +57,7 @@ export const chartsApi = api.injectEndpoints({
         }),
         getChart: builder.query<Chart, string>({
             query: chartId => `/data/charts/${chartId}`,
-            providesTags: (_result, _error, chartId) => [
-                { type: 'Charts', id: chartId },
-            ],
+            providesTags: (_result, _error, chartId) => [{ type: 'Charts', id: chartId }],
         }),
         updateChart: builder.mutation<void, UpdateChartPayload>({
             query: ({ chartId, ...body }) => ({
@@ -102,5 +105,6 @@ export const {
     useLazyGetChartDataQuery,
     useLazyGetChartQuery,
     useListChartsQuery,
+    usePreviewChartDataMutation,
     useUpdateChartMutation,
 } = chartsApi;

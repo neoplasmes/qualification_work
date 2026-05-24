@@ -46,7 +46,7 @@ export const DatasetsFilterPanel = () => {
     };
 
     return (
-        <aside className={styles['filter-panel']}>
+        <div className={styles['filter-section']}>
             <div data-stack="h" data-align="center" data-justify="between">
                 <span className={styles['eyebrow']}>Filter by</span>
                 <IconButton
@@ -136,6 +136,6 @@ export const DatasetsFilterPanel = () => {
                     </>
                 )}
             </div>
-        </aside>
+        </div>
     );
 };

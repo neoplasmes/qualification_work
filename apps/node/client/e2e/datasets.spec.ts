@@ -73,6 +73,31 @@ const uploadFixture = async (
     });
 };
 
+const editFirstPreviewCellThroughUi = async (page: Page, value: string) => {
+    const grid = page.getByTestId('dataset-preview-grid');
+    await expect(grid).toBeVisible();
+
+    const box = await grid.boundingBox();
+    expect(box).not.toBeNull();
+
+    const firstCellCenter = {
+        x: box!.x + 75,
+        y: box!.y + 40 + 17,
+    };
+    const editor = page.locator('#portal textarea.gdg-input');
+
+    await page.mouse.dblclick(firstCellCenter.x, firstCellCenter.y);
+    await expect(editor).toBeVisible();
+    await editor.fill(value);
+    await editor.press('Enter');
+    await expect(editor).toBeHidden();
+
+    await page.mouse.dblclick(firstCellCenter.x, firstCellCenter.y);
+    await expect(editor).toBeVisible();
+    await expect(editor).toHaveValue(value);
+    await editor.press('Escape');
+};
+
 test.describe('dataset upload through gateway', () => {
     test('uploads CSV and XLSX datasets and renders previews', async ({ page }) => {
         await signUpThroughUi(page, createUser());
@@ -92,6 +117,8 @@ test.describe('dataset upload through gateway', () => {
                 cell: 'North-001',
             }
         );
+
+        await editFirstPreviewCellThroughUi(page, 'North-edited');
 
         const chartBuilder = page.getByLabel('Chart builder');
         await chartBuilder.getByLabel('Name').fill('Sales by category');

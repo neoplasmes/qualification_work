@@ -1,2 +1,2 @@
-export { DatasetsPage, DatasetsUploadPanel, DatasetsWorkspace, DatasetsFilterPanel } from './ui';
+export { DatasetsPage, DatasetsUploadPanel, DatasetsWorkspace, DatasetsFilterPanel, DatasetsRightPanel } from './ui';
 export { datasetsPageSlice, datasetsPageInitialState } from './model/datasetsPageSlice';

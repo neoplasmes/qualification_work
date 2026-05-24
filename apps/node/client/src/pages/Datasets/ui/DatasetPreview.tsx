@@ -1,4 +1,13 @@
 import { skipToken } from '@reduxjs/toolkit/query';
+import DataEditor, {
+    GridCellKind,
+    type EditableGridCell,
+    type GridCell,
+    type GridColumn,
+    type Item,
+    type Theme,
+} from '@glideapps/glide-data-grid';
+import '@glideapps/glide-data-grid/dist/index.css';
 import {
     Check,
     ChevronLeft,
@@ -9,7 +18,7 @@ import {
     Table2,
     X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
     useGetDatasetRowsQuery,
@@ -26,55 +35,90 @@ import { IconButton } from '@/shared/ui';
 import styles from './DatasetsPage.module.scss';
 
 const ROWS_PAGE_SIZE = 200;
-
-type DatasetPreviewProps = {
-    selectedDataset: DatasetMetadata | undefined;
-};
+const HEADER_H = 40;
+const ROW_H = 34;
+const MAX_GRID_H = 520;
 
 // date-only: 2024-01-15
 const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
 // datetime without timezone: 2024-01-15T10:30 or 2024-01-15T10:30:00.000
 const DATETIME_NO_TZ_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 
+const GRID_THEME: Partial<Theme> = {
+    accentColor: '#872557',
+    accentFg: '#ffffff',
+    accentLight: 'rgba(135,37,87,0.12)',
+    textDark: '#ffffff',
+    textMedium: '#b0b0b0',
+    textLight: '#8c8c8c',
+    textBubble: '#ffffff',
+    bgIconHeader: '#1a1a1a',
+    fgIconHeader: '#b0b0b0',
+    textHeader: '#ffffff',
+    textHeaderSelected: '#ffffff',
+    bgCell: '#111111',
+    bgCellMedium: 'rgba(255,255,255,0.025)',
+    bgHeader: '#1a1a1a',
+    bgHeaderHasFocus: '#1a1a1a',
+    bgHeaderHovered: '#242424',
+    bgBubble: '#1a1a1a',
+    bgBubbleSelected: '#242424',
+    bgSearchResult: 'rgba(135,37,87,0.2)',
+    borderColor: '#2c2a2b',
+    drilldownBorder: '#2c2a2b',
+    linkColor: '#872557',
+    cellHorizontalPadding: 12,
+    cellVerticalPadding: 8,
+    headerFontStyle: 'bold 11px',
+    headerIconSize: 16,
+    baseFontStyle: '13px',
+    markerFontStyle: '11px',
+    fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
+    editorFontSize: '13px',
+    lineHeight: 1.4,
+    horizontalBorderColor: '#2c2a2b',
+    headerBottomBorderColor: '#2c2a2b',
+};
+
 function isValidValue(value: string, dataType: DatasetColumn['dataType']): boolean {
-    if (value === '') {return false;}
-    if (dataType === 'number') {return !Number.isNaN(Number(value)) && Number.isFinite(Number(value));}
-    if (dataType === 'bool') {return value === 'true' || value === 'false';}
+    if (value === '') { return false; }
+    if (dataType === 'number') { return !Number.isNaN(Number(value)) && Number.isFinite(Number(value)); }
+    if (dataType === 'bool') { return value === 'true' || value === 'false'; }
     if (dataType === 'date') {
         const s = value.trim();
-        if (DATE_ONLY_RE.test(s)) {return !Number.isNaN(new Date(`${s}T00:00:00.000Z`).getTime());}
+        if (DATE_ONLY_RE.test(s)) { return !Number.isNaN(new Date(`${s}T00:00:00.000Z`).getTime()); }
         const normalized = DATETIME_NO_TZ_RE.test(s) ? `${s}Z` : s;
         return !Number.isNaN(new Date(normalized).getTime());
     }
-
     return true;
 }
 
 function parseValue(value: string, dataType: DatasetColumn['dataType']): unknown {
-    if (dataType === 'number') {return Number(value);}
-    if (dataType === 'bool') {return value === 'true';}
+    if (dataType === 'number') { return Number(value); }
+    if (dataType === 'bool') { return value === 'true'; }
     if (dataType === 'date') {
         const s = value.trim();
         // date-only string: treat as UTC midnight to avoid timezone shift
-        if (DATE_ONLY_RE.test(s)) {return `${s}T00:00:00.000Z`;}
+        if (DATE_ONLY_RE.test(s)) { return `${s}T00:00:00.000Z`; }
         // datetime without timezone: append Z to keep UTC
-        if (DATETIME_NO_TZ_RE.test(s)) {return new Date(`${s}Z`).toISOString();}
+        if (DATETIME_NO_TZ_RE.test(s)) { return new Date(`${s}Z`).toISOString(); }
         return new Date(s).toISOString();
     }
-
     return value;
 }
 
+type DatasetPreviewProps = {
+    selectedDataset: DatasetMetadata | undefined;
+};
+
 export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const [rowsOffset, setRowsOffset] = useState(0);
-    const [editingCell, setEditingCell] = useState<{ rowId: string; colKey: string } | null>(null);
-    const [editingValue, setEditingValue] = useState('');
-    const [displayEdits, setDisplayEdits] = useState<Map<string, Record<string, unknown>>>(
-        new Map()
-    );
+    const [displayEdits, setDisplayEdits] = useState<Map<string, Record<string, unknown>>>(new Map());
     const pendingEditsRef = useRef<Map<string, Record<string, unknown>>>(new Map());
     const [isInsertingRow, setIsInsertingRow] = useState(false);
     const [newRowValues, setNewRowValues] = useState<Record<string, string>>({});
+    const wrapRef = useRef<HTMLDivElement>(null);
+    const [gridWidth, setGridWidth] = useState(0);
 
     const [updateRow] = useUpdateRowMutation();
     const [insertRow, insertState] = useInsertRowMutation();
@@ -90,6 +134,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     );
 
     const columns = selectedDataset?.columns ?? [];
+    const rows = rowsQuery.data?.rows ?? [];
     const totalRows = rowsQuery.data?.totalRows ?? selectedDataset?.totalRows ?? 0;
     const hasPreviousRows = rowsOffset > 0;
     const hasNextRows = rowsOffset + ROWS_PAGE_SIZE < totalRows;
@@ -98,78 +143,110 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const isOnLastPage = totalRows === 0 || rowsOffset >= lastPageOffset;
     const showAddRow = !hasNextRows && !!selectedDataset && !!rowsQuery.data;
 
+    const rowCount = rows.length + (isInsertingRow ? 1 : 0);
+    const gridHeight = Math.min(HEADER_H + rowCount * ROW_H, MAX_GRID_H);
+
+    useEffect(() => {
+        const el = wrapRef.current;
+        if (!el) { return; }
+        const ro = new ResizeObserver(([e]) => setGridWidth(Math.floor(e.contentRect.width)));
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
     // flush pending cell edits every 1s
     useEffect(() => {
-        if (!selectedDataset) {return;}
+        if (!selectedDataset) { return; }
         const datasetId = selectedDataset.dataset.id;
         const orgId = selectedDataset.dataset.orgId;
         const id = setInterval(() => {
-            if (!pendingEditsRef.current.size) {return;}
+            if (!pendingEditsRef.current.size) { return; }
             const batch = new Map(pendingEditsRef.current);
             pendingEditsRef.current.clear();
             for (const [rowId, values] of batch) {
                 void updateRow({ datasetId, orgId, rowId, values });
             }
         }, 1000);
-
         return () => clearInterval(id);
     }, [selectedDataset?.dataset.id, updateRow]);
 
-    const commitCell = (rowId: string, colKey: string, rawValue: string) => {
-        const col = columns.find(c => c.key === colKey);
-        if (!col) {return;}
-        // non-empty value must pass format validation - reject silently if not
-        if (rawValue !== '' && !isValidValue(rawValue, col.dataType)) {return;}
-
+    const commitCell = useCallback((rowId: string, col: DatasetColumn, rawValue: string) => {
         const parsed = rawValue === '' ? null : parseValue(rawValue, col.dataType);
-
         const pending = { ...pendingEditsRef.current.get(rowId) };
-        pending[colKey] = parsed;
+        pending[col.key] = parsed;
         pendingEditsRef.current.set(rowId, pending);
-
         setDisplayEdits(prev => {
             const next = new Map(prev);
             const row = { ...next.get(rowId) };
-            row[colKey] = parsed;
+            row[col.key] = parsed;
             next.set(rowId, row);
-
             return next;
         });
-    };
+    }, []);
 
-    const handleCellClick = (rowId: string, colKey: string, currentValue: unknown) => {
-        if (editingCell) {
-            commitCell(editingCell.rowId, editingCell.colKey, editingValue);
-        }
-        setEditingCell({ rowId, colKey });
-        // use formatted display value so dates start without timezone suffix
-        setEditingValue(formatChartCell(currentValue));
-    };
+    const gridColumns = useMemo<GridColumn[]>(
+        () =>
+            columns.map(col => ({
+                id: col.key,
+                title: col.displayName.toUpperCase(),
+                width: 150,
+                grow: 1,
+            })),
+        [columns]
+    );
 
-    const handleCellBlur = () => {
-        if (!editingCell) {return;}
-        commitCell(editingCell.rowId, editingCell.colKey, editingValue);
-        setEditingCell(null);
-    };
+    const getCellContent = useCallback(
+        ([colIdx, rowIdx]: Item): GridCell => {
+            const col = columns[colIdx];
+            if (!col) {
+                return { kind: GridCellKind.Text, data: '', displayData: '', allowOverlay: false };
+            }
 
-    const handleCellKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleCellBlur();
-        }
-        if (e.key === 'Escape') {
-            setEditingCell(null);
-        }
-    };
+            if (isInsertingRow && rowIdx === rows.length) {
+                const val = newRowValues[col.key] ?? '';
+                return { kind: GridCellKind.Text, data: val, displayData: val, allowOverlay: true };
+            }
 
-    const editingCol = editingCell ? columns.find(c => c.key === editingCell.colKey) : null;
-    const isEditingInvalid =
-        editingValue !== '' &&
-        editingCol != null &&
-        !isValidValue(editingValue, editingCol.dataType);
+            const dataRow = rows[rowIdx];
+            if (!dataRow) {
+                return { kind: GridCellKind.Text, data: '', displayData: '', allowOverlay: false };
+            }
+            const rawValue = displayEdits.get(dataRow.id)?.[col.key] ?? dataRow.data[col.key];
+            const display = formatChartCell(rawValue);
+            return { kind: GridCellKind.Text, data: display, displayData: display, allowOverlay: true };
+        },
+        [columns, rows, displayEdits, isInsertingRow, newRowValues]
+    );
+
+    const onCellEdited = useCallback(
+        ([colIdx, rowIdx]: Item, newValue: EditableGridCell) => {
+            const col = columns[colIdx];
+            if (!col || newValue.kind !== GridCellKind.Text) { return; }
+
+            if (isInsertingRow && rowIdx === rows.length) {
+                setNewRowValues(prev => ({ ...prev, [col.key]: newValue.data }));
+                return;
+            }
+
+            const dataRow = rows[rowIdx];
+            if (!dataRow) { return; }
+            commitCell(dataRow.id, col, newValue.data);
+        },
+        [columns, rows, isInsertingRow, commitCell]
+    );
+
+    const validateCell = useCallback(
+        ([colIdx]: Item, newValue: EditableGridCell): boolean => {
+            const col = columns[colIdx];
+            if (!col || newValue.kind !== GridCellKind.Text) { return true; }
+            const val = newValue.data;
+            return val === '' || isValidValue(val, col.dataType);
+        },
+        [columns]
+    );
 
     const handleInsertConfirm = async () => {
-        if (!selectedDataset) {return;}
+        if (!selectedDataset) { return; }
         const data: Record<string, unknown> = {};
         for (const col of columns) {
             const raw = newRowValues[col.key] ?? '';
@@ -247,140 +324,59 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             )}
 
             {selectedDataset && rowsQuery.data && (
-                <div className={styles['table-wrap']}>
-                    <table className={styles['table']}>
-                        <thead>
-                            <tr>
-                                <th></th>
-                                {columns.map(column => (
-                                    <th key={column.id}>
-                                        <div className={styles['th-inner']}>
-                                            <span>{column.displayName}</span>
-                                        </div>
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rowsQuery.data.rows.map(row => (
-                                <tr key={row.id}>
-                                    <td>{row.rowIndex + 1}</td>
-                                    {columns.map(column => {
-                                        const isEditing =
-                                            editingCell?.rowId === row.id &&
-                                            editingCell?.colKey === column.key;
-                                        const displayValue =
-                                            displayEdits.get(row.id)?.[column.key] ??
-                                            row.data[column.key];
+                <>
+                    <div
+                        ref={wrapRef}
+                        className={styles['table-wrap']}
+                        data-testid="dataset-preview-grid"
+                    >
+                        {rows.length === 0 && !isInsertingRow ? (
+                            <div className={styles['empty']}>
+                                <FileSpreadsheet size={22} />
+                                Dataset has no preview rows.
+                            </div>
+                        ) : (
+                            gridWidth > 0 && (
+                                <DataEditor
+                                    theme={GRID_THEME}
+                                    columns={gridColumns}
+                                    rows={rowCount}
+                                    getCellContent={getCellContent}
+                                    onCellEdited={onCellEdited}
+                                    validateCell={validateCell}
+                                    rowMarkers="number"
+                                    headerHeight={HEADER_H}
+                                    rowHeight={ROW_H}
+                                    width={gridWidth}
+                                    height={gridHeight}
+                                    cellActivationBehavior="double-click"
+                                />
+                            )
+                        )}
+                    </div>
 
-                                        return (
-                                            <td
-                                                key={column.id}
-                                                className={`${styles['td-editable']}${isEditing ? ` ${styles['td-editing']}` : ''}`}
-                                                onDoubleClick={() => {
-                                                    if (!isEditing) {
-                                                        handleCellClick(row.id, column.key, displayValue);
-                                                    }
-                                                }}
-                                            >
-                                                <div className={styles['td-inner']}>
-                                                    {isEditing ? (
-                                                        <textarea
-                                                            ref={el => {
-                                                                if (el) {
-                                                                    el.focus();
-                                                                    el.setSelectionRange(
-                                                                        el.value.length,
-                                                                        el.value.length
-                                                                    );
-                                                                }
-                                                            }}
-                                                            className={`${styles['td-input']}${isEditingInvalid ? ` ${styles['td-input--invalid']}` : ''}`}
-                                                            value={editingValue}
-                                                            onChange={e =>
-                                                                setEditingValue(e.target.value)
-                                                            }
-                                                            onBlur={handleCellBlur}
-                                                            onKeyDown={handleCellKeyDown}
-                                                        />
-                                                    ) : (
-                                                        <span>{formatChartCell(displayValue)}</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
-
-                            {isInsertingRow && (
-                                <>
-                                    <tr className={styles['new-row']}>
-                                        <td></td>
-                                        {columns.map(column => {
-                                            const newVal = newRowValues[column.key] ?? '';
-                                            const isNewInvalid =
-                                                newVal !== '' &&
-                                                !isValidValue(newVal, column.dataType);
-                                            return (
-                                            <td key={column.id}>
-                                                <div className={styles['td-inner']}>
-                                                    <input
-                                                        className={`${styles['td-input']}${isNewInvalid ? ` ${styles['td-input--invalid']}` : ''}`}
-                                                        placeholder={column.dataType}
-                                                        value={newVal}
-                                                        onChange={e =>
-                                                            setNewRowValues(prev => ({
-                                                                ...prev,
-                                                                [column.key]: e.target.value,
-                                                            }))
-                                                        }
-                                                    />
-                                                </div>
-                                            </td>
-                                            );
-                                        })}
-                                    </tr>
-                                    <tr>
-                                        <td
-                                            colSpan={columns.length + 1}
-                                            className={styles['new-row-actions']}
-                                        >
-                                            <div className={styles['new-row-actions']}>
-                                                <IconButton
-                                                    aria-label="Confirm insert"
-                                                    disabled={
-                                                        !isNewRowValid || insertState.isLoading
-                                                    }
-                                                    onClick={() => void handleInsertConfirm()}
-                                                >
-                                                    <Check size={16} />
-                                                </IconButton>
-                                                <IconButton
-                                                    aria-label="Cancel insert"
-                                                    variant="danger"
-                                                    onClick={() => {
-                                                        setIsInsertingRow(false);
-                                                        setNewRowValues({});
-                                                    }}
-                                                >
-                                                    <X size={16} />
-                                                </IconButton>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </>
-                            )}
-                        </tbody>
-                    </table>
-
-                    {rowsQuery.data.rows.length === 0 && !isInsertingRow && (
-                        <div className={styles['empty']}>
-                            <FileSpreadsheet size={22} />
-                            Dataset has no preview rows.
+                    {isInsertingRow && (
+                        <div className={styles['new-row-actions']}>
+                            <IconButton
+                                aria-label="Confirm insert"
+                                disabled={!isNewRowValid || insertState.isLoading}
+                                onClick={() => void handleInsertConfirm()}
+                            >
+                                <Check size={16} />
+                            </IconButton>
+                            <IconButton
+                                aria-label="Cancel insert"
+                                variant="danger"
+                                onClick={() => {
+                                    setIsInsertingRow(false);
+                                    setNewRowValues({});
+                                }}
+                            >
+                                <X size={16} />
+                            </IconButton>
                         </div>
                     )}
-                </div>
+                </>
             )}
 
             {showAddRow && !isInsertingRow && (

@@ -24,6 +24,7 @@ const getSelectedDataset = (
     if (!datasets || datasets.length === 0) {
         return undefined;
     }
+
     return datasets.find(item => item.dataset.id === selectedDatasetId) ?? datasets[0];
 };
 

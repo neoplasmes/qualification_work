@@ -2,29 +2,38 @@ import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
 import {
+    ArchiveActionCommand,
     CancelMergeCommand,
+    CreateActionCommand,
     CommitMergeCommand,
     CreateChartCommand,
     DeleteChartCommand,
     DeleteDatasetCommand,
+    ExecuteActionCommand,
     InsertRowCommand,
+    PatchActionCommand,
     PreviewMergeCommand,
+    UpdateActionCommand,
     UpdateChartCommand,
     UpdateRowValuesCommand,
     UploadDatasetCommand,
 } from '@/core/commands';
 import { BaseError, ValidationError } from '@/core/errors';
 import {
+    GetActionByIdQuery,
+    GetActionsByOrgIdQuery,
     GetChartByIdQuery,
     GetChartDataQuery,
     GetChartsByOrgIdQuery,
     GetDatasetMetadataByDatasetIdQuery,
     GetDatasetRowsQuery,
     GetDatasetsMetadataByOrgIdQuery,
+    ListActionRunsQuery,
     PreviewChartDataQuery,
 } from '@/core/queries';
 
 import {
+    PgActionRepo,
     PgChartRepo,
     PgDatasetRepo,
     RedisMergeSessionRepo,
@@ -35,7 +44,11 @@ import {
     DiskTmpFileStorageTool,
     FastifyBusboyMultipartParserTool,
 } from '@/adapters/driven/tools';
-import { createChartsRouter, createDatasetRouter } from '@/adapters/driving/http';
+import {
+    createActionsRouter,
+    createChartsRouter,
+    createDatasetRouter,
+} from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
 import { startMergeSessionCleanup } from '@/shared/mergeSessionCleanup';
@@ -123,6 +136,17 @@ export function createAppWithCleanup(
     const getChartDataHandler = new GetChartDataQuery(chartRepo, chartCompiler);
     const previewChartDataHandler = new PreviewChartDataQuery(chartRepo, chartCompiler);
 
+    // ----- action -----
+    const actionRepo = new PgActionRepo(pool);
+    const createActionHandler = new CreateActionCommand(actionRepo);
+    const updateActionHandler = new UpdateActionCommand(actionRepo);
+    const archiveActionHandler = new ArchiveActionCommand(actionRepo);
+    const executeActionHandler = new ExecuteActionCommand(actionRepo);
+    const patchActionHandler = new PatchActionCommand(actionRepo);
+    const getActionByIdHandler = new GetActionByIdQuery(actionRepo);
+    const getActionsByOrgIdHandler = new GetActionsByOrgIdQuery(actionRepo);
+    const listActionRunsHandler = new ListActionRunsQuery(actionRepo);
+
     const app = new Application<AppState>();
 
     app.onError((err, { response }) => {
@@ -187,10 +211,21 @@ export function createAppWithCleanup(
         getChartDataHandler,
         previewChartDataHandler
     );
+    const actionsRouter = createActionsRouter({
+        createActionHandler,
+        updateActionHandler,
+        archiveActionHandler,
+        executeActionHandler,
+        patchActionHandler,
+        getActionByIdHandler,
+        getActionsByOrgIdHandler,
+        listActionRunsHandler,
+    });
 
     // gateway rewrites /api/data/* -> /api/* before forwarding here
     app.mount('/api', datasetRouter);
     app.mount('/api', chartsRouter);
+    app.mount('/api', actionsRouter);
 
     const authHook =
         opts.authHook ??

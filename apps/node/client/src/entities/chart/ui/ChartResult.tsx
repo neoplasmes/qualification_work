@@ -19,12 +19,24 @@ type ChartResultData = {
 };
 
 const colDisplayName = (col: ChartResultColumn): string => {
-    if (col.role === 'dim') return 'Category';
-    if (col.role === 'series') return 'Series';
-    if (col.role === 'measure') {
-        if (col.name === 'm0') return 'Value';
-        if (col.name === 'm1') return 'Value 2';
+    if (col.role === 'dim') {
+        return 'Category';
     }
+
+    if (col.role === 'series') {
+        return 'Series';
+    }
+
+    if (col.role === 'measure') {
+        if (col.name === 'm0') {
+            return 'Value';
+        }
+
+        if (col.name === 'm1') {
+            return 'Value 2';
+        }
+    }
+
     return col.name;
 };
 

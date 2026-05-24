@@ -25,7 +25,10 @@ const getSelectedDataset = (
     datasets: DatasetMetadata[] | undefined,
     selectedDatasetId: string | null
 ) => {
-    if (!datasets || datasets.length === 0) {return undefined;}
+    if (!datasets || datasets.length === 0) {
+        return undefined;
+    }
+
     return datasets.find(item => item.dataset.id === selectedDatasetId) ?? datasets[0];
 };
 
@@ -49,7 +52,9 @@ export const DatasetsUploadPanel = () => {
 
     const filteredDatasets = useMemo(() => {
         const data = datasetsQuery.data;
-        if (!data) {return data;}
+        if (!data) {
+            return data;
+        }
 
         let result = data;
 

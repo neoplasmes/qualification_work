@@ -39,6 +39,7 @@ export const getRoutes = (_store: AppStore): RouteObject[] => [
             {
                 element: <WorkspaceLayout />,
                 children: [
+                    { path: '/actions' },
                     { path: '/charts' },
                     { path: '/datasets' },
                     { path: '/dashboards' },

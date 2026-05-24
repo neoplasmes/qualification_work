@@ -59,6 +59,7 @@ export function coerceValueByType(
             if (Number.isNaN(value.getTime())) {
                 throw new ValidationError([columnKey], `expected date for column "${columnKey}"`);
             }
+
             return value.toISOString();
         }
 

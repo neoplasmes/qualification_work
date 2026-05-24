@@ -6,6 +6,7 @@ import { WorkspaceGrid, selectIsLeftCollapsed, selectIsRightCollapsed } from '@/
 
 import { ChartsListPanel, ChartsWorkspace, ChartsFilterPanel } from '@/pages/Charts';
 import { DatasetsUploadPanel, DatasetsWorkspace, DatasetsRightPanel } from '@/pages/Datasets';
+import { ActionsListPanel, ActionsRightPanel, ActionsWorkspace } from '@/pages/Actions';
 import {
     DashboardsListPanel,
     DashboardsWorkspace,
@@ -19,6 +20,11 @@ type WorkspaceSlots = {
 };
 
 const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
+    '/actions': {
+        Left: ActionsListPanel,
+        Center: ActionsWorkspace,
+        Right: ActionsRightPanel,
+    },
     '/charts': {
         Left: ChartsListPanel,
         Center: ChartsWorkspace,

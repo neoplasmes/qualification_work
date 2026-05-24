@@ -31,3 +31,5 @@ apps/node/client/tests
 # moon
 .moon/cache
 .moon/docker
+
+diplom-notes

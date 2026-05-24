@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { api, createTestUserWithOrg, startServer, stopServer, truncate } from '../setup';
-import { encodeFilters, getColumnId, uploadDataset } from './helpers';
+import { getColumnId, uploadDataset } from './helpers';
 
 beforeAll(startServer);
 afterAll(stopServer);

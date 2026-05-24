@@ -18,6 +18,7 @@
     "dependencies": {
         "@fastify/busboy": "^3.2.0",
         "@qualification-work/microservice-utils": "workspace:*",
+        "@qualification-work/redis-cache": "workspace:*",
         "@qualification-work/types": "workspace:*",
         "csv-parse": "^6.2.1",
         "exceljs": "^4.4.0",

@@ -9,5 +9,8 @@ export default defineConfig({
     clean: true,
     sourcemap: true,
     treeshake: true,
-    noExternal: [/^@qualification-work\/microservice-utils/],
+    noExternal: [
+        /^@qualification-work\/microservice-utils/,
+        /^@qualification-work\/redis-cache/,
+    ],
 });

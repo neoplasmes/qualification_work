@@ -9,7 +9,9 @@ export default defineConfig({
     clean: true,
     sourcemap: true,
     treeshake: true,
-    // microservice-utils экспортирует .ts напрямую — бандлим внутрь
-    noExternal: [/^@qualification-work\/microservice-utils/],
+    noExternal: [
+        /^@qualification-work\/microservice-utils/,
+        /^@qualification-work\/redis-cache/,
+    ],
     onSuccess: 'cp -R src/adapters/driven/repos/dashboard/pg/scripts dist/scripts',
 });

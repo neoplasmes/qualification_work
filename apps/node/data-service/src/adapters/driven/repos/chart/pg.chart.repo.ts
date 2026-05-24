@@ -104,14 +104,23 @@ export class PgChartRepo implements ChartRepo {
         return rows;
     }
 
+    async listIdsByDatasetId(datasetId: string): Promise<string[]> {
+        const { rows } = await this.pool.query<{ id: string }>(
+            `SELECT id FROM charts.charts WHERE dataset_id = $1`,
+            [datasetId]
+        );
+
+        return rows.map(row => row.id);
+    }
+
     async delete(chartId: string): Promise<void> {
         await this.pool.query(`DELETE FROM charts.charts WHERE id = $1`, [chartId]);
     }
 
     async getDatasetContext(datasetId: string): Promise<DatasetContext | null> {
         const [versionRow] = await this.pool
-            .query<{ dataVersion: string }>(
-                `SELECT data_version::text AS "dataVersion"
+            .query<{ orgId: string; dataVersion: string }>(
+                `SELECT org_id AS "orgId", data_version::text AS "dataVersion"
                  FROM data.datasets WHERE id = $1`,
                 [datasetId]
             )
@@ -133,7 +142,12 @@ export class PgChartRepo implements ChartRepo {
             [datasetId]
         );
 
-        return { datasetId, dataVersion: Number(versionRow.dataVersion), columns };
+        return {
+            datasetId,
+            orgId: versionRow.orgId,
+            dataVersion: Number(versionRow.dataVersion),
+            columns,
+        };
     }
 
     async getCompilationContext(

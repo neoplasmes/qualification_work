@@ -8,6 +8,7 @@ dependsOn:
   - 'types'
   - 'microservice-config'
   - 'microservice-utils'
+  - 'redis-cache'
 
 fileGroups:
   cfg:

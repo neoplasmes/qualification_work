@@ -1,6 +1,9 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
+import { createRedisCache } from '@qualification-work/redis-cache';
+import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+
 import {
     AddDashboardItemCommand,
     CreateDashboardCommand,
@@ -18,10 +21,12 @@ import { PgDashboardRepo, PgOrgRepo } from '@/adapters/driven/repos';
 import { createDashboardsRouter, createOrgsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
+import { getReadableOrgIds } from '@/shared/checkOrgMembership';
 import { parseCookiesMiddleware } from '@/shared/parseCookie';
 import { resolveInternalAuthHook, type AuthHook } from '@/shared/resolveInternalAuth';
 
 import type { Config } from '@/infrastructure/config';
+import type { RedisClient } from '@/infrastructure/redis';
 
 export type CreateAppOptions = {
     /**
@@ -42,10 +47,15 @@ export type CreateAppOptions = {
  */
 export function createApp(
     pool: Pool,
+    redis: RedisClient,
     config: Config,
     opts: CreateAppOptions = {}
 ): Application<AppState> {
     const app = new Application<AppState>();
+    const cache = createRedisCache(redis, {
+        namespace: 'server',
+        defaultTtlSeconds: 60,
+    });
 
     // ——————————————————————————————— CORS ———————————————————————————————————
 
@@ -91,15 +101,125 @@ export function createApp(
 
     const dashboardRepo = new PgDashboardRepo(pool);
 
-    const createDashboard = new CreateDashboardCommand(dashboardRepo);
-    const deleteDashboard = new DeleteDashboardCommand(dashboardRepo);
-    const renameDashboard = new RenameDashboardCommand(dashboardRepo);
-    const addDashboardItem = new AddDashboardItemCommand(dashboardRepo);
-    const deleteDashboardItem = new DeleteDashboardItemCommand(dashboardRepo);
-    const reorderDashboard = new ReorderDashboardCommand(dashboardRepo);
+    const baseCreateDashboard = new CreateDashboardCommand(dashboardRepo);
+    const baseDeleteDashboard = new DeleteDashboardCommand(dashboardRepo);
+    const baseRenameDashboard = new RenameDashboardCommand(dashboardRepo);
+    const baseAddDashboardItem = new AddDashboardItemCommand(dashboardRepo);
+    const baseDeleteDashboardItem = new DeleteDashboardItemCommand(dashboardRepo);
+    const baseReorderDashboard = new ReorderDashboardCommand(dashboardRepo);
 
-    const getDashboard = new GetDashboardQuery(dashboardRepo);
-    const listDashboards = new ListDashboardsQuery(dashboardRepo);
+    const baseGetDashboard = new GetDashboardQuery(dashboardRepo);
+    const baseListDashboards = new ListDashboardsQuery(dashboardRepo);
+
+    const createDashboard = {
+        execute: async (...args: Parameters<CreateDashboardCommand['execute']>) => {
+            const id = await baseCreateDashboard.execute(...args);
+            await cache.invalidateTags([`org:${args[0]}:dashboards`]);
+
+            return id;
+        },
+    } as CreateDashboardCommand;
+    const deleteDashboard = {
+        execute: async (...args: Parameters<DeleteDashboardCommand['execute']>) => {
+            const dashboard = await dashboardRepo.findById(
+                args[0],
+                getReadableOrgIds(args[1])
+            );
+
+            await baseDeleteDashboard.execute(...args);
+            await cache.invalidateTags(
+                compact([
+                    `dashboard:${args[0]}`,
+                    dashboard && `org:${dashboard.orgId}:dashboards`,
+                ])
+            );
+        },
+    } as DeleteDashboardCommand;
+    const renameDashboard = {
+        execute: async (...args: Parameters<RenameDashboardCommand['execute']>) => {
+            const dashboard = await dashboardRepo.findById(
+                args[0],
+                getReadableOrgIds(args[2])
+            );
+
+            await baseRenameDashboard.execute(...args);
+            await cache.invalidateTags(
+                compact([
+                    `dashboard:${args[0]}`,
+                    dashboard && `org:${dashboard.orgId}:dashboards`,
+                ])
+            );
+        },
+    } as RenameDashboardCommand;
+    const addDashboardItem = {
+        execute: async (...args: Parameters<AddDashboardItemCommand['execute']>) => {
+            const result = await baseAddDashboardItem.execute(...args);
+            const dashboard = await dashboardRepo.findById(
+                args[0],
+                getReadableOrgIds(args[2])
+            );
+
+            await cache.invalidateTags(
+                compact([
+                    `dashboard:${args[0]}`,
+                    dashboard && `org:${dashboard.orgId}:dashboards`,
+                ])
+            );
+
+            return result;
+        },
+    } as AddDashboardItemCommand;
+    const deleteDashboardItem = {
+        execute: async (...args: Parameters<DeleteDashboardItemCommand['execute']>) => {
+            const dashboard = await dashboardRepo.findById(
+                args[0],
+                getReadableOrgIds(args[2])
+            );
+
+            await baseDeleteDashboardItem.execute(...args);
+            await cache.invalidateTags(
+                compact([
+                    `dashboard:${args[0]}`,
+                    dashboard && `org:${dashboard.orgId}:dashboards`,
+                ])
+            );
+        },
+    } as DeleteDashboardItemCommand;
+    const reorderDashboard = {
+        execute: async (...args: Parameters<ReorderDashboardCommand['execute']>) => {
+            const dashboard = await dashboardRepo.findById(
+                args[0],
+                getReadableOrgIds(args[2])
+            );
+
+            await baseReorderDashboard.execute(...args);
+            await cache.invalidateTags(
+                compact([
+                    `dashboard:${args[0]}`,
+                    dashboard && `org:${dashboard.orgId}:dashboards`,
+                ])
+            );
+        },
+    } as ReorderDashboardCommand;
+
+    const getDashboard = cache.wrapExecutable(baseGetDashboard, {
+        key: (dashboardId: string, orgs: OrgMembership[]) => [
+            'dashboards',
+            'by-id',
+            dashboardId,
+            accessFingerprint(orgs),
+        ],
+        tags: (dashboardId: string) => [`dashboard:${dashboardId}`],
+    }) as GetDashboardQuery;
+    const listDashboards = cache.wrapExecutable(baseListDashboards, {
+        key: (orgId: string, orgs: OrgMembership[]) => [
+            'dashboards',
+            'list',
+            orgId,
+            accessFingerprint(orgs),
+        ],
+        tags: (orgId: string) => [`org:${orgId}:dashboards`],
+    }) as ListDashboardsQuery;
 
     const dashboardsRouter = createDashboardsRouter({
         createDashboard,
@@ -155,4 +275,15 @@ export function createApp(
     });
 
     return app;
+}
+
+function accessFingerprint(orgs: OrgMembership[]): string {
+    return orgs
+        .map(org => `${org.id}:${org.role}`)
+        .sort()
+        .join('|');
+}
+
+function compact(values: Array<string | false | null | undefined>): string[] {
+    return values.filter((value): value is string => typeof value === 'string');
 }

@@ -110,7 +110,7 @@ export const WorkspaceGridResizer = ({
     const orientation = direction === 'row' ? styles['horizontal'] : styles['vertical'];
 
     return (
-        <div className={styles['workspace-grid-resizer-base']}>
+        <div className={`${styles['workspace-grid-resizer-base']} ${orientation}`}>
             <div
                 className={`${styles['workspace-grid-resizer']} ${orientation}`}
                 onPointerDown={onPointerDown}

@@ -36,7 +36,7 @@ export const ChartsListPanel = () => {
     const charts = chartsQuery.data;
 
     const filteredCharts = (() => {
-        if (!charts) return charts;
+        if (!charts) {return charts;}
 
         let result = charts;
 

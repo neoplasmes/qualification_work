@@ -37,7 +37,7 @@ export const DashboardsListPanel = () => {
 
     const filteredDashboards = useMemo(() => {
         const data = dashboardsQuery.data;
-        if (!data) return data;
+        if (!data) {return data;}
 
         let result = data;
 
@@ -68,7 +68,7 @@ export const DashboardsListPanel = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (!org) return;
+        if (!org) {return;}
 
         const trimmed = name.trim();
         if (!trimmed) {

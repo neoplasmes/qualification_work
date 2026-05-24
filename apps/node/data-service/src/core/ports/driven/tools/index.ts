@@ -6,3 +6,9 @@ export type {
 } from './datasetParser.tool';
 
 export type { ChartCompilerTool, CompileOverrides } from './chartCompiler.tool';
+
+export type {
+    SavedTmpFile,
+    TmpFileStorageTool,
+    TmpSessionStat,
+} from './tmpFileStorage.tool';

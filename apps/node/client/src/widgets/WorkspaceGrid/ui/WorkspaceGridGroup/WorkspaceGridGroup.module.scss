@@ -2,7 +2,7 @@
     display: flex;
     flex-flow: var(--direction, row) nowrap;
     flex-grow: 1;
-    gap: var(--spacing-sm);
+    gap: 0;
 
     min-width: 0;
     min-height: 0;

@@ -10,10 +10,22 @@ import { PieChart } from './PieChart';
 
 import styles from './ChartResult.module.scss';
 
+type ChartResultColumn = { name: string; role?: 'dim' | 'series' | 'measure' };
+
 type ChartResultData = {
-    columns: Array<{ name: string; role?: 'dim' | 'series' | 'measure' }>;
+    columns: ChartResultColumn[];
     rows: Array<Array<string | number | null>>;
     truncated: boolean;
+};
+
+const colDisplayName = (col: ChartResultColumn): string => {
+    if (col.role === 'dim') return 'Category';
+    if (col.role === 'series') return 'Series';
+    if (col.role === 'measure') {
+        if (col.name === 'm0') return 'Value';
+        if (col.name === 'm1') return 'Value 2';
+    }
+    return col.name;
 };
 
 type ChartResultProps = {
@@ -21,6 +33,7 @@ type ChartResultProps = {
     ariaLabel: string;
     kind?: ChartKind;
     barsLimit?: number;
+    hideTable?: boolean;
     children?: ReactNode;
 };
 
@@ -29,6 +42,7 @@ export const ChartResult = ({
     ariaLabel,
     kind,
     barsLimit = 10,
+    hideTable = false,
     children,
 }: ChartResultProps) => {
     const activeKind = kind ?? 'bar';
@@ -88,32 +102,36 @@ export const ChartResult = ({
                 </div>
             ))}
 
-            <div className={styles['table-wrap']}>
-                <table className={styles['table']}>
-                    <thead>
-                        <tr>
-                            {data.columns.map(column => (
-                                <th key={column.name}>{column.name}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.rows.map((row, index) => (
-                            <tr key={index}>
-                                {row.map((cell, cellIndex) => (
-                                    <td key={cellIndex}>{formatChartCell(cell)}</td>
+            {!hideTable && (
+                <>
+                    <div className={styles['table-wrap']}>
+                        <table className={styles['table']}>
+                            <thead>
+                                <tr>
+                                    {data.columns.map(column => (
+                                        <th key={column.name}>{colDisplayName(column)}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.rows.map((row, index) => (
+                                    <tr key={index}>
+                                        {row.map((cell, cellIndex) => (
+                                            <td key={cellIndex}>{formatChartCell(cell)}</td>
+                                        ))}
+                                    </tr>
                                 ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                            </tbody>
+                        </table>
+                    </div>
 
-            <div className={styles['summary']}>
-                <span>{data.rows.length} result rows</span>
-                {data.truncated && <span>Result truncated</span>}
-                {children}
-            </div>
+                    <div className={styles['summary']}>
+                        <span>{data.rows.length} result rows</span>
+                        {data.truncated && <span>Result truncated</span>}
+                        {children}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

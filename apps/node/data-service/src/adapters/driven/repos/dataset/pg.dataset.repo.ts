@@ -2,10 +2,12 @@ import type { Pool } from 'pg';
 
 import type { Dataset, DatasetColumn, DatasetRow } from '@/core/domain';
 import type {
+    AppendRowsFn,
     CreateDatasetPayload,
     DatasetMetadata,
     DatasetRepo,
     DatasetRowsPage,
+    DatasetUniquenessViolation,
     GetDatasetRowsPayload,
 } from '@/core/ports/driven/repos';
 
@@ -340,7 +342,295 @@ export class PgDatasetRepo implements DatasetRepo {
         };
     }
 
+    async createEmptyDataset(data: CreateDatasetPayload): Promise<{ id: string }> {
+        if (data.columns.length === 0) {
+            throw new Error('createEmptyDataset requires at least one column');
+        }
+
+        const client = await this.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            const [{ id: datasetId }] = await client
+                .query<{ id: string }>(
+                    `INSERT INTO data.datasets (org_id, name, source_type)
+                    VALUES ($1, $2, $3) RETURNING id`,
+                    [data.orgId, data.name, data.sourceType]
+                )
+                .then(r => r.rows);
+
+            const values: unknown[] = [];
+            const placeholders: string[] = [];
+            let i = 1;
+            for (const c of data.columns) {
+                placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
+                values.push(datasetId, c.key, c.displayName, c.dataType, c.orderIndex);
+            }
+
+            await client.query(
+                `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index)
+                VALUES ${placeholders.join(', ')}`,
+                values
+            );
+
+            await client.query('COMMIT');
+
+            return { id: datasetId };
+        } catch (err) {
+            await client.query('ROLLBACK');
+
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
     async deleteById(datasetId: string): Promise<void> {
         await this.pool.query('DELETE FROM data.datasets WHERE id = $1', [datasetId]);
+    }
+
+    async updateRowValues(
+        datasetId: string,
+        rowId: string,
+        partialData: Record<string, unknown>
+    ): Promise<DatasetRow | null> {
+        // jsonb concat (`||`) does shallow merge, so existing keys outside partialData stay intact
+        const [row] = await this.pool
+            .query<DatasetRow>(
+                `UPDATE data.dataset_rows
+                SET data = data || $3::jsonb
+                WHERE dataset_id = $1 AND id = $2
+                RETURNING
+                    id,
+                    ${datasetRowColumnMap.datasetId},
+                    ${datasetRowColumnMap.rowIndex},
+                    data`,
+                [datasetId, rowId, JSON.stringify(partialData)]
+            )
+            .then(result => result.rows);
+
+        return row ?? null;
+    }
+
+    async insertRow(
+        datasetId: string,
+        data: Record<string, unknown>
+    ): Promise<DatasetRow> {
+        const client = await this.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            // lock by dataset to serialize concurrent inserts and avoid duplicate row_index
+            await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [datasetId]);
+
+            const [{ nextIndex }] = await client
+                .query<{ nextIndex: number }>(
+                    `SELECT COALESCE(MAX(row_index), -1) + 1 AS "nextIndex"
+                    FROM data.dataset_rows
+                    WHERE dataset_id = $1`,
+                    [datasetId]
+                )
+                .then(result => result.rows);
+
+            const [row] = await client
+                .query<DatasetRow>(
+                    `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+                    VALUES ($1, $2, $3::jsonb)
+                    RETURNING
+                        id,
+                        ${datasetRowColumnMap.datasetId},
+                        ${datasetRowColumnMap.rowIndex},
+                        data`,
+                    [datasetId, nextIndex, JSON.stringify(data)]
+                )
+                .then(result => result.rows);
+
+            await client.query('COMMIT');
+
+            return row;
+        } catch (err) {
+            await client.query('ROLLBACK');
+
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    async addColumns(
+        datasetId: string,
+        columns: Array<Omit<DatasetColumn, 'id' | 'datasetId'>>
+    ): Promise<void> {
+        if (columns.length === 0) {
+            return;
+        }
+
+        const values: unknown[] = [];
+        const placeholders: string[] = [];
+        let i = 1;
+
+        for (const c of columns) {
+            placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
+            values.push(datasetId, c.key, c.displayName, c.dataType, c.orderIndex);
+        }
+
+        // ON CONFLICT keeps existing column intact - we only add missing ones
+        await this.pool.query(
+            `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index)
+            VALUES ${placeholders.join(', ')}
+            ON CONFLICT (dataset_id, key) DO NOTHING`,
+            values
+        );
+    }
+
+    async findDuplicateByMergeKeys(
+        datasetId: string,
+        mergeKeys: string[]
+    ): Promise<DatasetUniquenessViolation | null> {
+        if (mergeKeys.length === 0) {
+            return null;
+        }
+
+        // build jsonb_build_object(...) projection for grouping by tuple
+        const groupArgs: string[] = [];
+        const params: unknown[] = [datasetId];
+        let i = 2;
+
+        for (const key of mergeKeys) {
+            groupArgs.push(`$${i++}::text, data->$${i++}`);
+            params.push(key, key);
+        }
+
+        const [violation] = await this.pool
+            .query<{ tuple: Record<string, unknown>; count: string }>(
+                `SELECT jsonb_build_object(${groupArgs.join(', ')}) AS tuple,
+                        COUNT(*)::text AS count
+                FROM data.dataset_rows
+                WHERE dataset_id = $1
+                GROUP BY tuple
+                HAVING COUNT(*) > 1
+                LIMIT 1`,
+                params
+            )
+            .then(result => result.rows);
+
+        if (!violation) {
+            return null;
+        }
+
+        return { keys: violation.tuple, count: Number(violation.count) };
+    }
+
+    async streamAllRows(
+        datasetId: string,
+        abortIfMoreThan: number,
+        cb: (row: { rowId: string; data: Record<string, unknown> }) => void
+    ): Promise<{ loaded: number; aborted: boolean }> {
+        // simple OFFSET/LIMIT pager; good enough for the merge map. cursor would be nicer but adds a client dep
+        const PAGE = 5000;
+        let offset = 0;
+        let loaded = 0;
+
+        while (loaded <= abortIfMoreThan) {
+            const rows = await this.pool
+                .query<{ rowId: string; data: Record<string, unknown> }>(
+                    `SELECT id AS "rowId", data
+                    FROM data.dataset_rows
+                    WHERE dataset_id = $1
+                    ORDER BY row_index
+                    OFFSET $2 LIMIT $3`,
+                    [datasetId, offset, PAGE]
+                )
+                .then(r => r.rows);
+
+            if (rows.length === 0) {
+                return { loaded, aborted: false };
+            }
+
+            for (const r of rows) {
+                cb(r);
+                loaded += 1;
+
+                if (loaded > abortIfMoreThan) {
+                    return { loaded, aborted: true };
+                }
+            }
+
+            offset += rows.length;
+        }
+
+        return { loaded, aborted: true };
+    }
+
+    async bulkAppendRows(
+        datasetId: string,
+        forwardRows: (appendRow: AppendRowsFn) => Promise<void>
+    ): Promise<{ insertedCount: number }> {
+        const client = await this.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+            await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [datasetId]);
+
+            const [{ nextIndex }] = await client
+                .query<{ nextIndex: number }>(
+                    `SELECT COALESCE(MAX(row_index), -1) + 1 AS "nextIndex"
+                    FROM data.dataset_rows
+                    WHERE dataset_id = $1`,
+                    [datasetId]
+                )
+                .then(r => r.rows);
+
+            let currentIndex = nextIndex;
+            let insertedCount = 0;
+            let batch: Array<{ index: number; data: Record<string, unknown> }> = [];
+
+            const flushBatch = async () => {
+                if (batch.length === 0) {
+                    return;
+                }
+
+                const values: unknown[] = [];
+                const placeholders: string[] = [];
+                let p = 1;
+
+                for (const row of batch) {
+                    placeholders.push(`($${p++}, $${p++}, $${p++}::jsonb)`);
+                    values.push(datasetId, row.index, JSON.stringify(row.data));
+                }
+
+                await client.query(
+                    `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+                    VALUES ${placeholders.join(', ')}`,
+                    values
+                );
+
+                insertedCount += batch.length;
+                batch.length = 0;
+            };
+
+            const appendRow: AppendRowsFn = async (data: Record<string, unknown>) => {
+                batch.push({ index: currentIndex++, data });
+
+                if (batch.length >= PgDatasetRepo.ROW_BATCH_SIZE) {
+                    await flushBatch();
+                }
+            };
+
+            await forwardRows(appendRow);
+            await flushBatch();
+
+            await client.query('COMMIT');
+
+            return { insertedCount };
+        } catch (err) {
+            await client.query('ROLLBACK');
+
+            throw err;
+        } finally {
+            client.release();
+        }
     }
 }

@@ -24,7 +24,7 @@
         background-color 0.2s ease;
 
     &:hover,
-    &:focus {
+    &:focus-visible {
         border-color: var(--color-on-surface);
         background-color: var(--color-surface-container-high);
         outline: none;
@@ -56,7 +56,7 @@
         background-color 0.2s ease;
 
     &:hover,
-    &:focus {
+    &:focus-visible {
         border-color: var(--color-on-surface);
         background-color: var(--color-surface-container-high);
         outline: none;
@@ -75,7 +75,7 @@
     background-color: rgb(140 0 0 / 14%);
 
     &:hover,
-    &:focus {
+    &:focus-visible {
         border-color: var(--color-on-error-container);
         background-color: rgb(140 0 0 / 24%);
     }

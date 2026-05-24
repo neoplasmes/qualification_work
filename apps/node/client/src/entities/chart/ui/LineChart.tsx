@@ -19,7 +19,7 @@ const C = {
     onSurface: '#fff',
 } as const;
 
-const CHART_HEIGHT = 260;
+const CHART_HEIGHT = 360;
 const MIN_CHART_WIDTH = 180;
 const SERIES_COLORS = ['#872557', '#c85080', '#4a8f8f', '#d09a3a', '#7c6bc4', '#78a95a'];
 
@@ -41,7 +41,7 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
     } = useTooltip<ChartDataPoint & { series: string }>();
 
     const rotateLabels = labels.length > 6;
-    const margin = { top: 16, right: 16, bottom: rotateLabels ? 64 : 48, left: 52 };
+    const margin = { top: 16, right: 16, bottom: rotateLabels ? 96 : 48, left: 52 };
     const xMax = width - margin.left - margin.right;
     const yMax = height - margin.top - margin.bottom;
 
@@ -51,9 +51,11 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
         padding: 0.1,
     });
 
-    const values = series.flatMap(item => item.points.map(point => point.value));
-    const minValue = Math.min(...values, 0);
-    const maxValue = Math.max(...values, 1);
+    const values = series
+        .flatMap(item => item.points.map(point => point.value))
+        .filter(Number.isFinite);
+    const minValue = values.length ? Math.min(...values, 0) : 0;
+    const maxValue = values.length ? Math.max(...values, 1) : 1;
 
     const yScale = scaleLinear<number>({
         range: [yMax, 0],
@@ -96,9 +98,9 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
                             fill: C.muted,
                             fontSize: 11,
                             textAnchor: rotateLabels ? ('end' as const) : ('middle' as const),
-                            transform: rotateLabels ? 'rotate(-30)' : undefined,
-                            dx: rotateLabels ? '-0.33em' : '0',
-                            dy: rotateLabels ? '-0.1em' : '0.33em',
+                            angle: rotateLabels ? -45 : 0,
+                            dx: rotateLabels ? '-0.25em' : '0',
+                            dy: rotateLabels ? '0.25em' : '0.33em',
                         })}
                         tickStroke={C.outline}
                         stroke={C.outline}

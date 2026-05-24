@@ -85,11 +85,12 @@ export const DashboardsWorkspace = () => {
     useEffect(() => {
         if (!dashboard) {
             dispatch(resetDashboardsWorkspaceDraft());
+
             return;
         }
 
         // preserve draft when navigating back to the same dashboard
-        if (dashboard.id === workspaceDraftDashboardId) return;
+        if (dashboard.id === workspaceDraftDashboardId) {return;}
 
         dispatch(
             initDashboardsWorkspaceDraft({ dashboardId: dashboard.id, name: dashboard.name })

@@ -55,6 +55,11 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         Map<WorkspaceGridPanelInternalElementType, WorkspaceGridPanelModel>
     >(new Map());
 
+    const collapseLeftRef = useRef(collapseLeft);
+    collapseLeftRef.current = collapseLeft;
+    const collapseRightRef = useRef(collapseRight);
+    collapseRightRef.current = collapseRight;
+
     // always-fresh callback: reads current sizes of all panels and persists to Redux
     const onResizeEndRef = useRef<() => void>(() => {});
     onResizeEndRef.current = () => {
@@ -141,6 +146,9 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         return linked;
     }, [children, direction]);
 
+    // always-fresh fit fn so the collapse-change effect can call it without re-subscribing
+    const applyFitRef = useRef<(() => void) | null>(null);
+
     useLayoutEffect(() => {
         const groupElement = groupRef.current;
 
@@ -154,22 +162,26 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
                     ? groupElement.clientWidth
                     : groupElement.clientHeight;
 
-            const gapPx =
-                parseFloat(
-                    window
-                        .getComputedStyle(groupElement)
-                        .getPropertyValue(
-                            direction === 'row' ? 'column-gap' : 'row-gap'
-                        )
-                ) || 0;
+            // skip collapsed edge panels so the remaining panels fill the space
+            const visible = new Map<unknown, WorkspaceGridPanelModel>();
+            let idx = 0;
+            const total = panelModels.current.size;
+            for (const [key, model] of panelModels.current) {
+                const skip =
+                    (idx === 0 && collapseLeftRef.current) ||
+                    (idx === total - 1 && collapseRightRef.current);
+                if (!skip) visible.set(key, model);
+                idx++;
+            }
 
-            // n panels + (n-1) resizerss = 2n-1 flex items, total gaps = 2(n-1)
-            const n = panelModels.current.size;
-            const totalGapPx = n > 1 ? gapPx * 2 * (n - 1) : 0;
+            // resizerss are physical 8px flex items; subtract their total width
+            const n = visible.size;
+            const totalGapPx = n > 1 ? 8 * (n - 1) : 0;
 
-            fitPanels(fullSize - totalGapPx, panelModels.current);
+            fitPanels(fullSize - totalGapPx, visible);
         };
 
+        applyFitRef.current = applyFit;
         applyFit();
 
         const resizeObserver = new ResizeObserver(() => {
@@ -182,6 +194,11 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
             resizeObserver.disconnect();
         };
     }, [direction, panelModels.current]);
+
+    // re-fit when collapse state toggles
+    useLayoutEffect(() => {
+        applyFitRef.current?.();
+    }, [collapseLeft, collapseRight]);
 
     return (
         <div

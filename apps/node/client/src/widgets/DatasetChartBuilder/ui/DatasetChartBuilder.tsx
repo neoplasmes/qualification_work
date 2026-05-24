@@ -41,6 +41,56 @@ const filterOperations = [
 ] as const;
 const timeGranularities = ['day', 'week', 'month', 'quarter', 'year'] as const;
 
+const CHART_TYPE_LABELS: Record<ChartType, string> = {
+    bar: 'Bar',
+    line: 'Line',
+    pie: 'Pie',
+    heatmap: 'Heatmap',
+};
+
+const AGGREGATE_LABELS: Record<Aggregate, string> = {
+    count: 'Count',
+    sum: 'Sum',
+    avg: 'Average',
+    min: 'Min',
+    max: 'Max',
+    count_distinct: 'Count unique',
+};
+
+const GROUPING_LABELS: Record<GroupingMode, string> = {
+    none: 'None',
+    time: 'By time',
+    numeric: 'By range',
+};
+
+const GRANULARITY_LABELS: Record<TimeGranularity, string> = {
+    hour: 'Hour',
+    day: 'Day',
+    week: 'Week',
+    month: 'Month',
+    quarter: 'Quarter',
+    year: 'Year',
+};
+
+const FILTER_OP_LABELS: Record<FilterOperation, string> = {
+    eq: '= equals',
+    neq: '≠ not equals',
+    gt: '> greater',
+    gte: '≥ greater or equal',
+    lt: '< less',
+    lte: '≤ less or equal',
+    in: 'in list',
+    nin: 'not in list',
+    between: 'between',
+    is_null: 'is empty',
+    not_null: 'is not empty',
+};
+
+const SORT_LABELS: Record<'asc' | 'desc', string> = {
+    desc: 'Highest first',
+    asc: 'Lowest first',
+};
+
 type GroupingMode = 'none' | 'time' | 'numeric';
 
 const parsePrimitiveValue = (rawValue: string, dataType: DatasetColumn['dataType']) => {
@@ -276,49 +326,103 @@ export const DatasetChartBuilder = ({
         () => columns.filter(column => column.dataType === 'number'),
         [columns]
     );
-    const activeDimensionColumnId = columns.some(
-        column => column.id === dimensionColumnId
-    )
+
+    const activeDimensionColumnId = columns.some(c => c.id === dimensionColumnId)
         ? dimensionColumnId
         : (columns[0]?.id ?? '');
-    const activeHeatmapYColumnId = columns.some(column => column.id === heatmapYColumnId)
+    const activeDimensionColumn = columns.find(c => c.id === activeDimensionColumnId);
+
+    const activeHeatmapYColumnId = columns.some(c => c.id === heatmapYColumnId)
         ? heatmapYColumnId
         : (columns[1]?.id ?? columns[0]?.id ?? '');
-    const activeMeasureColumnId = numericColumns.some(
-        column => column.id === measureColumnId
-    )
+    const activeHeatmapYColumn = columns.find(c => c.id === activeHeatmapYColumnId);
+
+    // count_distinct works on any column type, other aggregates need numeric
+    const measureColumns = aggregate === 'count_distinct' ? columns : numericColumns;
+    const activeMeasureColumnId = measureColumns.some(c => c.id === measureColumnId)
         ? measureColumnId
-        : (numericColumns[0]?.id ?? '');
-    const activeSecondMeasureColumnId = numericColumns.some(
-        column => column.id === secondMeasureColumnId
-    )
+        : (measureColumns[0]?.id ?? '');
+
+    const secondMeasureColumns = secondAggregate === 'count_distinct' ? columns : numericColumns;
+    const activeSecondMeasureColumnId = secondMeasureColumns.some(c => c.id === secondMeasureColumnId)
         ? secondMeasureColumnId
-        : (numericColumns[1]?.id ?? numericColumns[0]?.id ?? '');
-    const activeSeriesColumnId = columns.some(column => column.id === seriesColumnId)
+        : (secondMeasureColumns[1]?.id ?? secondMeasureColumns[0]?.id ?? '');
+
+    const activeSeriesColumnId = columns.some(c => c.id === seriesColumnId)
         ? seriesColumnId
         : (columns[0]?.id ?? '');
     const activeFilterColumn =
         columns.find(column => column.id === filterColumnId) ?? columns[0];
+
+    // grouping modes available depend on column data type
+    const dimGroupingModes = useMemo((): GroupingMode[] => {
+        const t = activeDimensionColumn?.dataType;
+        const modes: GroupingMode[] = ['none'];
+        if (t === 'date') modes.push('time');
+        if (t === 'number') modes.push('numeric');
+        return modes;
+    }, [activeDimensionColumn?.dataType]);
+
+    const heatmapYGroupingModes = useMemo((): GroupingMode[] => {
+        const t = activeHeatmapYColumn?.dataType;
+        const modes: GroupingMode[] = ['none'];
+        if (t === 'date') modes.push('time');
+        if (t === 'number') modes.push('numeric');
+        return modes;
+    }, [activeHeatmapYColumn?.dataType]);
+
     const nullaryFilter = filterOperation === 'is_null' || filterOperation === 'not_null';
     const canPreview =
         Boolean(activeDimensionColumnId) &&
         (chartType !== 'heatmap' || Boolean(activeHeatmapYColumnId)) &&
+        (chartType !== 'heatmap' || activeDimensionColumnId !== activeHeatmapYColumnId) &&
         (!needsColumn(aggregate) || Boolean(activeMeasureColumnId)) &&
         (!secondMeasureEnabled ||
             !needsColumn(secondAggregate) ||
             Boolean(activeSecondMeasureColumnId)) &&
         (!seriesEnabled || Boolean(activeSeriesColumnId));
 
+    // reset grouping mode when switching to a column that doesn't support it
+    const handleDimensionColumnChange = (newId: string) => {
+        const newType = columns.find(c => c.id === newId)?.dataType;
+        setDimensionColumnId(newId);
+        if (
+            (dimensionGroupingMode === 'time' && newType !== 'date') ||
+            (dimensionGroupingMode === 'numeric' && newType !== 'number')
+        ) {
+            setDimensionGroupingMode('none');
+        }
+    };
+
+    const handleHeatmapYColumnChange = (newId: string) => {
+        const newType = columns.find(c => c.id === newId)?.dataType;
+        setHeatmapYColumnId(newId);
+        if (
+            (heatmapYGroupingMode === 'time' && newType !== 'date') ||
+            (heatmapYGroupingMode === 'numeric' && newType !== 'number')
+        ) {
+            setHeatmapYGroupingMode('none');
+        }
+    };
+
     const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
+        if (chartType === 'heatmap' && activeDimensionColumnId === activeHeatmapYColumnId) {
+            setChartError('X and Y axes must be different columns.');
+
+            return;
+        }
+
         if (!canPreview) {
             setChartError('Choose compatible columns for this chart.');
+
             return;
         }
 
         if (filterEnabled && !nullaryFilter && !filterValue.trim()) {
             setChartError('Fill filter value or turn the filter off.');
+
             return;
         }
 
@@ -329,6 +433,7 @@ export const DatasetChartBuilder = ({
                 .filter(Boolean);
             if (parts.length !== 2) {
                 setChartError('Between filter expects two comma-separated values.');
+
                 return;
             }
         }
@@ -340,17 +445,25 @@ export const DatasetChartBuilder = ({
 
         setChartError('');
 
+        // clamp to supported modes for the current column type (safety net if state is stale)
+        const effectiveDimGroupingMode = dimGroupingModes.includes(dimensionGroupingMode)
+            ? dimensionGroupingMode
+            : 'none';
+        const effectiveHeatmapYGroupingMode = heatmapYGroupingModes.includes(heatmapYGroupingMode)
+            ? heatmapYGroupingMode
+            : 'none';
+
         const config = buildChartConfig({
             chartType,
             dimensionColumnId: activeDimensionColumnId,
             dimensionGrouping: buildGrouping(
-                dimensionGroupingMode,
+                effectiveDimGroupingMode,
                 dimensionGranularity,
                 dimensionStep
             ),
             heatmapYColumnId: activeHeatmapYColumnId,
             heatmapYGrouping: buildGrouping(
-                heatmapYGroupingMode,
+                effectiveHeatmapYGroupingMode,
                 heatmapYGranularity,
                 heatmapYStep
             ),
@@ -387,7 +500,7 @@ export const DatasetChartBuilder = ({
     };
 
     const handleSave = async () => {
-        if (!savedConfig) return;
+        if (!savedConfig) {return;}
 
         const fallbackName = `${selectedDataset.dataset.name} ${chartType}`;
         const name = chartName.trim() || fallbackName;
@@ -420,17 +533,8 @@ export const DatasetChartBuilder = ({
                     kind={previewData.kind}
                     ariaLabel="Chart preview"
                     barsLimit={8}
-                >
-                    <span>
-                        Dataset:{' '}
-                        {selectedDataset.dataset.name}
-                    </span>
-                    <span>
-                        Dimension:{' '}
-                        {columns.find(c => c.id === activeDimensionColumnId)
-                            ?.displayName ?? activeDimensionColumnId}
-                    </span>
-                </ChartResult>
+                    hideTable
+                />
 
                 <div data-stack="v" data-gap="sm">
                     <label className={styles['control']}>
@@ -485,7 +589,7 @@ export const DatasetChartBuilder = ({
 
             <form className={styles['chart-form']} onSubmit={handlePreview}>
                 <label className={styles['control']}>
-                    <span>Name</span>
+                    <span>Chart name</span>
                     <input
                         value={chartName}
                         placeholder={`${selectedDataset.dataset.name} chart`}
@@ -494,14 +598,14 @@ export const DatasetChartBuilder = ({
                 </label>
 
                 <label className={styles['control']}>
-                    <span>Type</span>
+                    <span>Chart type</span>
                     <select
                         value={chartType}
                         onChange={event => setChartType(event.target.value as ChartType)}
                     >
                         {chartTypes.map(type => (
                             <option key={type} value={type}>
-                                {type}
+                                {CHART_TYPE_LABELS[type]}
                             </option>
                         ))}
                     </select>
@@ -509,15 +613,11 @@ export const DatasetChartBuilder = ({
 
                 <label className={styles['control']}>
                     <span>
-                        {chartType === 'pie'
-                            ? 'Slice'
-                            : chartType === 'heatmap'
-                              ? 'X dimension'
-                              : 'Dimension'}
+                        {chartType === 'pie' ? 'Slice by' : 'X axis'}
                     </span>
                     <select
                         value={activeDimensionColumnId}
-                        onChange={event => setDimensionColumnId(event.target.value)}
+                        onChange={event => handleDimensionColumnChange(event.target.value)}
                     >
                         {columns.map(column => (
                             <option key={column.id} value={column.id}>
@@ -529,10 +629,10 @@ export const DatasetChartBuilder = ({
 
                 {chartType === 'heatmap' && (
                     <label className={styles['control']}>
-                        <span>Y dimension</span>
+                        <span>Y axis</span>
                         <select
                             value={activeHeatmapYColumnId}
-                            onChange={event => setHeatmapYColumnId(event.target.value)}
+                            onChange={event => handleHeatmapYColumnChange(event.target.value)}
                         >
                             {columns.map(column => (
                                 <option key={column.id} value={column.id}>
@@ -544,22 +644,24 @@ export const DatasetChartBuilder = ({
                 )}
 
                 <label className={styles['control']}>
-                    <span>X grouping</span>
+                    <span>Group by</span>
                     <select
-                        value={dimensionGroupingMode}
+                        value={dimGroupingModes.includes(dimensionGroupingMode) ? dimensionGroupingMode : 'none'}
                         onChange={event =>
                             setDimensionGroupingMode(event.target.value as GroupingMode)
                         }
                     >
-                        <option value="none">none</option>
-                        <option value="time">time</option>
-                        <option value="numeric">numeric</option>
+                        {dimGroupingModes.map(mode => (
+                            <option key={mode} value={mode}>
+                                {GROUPING_LABELS[mode]}
+                            </option>
+                        ))}
                     </select>
                 </label>
 
                 {dimensionGroupingMode === 'time' && (
                     <label className={styles['control']}>
-                        <span>X grain</span>
+                        <span>Time unit</span>
                         <select
                             value={dimensionGranularity}
                             onChange={event =>
@@ -570,7 +672,7 @@ export const DatasetChartBuilder = ({
                         >
                             {timeGranularities.map(item => (
                                 <option key={item} value={item}>
-                                    {item}
+                                    {GRANULARITY_LABELS[item]}
                                 </option>
                             ))}
                         </select>
@@ -579,7 +681,7 @@ export const DatasetChartBuilder = ({
 
                 {dimensionGroupingMode === 'numeric' && (
                     <label className={styles['control']}>
-                        <span>X step</span>
+                        <span>Bucket size</span>
                         <input
                             type="number"
                             min={1}
@@ -593,25 +695,27 @@ export const DatasetChartBuilder = ({
 
                 {chartType === 'heatmap' && (
                     <label className={styles['control']}>
-                        <span>Y grouping</span>
+                        <span>Group Y by</span>
                         <select
-                            value={heatmapYGroupingMode}
+                            value={heatmapYGroupingModes.includes(heatmapYGroupingMode) ? heatmapYGroupingMode : 'none'}
                             onChange={event =>
                                 setHeatmapYGroupingMode(
                                     event.target.value as GroupingMode
                                 )
                             }
                         >
-                            <option value="none">none</option>
-                            <option value="time">time</option>
-                            <option value="numeric">numeric</option>
+                            {heatmapYGroupingModes.map(mode => (
+                                <option key={mode} value={mode}>
+                                    {GROUPING_LABELS[mode]}
+                                </option>
+                            ))}
                         </select>
                     </label>
                 )}
 
                 {chartType === 'heatmap' && heatmapYGroupingMode === 'time' && (
                     <label className={styles['control']}>
-                        <span>Y grain</span>
+                        <span>Y time unit</span>
                         <select
                             value={heatmapYGranularity}
                             onChange={event =>
@@ -622,7 +726,7 @@ export const DatasetChartBuilder = ({
                         >
                             {timeGranularities.map(item => (
                                 <option key={item} value={item}>
-                                    {item}
+                                    {GRANULARITY_LABELS[item]}
                                 </option>
                             ))}
                         </select>
@@ -631,7 +735,7 @@ export const DatasetChartBuilder = ({
 
                 {chartType === 'heatmap' && heatmapYGroupingMode === 'numeric' && (
                     <label className={styles['control']}>
-                        <span>Y step</span>
+                        <span>Y bucket size</span>
                         <input
                             type="number"
                             min={1}
@@ -643,15 +747,17 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
+                <div className={styles['section']}>Measure</div>
+
                 <label className={styles['control']}>
-                    <span>Aggregate</span>
+                    <span>Aggregation</span>
                     <select
                         value={aggregate}
                         onChange={event => setAggregate(event.target.value as Aggregate)}
                     >
                         {aggregates.map(item => (
                             <option key={item} value={item}>
-                                {item}
+                                {AGGREGATE_LABELS[item]}
                             </option>
                         ))}
                     </select>
@@ -659,13 +765,13 @@ export const DatasetChartBuilder = ({
 
                 {needsColumn(aggregate) && (
                     <label className={styles['control']}>
-                        <span>Measure</span>
+                        <span>Column</span>
                         <select
                             data-testid="primary-measure-select"
                             value={activeMeasureColumnId}
                             onChange={event => setMeasureColumnId(event.target.value)}
                         >
-                            {numericColumns.map(column => (
+                            {measureColumns.map(column => (
                                 <option key={column.id} value={column.id}>
                                     {column.displayName}
                                 </option>
@@ -676,15 +782,15 @@ export const DatasetChartBuilder = ({
 
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
                     <label className={styles['control']}>
-                        <span>Second measure</span>
+                        <span>2nd measure</span>
                         <select
                             value={secondMeasureEnabled ? 'on' : 'off'}
                             onChange={event =>
                                 setSecondMeasureEnabled(event.target.value === 'on')
                             }
                         >
-                            <option value="off">off</option>
-                            <option value="on">on</option>
+                            <option value="off">Off</option>
+                            <option value="on">On</option>
                         </select>
                     </label>
                 )}
@@ -694,7 +800,7 @@ export const DatasetChartBuilder = ({
                     chartType !== 'heatmap' && (
                         <>
                             <label className={styles['control']}>
-                                <span>Second aggregate</span>
+                                <span>2nd aggregation</span>
                                 <select
                                     value={secondAggregate}
                                     onChange={event =>
@@ -705,14 +811,14 @@ export const DatasetChartBuilder = ({
                                 >
                                     {aggregates.map(item => (
                                         <option key={item} value={item}>
-                                            {item}
+                                            {AGGREGATE_LABELS[item]}
                                         </option>
                                     ))}
                                 </select>
                             </label>
                             {needsColumn(secondAggregate) && (
                                 <label className={styles['control']}>
-                                    <span>Second measure column</span>
+                                    <span>2nd column</span>
                                     <select
                                         data-testid="second-measure-select"
                                         value={activeSecondMeasureColumnId}
@@ -720,7 +826,7 @@ export const DatasetChartBuilder = ({
                                             setSecondMeasureColumnId(event.target.value)
                                         }
                                     >
-                                        {numericColumns.map(column => (
+                                        {secondMeasureColumns.map(column => (
                                             <option key={column.id} value={column.id}>
                                                 {column.displayName}
                                             </option>
@@ -731,25 +837,77 @@ export const DatasetChartBuilder = ({
                         </>
                     )}
 
-                {chartType !== 'pie' && chartType !== 'heatmap' && (
+                <label className={styles['control']}>
+                    <span>Sort</span>
+                    <select
+                        value={sortDirection}
+                        onChange={event =>
+                            setSortDirection(event.target.value as 'asc' | 'desc')
+                        }
+                    >
+                        {(['desc', 'asc'] as const).map(dir => (
+                            <option key={dir} value={dir}>
+                                {SORT_LABELS[dir]}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+
+                <label className={styles['control']}>
+                    <span>Row limit</span>
+                    <input
+                        type="number"
+                        min={1}
+                        max={200}
+                        value={limit}
+                        onChange={event =>
+                            setLimit(
+                                Math.max(1, Math.min(200, Number(event.target.value)))
+                            )
+                        }
+                    />
+                </label>
+
+                {chartType === 'pie' && (
                     <label className={styles['control']}>
-                        <span>Series</span>
-                        <select
-                            value={seriesEnabled ? 'on' : 'off'}
+                        <span>Max slices</span>
+                        <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={topN}
                             onChange={event =>
-                                setSeriesEnabled(event.target.value === 'on')
+                                setTopN(
+                                    Math.max(1, Math.min(50, Number(event.target.value)))
+                                )
                             }
-                        >
-                            <option value="off">off</option>
-                            <option value="on">on</option>
-                        </select>
+                        />
                     </label>
+                )}
+
+                {chartType !== 'pie' && chartType !== 'heatmap' && (
+                    <>
+                        <div className={styles['section']}>Series</div>
+
+                        <label className={styles['control']}>
+                            <span>Color by</span>
+                            <select
+                                value={seriesEnabled ? 'on' : 'off'}
+                                onChange={event =>
+                                    setSeriesEnabled(event.target.value === 'on')
+                                }
+                            >
+                                <option value="off">Off</option>
+                                <option value="on">On</option>
+                            </select>
+                        </label>
+                    </>
                 )}
 
                 {seriesEnabled && chartType !== 'pie' && chartType !== 'heatmap' && (
                     <>
                         <label className={styles['control']}>
-                            <span>Series column</span>
+                            <span>Color column</span>
                             <select
                                 value={activeSeriesColumnId}
                                 onChange={event => setSeriesColumnId(event.target.value)}
@@ -762,7 +920,7 @@ export const DatasetChartBuilder = ({
                             </select>
                         </label>
                         <label className={styles['control']}>
-                            <span>Series top</span>
+                            <span>Max series</span>
                             <input
                                 type="number"
                                 min={1}
@@ -780,74 +938,31 @@ export const DatasetChartBuilder = ({
                         </label>
                         {chartType === 'bar' && (
                             <label className={styles['control']}>
-                                <span>Other bucket</span>
+                                <span>Group rest</span>
                                 <select
                                     value={seriesOtherBucket ? 'on' : 'off'}
                                     onChange={event =>
                                         setSeriesOtherBucket(event.target.value === 'on')
                                     }
                                 >
-                                    <option value="on">on</option>
-                                    <option value="off">off</option>
+                                    <option value="on">On</option>
+                                    <option value="off">Off</option>
                                 </select>
                             </label>
                         )}
                     </>
                 )}
 
-                <label className={styles['control']}>
-                    <span>Sort</span>
-                    <select
-                        value={sortDirection}
-                        onChange={event =>
-                            setSortDirection(event.target.value as 'asc' | 'desc')
-                        }
-                    >
-                        <option value="desc">measure desc</option>
-                        <option value="asc">measure asc</option>
-                    </select>
-                </label>
+                <div className={styles['section']}>Filter</div>
 
                 <label className={styles['control']}>
-                    <span>Limit</span>
-                    <input
-                        type="number"
-                        min={1}
-                        max={200}
-                        value={limit}
-                        onChange={event =>
-                            setLimit(
-                                Math.max(1, Math.min(200, Number(event.target.value)))
-                            )
-                        }
-                    />
-                </label>
-
-                {chartType === 'pie' && (
-                    <label className={styles['control']}>
-                        <span>Top slices</span>
-                        <input
-                            type="number"
-                            min={1}
-                            max={50}
-                            value={topN}
-                            onChange={event =>
-                                setTopN(
-                                    Math.max(1, Math.min(50, Number(event.target.value)))
-                                )
-                            }
-                        />
-                    </label>
-                )}
-
-                <label className={styles['control']}>
-                    <span>Filter</span>
+                    <span>Filter rows</span>
                     <select
                         value={filterEnabled ? 'on' : 'off'}
                         onChange={event => setFilterEnabled(event.target.value === 'on')}
                     >
-                        <option value="off">off</option>
-                        <option value="on">on</option>
+                        <option value="off">Off</option>
+                        <option value="on">On</option>
                     </select>
                 </label>
 
@@ -868,7 +983,7 @@ export const DatasetChartBuilder = ({
                         </label>
 
                         <label className={styles['control']}>
-                            <span>Operation</span>
+                            <span>Condition</span>
                             <select
                                 value={filterOperation}
                                 onChange={event =>
@@ -879,7 +994,7 @@ export const DatasetChartBuilder = ({
                             >
                                 {filterOperations.map(operation => (
                                     <option key={operation} value={operation}>
-                                        {operation}
+                                        {FILTER_OP_LABELS[operation]}
                                     </option>
                                 ))}
                             </select>

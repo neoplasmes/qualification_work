@@ -12,9 +12,10 @@ type ModalProps = {
 export const Modal = ({ title, onClose, children }: ModalProps) => {
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape') {onClose();}
         };
         document.addEventListener('keydown', handler);
+
         return () => document.removeEventListener('keydown', handler);
     }, [onClose]);
 

@@ -2,10 +2,15 @@ import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
 import {
+    CancelMergeCommand,
+    CommitMergeCommand,
     CreateChartCommand,
     DeleteChartCommand,
     DeleteDatasetCommand,
+    InsertRowCommand,
+    PreviewMergeCommand,
     UpdateChartCommand,
+    UpdateRowValuesCommand,
     UploadDatasetCommand,
 } from '@/core/commands';
 import { BaseError, ValidationError } from '@/core/errors';
@@ -19,33 +24,61 @@ import {
     PreviewChartDataQuery,
 } from '@/core/queries';
 
-import { PgChartRepo, PgDatasetRepo } from '@/adapters/driven/repos';
+import {
+    PgChartRepo,
+    PgDatasetRepo,
+    RedisMergeSessionRepo,
+} from '@/adapters/driven/repos';
 import {
     DefaultChartCompilerTool,
     DefaultDatasetParserFactoryTool,
+    DiskTmpFileStorageTool,
     FastifyBusboyMultipartParserTool,
 } from '@/adapters/driven/tools';
 import { createChartsRouter, createDatasetRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
+import { startMergeSessionCleanup } from '@/shared/mergeSessionCleanup';
 import { resolveInternalAuthHook, type AuthHook } from '@/shared/resolveInternalAuth';
 
 import type { Config } from '@/infrastructure/config';
+import type { RedisClient } from '@/infrastructure/redis';
 
 export type CreateAppOptions = {
     /** override auth hook for tests or e2e scenarios */
     authHook?: AuthHook;
+    /** disable cleanup timer in tests */
+    disableMergeCleanup?: boolean;
+};
+
+export type CreateAppResult = {
+    app: Application<AppState>;
+    stop: () => void;
 };
 
 /** Wires the DI graph and returns an Application ready to listen(). */
 export function createApp(
     pool: Pool,
+    redis: RedisClient,
     config: Config,
     opts: CreateAppOptions = {}
 ): Application<AppState> {
+    const result = createAppWithCleanup(pool, redis, config, opts);
+
+    return result.app;
+}
+
+export function createAppWithCleanup(
+    pool: Pool,
+    redis: RedisClient,
+    config: Config,
+    opts: CreateAppOptions = {}
+): CreateAppResult {
     // ----- dataset -----
     const datasetRepo = new PgDatasetRepo(pool);
     const multipartParserService = new FastifyBusboyMultipartParserTool();
+    const tmpStorage = new DiskTmpFileStorageTool(config.merge.tmpDir);
+    const mergeSessionRepo = new RedisMergeSessionRepo(redis);
 
     const getDatasetsMetadataByOrgIdHandler = new GetDatasetsMetadataByOrgIdQuery(
         datasetRepo
@@ -57,6 +90,26 @@ export function createApp(
         datasetRepo
     );
     const deleteDatasetHandler = new DeleteDatasetCommand(datasetRepo);
+    const updateRowHandler = new UpdateRowValuesCommand(datasetRepo);
+    const insertRowHandler = new InsertRowCommand(datasetRepo);
+    const previewMergeHandler = new PreviewMergeCommand(
+        datasetRepo,
+        mergeSessionRepo,
+        tmpStorage,
+        DefaultDatasetParserFactoryTool.resolveParser,
+        {
+            sessionTtlSeconds: config.merge.sessionTtlSeconds,
+            maxMergeRowsInMemory: config.merge.maxRowsInMemory,
+            maxExistingRowsForMerge: config.merge.maxExistingRowsForMerge,
+        }
+    );
+    const commitMergeHandler = new CommitMergeCommand(
+        datasetRepo,
+        mergeSessionRepo,
+        tmpStorage,
+        DefaultDatasetParserFactoryTool.resolveParser
+    );
+    const cancelMergeHandler = new CancelMergeCommand(mergeSessionRepo, tmpStorage);
 
     // ----- chart -----
     const chartRepo = new PgChartRepo(pool);
@@ -100,7 +153,7 @@ export function createApp(
     app.onRequest(async ({ response }) => {
         response.head({
             'access-control-allow-origin': config.clientOrigin,
-            'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
             'access-control-allow-headers': 'Content-Type, X-Internal-Auth',
             'access-control-allow-credentials': 'true',
         });
@@ -110,14 +163,21 @@ export function createApp(
         response.json({ status: 'ok' });
     });
 
-    const datasetRouter = createDatasetRouter(
+    const datasetRouter = createDatasetRouter({
         getDatasetsMetadataByOrgIdHandler,
         getDatasetMetadataHandler,
         getDatasetRowsHandler,
         uploadDatasetHandler,
         deleteDatasetHandler,
-        multipartParserService
-    );
+        updateRowHandler,
+        insertRowHandler,
+        previewMergeHandler,
+        commitMergeHandler,
+        cancelMergeHandler,
+        multipartParser: multipartParserService,
+        tmpStorage,
+        mergePreviewConfig: { maxFileBytes: config.merge.maxFileBytes },
+    });
     const chartsRouter = createChartsRouter(
         createChartHandler,
         updateChartHandler,
@@ -141,5 +201,13 @@ export function createApp(
         });
     app.assignHook('preHandler', '/api', authHook);
 
-    return app;
+    let stopCleanup = () => undefined as void;
+    if (!opts.disableMergeCleanup) {
+        stopCleanup = startMergeSessionCleanup(mergeSessionRepo, tmpStorage, {
+            intervalMs: config.merge.cleanupIntervalMs,
+            maxAgeMs: config.merge.sessionTtlSeconds * 1000,
+        });
+    }
+
+    return { app, stop: stopCleanup };
 }

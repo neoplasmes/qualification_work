@@ -85,6 +85,9 @@ importers:
       '@visx/group':
         specifier: ^3.12.0
         version: 3.12.0(react@19.2.4)
+      '@visx/heatmap':
+        specifier: 3.12.0
+        version: 3.12.0(react@19.2.4)
       '@visx/responsive':
         specifier: ^3.12.0
         version: 3.12.0(react@19.2.4)

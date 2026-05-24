@@ -81,11 +81,11 @@ describe('DatasetChartBuilder', () => {
             </MemoryRouter>
         );
 
-        await user.selectOptions(screen.getByLabelText('Type'), 'heatmap');
-        await user.selectOptions(screen.getByLabelText('X dimension'), 'city');
-        await user.selectOptions(screen.getByLabelText('Y dimension'), 'country');
-        await user.selectOptions(screen.getByLabelText('Aggregate'), 'avg');
-        await user.selectOptions(screen.getByLabelText('Measure'), 'score');
+        await user.selectOptions(screen.getByLabelText('Chart type'), 'heatmap');
+        await user.selectOptions(screen.getByLabelText('X axis'), 'city');
+        await user.selectOptions(screen.getByLabelText('Y axis'), 'country');
+        await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
+        await user.selectOptions(screen.getByLabelText('Column'), 'score');
         await user.click(screen.getByRole('button', { name: /preview/i }));
 
         await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
@@ -140,15 +140,15 @@ describe('DatasetChartBuilder', () => {
             </MemoryRouter>
         );
 
-        await user.type(screen.getByLabelText('Name'), 'Score heatmap');
-        await user.selectOptions(screen.getByLabelText('Type'), 'heatmap');
-        await user.selectOptions(screen.getByLabelText('X dimension'), 'city');
-        await user.selectOptions(screen.getByLabelText('Y dimension'), 'country');
-        await user.selectOptions(screen.getByLabelText('Aggregate'), 'avg');
-        await user.selectOptions(screen.getByLabelText('Measure'), 'score');
-        await user.selectOptions(screen.getByLabelText('Filter'), 'on');
+        await user.type(screen.getByLabelText('Chart name'), 'Score heatmap');
+        await user.selectOptions(screen.getByLabelText('Chart type'), 'heatmap');
+        await user.selectOptions(screen.getByLabelText('X axis'), 'city');
+        await user.selectOptions(screen.getByLabelText('Y axis'), 'country');
+        await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
+        await user.selectOptions(screen.getByLabelText('Column'), 'score');
+        await user.selectOptions(screen.getByLabelText('Filter rows'), 'on');
         await user.selectOptions(screen.getByLabelText('Filter column'), 'score');
-        await user.selectOptions(screen.getByLabelText('Operation'), 'between');
+        await user.selectOptions(screen.getByLabelText('Condition'), 'between');
         await user.type(screen.getByLabelText('Value'), '10, 50');
         await user.click(screen.getByRole('button', { name: /preview/i }));
 

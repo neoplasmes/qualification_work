@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import { GitMerge, Trash2 } from 'lucide-react';
 
 import type { DatasetMetadata } from '@/features/datasets';
 
@@ -13,6 +13,7 @@ type DatasetDetailsProps = {
     deleting: boolean;
     error: string;
     onDelete: () => void;
+    onMerge: () => void;
 };
 
 export const DatasetDetails = ({
@@ -21,6 +22,7 @@ export const DatasetDetails = ({
     deleting,
     error,
     onDelete,
+    onMerge,
 }: DatasetDetailsProps) => (
     <section className={styles['details']} aria-label="Dataset details">
         <div className={styles['details-header']}>
@@ -28,12 +30,18 @@ export const DatasetDetails = ({
                 <span className={styles['eyebrow']}>Dataset</span>
                 <h2 className={styles['detail-title']}>{selectedDataset.dataset.name}</h2>
             </div>
-            <Button variant="danger" disabled={deleting} onClick={onDelete}>
-                <Trash2 size={18} />
-                {deleteConfirmationId === selectedDataset.dataset.id
-                    ? 'Confirm delete'
-                    : 'Delete'}
-            </Button>
+            <div data-stack="h" data-gap="sm">
+                <Button onClick={onMerge}>
+                    <GitMerge size={18} />
+                    Merge data
+                </Button>
+                <Button variant="danger" disabled={deleting} onClick={onDelete}>
+                    <Trash2 size={18} />
+                    {deleteConfirmationId === selectedDataset.dataset.id
+                        ? 'Confirm delete'
+                        : 'Delete'}
+                </Button>
+            </div>
         </div>
 
         {error && (

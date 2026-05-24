@@ -20,6 +20,7 @@ export const formatChartCell = (value: unknown) => {
         if (/T00:00:00(\.0+)?$/.test(noTz)) {
             return noTz.slice(0, 10);
         }
+
         return noTz;
     }
 

@@ -1,0 +1,143 @@
+import { describe, expect, it } from 'vitest';
+
+import type { Action } from '@/features/actions';
+
+import {
+    actionToDraft,
+    coerceRunValues,
+    createBlankActionDraft,
+    draftToActionPayload,
+    filterActions,
+} from './actionDraft';
+
+const baseAction: Action = {
+    id: 'action-1',
+    orgId: 'org-1',
+    name: 'Receive payment',
+    description: 'Marks invoice as paid',
+    parameters: [
+        {
+            key: 'invoiceId',
+            label: 'Invoice ID',
+            type: 'string',
+            required: true,
+        },
+    ],
+    effects: [
+        {
+            kind: 'updateRowsByMatch',
+            datasetId: 'dataset-1',
+            match: { columnKey: 'id', parameterKey: 'invoiceId' },
+            values: { status: { kind: 'literal', value: 'paid' } },
+            maxRows: 1,
+        },
+    ],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    archivedAt: null,
+};
+
+describe('action draft helpers', () => {
+    it('converts an action to draft and back to the backend DSL', () => {
+        const payload = draftToActionPayload(actionToDraft(baseAction));
+
+        expect(payload).toEqual({
+            name: 'Receive payment',
+            description: 'Marks invoice as paid',
+            parameters: baseAction.parameters,
+            effects: baseAction.effects,
+        });
+    });
+
+    it('supports multiple effects in order', () => {
+        const draft = createBlankActionDraft();
+        draft.name = 'Close sale';
+        draft.parameters = [
+            {
+                id: 'p1',
+                key: 'customer',
+                label: 'Customer',
+                type: 'string',
+                required: true,
+                defaultValue: '',
+            },
+        ];
+        draft.effects = [
+            {
+                id: 'e1',
+                kind: 'insertRow',
+                datasetId: 'dataset-1',
+                matchColumnKey: '',
+                matchParameterKey: '',
+                maxRows: '1',
+                values: [
+                    {
+                        id: 'v1',
+                        columnKey: 'customer',
+                        sourceKind: 'parameter',
+                        parameterKey: 'customer',
+                        literalValue: '',
+                    },
+                ],
+            },
+            {
+                id: 'e2',
+                kind: 'updateRowsByMatch',
+                datasetId: 'dataset-2',
+                matchColumnKey: 'customer',
+                matchParameterKey: 'customer',
+                maxRows: '1',
+                values: [
+                    {
+                        id: 'v2',
+                        columnKey: 'status',
+                        sourceKind: 'literal',
+                        parameterKey: '',
+                        literalValue: 'closed',
+                    },
+                ],
+            },
+        ];
+
+        expect(draftToActionPayload(draft).effects.map(effect => effect.kind)).toEqual([
+            'insertRow',
+            'updateRowsByMatch',
+        ]);
+    });
+
+    it('coerces run values by parameter type', () => {
+        expect(
+            coerceRunValues(
+                [
+                    { key: 'amount', label: 'Amount', type: 'number' },
+                    { key: 'paid', label: 'Paid', type: 'bool' },
+                ],
+                { amount: '15.5', paid: 'true' }
+            )
+        ).toEqual({ amount: 15.5, paid: true });
+    });
+
+    it('filters actions by dataset, effect and run status', () => {
+        expect(
+            filterActions([baseAction], {
+                searchText: '',
+                datasetIds: ['dataset-1'],
+                effectKinds: ['updateRowsByMatch'],
+                runStatuses: ['success'],
+                runs: [
+                    {
+                        id: 'run-1',
+                        actionId: 'action-1',
+                        orgId: 'org-1',
+                        userId: 'user-1',
+                        parameters: {},
+                        changes: [],
+                        status: 'success',
+                        errorMessage: null,
+                        executedAt: '2026-01-01T00:00:00.000Z',
+                    },
+                ],
+            })
+        ).toEqual([baseAction]);
+    });
+});

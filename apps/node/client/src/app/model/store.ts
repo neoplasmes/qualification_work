@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
 import { panelLayoutSlice, type PanelLayoutState } from '@/widgets/WorkspaceGrid';
 
+import { actionsPageSlice, actionsPageInitialState } from '@/pages/Actions';
 import { chartsPageSlice, chartsPageInitialState } from '@/pages/Charts';
 import { datasetsPageSlice, datasetsPageInitialState } from '@/pages/Datasets';
 import { dashboardsPageSlice, dashboardsPageInitialState } from '@/pages/Dashboards';
@@ -9,6 +10,7 @@ import { dashboardsPageSlice, dashboardsPageInitialState } from '@/pages/Dashboa
 import { api } from '@/shared/api';
 
 const LS_PANEL_LAYOUT_KEY = 'panelLayout_v2';
+const LS_ACTIONS_PAGE_KEY = 'actionsPage_v1';
 const LS_CHARTS_PAGE_KEY = 'chartsPage_v1';
 const LS_DATASETS_PAGE_KEY = 'datasetsPage_v1';
 const LS_DASHBOARDS_PAGE_KEY = 'dashboardsPage_v1';
@@ -37,6 +39,18 @@ type ChartsPagePersisted = Pick<
     | 'workspaceDraftChartType'
     | 'workspaceDraftConfigText'
     | 'workspaceFilterOverrideText'
+>;
+
+type ActionsPagePersisted = Pick<
+    typeof actionsPageInitialState,
+    | 'selectedActionId'
+    | 'workspaceTab'
+    | 'rightPanelTab'
+    | 'filtersTab'
+    | 'searchText'
+    | 'filterDatasetIds'
+    | 'filterEffectKinds'
+    | 'filterRunStatuses'
 >;
 
 type DatasetsPagePersisted = Pick<
@@ -87,6 +101,36 @@ const loadChartsPage = (): ChartsPagePersisted => {
             workspaceDraftChartType: 'bar',
             workspaceDraftConfigText: '',
             workspaceFilterOverrideText: '',
+        };
+    }
+};
+
+const loadActionsPage = (): ActionsPagePersisted => {
+    try {
+        const raw = localStorage.getItem(LS_ACTIONS_PAGE_KEY);
+
+        return raw
+            ? (JSON.parse(raw) as ActionsPagePersisted)
+            : {
+                  selectedActionId: null,
+                  workspaceTab: 'configure',
+                  rightPanelTab: 'history',
+                  filtersTab: 'datasets',
+                  searchText: '',
+                  filterDatasetIds: [],
+                  filterEffectKinds: [],
+                  filterRunStatuses: [],
+              };
+    } catch {
+        return {
+            selectedActionId: null,
+            workspaceTab: 'configure',
+            rightPanelTab: 'history',
+            filtersTab: 'datasets',
+            searchText: '',
+            filterDatasetIds: [],
+            filterEffectKinds: [],
+            filterRunStatuses: [],
         };
     }
 };
@@ -158,6 +202,19 @@ const pickChartsPagePersisted = (state: typeof chartsPageInitialState): ChartsPa
     workspaceFilterOverrideText: state.workspaceFilterOverrideText,
 });
 
+const pickActionsPagePersisted = (
+    state: typeof actionsPageInitialState
+): ActionsPagePersisted => ({
+    selectedActionId: state.selectedActionId,
+    workspaceTab: state.workspaceTab,
+    rightPanelTab: state.rightPanelTab,
+    filtersTab: state.filtersTab,
+    searchText: state.searchText,
+    filterDatasetIds: state.filterDatasetIds,
+    filterEffectKinds: state.filterEffectKinds,
+    filterRunStatuses: state.filterRunStatuses,
+});
+
 const pickDatasetsPagePersisted = (
     state: typeof datasetsPageInitialState
 ): DatasetsPagePersisted => ({
@@ -184,6 +241,7 @@ const pickDashboardsPagePersisted = (
 const rootReducer = combineReducers({
     [api.reducerPath]: api.reducer,
     [panelLayoutSlice.name]: panelLayoutSlice.reducer,
+    [actionsPageSlice.name]: actionsPageSlice.reducer,
     [chartsPageSlice.name]: chartsPageSlice.reducer,
     [datasetsPageSlice.name]: datasetsPageSlice.reducer,
     [dashboardsPageSlice.name]: dashboardsPageSlice.reducer,
@@ -195,6 +253,11 @@ export function createStore(preloadedState?: Partial<RootState>) {
         middleware: getDefaultMiddleware => getDefaultMiddleware().concat(api.middleware),
         preloadedState: {
             [panelLayoutSlice.name]: loadPanelLayout(),
+            [actionsPageSlice.name]: {
+                ...actionsPageInitialState,
+                ...loadActionsPage(),
+                isCreatingAction: false,
+            },
             [chartsPageSlice.name]: {
                 ...chartsPageInitialState,
                 ...loadChartsPage(),
@@ -214,6 +277,7 @@ export function createStore(preloadedState?: Partial<RootState>) {
     });
 
     let prevPanelLayout = store.getState()[panelLayoutSlice.name];
+    let prevActionsPage = pickActionsPagePersisted(store.getState()[actionsPageSlice.name]);
     let prevChartsPage = pickChartsPagePersisted(store.getState()[chartsPageSlice.name]);
     let prevDatasetsPage = pickDatasetsPagePersisted(store.getState()[datasetsPageSlice.name]);
     let prevDashboardsPage = pickDashboardsPagePersisted(
@@ -234,6 +298,25 @@ export function createStore(preloadedState?: Partial<RootState>) {
         }
 
         const nextChartsPage = pickChartsPagePersisted(state[chartsPageSlice.name]);
+        const nextActionsPage = pickActionsPagePersisted(state[actionsPageSlice.name]);
+        if (
+            nextActionsPage.selectedActionId !== prevActionsPage.selectedActionId ||
+            nextActionsPage.workspaceTab !== prevActionsPage.workspaceTab ||
+            nextActionsPage.rightPanelTab !== prevActionsPage.rightPanelTab ||
+            nextActionsPage.filtersTab !== prevActionsPage.filtersTab ||
+            nextActionsPage.searchText !== prevActionsPage.searchText ||
+            nextActionsPage.filterDatasetIds !== prevActionsPage.filterDatasetIds ||
+            nextActionsPage.filterEffectKinds !== prevActionsPage.filterEffectKinds ||
+            nextActionsPage.filterRunStatuses !== prevActionsPage.filterRunStatuses
+        ) {
+            prevActionsPage = nextActionsPage;
+            try {
+                localStorage.setItem(LS_ACTIONS_PAGE_KEY, JSON.stringify(nextActionsPage));
+            } catch {
+                // ignore storage quota errors
+            }
+        }
+
         if (
             nextChartsPage.selectedChartId !== prevChartsPage.selectedChartId ||
             nextChartsPage.filterDatasetIds !== prevChartsPage.filterDatasetIds ||

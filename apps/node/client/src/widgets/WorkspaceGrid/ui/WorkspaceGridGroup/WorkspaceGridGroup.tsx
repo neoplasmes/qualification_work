@@ -170,7 +170,10 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
                 const skip =
                     (idx === 0 && collapseLeftRef.current) ||
                     (idx === total - 1 && collapseRightRef.current);
-                if (!skip) visible.set(key, model);
+                if (!skip) {
+                    visible.set(key, model);
+                }
+
                 idx++;
             }
 

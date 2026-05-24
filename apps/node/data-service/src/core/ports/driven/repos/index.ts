@@ -1,4 +1,15 @@
 export type {
+    ActionRepo,
+    CreateActionPayload,
+    CreateFailedRunPayload,
+    DatasetActionContext,
+    ExecuteActionPayload,
+    ListActionRunsPayload,
+    PatchActionPayload,
+    ResolvedActionExecutionEffect,
+    UpdateActionPayload,
+} from './action.repo';
+export type {
     ChartCompilationContext,
     ChartRepo,
     CreateChartPayload,

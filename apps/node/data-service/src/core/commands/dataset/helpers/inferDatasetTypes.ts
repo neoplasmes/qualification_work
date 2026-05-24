@@ -50,6 +50,7 @@ export function isStrictDate(s: string): boolean {
 export function parseStrictDate(s: string): string | undefined {
     if (ISO_DATE_RE.test(s)) {
         const d = new Date(s);
+
         return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
     }
 
@@ -125,21 +126,53 @@ function inferColumnType(values: unknown[]): ColumnDataType {
 
     for (const value of values) {
         const cls = classifyValue(value);
-        if (cls === 'empty') continue;
-        if (cls === 'bool') { hasBool = true; continue; }
-        if (cls === 'number') { hasNumber = true; continue; }
-        if (cls === 'date') { hasDate = true; continue; }
+        if (cls === 'empty') {
+            continue;
+        }
+
+        if (cls === 'bool') {
+            hasBool = true;
+
+            continue;
+        }
+
+        if (cls === 'number') {
+            hasNumber = true;
+
+            continue;
+        }
+
+        if (cls === 'date') {
+            hasDate = true;
+
+            continue;
+        }
+
         hasString = true;
     }
 
     // any string-typed value forces the whole column to string
-    if (hasString) return 'string';
+    if (hasString) {
+        return 'string';
+    }
+
     // mixed types fall back to string
     const typeCount = (hasBool ? 1 : 0) + (hasNumber ? 1 : 0) + (hasDate ? 1 : 0);
-    if (typeCount > 1) return 'string';
-    if (hasBool) return 'bool';
-    if (hasDate) return 'date';
-    if (hasNumber) return 'number';
+    if (typeCount > 1) {
+        return 'string';
+    }
+
+    if (hasBool) {
+        return 'bool';
+    }
+
+    if (hasDate) {
+        return 'date';
+    }
+
+    if (hasNumber) {
+        return 'number';
+    }
 
     // all values were empty/null
     return 'string';

@@ -6,6 +6,7 @@ import {
     PanelRight,
     TableProperties,
     User,
+    Workflow,
 } from 'lucide-react';
 import { m } from 'motion/react';
 import { type FC } from 'react';
@@ -13,8 +14,8 @@ import { NavLink, useLocation, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery, useLogoutMutation } from '@/features/auth';
-import { getApiErrorMessage } from '@/shared/api';
 import { IconButton, IconButtonLink, Logo } from '@/shared/ui';
+// oxlint-disable-next-line fsd/no-cross-slice-dependency
 import {
     toggleLeftPanel,
     toggleRightPanel,
@@ -28,9 +29,10 @@ const navLinks = [
     { to: '/datasets', label: 'Datasets', Icon: TableProperties },
     { to: '/charts', label: 'Charts', Icon: ChartNoAxesColumnIncreasing },
     { to: '/dashboards', label: 'Dashboards', Icon: LayoutDashboard },
+    { to: '/actions', label: 'Actions', Icon: Workflow },
 ];
 
-const workspacePaths = new Set(['/datasets', '/charts', '/dashboards']);
+const workspacePaths = new Set(['/datasets', '/charts', '/dashboards', '/actions']);
 
 export const NavBar: FC = () => {
     const { pathname } = useLocation();

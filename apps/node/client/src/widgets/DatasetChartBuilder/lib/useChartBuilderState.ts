@@ -69,7 +69,10 @@ const lsKey = (datasetId: string) => `chartBuilder_${datasetId}`;
 const loadFields = (datasetId: string): ChartBuilderFields => {
     try {
         const raw = localStorage.getItem(lsKey(datasetId));
-        if (!raw) {return { ...defaultFields };}
+        if (!raw) {
+            return { ...defaultFields };
+        }
+
         return { ...defaultFields, ...(JSON.parse(raw) as Partial<ChartBuilderFields>) };
     } catch {
         return { ...defaultFields };

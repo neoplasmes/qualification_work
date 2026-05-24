@@ -23,7 +23,6 @@ import { Button, ButtonLink } from '@/shared/ui';
 
 import styles from './DatasetChartBuilder.module.scss';
 
-const CHART_RESULT_LIMIT = 24;
 const chartTypes = ['bar', 'line', 'pie', 'heatmap'] as const;
 const aggregates = ['count', 'sum', 'avg', 'min', 'max', 'count_distinct'] as const;
 const filterOperations = [
@@ -358,16 +357,28 @@ export const DatasetChartBuilder = ({
     const dimGroupingModes = useMemo((): GroupingMode[] => {
         const t = activeDimensionColumn?.dataType;
         const modes: GroupingMode[] = ['none'];
-        if (t === 'date') modes.push('time');
-        if (t === 'number') modes.push('numeric');
+        if (t === 'date') {
+            modes.push('time');
+        }
+
+        if (t === 'number') {
+            modes.push('numeric');
+        }
+
         return modes;
     }, [activeDimensionColumn?.dataType]);
 
     const heatmapYGroupingModes = useMemo((): GroupingMode[] => {
         const t = activeHeatmapYColumn?.dataType;
         const modes: GroupingMode[] = ['none'];
-        if (t === 'date') modes.push('time');
-        if (t === 'number') modes.push('numeric');
+        if (t === 'date') {
+            modes.push('time');
+        }
+
+        if (t === 'number') {
+            modes.push('numeric');
+        }
+
         return modes;
     }, [activeHeatmapYColumn?.dataType]);
 

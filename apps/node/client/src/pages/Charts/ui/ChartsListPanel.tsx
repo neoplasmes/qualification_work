@@ -4,7 +4,6 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/auth';
 import { useListChartsQuery, type Chart } from '@/features/charts';
-import { useListDatasetsQuery } from '@/features/datasets';
 import { useListDashboardsQuery } from '@/features/dashboards';
 
 import { formatDate } from '@/shared/lib/formatDate';
@@ -26,7 +25,6 @@ export const ChartsListPanel = () => {
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
 
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
 
     const selectedChartId = useSelector(selectSelectedChartId);
@@ -36,7 +34,9 @@ export const ChartsListPanel = () => {
     const charts = chartsQuery.data;
 
     const filteredCharts = (() => {
-        if (!charts) {return charts;}
+        if (!charts) {
+            return charts;
+        }
 
         let result = charts;
 

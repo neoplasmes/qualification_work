@@ -81,29 +81,57 @@ const GRID_THEME: Partial<Theme> = {
 };
 
 function isValidValue(value: string, dataType: DatasetColumn['dataType']): boolean {
-    if (value === '') { return false; }
-    if (dataType === 'number') { return !Number.isNaN(Number(value)) && Number.isFinite(Number(value)); }
-    if (dataType === 'bool') { return value === 'true' || value === 'false'; }
+    if (value === '') {
+        return false;
+    }
+
+    if (dataType === 'number') {
+        return !Number.isNaN(Number(value)) && Number.isFinite(Number(value));
+    }
+
+    if (dataType === 'bool') {
+        return value === 'true' || value === 'false';
+    }
+
     if (dataType === 'date') {
         const s = value.trim();
-        if (DATE_ONLY_RE.test(s)) { return !Number.isNaN(new Date(`${s}T00:00:00.000Z`).getTime()); }
+
+        if (DATE_ONLY_RE.test(s)) {
+            return !Number.isNaN(new Date(`${s}T00:00:00.000Z`).getTime());
+        }
+
         const normalized = DATETIME_NO_TZ_RE.test(s) ? `${s}Z` : s;
+
         return !Number.isNaN(new Date(normalized).getTime());
     }
+
     return true;
 }
 
 function parseValue(value: string, dataType: DatasetColumn['dataType']): unknown {
-    if (dataType === 'number') { return Number(value); }
-    if (dataType === 'bool') { return value === 'true'; }
+    if (dataType === 'number') {
+        return Number(value);
+    }
+
+    if (dataType === 'bool') {
+        return value === 'true';
+    }
+
     if (dataType === 'date') {
         const s = value.trim();
         // date-only string: treat as UTC midnight to avoid timezone shift
-        if (DATE_ONLY_RE.test(s)) { return `${s}T00:00:00.000Z`; }
+        if (DATE_ONLY_RE.test(s)) {
+            return `${s}T00:00:00.000Z`;
+        }
+
         // datetime without timezone: append Z to keep UTC
-        if (DATETIME_NO_TZ_RE.test(s)) { return new Date(`${s}Z`).toISOString(); }
+        if (DATETIME_NO_TZ_RE.test(s)) {
+            return new Date(`${s}Z`).toISOString();
+        }
+
         return new Date(s).toISOString();
     }
+
     return value;
 }
 
@@ -148,25 +176,36 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
 
     useEffect(() => {
         const el = wrapRef.current;
-        if (!el) { return; }
+        if (!el) {
+            return;
+        }
+
         const ro = new ResizeObserver(([e]) => setGridWidth(Math.floor(e.contentRect.width)));
         ro.observe(el);
+
         return () => ro.disconnect();
     }, []);
 
     // flush pending cell edits every 1s
     useEffect(() => {
-        if (!selectedDataset) { return; }
+        if (!selectedDataset) {
+            return;
+        }
+
         const datasetId = selectedDataset.dataset.id;
         const orgId = selectedDataset.dataset.orgId;
         const id = setInterval(() => {
-            if (!pendingEditsRef.current.size) { return; }
+            if (!pendingEditsRef.current.size) {
+                return;
+            }
+
             const batch = new Map(pendingEditsRef.current);
             pendingEditsRef.current.clear();
             for (const [rowId, values] of batch) {
                 void updateRow({ datasetId, orgId, rowId, values });
             }
         }, 1000);
+
         return () => clearInterval(id);
     }, [selectedDataset?.dataset.id, updateRow]);
 
@@ -180,6 +219,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             const row = { ...next.get(rowId) };
             row[col.key] = parsed;
             next.set(rowId, row);
+
             return next;
         });
     }, []);
@@ -204,6 +244,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
 
             if (isInsertingRow && rowIdx === rows.length) {
                 const val = newRowValues[col.key] ?? '';
+
                 return { kind: GridCellKind.Text, data: val, displayData: val, allowOverlay: true };
             }
 
@@ -211,8 +252,10 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             if (!dataRow) {
                 return { kind: GridCellKind.Text, data: '', displayData: '', allowOverlay: false };
             }
+
             const rawValue = displayEdits.get(dataRow.id)?.[col.key] ?? dataRow.data[col.key];
             const display = formatChartCell(rawValue);
+
             return { kind: GridCellKind.Text, data: display, displayData: display, allowOverlay: true };
         },
         [columns, rows, displayEdits, isInsertingRow, newRowValues]
@@ -221,15 +264,21 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const onCellEdited = useCallback(
         ([colIdx, rowIdx]: Item, newValue: EditableGridCell) => {
             const col = columns[colIdx];
-            if (!col || newValue.kind !== GridCellKind.Text) { return; }
+            if (!col || newValue.kind !== GridCellKind.Text) {
+                return;
+            }
 
             if (isInsertingRow && rowIdx === rows.length) {
                 setNewRowValues(prev => ({ ...prev, [col.key]: newValue.data }));
+
                 return;
             }
 
             const dataRow = rows[rowIdx];
-            if (!dataRow) { return; }
+            if (!dataRow) {
+                return;
+            }
+
             commitCell(dataRow.id, col, newValue.data);
         },
         [columns, rows, isInsertingRow, commitCell]
@@ -238,15 +287,22 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const validateCell = useCallback(
         ([colIdx]: Item, newValue: EditableGridCell): boolean => {
             const col = columns[colIdx];
-            if (!col || newValue.kind !== GridCellKind.Text) { return true; }
+            if (!col || newValue.kind !== GridCellKind.Text) {
+                return true;
+            }
+
             const val = newValue.data;
+
             return val === '' || isValidValue(val, col.dataType);
         },
         [columns]
     );
 
     const handleInsertConfirm = async () => {
-        if (!selectedDataset) { return; }
+        if (!selectedDataset) {
+            return;
+        }
+
         const data: Record<string, unknown> = {};
         for (const col of columns) {
             const raw = newRowValues[col.key] ?? '';

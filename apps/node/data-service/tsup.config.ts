@@ -9,5 +9,9 @@ export default defineConfig({
     clean: true,
     sourcemap: true,
     treeshake: true,
-    noExternal: [/^@qualification-work\/microservice-utils/],
+    // workspace-пакеты экспортируют .ts напрямую — бандлим их внутрь dist
+    noExternal: [
+        /^@qualification-work\/microservice-utils/,
+        /^@qualification-work\/redis-cache/,
+    ],
 });

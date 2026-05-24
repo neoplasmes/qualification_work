@@ -19,6 +19,7 @@ import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
 
 let pool: Pool;
 let redis: RedisClient;
+let cacheRedis: RedisClient | undefined;
 let userEventsConsumer: RedisUserEventsConsumer | undefined;
 let baseUrl: string;
 let server: Server | undefined;
@@ -72,6 +73,9 @@ export async function truncate(): Promise<void> {
     if (redis?.isReady) {
         await redis.flushDb();
     }
+    if (cacheRedis?.isReady && cacheRedis !== redis) {
+        await cacheRedis.flushDb();
+    }
 
     const { rows } = await pool.query<{ schema_name: string }>(`
 		SELECT schema_name
@@ -97,6 +101,7 @@ export async function startServer(): Promise<void> {
     try {
         pool = await createPool(testConfig.postgresConnectionString);
         redis = await createRedisClient(testConfig.redis);
+        cacheRedis = await createRedisClient(testConfig.redis);
 
         await truncate();
 
@@ -110,7 +115,7 @@ export async function startServer(): Promise<void> {
         );
         await userEventsConsumer.start();
 
-        const app = createApp(pool, testConfig, { authHook: testAuthHook });
+        const app = createApp(pool, cacheRedis, testConfig, { authHook: testAuthHook });
         server = await app.listen({ port: 0 });
 
         const addr = server.address();
@@ -153,8 +158,10 @@ export async function stopServer(): Promise<void> {
     });
 
     await redis?.close();
+    await cacheRedis?.close();
     await pool?.end();
 
     server = undefined;
+    cacheRedis = undefined;
     userEventsConsumer = undefined;
 }

@@ -1,11 +1,18 @@
+import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+
 import type { Chart } from '@/core/domain';
 import type { ChartRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetChartsByOrgIdQuery implements Executable<[string], Promise<Chart[]>> {
+export class GetChartsByOrgIdQuery
+    implements Executable<[string, OrgMembership[]], Promise<Chart[]>>
+{
     constructor(private readonly chartRepo: ChartRepo) {}
 
-    async execute(orgId: string): Promise<Chart[]> {
+    async execute(orgId: string, orgs: OrgMembership[]): Promise<Chart[]> {
+        checkOrgMembership(orgs, orgId);
+
         return this.chartRepo.getByOrgId(orgId);
     }
 }

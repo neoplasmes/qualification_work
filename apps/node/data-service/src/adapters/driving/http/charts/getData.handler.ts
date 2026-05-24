@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
 import { parseWithZod } from '@qualification-work/microservice-utils';
 
 import { ValidationError } from '@/core/errors';
@@ -30,10 +31,12 @@ export function createGetChartDataHandler(
         }
 
         const filters = parseWithZod(filterOverridesSchema, filterOverrides);
+        const identity = getInternalIdentity(request);
 
         const result = await handler.execute({
             chartId: id,
             filterOverrides: filters as never,
+            orgs: identity.orgs,
         });
 
         response.status(200).json(result);

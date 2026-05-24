@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
 import { parseWithZod } from '@qualification-work/microservice-utils';
 
 import type { GetDatasetMetadataByDatasetIdQuery } from '@/core/queries';
@@ -17,8 +18,9 @@ export function createGetDatasetMetadataByDatasetIdHandler(
         const input = parseWithZod(getDatasetMetadataSchema, {
             id: request.params.id,
         });
+        const identity = getInternalIdentity(request);
 
-        const result = await handler.execute(input.id);
+        const result = await handler.execute(input.id, identity.orgs);
 
         response.status(200).json(result);
     };

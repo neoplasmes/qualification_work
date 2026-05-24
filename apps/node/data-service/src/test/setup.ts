@@ -110,6 +110,11 @@ export async function createTestUserWithOrg(): Promise<{
     const user = await createTestUser();
     const organization = await createTestOrg(user.id);
 
+    setTestIdentity({
+        userId: user.id,
+        orgs: [{ id: organization.id, role: 'owner' }],
+    });
+
     return {
         userId: user.id,
         orgId: organization.id,
@@ -149,11 +154,7 @@ export async function startServer(): Promise<void> {
     try {
         const config = loadConfig();
         pool = await createPool(config.postgresConnectionString);
-        redis = await createRedisClient(
-            config.redis.host,
-            config.redis.port,
-            config.redis.password
-        );
+        redis = await createRedisClient(config.redis);
 
         await truncate();
         await redis.flushDb();

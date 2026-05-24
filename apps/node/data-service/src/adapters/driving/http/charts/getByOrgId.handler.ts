@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
 import { parseWithZod } from '@qualification-work/microservice-utils';
 
 import type { GetChartsByOrgIdQuery } from '@/core/queries';
@@ -11,8 +12,9 @@ export function createGetChartsByOrgIdHandler(
 ): RequestHandlerType {
     return async ({ request, response }) => {
         const orgId = parseWithZod(z.uuid(), request.query.orgId);
+        const identity = getInternalIdentity(request);
 
-        const result = await handler.execute(orgId);
+        const result = await handler.execute(orgId, identity.orgs);
 
         response.status(200).json(result);
     };

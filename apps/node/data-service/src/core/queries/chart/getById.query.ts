@@ -1,17 +1,24 @@
+import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+
 import type { Chart } from '@/core/domain';
 import { NotFoundError } from '@/core/errors';
 import type { ChartRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetChartByIdQuery implements Executable<[string], Promise<Chart>> {
+export class GetChartByIdQuery
+    implements Executable<[string, OrgMembership[]], Promise<Chart>>
+{
     constructor(private readonly chartRepo: ChartRepo) {}
 
-    async execute(chartId: string): Promise<Chart> {
+    async execute(chartId: string, orgs: OrgMembership[]): Promise<Chart> {
         const chart = await this.chartRepo.getById(chartId);
 
         if (!chart) {
             throw new NotFoundError('Chart not found');
         }
+
+        checkOrgMembership(orgs, chart.orgId);
 
         return chart;
     }

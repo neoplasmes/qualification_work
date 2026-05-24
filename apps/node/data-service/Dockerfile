@@ -23,6 +23,7 @@ COPY packages/node/eslint-plugin-fsd/package.json       ./packages/node/eslint-p
 COPY packages/node/primitive-server/package.json        ./packages/node/primitive-server/
 COPY packages/node/microservice-config/package.json     ./packages/node/microservice-config/
 COPY packages/node/microservice-utils/package.json      ./packages/node/microservice-utils/
+COPY packages/node/redis-cache/package.json             ./packages/node/redis-cache/
 
 RUN pnpm -F data-service... i --frozen-lockfile --ignore-scripts
 
@@ -33,6 +34,7 @@ COPY packages/node/types/               ./packages/node/types/
 COPY packages/node/primitive-server/    ./packages/node/primitive-server/
 COPY packages/node/microservice-config/ ./packages/node/microservice-config/
 COPY packages/node/microservice-utils/  ./packages/node/microservice-utils/
+COPY packages/node/redis-cache/         ./packages/node/redis-cache/
 
 RUN pnpm -F data-service... --if-present build
 

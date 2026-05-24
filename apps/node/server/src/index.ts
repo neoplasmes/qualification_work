@@ -11,6 +11,7 @@ import { createRedisClient } from '@/infrastructure/redis';
 const config = loadConfig();
 const pool = await createPool(config.postgresConnectionString);
 const redis = await createRedisClient(config.redis);
+const cacheRedis = await createRedisClient(config.redis);
 
 const initUserRepo = new PgUserRepo(pool);
 const initUserCommand = new InitUserCommand(initUserRepo);
@@ -21,7 +22,7 @@ const userEventsConsumer = new RedisUserEventsConsumer(
 );
 await userEventsConsumer.start();
 
-const app = createApp(pool, config);
+const app = createApp(pool, cacheRedis, config);
 
 const server = await app.listen({ port: config.port, host: '0.0.0.0' });
 console.log(`server runs on port ${config.port}`);
@@ -38,6 +39,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
 
     await userEventsConsumer.stop();
     await redis.close();
+    await cacheRedis.close();
 
     await new Promise<void>((resolve, reject) => {
         server.closeAllConnections();

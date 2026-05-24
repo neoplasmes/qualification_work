@@ -7,11 +7,7 @@ import { createRedisClient } from '@/infrastructure/redis';
 const config = loadConfig();
 
 const pool = await createPool(config.postgresConnectionString);
-const redis = await createRedisClient(
-    config.redis.host,
-    config.redis.port,
-    config.redis.password
-);
+const redis = await createRedisClient(config.redis);
 
 const app = createApp(pool, redis, config);
 

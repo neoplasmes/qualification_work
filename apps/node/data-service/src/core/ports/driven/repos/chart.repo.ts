@@ -30,6 +30,7 @@ export type ChartCompilationContext = {
 
 export type DatasetContext = {
     datasetId: string;
+    orgId: string;
     dataVersion: number;
     columns: Array<{ id: string; key: string; dataType: 'number' | 'string' | 'date' | 'bool' }>;
 };
@@ -42,6 +43,8 @@ export interface ChartRepo {
     getById(chartId: string): Promise<Chart | null>;
 
     getByOrgId(orgId: string): Promise<Chart[]>;
+
+    listIdsByDatasetId(datasetId: string): Promise<string[]>;
 
     delete(chartId: string): Promise<void>;
 

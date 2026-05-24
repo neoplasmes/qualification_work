@@ -30,7 +30,7 @@ export const DatasetDetails = ({
                 <span className={styles['eyebrow']}>Dataset</span>
                 <h2 className={styles['detail-title']}>{selectedDataset.dataset.name}</h2>
             </div>
-            <div data-stack="h" data-gap="sm">
+            <div className={styles['details-actions']}>
                 <Button onClick={onMerge}>
                     <GitMerge size={18} />
                     Merge data
@@ -69,6 +69,7 @@ export const DatasetDetails = ({
             </div>
         </dl>
 
+        <span className={styles['eyebrow']}>Columns</span>
         <div className={styles['columns-list']} aria-label="Dataset columns">
             {selectedDataset.columns.map(column => (
                 <div key={column.id} className={styles['column-chip']}>

@@ -5,7 +5,7 @@ import type { ComponentType } from 'react';
 import { WorkspaceGrid, selectIsLeftCollapsed, selectIsRightCollapsed } from '@/widgets/WorkspaceGrid';
 
 import { ChartsListPanel, ChartsWorkspace, ChartsFilterPanel } from '@/pages/Charts';
-import { DatasetsUploadPanel, DatasetsWorkspace, DatasetsFilterPanel } from '@/pages/Datasets';
+import { DatasetsUploadPanel, DatasetsWorkspace, DatasetsRightPanel } from '@/pages/Datasets';
 import {
     DashboardsListPanel,
     DashboardsWorkspace,
@@ -27,7 +27,7 @@ const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
     '/datasets': {
         Left: DatasetsUploadPanel,
         Center: DatasetsWorkspace,
-        Right: DatasetsFilterPanel,
+        Right: DatasetsRightPanel,
     },
     '/dashboards': {
         Left: DashboardsListPanel,
@@ -61,7 +61,7 @@ export const WorkspaceLayout = () => {
                 <WorkspaceGrid.Panel initialSize="800px" minSize="480px" maxSize="9999px">
                     <Center />
                 </WorkspaceGrid.Panel>
-                <WorkspaceGrid.Panel initialSize="260px" minSize="180px" maxSize="380px">
+                <WorkspaceGrid.Panel initialSize="320px" minSize="240px" maxSize="480px">
                     <Right />
                 </WorkspaceGrid.Panel>
             </WorkspaceGrid.Group>

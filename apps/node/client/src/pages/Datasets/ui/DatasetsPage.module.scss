@@ -70,6 +70,26 @@
     min-height: 0;
 }
 
+// right panel: properties + filter stacked, parent scroll
+.right-panel {
+    overflow: auto;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+
+    min-width: 0;
+    min-height: 0;
+}
+
+// filter section when inside right-panel (no own overflow/flex-grow)
+.filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
 .filter-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -245,12 +265,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-
-    padding: var(--spacing-md);
-    border: 1px solid var(--color-outline-new);
-    border-radius: var(--radius-xs);
-
-    background-color: var(--color-surface-container-lowest);
 }
 
 .chart-builder {
@@ -379,9 +393,19 @@
 
 .details-header {
     display: flex;
-    gap: var(--spacing-md);
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.details-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+
+    > * {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 .preview-header {
@@ -401,8 +425,6 @@
 .detail-title {
     overflow: hidden;
 
-    max-width: 56ch;
-
     font-family: var(--font-headline);
     font-size: var(--font-size-xl);
     font-weight: 800;
@@ -412,7 +434,7 @@
 
 .stats {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--spacing-sm);
 
     div {
@@ -432,24 +454,24 @@
 
     dd {
         font-family: var(--font-headline);
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-xs);
         font-weight: 800;
     }
 }
 
 .columns-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
 }
 
 .column-chip {
-    display: inline-flex;
-    flex: 0 0 auto;
+    display: flex;
     gap: var(--spacing-sm);
     align-items: center;
+    justify-content: space-between;
 
-    max-width: 260px;
+    min-width: 0;
     padding: var(--spacing-xs) var(--spacing-sm);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
@@ -458,11 +480,15 @@
 
     span {
         overflow: hidden;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     small {
+        flex-shrink: 0;
+        font-size: var(--font-size-xs);
         color: var(--color-on-surface-variant);
     }
 }
@@ -484,97 +510,9 @@
 }
 
 .table-wrap {
-    overflow: auto;
-    flex: 1;
-    min-height: 260px;
+    overflow: hidden;
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
-}
-
-.table {
-    border-collapse: collapse;
-
-    font-size: var(--font-size-sm);
-
-    th,
-    td {
-        border-bottom: 1px solid var(--color-outline-new);
-        vertical-align: top;
-    }
-
-    th:not(:last-child),
-    td:not(:last-child) {
-        border-right: 1px solid var(--color-outline-new);
-    }
-
-    // row number column: shrinks to fit content
-    th:first-child,
-    td:first-child {
-        width: 1px;
-        padding: var(--spacing-sm) var(--spacing-md);
-        white-space: nowrap;
-        color: var(--color-on-surface-variant);
-    }
-
-    // data column headers: take no in-flow space (inner span is absolute)
-    th:not(:first-child) {
-        position: relative;
-        padding: 0;
-
-        background-color: var(--color-surface-container);
-    }
-
-    th {
-        position: sticky;
-        z-index: 1;
-        top: 0;
-        height: 40px;
-
-        background-color: var(--color-surface-container);
-    }
-
-    // data column cells: no padding (inner div handles it)
-    td:not(:first-child) {
-        padding: 0;
-    }
-
-    tbody tr:nth-child(even) {
-        background-color: rgb(255 255 255 / 2.5%);
-    }
-
-}
-
-.td-editable:hover:not(.td-editing) {
-    background-color: rgb(255 255 255 / 5%);
-}
-
-.th-inner {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-
-    padding: 0 var(--spacing-md);
-    overflow: hidden;
-
-    font-family: var(--font-headline);
-    font-size: var(--font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-
-    > span {
-        min-width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-}
-
-.td-inner {
-    min-width: 100px;
-    max-width: 250px;
-    padding: var(--spacing-sm) var(--spacing-md);
-    overflow-wrap: anywhere;
 }
 
 .panel-placeholder {
@@ -599,59 +537,10 @@
     color: var(--color-on-surface-variant);
 }
 
-.td-editable {
-    cursor: text;
-}
-
-.td-editing {
-    background-color: rgb(135 37 87 / 12%);
-}
-
-.td-input {
-    // auto-size to content (field-sizing supported in Chrome 123+, FF 128+, Safari 18.4+)
-    field-sizing: content;
-    resize: none;
-    overflow: hidden;
-
-    width: 100%;
-    min-width: 0;
-    padding: 0;
-    border: none;
-    border-bottom: 1px solid var(--color-primary);
-    border-radius: 0;
-
-    font-family: var(--font-body);
-    font-size: var(--font-size-sm);
-    line-height: inherit;
-    color: var(--color-on-surface);
-
-    background: transparent;
-    outline: none;
-
-    &--invalid {
-        border-bottom-color: var(--color-error);
-        color: var(--color-error);
-    }
-
-    &::placeholder {
-        color: var(--color-outline);
-    }
-}
-
-.new-row {
-    background-color: rgb(var(--color-primary-rgb, 80 130 255) / 5%);
-}
-
 .new-row-actions {
-    padding: var(--spacing-xs) var(--spacing-md);
-    border-bottom: none;
-
-    td {
-        display: flex;
-        gap: var(--spacing-xs);
-        justify-content: flex-end;
-        border: none;
-    }
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: flex-end;
 }
 
 .add-row-button {

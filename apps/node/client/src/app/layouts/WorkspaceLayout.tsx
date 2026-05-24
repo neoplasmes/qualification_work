@@ -43,7 +43,7 @@ export const WorkspaceLayout = () => {
 
     const slots = WORKSPACE_SLOTS[pathname];
 
-    if (!slots) return null;
+    if (!slots) {return null;}
 
     const { Left, Center, Right } = slots;
 

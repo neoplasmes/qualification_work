@@ -1,2 +1,10 @@
 export { CreateChartCommand, DeleteChartCommand, UpdateChartCommand } from './chart';
-export { DeleteDatasetCommand, UploadDatasetCommand } from './dataset';
+export {
+    CancelMergeCommand,
+    CommitMergeCommand,
+    DeleteDatasetCommand,
+    InsertRowCommand,
+    PreviewMergeCommand,
+    UpdateRowValuesCommand,
+    UploadDatasetCommand,
+} from './dataset';

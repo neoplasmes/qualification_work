@@ -1,0 +1,86 @@
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+
+import {
+    createTestUserWithOrg,
+    dbQuery,
+    startServer,
+    stopServer,
+    truncate,
+} from '../setup';
+import { mergeCommit, mergePreview } from './helpers';
+
+beforeAll(startServer);
+afterAll(stopServer);
+afterEach(truncate);
+
+describe('merge - create new dataset from N files', () => {
+    it('creates new dataset combining union of columns and rows', async () => {
+        const { orgId } = await createTestUserWithOrg();
+
+        const previewRes = await mergePreview(
+            { orgId, name: 'merged', mergeKeys: ['id'] },
+            [{ fileName: 'mergeBase.csv' }, { fileName: 'mergeAdditional.csv' }]
+        );
+        expect(previewRes.status).toBe(200);
+        const preview = (await previewRes.json()) as {
+            sessionId: string;
+            statistics: { totalIncomingRows: number };
+        };
+        expect(preview.statistics.totalIncomingRows).toBe(6);
+
+        const commitRes = await mergeCommit(preview.sessionId, orgId);
+        expect(commitRes.status).toBe(200);
+        const commit = (await commitRes.json()) as {
+            datasetId: string;
+            insertedRows: number;
+        };
+        expect(commit.insertedRows).toBe(6);
+
+        const [meta] = await dbQuery<{ name: string }>(
+            `SELECT name FROM data.datasets WHERE id = $1`,
+            [commit.datasetId]
+        );
+        expect(meta.name).toBe('merged');
+
+        const cols = await dbQuery<{ key: string }>(
+            `SELECT key FROM data.dataset_columns WHERE dataset_id = $1 ORDER BY order_index`,
+            [commit.datasetId]
+        );
+        const keys = cols.map(c => c.key);
+        // union: id, name, age, city (from base), country (from additional)
+        expect(keys).toContain('id');
+        expect(keys).toContain('name');
+        expect(keys).toContain('age');
+        expect(keys).toContain('city');
+        expect(keys).toContain('country');
+
+        const rows = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows WHERE dataset_id = $1 ORDER BY row_index`,
+            [commit.datasetId]
+        );
+        expect(rows.length).toBe(6);
+    });
+
+    it('rejects when same merge key is present in two files', async () => {
+        const { orgId } = await createTestUserWithOrg();
+
+        const res = await mergePreview(
+            { orgId, name: 'broken', mergeKeys: ['id'] },
+            [{ fileName: 'mergeBase.csv' }, { fileName: 'mergeConflicting.csv' }]
+        );
+
+        // mergeBase has id=1, mergeConflicting also has id=1 -> intersect -> 400
+        expect(res.status).toBe(400);
+    });
+
+    it('requires mergeKeys for multi-file new dataset', async () => {
+        const { orgId } = await createTestUserWithOrg();
+
+        const res = await mergePreview(
+            { orgId, name: 'no-keys' },
+            [{ fileName: 'mergeBase.csv' }, { fileName: 'mergeAdditional.csv' }]
+        );
+
+        expect(res.status).toBe(400);
+    });
+});

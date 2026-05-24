@@ -26,3 +26,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  redis:
+    image: redis:8.0-alpine
+    container_name: data-service-test-redis
+    command: ['redis-server', '--save', '']
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      timeout: 2s
+      retries: 30

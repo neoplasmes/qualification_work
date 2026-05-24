@@ -69,7 +69,7 @@ const lsKey = (datasetId: string) => `chartBuilder_${datasetId}`;
 const loadFields = (datasetId: string): ChartBuilderFields => {
     try {
         const raw = localStorage.getItem(lsKey(datasetId));
-        if (!raw) return { ...defaultFields };
+        if (!raw) {return { ...defaultFields };}
         return { ...defaultFields, ...(JSON.parse(raw) as Partial<ChartBuilderFields>) };
     } catch {
         return { ...defaultFields };
@@ -112,7 +112,7 @@ export const useChartBuilderState = (datasetId: string): ChartBuilderFields & Se
 
     // reset when a different dataset is picked
     useEffect(() => {
-        if (prevDatasetId.current === datasetId) return;
+        if (prevDatasetId.current === datasetId) {return;}
         prevDatasetId.current = datasetId;
         setFields(loadFields(datasetId));
     }, [datasetId]);
@@ -121,7 +121,7 @@ export const useChartBuilderState = (datasetId: string): ChartBuilderFields & Se
         (partial: Partial<ChartBuilderFields>) => {
             setFields(prev => {
                 const next = { ...prev, ...partial };
-                if (writeTimer.current !== null) clearTimeout(writeTimer.current);
+                if (writeTimer.current !== null) {clearTimeout(writeTimer.current);}
                 writeTimer.current = setTimeout(() => {
                     try {
                         localStorage.setItem(lsKey(datasetId), JSON.stringify(next));
@@ -129,6 +129,7 @@ export const useChartBuilderState = (datasetId: string): ChartBuilderFields & Se
                         // ignore quota errors
                     }
                 }, 300);
+
                 return next;
             });
         },

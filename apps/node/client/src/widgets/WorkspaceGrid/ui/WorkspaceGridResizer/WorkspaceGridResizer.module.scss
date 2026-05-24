@@ -3,27 +3,32 @@
 
     background-color: transparent;
     flex-shrink: 0;
-    flex-basis: 0;
 
     z-index: 1;
+
+    &.horizontal {
+        width: 8px;
+        height: 100%;
+    }
+
+    &.vertical {
+        width: 100%;
+        height: 8px;
+    }
 }
 
 .workspace-grid-resizer {
     position: absolute;
     top: 0;
-    left: calc(0 - var(--spacing-sm, 8px) / 2);
+    left: 0;
 
+    width: 100%;
     height: 100%;
 
     background-color: transparent;
-
-    &.horizontal {
-        cursor: col-resize;
-        width: var(--spacing-sm, 8px);
-    }
+    cursor: col-resize;
 
     &.vertical {
         cursor: row-resize;
-        height: var(--spacing-sm, 8px);
     }
 }

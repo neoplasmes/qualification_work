@@ -48,8 +48,12 @@ WORKDIR /app
 
 COPY --from=pruned --chown=node:node /deploy .
 
+# pending-merge tmp storage. node user must own it for write access
+RUN mkdir -p /tmp/datasets && chown -R node:node /tmp/datasets
+
 ENV NODE_ENV=production
 ENV DATA_SERVICE_PORT=3003
+ENV MERGE_TMP_DIR=/tmp/datasets
 EXPOSE 3003
 
 USER node

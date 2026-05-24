@@ -2,9 +2,14 @@ export {
     useDeleteDatasetMutation,
     useGetDatasetMetadataQuery,
     useGetDatasetRowsQuery,
+    useInsertRowMutation,
     useLazyGetDatasetMetadataQuery,
     useLazyGetDatasetRowsQuery,
     useListDatasetsQuery,
+    useMergeCancelMutation,
+    useMergeCommitMutation,
+    useMergePreviewMutation,
+    useUpdateRowMutation,
     useUploadDatasetMutation,
 } from './datasetsApi';
 export type {
@@ -13,4 +18,8 @@ export type {
     DatasetMetadata,
     DatasetRow,
     DatasetRowsPage,
+    MergeCommitResult,
+    MergeConflict,
+    MergePreviewResult,
+    MergePreviewStatistics,
 } from './types';

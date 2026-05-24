@@ -25,7 +25,7 @@ const PIE_COLORS = [
     '#6e1f47',
 ];
 
-const CHART_HEIGHT = 260;
+const CHART_HEIGHT = 360;
 const MIN_CHART_WIDTH = 180;
 
 type PieChartInnerProps = {

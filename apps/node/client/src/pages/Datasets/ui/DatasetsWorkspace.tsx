@@ -13,6 +13,7 @@ import { getApiErrorMessage } from '@/shared/api';
 
 import { DatasetDetails } from './DatasetDetails';
 import { DatasetPreview } from './DatasetPreview';
+import { MergeDatasetModal } from './MergeDatasetModal';
 import { UploadDatasetModal } from './UploadDatasetModal';
 
 import {
@@ -39,6 +40,7 @@ export const DatasetsWorkspace = () => {
     const dispatch = useDispatch();
     const [datasetError, setDatasetError] = useState('');
     const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
+    const [showMerge, setShowMerge] = useState(false);
 
     const selectedDatasetId = useSelector(selectSelectedDatasetId);
     const showUpload = useSelector(selectShowUpload);
@@ -91,6 +93,7 @@ export const DatasetsWorkspace = () => {
                         deleting={deleteState.isLoading}
                         error={datasetError}
                         onDelete={() => void handleDeleteDataset()}
+                        onMerge={() => setShowMerge(true)}
                     />
                 )}
 
@@ -105,6 +108,17 @@ export const DatasetsWorkspace = () => {
                     org={org}
                     onUploadSuccess={handleUploadSuccess}
                     onClose={() => dispatch(setShowUpload(false))}
+                />
+            )}
+
+            {showMerge && (
+                <MergeDatasetModal
+                    org={org}
+                    selectedDataset={selectedDataset}
+                    onSuccess={async () => {
+                        await datasetsQuery.refetch();
+                    }}
+                    onClose={() => setShowMerge(false)}
                 />
             )}
         </>

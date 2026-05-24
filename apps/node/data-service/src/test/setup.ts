@@ -13,8 +13,10 @@ import { createApp } from '@/adapters/createApp';
 
 import { loadConfig } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
+import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
 
 let pool: Pool;
+let redis: RedisClient | undefined;
 let baseUrl: string;
 let server: Server | undefined;
 let started = false;
@@ -147,10 +149,19 @@ export async function startServer(): Promise<void> {
     try {
         const config = loadConfig();
         pool = await createPool(config.postgresConnectionString);
+        redis = await createRedisClient(
+            config.redis.host,
+            config.redis.port,
+            config.redis.password
+        );
 
         await truncate();
+        await redis.flushDb();
 
-        const app = createApp(pool, config, { authHook: testAuthHook });
+        const app = createApp(pool, redis, config, {
+            authHook: testAuthHook,
+            disableMergeCleanup: true,
+        });
         server = await app.listen({ port: 0 });
 
         const addr = server.address();
@@ -191,6 +202,16 @@ export async function stopServer(): Promise<void> {
     });
 
     await pool?.end();
+    await redis?.close();
 
     server = undefined;
+    redis = undefined;
+}
+
+export function getTestRedis(): RedisClient {
+    if (!redis) {
+        throw new Error('redis client not initialized - call startServer first');
+    }
+
+    return redis;
 }

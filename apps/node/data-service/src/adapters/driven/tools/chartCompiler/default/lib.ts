@@ -102,7 +102,10 @@ export function measureExpr(
         throw new Error(`Measure with aggregate=${m.aggregate} requires columnId`);
     }
     const col = getColumn(columnsById, m.columnId);
-    const valueExpr = `NULLIF(data->>${sqlString(col.key)}, '')::numeric`;
+    // count_distinct works on any type - don't cast the column expression
+    const valueExpr = m.aggregate === 'count_distinct'
+        ? `NULLIF(data->>${sqlString(col.key)}, '')`
+        : `NULLIF(data->>${sqlString(col.key)}, '')::numeric`;
     const fn = aggFns[m.aggregate];
     if (!fn) {
         throw new Error(`Unsupported aggregate: ${m.aggregate}`);

@@ -1,11 +1,20 @@
 import { Router } from 'primitive-server';
 
-import type { DeleteDatasetCommand, UploadDatasetCommand } from '@/core/commands';
+import type {
+    CancelMergeCommand,
+    CommitMergeCommand,
+    DeleteDatasetCommand,
+    InsertRowCommand,
+    PreviewMergeCommand,
+    UpdateRowValuesCommand,
+    UploadDatasetCommand,
+} from '@/core/commands';
 import type {
     GetDatasetMetadataByDatasetIdQuery,
     GetDatasetRowsQuery,
     GetDatasetsMetadataByOrgIdQuery,
 } from '@/core/queries';
+import type { TmpFileStorageTool } from '@/core/ports/driven/tools';
 
 import type { MultipartParserTool } from '@/adapters/driven/tools/_multipartParser';
 
@@ -15,39 +24,70 @@ import { createDeleteDatasetHandler } from './delete.handler';
 import { createGetDatasetMetadataByDatasetIdHandler } from './getByDatasetId.handler';
 import { createGetDatasetsMetadataByOrgIdHandler } from './getByOrgId.handler';
 import { createGetDatasetRowsHandler } from './getRows.handler';
+import { createInsertRowHandler } from './insertRow.handler';
+import { createMergeCancelHandler } from './mergeCancel.handler';
+import { createMergeCommitHandler } from './mergeCommit.handler';
+import {
+    createMergePreviewHandler,
+    type MergePreviewHandlerConfig,
+} from './mergePreview.handler';
+import { createUpdateRowHandler } from './updateRow.handler';
 import { createUploadDatasetHandler } from './upload.handler';
 
-/**
- * Complete stream flow looks like this: POST /datasets with multipart/form-data ->
- * request validation -> multipart/form-data parser -> uploadDatasetHandler, that orcestrates the work ->
- * datasetRepository -> database actually
- *
- * @export
- * @param {UploadDatasetCommand} uploadDatasetHandler
- * @param {MultipartParserTool} multipartParser
- * @returns {Router<AppState>}
- */
-export function createDatasetRouter(
-    getDatasetsMetadataByOrgIdHandler: GetDatasetsMetadataByOrgIdQuery,
-    getDatasetMetadataHandler: GetDatasetMetadataByDatasetIdQuery,
-    getDatasetRowsHandler: GetDatasetRowsQuery,
-    uploadDatasetHandler: UploadDatasetCommand,
-    deleteDatasetHandler: DeleteDatasetCommand,
-    multipartParser: MultipartParserTool
-): Router<AppState> {
+export type DatasetRouterDeps = {
+    getDatasetsMetadataByOrgIdHandler: GetDatasetsMetadataByOrgIdQuery;
+    getDatasetMetadataHandler: GetDatasetMetadataByDatasetIdQuery;
+    getDatasetRowsHandler: GetDatasetRowsQuery;
+    uploadDatasetHandler: UploadDatasetCommand;
+    deleteDatasetHandler: DeleteDatasetCommand;
+    updateRowHandler: UpdateRowValuesCommand;
+    insertRowHandler: InsertRowCommand;
+    previewMergeHandler: PreviewMergeCommand;
+    commitMergeHandler: CommitMergeCommand;
+    cancelMergeHandler: CancelMergeCommand;
+    multipartParser: MultipartParserTool;
+    tmpStorage: TmpFileStorageTool;
+    mergePreviewConfig: MergePreviewHandlerConfig;
+};
+
+export function createDatasetRouter(deps: DatasetRouterDeps): Router<AppState> {
     const router = new Router<AppState>('/datasets');
 
     router.get(
         '/',
-        createGetDatasetsMetadataByOrgIdHandler(getDatasetsMetadataByOrgIdHandler)
+        createGetDatasetsMetadataByOrgIdHandler(deps.getDatasetsMetadataByOrgIdHandler)
     );
     router.get(
         '/:id/metadata',
-        createGetDatasetMetadataByDatasetIdHandler(getDatasetMetadataHandler)
+        createGetDatasetMetadataByDatasetIdHandler(deps.getDatasetMetadataHandler)
     );
-    router.get('/:id/rows', createGetDatasetRowsHandler(getDatasetRowsHandler));
-    router.post('/', createUploadDatasetHandler(uploadDatasetHandler, multipartParser));
-    router.delete('/:id', createDeleteDatasetHandler(deleteDatasetHandler));
+    router.get('/:id/rows', createGetDatasetRowsHandler(deps.getDatasetRowsHandler));
+    router.post(
+        '/',
+        createUploadDatasetHandler(deps.uploadDatasetHandler, deps.multipartParser)
+    );
+    router.delete('/:id', createDeleteDatasetHandler(deps.deleteDatasetHandler));
+
+    router.post('/:id/rows', createInsertRowHandler(deps.insertRowHandler));
+    router.patch('/:id/rows/:rowId', createUpdateRowHandler(deps.updateRowHandler));
+
+    router.post(
+        '/merge/preview',
+        createMergePreviewHandler(
+            deps.previewMergeHandler,
+            deps.multipartParser,
+            deps.tmpStorage,
+            deps.mergePreviewConfig
+        )
+    );
+    router.post(
+        '/merge/:sessionId/commit',
+        createMergeCommitHandler(deps.commitMergeHandler)
+    );
+    router.delete(
+        '/merge/:sessionId',
+        createMergeCancelHandler(deps.cancelMergeHandler)
+    );
 
     return router;
 }

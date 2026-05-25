@@ -19,11 +19,11 @@ const C = {
     onSurface: '#fff',
 } as const;
 
-const GAP = 1;
+const GAP = 2;
 const MIN_CHART_WIDTH = 220;
 const margin = { top: 16, right: 16, bottom: 80, left: 100 };
 // default cell size when not yet computed
-const DEFAULT_CELL_SIZE = 14;
+const DEFAULT_CELL_SIZE = 28;
 const DEFAULT_STEP = DEFAULT_CELL_SIZE + GAP;
 
 export type HeatmapCell = {
@@ -64,6 +64,9 @@ const HeatmapChartInner = ({
     } = useTooltip<HeatmapCell>();
 
     const step = cellSize + GAP;
+    const gridWidth = xValues.length * step;
+    const available = width - margin.left - margin.right;
+    const effectiveLeft = margin.left + Math.max(0, Math.floor((available - gridWidth) / 2));
 
     const columnData: ColumnDatum[] = useMemo(
         () => xValues.map(x => ({
@@ -106,7 +109,7 @@ const HeatmapChartInner = ({
                 aria-label="Heatmap chart"
                 data-testid="heatmap-chart-svg"
             >
-                <Group left={margin.left} top={margin.top}>
+                <Group left={effectiveLeft} top={margin.top}>
                     <AxisLeft
                         scale={yAxisScale}
                         tickLabelProps={() => ({
@@ -216,7 +219,7 @@ export const HeatmapChart = ({ data }: HeatmapChartProps) => {
                 }
                 const xMax = width - margin.left - margin.right;
                 const cellSize = xValues.length > 0
-                    ? Math.max(6, Math.min(20, Math.floor(xMax / xValues.length) - GAP))
+                    ? Math.max(6, Math.min(40, Math.floor(xMax / xValues.length) - GAP))
                     : DEFAULT_CELL_SIZE;
                 const step = cellSize + GAP;
                 const dynamicHeight = margin.top + margin.bottom + yValues.length * step;

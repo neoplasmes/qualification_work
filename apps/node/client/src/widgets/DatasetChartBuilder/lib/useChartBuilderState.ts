@@ -108,8 +108,14 @@ type Setters = {
     setFilterValue(v: string): void;
 };
 
-export const useChartBuilderState = (datasetId: string): ChartBuilderFields & Setters => {
-    const [fields, setFields] = useState<ChartBuilderFields>(() => loadFields(datasetId));
+export const useChartBuilderState = (
+    datasetId: string,
+    initialOverrides?: Partial<ChartBuilderFields>
+): ChartBuilderFields & Setters => {
+    const [fields, setFields] = useState<ChartBuilderFields>(() => {
+        const loaded = loadFields(datasetId);
+        return initialOverrides ? { ...loaded, ...initialOverrides } : loaded;
+    });
     const prevDatasetId = useRef(datasetId);
     const writeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 

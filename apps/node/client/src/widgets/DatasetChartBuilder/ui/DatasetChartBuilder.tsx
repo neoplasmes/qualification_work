@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent } from 'react';
 import {
     useCreateChartMutation,
     usePreviewChartDataMutation,
+    useUpdateChartMutation,
     type Aggregate,
     type AxisGrouping,
     type ChartResponse,
@@ -14,7 +15,7 @@ import {
 } from '@/features/charts';
 import type { DatasetColumn, DatasetMetadata } from '@/features/datasets';
 
-import { useChartBuilderState } from '../lib/useChartBuilderState';
+import { useChartBuilderState, type ChartBuilderFields } from '../lib/useChartBuilderState';
 
 import { ChartResult } from '@/entities/chart';
 
@@ -272,16 +273,128 @@ const buildChartConfig = ({
 
 const needsColumn = (aggregate: Aggregate) => aggregate !== 'count';
 
+const getGroupingMode = (grouping: unknown): GroupingMode => {
+    const g = grouping as { kind?: string } | undefined | null;
+    if (g?.kind === 'time') return 'time';
+    if (g?.kind === 'numeric') return 'numeric';
+    return 'none';
+};
+
+export const configToBuilderFields = (
+    config: Record<string, unknown>,
+    chartType: ChartType
+): Partial<ChartBuilderFields> => {
+    const result: Partial<ChartBuilderFields> = { chartType };
+
+    if (typeof config.limit === 'number') result.limit = config.limit;
+    const orderBy = config.orderBy as { dir?: string } | undefined;
+    if (orderBy?.dir === 'asc' || orderBy?.dir === 'desc') result.sortDirection = orderBy.dir;
+
+    const filters = config.filters as
+        | Array<{ columnId: string; op: FilterOperation; value?: unknown }>
+        | undefined;
+    if (filters?.[0]) {
+        result.filterEnabled = true;
+        result.filterColumnId = filters[0].columnId;
+        result.filterOperation = filters[0].op;
+        const val = filters[0].value;
+        if (Array.isArray(val)) {
+            result.filterValue = val.join(', ');
+        } else if (val !== undefined && val !== null) {
+            result.filterValue = String(val);
+        }
+    }
+
+    if (chartType === 'pie') {
+        const slice = config.slice as
+            | { columnId?: string; topN?: number; otherBucket?: boolean }
+            | undefined;
+        const measure = config.measure as
+            | { aggregate?: Aggregate; columnId?: string }
+            | undefined;
+        if (slice?.columnId) result.dimensionColumnId = slice.columnId;
+        if (slice?.topN !== undefined) result.topN = slice.topN;
+        if (slice?.otherBucket !== undefined) result.seriesOtherBucket = slice.otherBucket;
+        if (measure?.aggregate) result.aggregate = measure.aggregate;
+        if (measure?.columnId) result.measureColumnId = measure.columnId;
+        return result;
+    }
+
+    if (chartType === 'heatmap') {
+        const x = config.x as { columnId?: string; grouping?: unknown } | undefined;
+        const y = config.y as { columnId?: string; grouping?: unknown } | undefined;
+        const measure = config.measure as
+            | { aggregate?: Aggregate; columnId?: string }
+            | undefined;
+        const xg = x?.grouping as
+            | { granularity?: TimeGranularity; step?: number }
+            | undefined;
+        const yg = y?.grouping as
+            | { granularity?: TimeGranularity; step?: number }
+            | undefined;
+        if (x?.columnId) result.dimensionColumnId = x.columnId;
+        result.dimensionGroupingMode = getGroupingMode(x?.grouping);
+        if (xg?.granularity) result.dimensionGranularity = xg.granularity;
+        if (xg?.step !== undefined) result.dimensionStep = xg.step;
+        if (y?.columnId) result.heatmapYColumnId = y.columnId;
+        result.heatmapYGroupingMode = getGroupingMode(y?.grouping);
+        if (yg?.granularity) result.heatmapYGranularity = yg.granularity;
+        if (yg?.step !== undefined) result.heatmapYStep = yg.step;
+        if (measure?.aggregate) result.aggregate = measure.aggregate;
+        if (measure?.columnId) result.measureColumnId = measure.columnId;
+        return result;
+    }
+
+    // bar / line
+    const dimension = config.dimension as { columnId?: string; grouping?: unknown } | undefined;
+    const dg = dimension?.grouping as
+        | { granularity?: TimeGranularity; step?: number }
+        | undefined;
+    if (dimension?.columnId) result.dimensionColumnId = dimension.columnId;
+    result.dimensionGroupingMode = getGroupingMode(dimension?.grouping);
+    if (dg?.granularity) result.dimensionGranularity = dg.granularity;
+    if (dg?.step !== undefined) result.dimensionStep = dg.step;
+
+    const series = config.series as
+        | { columnId?: string; topN?: number; otherBucket?: boolean }
+        | undefined;
+    result.seriesEnabled = Boolean(series);
+    if (series?.columnId) result.seriesColumnId = series.columnId;
+    if (series?.topN !== undefined) result.seriesTopN = series.topN;
+    if (series?.otherBucket !== undefined) result.seriesOtherBucket = series.otherBucket;
+
+    const measures = config.measures as
+        | Array<{ aggregate?: Aggregate; columnId?: string }>
+        | undefined;
+    if (measures?.[0]?.aggregate) result.aggregate = measures[0].aggregate;
+    if (measures?.[0]?.columnId) result.measureColumnId = measures[0].columnId;
+    if (measures?.[1]) {
+        result.secondMeasureEnabled = true;
+        if (measures[1].aggregate) result.secondAggregate = measures[1].aggregate;
+        if (measures[1].columnId) result.secondMeasureColumnId = measures[1].columnId;
+    } else {
+        result.secondMeasureEnabled = false;
+    }
+
+    return result;
+};
+
 type DatasetChartBuilderProps = {
     orgId: string;
     selectedDataset: DatasetMetadata;
     onChartCreated?: (chartId: string) => void;
+    editChartId?: string;
+    initialFields?: Partial<ChartBuilderFields>;
+    onChartUpdated?: (chartId: string) => void;
 };
 
 export const DatasetChartBuilder = ({
     orgId,
     selectedDataset,
     onChartCreated,
+    editChartId,
+    initialFields,
+    onChartUpdated,
 }: DatasetChartBuilderProps) => {
     const [step, setStep] = useState<'config' | 'preview'>('config');
     const [chartError, setChartError] = useState('');
@@ -315,10 +428,11 @@ export const DatasetChartBuilder = ({
         filterColumnId, setFilterColumnId,
         filterOperation, setFilterOperation,
         filterValue, setFilterValue,
-    } = useChartBuilderState(selectedDataset.dataset.id);
+    } = useChartBuilderState(selectedDataset.dataset.id, initialFields);
 
     const [previewChart, previewState] = usePreviewChartDataMutation();
     const [createChart, createChartState] = useCreateChartMutation();
+    const [updateChart, updateChartState] = useUpdateChartMutation();
 
     const columns = selectedDataset.columns;
     const numericColumns = useMemo(
@@ -517,19 +631,30 @@ export const DatasetChartBuilder = ({
         const name = chartName.trim() || fallbackName;
 
         try {
-            const chart = await createChart({
-                orgId,
-                datasetId: selectedDataset.dataset.id,
-                name,
-                chartType,
-                config: savedConfig,
-            }).unwrap();
-
-            onChartCreated?.(chart.id);
+            if (editChartId) {
+                await updateChart({
+                    chartId: editChartId,
+                    name,
+                    chartType,
+                    config: savedConfig,
+                }).unwrap();
+                onChartUpdated?.(editChartId);
+            } else {
+                const chart = await createChart({
+                    orgId,
+                    datasetId: selectedDataset.dataset.id,
+                    name,
+                    chartType,
+                    config: savedConfig,
+                }).unwrap();
+                onChartCreated?.(chart.id);
+            }
         } catch (error) {
             setChartError(getApiErrorMessage(error, 'Unable to save this chart.'));
         }
     };
+
+    const isSaving = editChartId ? updateChartState.isLoading : createChartState.isLoading;
 
     if (step === 'preview' && previewData) {
         return (
@@ -569,16 +694,18 @@ export const DatasetChartBuilder = ({
                         </Button>
                         <Button
                             type="button"
-                            disabled={createChartState.isLoading}
+                            disabled={isSaving}
                             onClick={() => void handleSave()}
                         >
                             <Save size={18} />
-                            {createChartState.isLoading ? 'Saving...' : 'Save chart'}
+                            {isSaving ? 'Saving...' : editChartId ? 'Save changes' : 'Save chart'}
                         </Button>
-                        <ButtonLink to="/charts">
-                            <FolderKanban size={18} />
-                            Open charts
-                        </ButtonLink>
+                        {!editChartId && (
+                            <ButtonLink to="/charts">
+                                <FolderKanban size={18} />
+                                Open charts
+                            </ButtonLink>
+                        )}
                     </div>
 
                     {chartError && (

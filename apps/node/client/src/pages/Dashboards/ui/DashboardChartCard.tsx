@@ -65,6 +65,7 @@ export const DashboardChartCard = ({
                     kind={chartDataQuery.data.kind}
                     ariaLabel={`${chart?.name ?? item.chartId} dashboard chart`}
                     barsLimit={6}
+                    hideTable
                 />
             )}
         </article>

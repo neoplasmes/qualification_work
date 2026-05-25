@@ -6,7 +6,7 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { Bar } from '@visx/shape';
 import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
 
-import { formatChartCell } from '../lib/formatChartCell';
+import { formatAxisNumber, formatChartCell } from '../lib/formatChartCell';
 import type { ChartSeries } from '../lib/parseChartData';
 
 const C = {
@@ -44,7 +44,7 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
         top: 16,
         right: 16,
         bottom: rotateLabels ? 96 : 48,
-        left: 52,
+        left: 64,
     };
 
     const xMax = width - margin.left - margin.right;
@@ -97,7 +97,7 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
                     <AxisLeft
                         scale={yScale}
                         numTicks={5}
-                        tickFormat={v => formatChartCell(v)}
+                        tickFormat={v => formatAxisNumber(Number(v))}
                         tickLabelProps={() => ({
                             fill: C.muted,
                             fontSize: 11,
@@ -112,6 +112,7 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
                         top={yMax}
                         scale={xScale}
                         numTicks={labels.length}
+                        tickFormat={v => formatChartCell(v)}
                         tickLabelProps={tickLabelProps}
                         tickStroke={C.outline}
                         stroke={C.outline}
@@ -170,7 +171,7 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
                         fontSize: 12,
                     }}
                 >
-                    <strong>{tooltipData.label}</strong>
+                    <strong>{formatChartCell(tooltipData.label)}</strong>
                     {series.length > 1 ? ` / ${tooltipData.series}` : ''}:{' '}
                     {formatChartCell(tooltipData.value)}
                 </TooltipWithBounds>

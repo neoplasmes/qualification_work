@@ -1,6 +1,6 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { RefreshCcw, Save, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Pencil, RefreshCcw, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/auth';
@@ -8,16 +8,14 @@ import {
     useDeleteChartMutation,
     useLazyGetChartDataQuery,
     useListChartsQuery,
-    useUpdateChartMutation,
     type ChartResponse,
-    type ChartType,
     type FilterClause,
 } from '@/features/charts';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/features/datasets';
 
 import { ChartResult } from '@/entities/chart';
 
-import { DatasetChartBuilder } from '@/widgets/DatasetChartBuilder';
+import { DatasetChartBuilder, configToBuilderFields } from '@/widgets/DatasetChartBuilder';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -31,19 +29,8 @@ import {
     selectSelectedChartId,
     selectBuilderDatasetId,
     selectShowDatasetPicker,
-    selectWorkspaceDraftChartId,
-    selectWorkspaceDraftName,
-    selectWorkspaceDraftChartType,
-    selectWorkspaceDraftConfigText,
-    selectWorkspaceFilterOverrideText,
     setBuilderDatasetId,
     setShowDatasetPicker,
-    initWorkspaceDraft,
-    resetWorkspaceDraft,
-    setWorkspaceDraftName,
-    setWorkspaceDraftChartType,
-    setWorkspaceDraftConfigText,
-    setWorkspaceFilterOverrideText,
 } from '../model/chartsPageSlice';
 
 import styles from './ChartsPage.module.scss';
@@ -51,6 +38,7 @@ import styles from './ChartsPage.module.scss';
 export const ChartsWorkspace = () => {
     const dispatch = useDispatch();
     const [error, setError] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
     const [chartResult, setChartResult] = useState<{
         chartId: string;
         data: ChartResponse;
@@ -61,18 +49,12 @@ export const ChartsWorkspace = () => {
     const selectedChartId = useSelector(selectSelectedChartId);
     const builderDatasetId = useSelector(selectBuilderDatasetId);
     const showDatasetPicker = useSelector(selectShowDatasetPicker);
-    const workspaceDraftChartId = useSelector(selectWorkspaceDraftChartId);
-    const draftName = useSelector(selectWorkspaceDraftName);
-    const draftChartType = useSelector(selectWorkspaceDraftChartType);
-    const draftConfigText = useSelector(selectWorkspaceDraftConfigText);
-    const filterOverrideText = useSelector(selectWorkspaceFilterOverrideText);
 
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [getChartData, chartDataQuery] = useLazyGetChartDataQuery();
-    const [updateChart, updateChartState] = useUpdateChartMutation();
     const [deleteChart, deleteChartState] = useDeleteChartMutation();
 
     const selectedChart = useMemo(
@@ -83,6 +65,14 @@ export const ChartsWorkspace = () => {
     const builderDataset = useMemo(
         () => datasetsQuery.data?.find(d => d.dataset.id === builderDatasetId) ?? null,
         [datasetsQuery.data, builderDatasetId]
+    );
+
+    const editDataset = useMemo(
+        () =>
+            selectedChart
+                ? (datasetsQuery.data?.find(d => d.dataset.id === selectedChart.datasetId) ?? null)
+                : null,
+        [datasetsQuery.data, selectedChart]
     );
 
     const loadChartData = async (chartId: string, filterOverrides?: FilterClause[]) => {
@@ -113,32 +103,19 @@ export const ChartsWorkspace = () => {
 
     useEffect(() => {
         if (!selectedChart) {
-            dispatch(resetWorkspaceDraft());
             setChartResult(null);
-
+            setIsEditing(false);
             return;
         }
 
-        // preserve draft when navigating back to the same chart
-        if (selectedChart.id === workspaceDraftChartId) {
-            return;
-        }
-
-        dispatch(
-            initWorkspaceDraft({
-                chartId: selectedChart.id,
-                name: selectedChart.name,
-                chartType: selectedChart.chartType,
-                configText: JSON.stringify(selectedChart.config, null, 2),
-            })
-        );
         setError('');
         setDeleteConfirmationId(null);
         setChartResult(null);
+        setIsEditing(false);
         void loadChartData(selectedChart.id).catch(loadError => {
             setError(getApiErrorMessage(loadError, 'Unable to load chart data.'));
         });
-    }, [selectedChart]);
+    }, [selectedChart?.id]);
 
     const handleDatasetSelect = (dataset: DatasetMetadata) => {
         dispatch(setBuilderDatasetId(dataset.dataset.id));
@@ -150,18 +127,13 @@ export const ChartsWorkspace = () => {
         dispatch(selectChart(chartId));
     };
 
-    const getFilterOverrides = (): FilterClause[] | undefined => {
-        const raw = filterOverrideText.trim();
-        if (!raw) {
-            return undefined;
-        }
-
-        const parsed = JSON.parse(raw) as unknown;
-        if (!Array.isArray(parsed)) {
-            throw new Error('Filter overrides must be a JSON array.');
-        }
-
-        return parsed as FilterClause[];
+    const handleChartUpdated = async () => {
+        if (!selectedChart) {return;}
+        await chartsQuery.refetch();
+        setIsEditing(false);
+        void loadChartData(selectedChart.id).catch(loadError => {
+            setError(getApiErrorMessage(loadError, 'Unable to load chart data.'));
+        });
     };
 
     const handleRefreshData = async () => {
@@ -171,46 +143,9 @@ export const ChartsWorkspace = () => {
 
         try {
             setError('');
-            await loadChartData(selectedChart.id, getFilterOverrides());
+            await loadChartData(selectedChart.id);
         } catch (refreshError) {
-            setError(
-                refreshError instanceof Error
-                    ? refreshError.message
-                    : getApiErrorMessage(refreshError, 'Unable to refresh chart data.')
-            );
-        }
-    };
-
-    const handleSaveChart = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        if (!selectedChart) {
-            return;
-        }
-
-        const name = draftName.trim();
-        if (!name) {
-            setError('Chart name can not be empty.');
-
-            return;
-        }
-
-        try {
-            const config = JSON.parse(draftConfigText) as Record<string, unknown>;
-            await updateChart({
-                chartId: selectedChart.id,
-                name,
-                chartType: draftChartType,
-                config,
-            }).unwrap();
-            await chartsQuery.refetch();
-            await handleRefreshData();
-        } catch (saveError) {
-            setError(
-                saveError instanceof SyntaxError
-                    ? 'Chart config must be valid JSON.'
-                    : getApiErrorMessage(saveError, 'Unable to save this chart.')
-            );
+            setError(getApiErrorMessage(refreshError, 'Unable to refresh chart data.'));
         }
     };
 
@@ -268,7 +203,7 @@ export const ChartsWorkspace = () => {
                     </>
                 )}
 
-                {selectedChart && !builderDataset && (
+                {selectedChart && !builderDataset && !isEditing && (
                     <>
                         <div className={styles['detail-header']}>
                             <div data-stack="v" data-gap="xs">
@@ -279,83 +214,33 @@ export const ChartsWorkspace = () => {
                                     {selectedChart.datasetId.slice(0, 8)}
                                 </p>
                             </div>
-                            <Button
-                                variant="danger"
-                                disabled={deleteChartState.isLoading}
-                                onClick={() => void handleDeleteChart()}
-                            >
-                                <Trash2 size={18} />
-                                {deleteConfirmationId === selectedChart.id
-                                    ? 'Confirm delete'
-                                    : 'Delete'}
-                            </Button>
-                        </div>
-
-                        <form className={styles['edit-form']} onSubmit={handleSaveChart}>
-                            <label className={styles['control']}>
-                                <span>Name</span>
-                                <input
-                                    value={draftName}
-                                    onChange={event =>
-                                        dispatch(setWorkspaceDraftName(event.target.value))
-                                    }
-                                />
-                            </label>
-                            <label className={styles['control']}>
-                                <span>Type</span>
-                                <select
-                                    value={draftChartType}
-                                    onChange={event =>
-                                        dispatch(
-                                            setWorkspaceDraftChartType(
-                                                event.target.value as ChartType
-                                            )
-                                        )
-                                    }
+                            <div data-stack="h" data-gap="sm">
+                                <Button
+                                    disabled={!editDataset}
+                                    onClick={() => setIsEditing(true)}
                                 >
-                                    <option value="bar">bar</option>
-                                    <option value="line">line</option>
-                                    <option value="pie">pie</option>
-                                    <option value="heatmap">heatmap</option>
-                                </select>
-                            </label>
-                            <label className={styles['control']}>
-                                <span>Config</span>
-                                <textarea
-                                    value={draftConfigText}
-                                    rows={8}
-                                    spellCheck={false}
-                                    onChange={event =>
-                                        dispatch(setWorkspaceDraftConfigText(event.target.value))
-                                    }
-                                />
-                            </label>
-                            <label className={styles['control']}>
-                                <span>Runtime filters</span>
-                                <textarea
-                                    value={filterOverrideText}
-                                    rows={8}
-                                    spellCheck={false}
-                                    placeholder='[{"columnId":"...","op":"eq","value":"..."}]'
-                                    onChange={event =>
-                                        dispatch(
-                                            setWorkspaceFilterOverrideText(event.target.value)
-                                        )
-                                    }
-                                />
-                            </label>
-                            <Button type="submit" disabled={updateChartState.isLoading}>
-                                <Save size={18} />
-                                Save chart
-                            </Button>
-                            <Button
-                                disabled={chartDataQuery.isFetching}
-                                onClick={() => void handleRefreshData()}
-                            >
-                                <RefreshCcw size={18} />
-                                Refresh data
-                            </Button>
-                        </form>
+                                    <Pencil size={18} />
+                                    Edit
+                                </Button>
+                                <Button
+                                    disabled={chartDataQuery.isFetching}
+                                    onClick={() => void handleRefreshData()}
+                                >
+                                    <RefreshCcw size={18} />
+                                    Refresh data
+                                </Button>
+                                <Button
+                                    variant="danger"
+                                    disabled={deleteChartState.isLoading}
+                                    onClick={() => void handleDeleteChart()}
+                                >
+                                    <Trash2 size={18} />
+                                    {deleteConfirmationId === selectedChart.id
+                                        ? 'Confirm delete'
+                                        : 'Delete'}
+                                </Button>
+                            </div>
+                        </div>
 
                         {error && (
                             <div
@@ -382,6 +267,31 @@ export const ChartsWorkspace = () => {
                                 </span>
                             </ChartResult>
                         )}
+                    </>
+                )}
+
+                {selectedChart && !builderDataset && isEditing && editDataset && org && (
+                    <>
+                        <div className={styles['builder-header']}>
+                            <div data-stack="v" data-gap="xs">
+                                <span className={styles['eyebrow']}>Edit chart</span>
+                                <h2 className={styles['title']}>{selectedChart.name}</h2>
+                            </div>
+                            <Button onClick={() => setIsEditing(false)}>
+                                Cancel
+                            </Button>
+                        </div>
+                        <DatasetChartBuilder
+                            key={`edit-${selectedChart.id}`}
+                            orgId={org.id}
+                            selectedDataset={editDataset}
+                            editChartId={selectedChart.id}
+                            initialFields={configToBuilderFields(
+                                selectedChart.config,
+                                selectedChart.chartType
+                            )}
+                            onChartUpdated={() => void handleChartUpdated()}
+                        />
                     </>
                 )}
             </section>

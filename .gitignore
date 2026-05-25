@@ -33,3 +33,5 @@ apps/node/client/tests
 .moon/docker
 
 diplom-notes
+generation
+docs

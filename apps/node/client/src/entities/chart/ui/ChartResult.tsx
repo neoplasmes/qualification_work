@@ -71,7 +71,11 @@ export const ChartResult = ({
         activeKind === 'heatmap' && heatmapRows.length !== data.rows.length
             ? ['Rows with non-numeric measure values were omitted.']
             : [];
-    const warnings = [...new Set([...chart.warnings, ...heatmapWarnings])];
+    const tableWarnings = chart.warnings.filter(w => w.startsWith('Chart preview shows'));
+    const chartWarnings = [...new Set([
+        ...chart.warnings.filter(w => !w.startsWith('Chart preview shows')),
+        ...heatmapWarnings,
+    ])];
 
     const renderChart = () => {
         if (activeKind === 'heatmap') {
@@ -108,7 +112,7 @@ export const ChartResult = ({
         <div className={styles['root']} aria-label={ariaLabel}>
             <div className={styles['chart-wrap']}>{renderChart()}</div>
 
-            {warnings.map(warning => (
+            {chartWarnings.map(warning => (
                 <div key={warning} role="status" className={styles['chart-warning']}>
                     {warning}
                 </div>
@@ -116,6 +120,11 @@ export const ChartResult = ({
 
             {!hideTable && (
                 <>
+                    {tableWarnings.map(warning => (
+                        <div key={warning} role="status" className={styles['chart-warning']}>
+                            {warning}
+                        </div>
+                    ))}
                     <div className={styles['table-wrap']}>
                         <table className={styles['table']}>
                             <thead>

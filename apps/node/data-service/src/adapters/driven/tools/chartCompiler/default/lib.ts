@@ -35,12 +35,18 @@ export function getColumn(
     return col;
 }
 
+// handles both ISO 8601 and DD.MM.YYYY date formats stored as plain strings
+const dateColExpr = (k: string) =>
+    `CASE WHEN NULLIF(data->>${k}, '') ~ '^\\d{1,2}\\.\\d{1,2}\\.\\d{4}'` +
+    ` THEN to_timestamp(NULLIF(data->>${k}, ''), 'DD.MM.YYYY')` +
+    ` ELSE NULLIF(data->>${k}, '')::timestamptz END`;
+
 const colTypeExprs: Record<
     string,
     { sql: (k: string) => string; resultType: ColumnExpr['resultType'] }
 > = {
     number: { sql: k => `NULLIF(data->>${k}, '')::numeric`, resultType: 'number' },
-    date: { sql: k => `NULLIF(data->>${k}, '')::timestamptz`, resultType: 'date' },
+    date: { sql: dateColExpr, resultType: 'date' },
     bool: { sql: k => `NULLIF(data->>${k}, '')::boolean::text`, resultType: 'string' },
     string: { sql: k => `data->>${k}`, resultType: 'string' },
 };
@@ -61,7 +67,7 @@ export function columnExpr(
     const safeKey = sqlString(key);
 
     if (grouping?.kind === 'time') {
-        const sql = `date_trunc('${grouping.granularity}', NULLIF(data->>${safeKey}, '')::timestamptz)`;
+        const sql = `date_trunc('${grouping.granularity}', ${dateColExpr(safeKey)})`;
 
         return { sql, resultType: 'date', columnKey: key };
     }
@@ -176,7 +182,7 @@ export function buildWhere(
 
 const castedSql: Record<string, (k: string) => string> = {
     number: k => `NULLIF(data->>${k}, '')::numeric`,
-    date: k => `NULLIF(data->>${k}, '')::timestamptz`,
+    date: dateColExpr,
     bool: k => `NULLIF(data->>${k}, '')::boolean`,
     string: k => `data->>${k}`,
 };

@@ -8,7 +8,7 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import type { MultipartFile } from '@/adapters/driven/tools/_multipartParser';
 
-import { inferDatasetTypes } from './helpers';
+import { inferDatasetTypes, parseStrictDate } from './helpers';
 
 type DatasetRow = Record<string, unknown>;
 
@@ -55,6 +55,10 @@ export class UploadDatasetCommand implements Executable<
         }
 
         // js objects stream -> database insertion stream, completion of which returns the result
+        const dateKeys = columns
+            .filter(c => c.dataType === 'date')
+            .map(c => c.key);
+
         const result = await this.datasetRepo.createCompleteDataset(
             {
                 orgId,
@@ -62,7 +66,7 @@ export class UploadDatasetCommand implements Executable<
                 sourceType,
                 columns: columns,
             },
-            insertRow => this.forwardRowsWithIndex(insertRow, previewRows, rowStream)
+            insertRow => this.forwardRowsWithIndex(insertRow, previewRows, rowStream, dateKeys)
         );
 
         return { id: result.id };
@@ -140,17 +144,31 @@ export class UploadDatasetCommand implements Executable<
     private async forwardRowsWithIndex(
         insertRow: (index: number, rowData: DatasetRow) => Promise<void>,
         previewRows: DatasetRow[],
-        rowStream: Readable
+        rowStream: Readable,
+        dateKeys: string[]
     ): Promise<void> {
         let rowIndex = 0;
 
         for (const row of previewRows) {
-            await insertRow(rowIndex++, row);
+            await insertRow(rowIndex++, this.normalizeDates(row, dateKeys));
         }
 
         for await (const row of rowStream) {
-            await insertRow(rowIndex++, row as DatasetRow);
+            await insertRow(rowIndex++, this.normalizeDates(row as DatasetRow, dateKeys));
         }
+    }
+
+    private normalizeDates(row: DatasetRow, dateKeys: string[]): DatasetRow {
+        if (dateKeys.length === 0) {return row;}
+        const result = { ...row };
+        for (const key of dateKeys) {
+            const v = result[key];
+            if (typeof v === 'string') {
+                const iso = parseStrictDate(v);
+                if (iso !== undefined) {result[key] = iso;}
+            }
+        }
+        return result;
     }
 
     /**

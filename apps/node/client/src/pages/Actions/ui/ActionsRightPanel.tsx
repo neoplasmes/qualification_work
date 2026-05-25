@@ -241,9 +241,6 @@ const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) => {
             <div data-stack="v" data-gap="xs">
                 <span className={styles['eyebrow']}>Properties</span>
                 <h3 className={styles['section-title']}>{selectedAction.name}</h3>
-                {selectedAction.description && (
-                    <p className={styles['muted']}>{selectedAction.description}</p>
-                )}
             </div>
 
             {error && (

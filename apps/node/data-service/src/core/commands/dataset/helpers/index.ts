@@ -1,2 +1,2 @@
 export { coerceValueByType } from './coerceValueByType';
-export { inferDatasetTypes } from './inferDatasetTypes';
+export { inferDatasetTypes, parseStrictDate } from './inferDatasetTypes';

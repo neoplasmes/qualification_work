@@ -120,9 +120,6 @@ export const ActionsListPanel = () => {
                             <div className={styles['action-name']}>{action.name}</div>
                             <Workflow size={18} />
                         </div>
-                        {action.description && (
-                            <p className={styles['muted']}>{action.description}</p>
-                        )}
                         <div className={styles['meta']}>
                             <span>{action.parameters.length} params</span>
                             <span>{action.effects.length} effects</span>

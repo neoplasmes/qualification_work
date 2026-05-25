@@ -1,1 +1,1 @@
-export { DatasetChartBuilder } from './ui';
+export { DatasetChartBuilder, configToBuilderFields } from './ui';

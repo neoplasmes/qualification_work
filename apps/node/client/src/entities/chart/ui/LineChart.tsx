@@ -7,7 +7,7 @@ import { scaleLinear, scalePoint } from '@visx/scale';
 import { Line, LinePath } from '@visx/shape';
 import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
 
-import { formatChartCell } from '../lib/formatChartCell';
+import { formatAxisNumber, formatChartCell } from '../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
 
 const C = {
@@ -41,7 +41,7 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
     } = useTooltip<ChartDataPoint & { series: string }>();
 
     const rotateLabels = labels.length > 6;
-    const margin = { top: 16, right: 16, bottom: rotateLabels ? 96 : 48, left: 52 };
+    const margin = { top: 16, right: 16, bottom: rotateLabels ? 96 : 48, left: 64 };
     const xMax = width - margin.left - margin.right;
     const yMax = height - margin.top - margin.bottom;
 
@@ -79,7 +79,7 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
                     <AxisLeft
                         scale={yScale}
                         numTicks={5}
-                        tickFormat={v => formatChartCell(v)}
+                        tickFormat={v => formatAxisNumber(Number(v))}
                         tickLabelProps={() => ({
                             fill: C.muted,
                             fontSize: 11,
@@ -94,6 +94,7 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
                         top={yMax}
                         scale={xScale}
                         numTicks={labels.length}
+                        tickFormat={v => formatChartCell(v)}
                         tickLabelProps={() => ({
                             fill: C.muted,
                             fontSize: 11,
@@ -167,7 +168,7 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
                         fontSize: 12,
                     }}
                 >
-                    <strong>{tooltipData.label}</strong>
+                    <strong>{formatChartCell(tooltipData.label)}</strong>
                     {series.length > 1 ? ` / ${tooltipData.series}` : ''}:{' '}
                     {formatChartCell(tooltipData.value)}
                 </TooltipWithBounds>

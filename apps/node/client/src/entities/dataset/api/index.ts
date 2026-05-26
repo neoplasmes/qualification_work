@@ -1,5 +1,6 @@
 export {
     useDeleteDatasetMutation,
+    useDeleteRowMutation,
     useGetDatasetMetadataQuery,
     useGetDatasetRowsQuery,
     useInsertRowMutation,

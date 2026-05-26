@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
+import { getDayOfWeekOrder, isDayOfWeekValue } from './dayOfWeek';
 import { inferDatasetTypes, isStrictDate, parseStrictDate } from './inferDatasetTypes';
+
+describe('day of week helpers', () => {
+    it('recognizes English and Russian weekday labels', () => {
+        expect(getDayOfWeekOrder('Monday')).toBe(1);
+        expect(getDayOfWeekOrder('mon.')).toBe(1);
+        expect(getDayOfWeekOrder('Понедельник')).toBe(1);
+        expect(getDayOfWeekOrder('пн.')).toBe(1);
+        expect(getDayOfWeekOrder('Sunday')).toBe(7);
+        expect(getDayOfWeekOrder('sun')).toBe(7);
+        expect(getDayOfWeekOrder('Воскресенье')).toBe(7);
+        expect(getDayOfWeekOrder('вс')).toBe(7);
+        expect(isDayOfWeekValue('Coffee')).toBe(false);
+    });
+});
 
 describe('isStrictDate', () => {
     it('accepts ISO date-only', () => {
@@ -111,87 +126,59 @@ describe('inferDatasetTypes', () => {
     });
 
     it('uses keys from the first row only', () => {
-        const rows = [
-            { stable: '1' },
-            { stable: '2', ignored: 'value' },
-        ];
+        const rows = [{ stable: '1' }, { stable: '2', ignored: 'value' }];
 
         expect(inferDatasetTypes(rows)).toEqual([{ key: 'stable', dataType: 'number' }]);
     });
 
     it('treats ORD-2023-151 as string, not date', () => {
-        const rows = [
-            { orderId: 'ORD-2023-151' },
-            { orderId: 'ORD-2024-001' },
-        ];
+        const rows = [{ orderId: 'ORD-2023-151' }, { orderId: 'ORD-2024-001' }];
 
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'orderId', dataType: 'string' },
-        ]);
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'orderId', dataType: 'string' }]);
     });
 
     it('treats ORD-2023-01-15 as string (partial ISO in longer string)', () => {
         const rows = [{ ref: 'ORD-2023-01-15' }];
 
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'ref', dataType: 'string' },
-        ]);
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'ref', dataType: 'string' }]);
     });
 
     it('detects DD.MM.YYYY format as date', () => {
-        const rows = [
-            { birthdate: '12.02.2005' },
-            { birthdate: '01.01.1990' },
-        ];
+        const rows = [{ birthdate: '12.02.2005' }, { birthdate: '01.01.1990' }];
 
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'birthdate', dataType: 'date' },
-        ]);
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'birthdate', dataType: 'date' }]);
     });
 
     it('rejects invalid calendar date', () => {
         const rows = [{ d: '31.02.2005' }];
 
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'd', dataType: 'string' },
-        ]);
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'd', dataType: 'string' }]);
     });
 
     it('detects yes/no and y/n as bool', () => {
-        const rows = [
-            { flag: 'yes' },
-            { flag: 'no' },
-        ];
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'flag', dataType: 'bool' },
-        ]);
+        const rows = [{ flag: 'yes' }, { flag: 'no' }];
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'flag', dataType: 'bool' }]);
 
         const rows2 = [{ v: 'y' }, { v: 'n' }];
-        expect(inferDatasetTypes(rows2)).toEqual([
-            { key: 'v', dataType: 'bool' },
-        ]);
+        expect(inferDatasetTypes(rows2)).toEqual([{ key: 'v', dataType: 'bool' }]);
     });
 
     it('mixes yes and true into bool', () => {
         const rows = [{ v: 'yes' }, { v: 'true' }];
 
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'v', dataType: 'bool' },
-        ]);
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'v', dataType: 'bool' }]);
     });
 
     it('returns string when bool mixes with number', () => {
         const rows = [{ v: 'true' }, { v: '1' }];
 
-        expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'v', dataType: 'string' },
-        ]);
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'v', dataType: 'string' }]);
     });
 
     it('preserves Cyrillic column keys', () => {
         const rows = [
-            { 'Город': 'Москва', 'Сумма': '100' },
-            { 'Город': 'Казань', 'Сумма': '50' },
+            { Город: 'Москва', Сумма: '100' },
+            { Город: 'Казань', Сумма: '50' },
         ];
 
         expect(inferDatasetTypes(rows)).toEqual([
@@ -203,8 +190,25 @@ describe('inferDatasetTypes', () => {
     it('returns string for all-empty column', () => {
         const rows = [{ x: null }, { x: undefined }, { x: '' }];
 
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'x', dataType: 'string' }]);
+    });
+
+    it('infers day_of_week for weekday-only columns', () => {
+        const rows = [
+            { weekday: 'Wednesday' },
+            { weekday: 'Понедельник' },
+            { weekday: 'пт.' },
+            { weekday: 'sun' },
+        ];
+
         expect(inferDatasetTypes(rows)).toEqual([
-            { key: 'x', dataType: 'string' },
+            { key: 'weekday', dataType: 'day_of_week' },
         ]);
+    });
+
+    it('returns string when weekday values are mixed with other strings', () => {
+        const rows = [{ weekday: 'Monday' }, { weekday: 'Not a day' }];
+
+        expect(inferDatasetTypes(rows)).toEqual([{ key: 'weekday', dataType: 'string' }]);
     });
 });

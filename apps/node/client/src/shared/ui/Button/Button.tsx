@@ -1,12 +1,12 @@
 import { Loader2 } from 'lucide-react';
-import type { ButtonHTMLAttributes, FC } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, FC } from 'react';
 import { Link, type LinkProps } from 'react-router';
 
 import styles from './Button.module.scss';
 
 type ButtonProps = {
     variant?: 'default' | 'danger';
-    tone?: 'default' | 'danger' | 'ghost';
+    tone?: ButtonTone;
     size?: 'sm' | 'md';
     isLoading?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
@@ -37,9 +37,10 @@ export const Button: FC<ButtonProps> = ({
 
 type IconButtonProps = {
     variant?: 'default' | 'danger';
-    tone?: 'default' | 'danger' | 'ghost';
+    tone?: ButtonTone;
     size?: 'sm' | 'md';
     isLoading?: boolean;
+    iconStrokeWidth?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const IconButton: FC<IconButtonProps> = ({
@@ -48,6 +49,8 @@ export const IconButton: FC<IconButtonProps> = ({
     size = 'md',
     isLoading = false,
     className,
+    iconStrokeWidth,
+    style,
     type = 'button',
     disabled,
     children,
@@ -59,6 +62,7 @@ export const IconButton: FC<IconButtonProps> = ({
         className={getButtonClassName('icon', tone, size, className)}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
+        style={getIconButtonStyle(style, iconStrokeWidth)}
         {...props}
     >
         {isLoading ? (
@@ -71,7 +75,7 @@ export const IconButton: FC<IconButtonProps> = ({
 
 type ButtonLinkProps = {
     variant?: 'default' | 'danger';
-    tone?: 'default' | 'danger' | 'ghost';
+    tone?: ButtonTone;
     size?: 'sm' | 'md';
 } & LinkProps;
 
@@ -85,7 +89,7 @@ export const ButtonLink: FC<ButtonLinkProps> = ({
 
 type IconButtonLinkProps = {
     variant?: 'default' | 'danger';
-    tone?: 'default' | 'danger' | 'ghost';
+    tone?: ButtonTone;
     size?: 'sm' | 'md';
 } & LinkProps;
 
@@ -97,9 +101,11 @@ export const IconButtonLink: FC<IconButtonLinkProps> = ({
     ...props
 }) => <Link className={getButtonClassName('icon', tone, size, className)} {...props} />;
 
+type ButtonTone = 'default' | 'danger' | 'ghost' | 'plain';
+
 const getButtonClassName = (
     base: 'button' | 'icon',
-    tone: 'default' | 'danger' | 'ghost',
+    tone: ButtonTone,
     size: 'sm' | 'md',
     className?: string
 ) =>
@@ -111,3 +117,17 @@ const getButtonClassName = (
     ]
         .filter(Boolean)
         .join(' ');
+
+const getIconButtonStyle = (
+    style: CSSProperties | undefined,
+    iconStrokeWidth: number | undefined
+): CSSProperties | undefined => {
+    if (iconStrokeWidth === undefined) {
+        return style;
+    }
+
+    return {
+        ...style,
+        '--icon-stroke-width': iconStrokeWidth,
+    } as CSSProperties;
+};

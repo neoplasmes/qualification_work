@@ -1,15 +1,16 @@
+import type { ChartResultColumn, MeasureValueFormat, TimeGranularity } from '../api';
 import type { ChartKind } from './chartKind';
 
-export type ChartDataPoint = { label: string; value: number };
+export type ChartDataPoint = {
+    label: string;
+    value: number;
+    labelTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
+};
 export type ChartSeries = { name: string; points: ChartDataPoint[] };
 
-type ChartResultColumn = {
-    name: string;
-    role?: 'dim' | 'series' | 'measure';
-};
-
 type ChartResultData = {
-    columns: ChartResultColumn[];
+    columns: Array<Partial<ChartResultColumn> & Pick<ChartResultColumn, 'name'>>;
     rows: Array<Array<string | number | null>>;
 };
 
@@ -17,22 +18,24 @@ export type ChartViewModel = {
     points: ChartDataPoint[];
     series: ChartSeries[];
     labels: string[];
+    labelTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
     warnings: string[];
 };
 
-const getDimensionIndex = (columns: ChartResultColumn[]) => {
+const getDimensionIndex = (columns: ChartResultData['columns']) => {
     const index = columns.findIndex(column => column.role === 'dim');
 
     return index >= 0 ? index : 0;
 };
 
-const getMeasureIndex = (columns: ChartResultColumn[]) => {
+const getMeasureIndex = (columns: ChartResultData['columns']) => {
     const index = columns.findIndex(column => column.role === 'measure');
 
     return index >= 0 ? index : Math.max(0, columns.length - 1);
 };
 
-const getMeasureIndexes = (columns: ChartResultColumn[]) => {
+const getMeasureIndexes = (columns: ChartResultData['columns']) => {
     const indexes = columns
         .map((column, index) => ({ column, index }))
         .filter(({ column }) => column.role === 'measure')
@@ -41,7 +44,7 @@ const getMeasureIndexes = (columns: ChartResultColumn[]) => {
     return indexes.length > 0 ? indexes : [getMeasureIndex(columns)];
 };
 
-const getSeriesIndex = (columns: ChartResultColumn[]) => {
+const getSeriesIndex = (columns: ChartResultData['columns']) => {
     const index = columns.findIndex(column => column.role === 'series');
 
     return index >= 0 ? index : null;
@@ -53,8 +56,10 @@ export const parseChartResult = (
     limit: number
 ): ChartViewModel => {
     const dimensionIndex = getDimensionIndex(data.columns);
+    const dimensionColumn = data.columns[dimensionIndex];
     const measureIndexes = getMeasureIndexes(data.columns);
     const seriesIndex = getSeriesIndex(data.columns);
+    const primaryMeasureColumn = data.columns[measureIndexes[0]];
     const warnings: string[] = [];
     const labels: string[] = [];
     const seriesByName = new Map<string, ChartDataPoint[]>();
@@ -79,6 +84,7 @@ export const parseChartResult = (
             }
 
             const measureName = data.columns[measureIndex]?.name ?? `m${measureIndex}`;
+            const measureColumn = data.columns[measureIndex];
             const seriesName =
                 measureIndexes.length > 1
                     ? series
@@ -86,9 +92,17 @@ export const parseChartResult = (
                         : measureName
                     : (series ?? measureName);
             const label = dimension;
-            const point = { label, value: rawValue };
+            const point = {
+                label,
+                value: rawValue,
+                labelTimeGranularity: dimensionColumn?.timeGranularity,
+                valueFormat: measureColumn?.valueFormat,
+            };
 
-            seriesByName.set(seriesName, [...(seriesByName.get(seriesName) ?? []), point]);
+            seriesByName.set(seriesName, [
+                ...(seriesByName.get(seriesName) ?? []),
+                point,
+            ]);
         }
     });
 
@@ -104,7 +118,10 @@ export const parseChartResult = (
         warnings.push(`Chart preview shows the first ${limit} result rows.`);
     }
 
-    const series = [...seriesByName.entries()].map(([name, points]) => ({ name, points }));
+    const series = [...seriesByName.entries()].map(([name, points]) => ({
+        name,
+        points,
+    }));
     const points = series.flatMap(item =>
         item.points.map(point => ({
             label: series.length > 1 ? `${point.label} / ${item.name}` : point.label,
@@ -113,7 +130,14 @@ export const parseChartResult = (
     );
 
     if (kind !== 'pie') {
-        return { points, series, labels, warnings };
+        return {
+            points,
+            series,
+            labels,
+            labelTimeGranularity: dimensionColumn?.timeGranularity,
+            valueFormat: primaryMeasureColumn?.valueFormat,
+            warnings,
+        };
     }
 
     const positivePoints = points.filter(point => point.value > 0);
@@ -130,6 +154,8 @@ export const parseChartResult = (
         points: positivePoints,
         series: [{ name: 'm0', points: positivePoints }],
         labels: positivePoints.map(point => point.label),
+        labelTimeGranularity: dimensionColumn?.timeGranularity,
+        valueFormat: primaryMeasureColumn?.valueFormat,
         warnings,
     };
 };

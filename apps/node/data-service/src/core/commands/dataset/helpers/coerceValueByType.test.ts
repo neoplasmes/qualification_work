@@ -4,7 +4,9 @@ import { coerceValueByType } from './coerceValueByType';
 
 describe('coerceValueByType - date', () => {
     it('accepts ISO date string', () => {
-        expect(coerceValueByType('2024-01-15', 'date', 'col')).toBe('2024-01-15T00:00:00.000Z');
+        expect(coerceValueByType('2024-01-15', 'date', 'col')).toBe(
+            '2024-01-15T00:00:00.000Z'
+        );
     });
 
     it('accepts ISO datetime string', () => {
@@ -13,7 +15,9 @@ describe('coerceValueByType - date', () => {
     });
 
     it('accepts DD.MM.YYYY and produces correct ISO', () => {
-        expect(coerceValueByType('12.02.2005', 'date', 'col')).toBe('2005-02-12T00:00:00.000Z');
+        expect(coerceValueByType('12.02.2005', 'date', 'col')).toBe(
+            '2005-02-12T00:00:00.000Z'
+        );
     });
 
     it('accepts Date instance', () => {
@@ -52,5 +56,16 @@ describe('coerceValueByType - bool', () => {
 
     it('throws for unrecognised value', () => {
         expect(() => coerceValueByType('yes', 'bool', 'col')).toThrow();
+    });
+});
+
+describe('coerceValueByType - day_of_week', () => {
+    it('accepts and trims weekday labels', () => {
+        expect(coerceValueByType(' Monday ', 'day_of_week', 'weekday')).toBe('Monday');
+        expect(coerceValueByType('пн.', 'day_of_week', 'weekday')).toBe('пн.');
+    });
+
+    it('throws for non-weekday labels', () => {
+        expect(() => coerceValueByType('coffee', 'day_of_week', 'weekday')).toThrow();
     });
 });

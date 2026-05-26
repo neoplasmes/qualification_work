@@ -1,5 +1,7 @@
 export { DeleteDatasetCommand } from './delete.command';
 export type { DeleteDatasetCommandIO } from './delete.command';
+export { DeleteRowCommand, type DeleteRowInput } from './deleteRow.command';
+export type { DeleteRowCommandIO } from './deleteRow.command';
 export { InsertRowCommand, type InsertRowInput } from './insertRow.command';
 export type { InsertRowCommandIO } from './insertRow.command';
 export {
@@ -15,10 +17,7 @@ export {
     type PreviewMergeConfig,
     type PreviewMergeInput,
 } from './merge';
-export {
-    UpdateRowValuesCommand,
-    type UpdateRowValuesInput,
-} from './updateRow.command';
+export { UpdateRowValuesCommand, type UpdateRowValuesInput } from './updateRow.command';
 export type { UpdateRowValuesCommandIO } from './updateRow.command';
 export { UploadDatasetCommand } from './upload.command';
 export type { UploadDatasetCommandIO } from './upload.command';

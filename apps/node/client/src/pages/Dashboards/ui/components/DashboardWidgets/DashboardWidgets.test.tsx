@@ -31,6 +31,12 @@ const chart: Chart = {
     updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
+const secondChart: Chart = {
+    ...chart,
+    id: 'chart-2',
+    name: 'Costs',
+};
+
 const items: DashboardItem[] = [
     {
         id: 'item-chart',
@@ -45,7 +51,14 @@ const items: DashboardItem[] = [
         name: 'Average score',
         expression: 'avg(score)',
         format: 'percent',
+        value: 0.42,
         layout: { posX: 0, posY: 8, width: 12, height: 4 },
+    },
+    {
+        id: 'item-chart-2',
+        kind: 'chart',
+        chartId: 'chart-2',
+        layout: { posX: 0, posY: 12, width: 12, height: 8 },
     },
 ];
 
@@ -57,7 +70,7 @@ describe('DashboardWidgets', () => {
         vi.clearAllMocks();
     });
 
-    it('moves and removes dashboard widgets through item controls', async () => {
+    it('moves chart widgets and removes metric widgets', async () => {
         const user = userEvent.setup();
         const onMoveItem = vi.fn();
         const onRemoveItem = vi.fn();
@@ -65,7 +78,12 @@ describe('DashboardWidgets', () => {
         const { container } = render(
             <DashboardWidgets
                 items={items}
-                chartsById={new Map([[chart.id, chart]])}
+                chartsById={
+                    new Map([
+                        [chart.id, chart],
+                        [secondChart.id, secondChart],
+                    ])
+                }
                 reorderLoading={false}
                 removing={false}
                 onMoveItem={onMoveItem}
@@ -74,18 +92,20 @@ describe('DashboardWidgets', () => {
         );
 
         expect(getAllByDataTestId(container, dashboardsTestIds.chartWidget)).toHaveLength(
-            1
+            2
         );
         expect(
             getAllByDataTestId(container, dashboardsTestIds.metricWidget)
         ).toHaveLength(1);
+        expect(screen.getByText(/42\s?%/)).toBeInTheDocument();
+        expect(screen.queryByLabelText('Move Average score up')).not.toBeInTheDocument();
 
         await user.click(screen.getByLabelText('Move Revenue down'));
-        await user.click(screen.getByLabelText('Move Average score up'));
+        await user.click(screen.getByLabelText('Move Costs up'));
         await user.click(screen.getByLabelText('Remove Average score'));
 
         expect(onMoveItem).toHaveBeenNthCalledWith(1, 'item-chart', 1);
-        expect(onMoveItem).toHaveBeenNthCalledWith(2, 'item-metric', -1);
+        expect(onMoveItem).toHaveBeenNthCalledWith(2, 'item-chart-2', -1);
         expect(onRemoveItem).toHaveBeenCalledWith('item-metric');
     });
 

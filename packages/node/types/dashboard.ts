@@ -32,6 +32,7 @@ export type DashboardMetricItem = DashboardBaseItem & {
     name: string;
     expression: string;
     format: MetricFormat;
+    value?: number | null;
 };
 
 /**

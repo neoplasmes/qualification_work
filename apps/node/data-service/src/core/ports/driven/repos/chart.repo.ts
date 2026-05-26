@@ -1,6 +1,6 @@
 import type { ChartConfig, ChartType } from '@qualification-work/types';
 
-import type { Chart } from '@/core/domain';
+import type { Chart, ColumnDataType } from '@/core/domain';
 
 export type CreateChartPayload = {
     orgId: string;
@@ -24,7 +24,7 @@ export type ChartCompilationContext = {
     columns: Array<{
         id: string;
         key: string;
-        dataType: 'number' | 'string' | 'date' | 'bool';
+        dataType: ColumnDataType;
     }>;
 };
 
@@ -32,7 +32,7 @@ export type DatasetContext = {
     datasetId: string;
     orgId: string;
     dataVersion: number;
-    columns: Array<{ id: string; key: string; dataType: 'number' | 'string' | 'date' | 'bool' }>;
+    columns: Array<{ id: string; key: string; dataType: ColumnDataType }>;
 };
 
 export interface ChartRepo {

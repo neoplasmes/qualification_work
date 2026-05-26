@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { Group } from '@visx/group';
@@ -7,7 +5,11 @@ import { HeatmapRect } from '@visx/heatmap';
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scalePoint } from '@visx/scale';
 import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
+import { useMemo } from 'react';
 
+import { compareCategoryLabels } from '@/shared/lib/dayOfWeek';
+
+import type { ChartResultColumn, MeasureValueFormat, TimeGranularity } from '../api';
 import { formatChartCell } from '../lib/formatChartCell';
 
 const C = {
@@ -21,7 +23,7 @@ const C = {
 
 const GAP = 2;
 const MIN_CHART_WIDTH = 220;
-const margin = { top: 16, right: 16, bottom: 80, left: 100 };
+const margin = { top: 16, right: 16, bottom: 112, left: 100 };
 // default cell size when not yet computed
 const DEFAULT_CELL_SIZE = 28;
 const DEFAULT_STEP = DEFAULT_CELL_SIZE + GAP;
@@ -30,6 +32,11 @@ export type HeatmapCell = {
     x: string;
     y: string;
     value: number;
+    xType?: ChartResultColumn['type'];
+    yType?: ChartResultColumn['type'];
+    xTimeGranularity?: TimeGranularity;
+    yTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
 };
 
 type ColumnDatum = { x: string; bins: BinDatum[] };
@@ -66,19 +73,22 @@ const HeatmapChartInner = ({
     const step = cellSize + GAP;
     const gridWidth = xValues.length * step;
     const available = width - margin.left - margin.right;
-    const effectiveLeft = margin.left + Math.max(0, Math.floor((available - gridWidth) / 2));
+    const effectiveLeft =
+        margin.left + Math.max(0, Math.floor((available - gridWidth) / 2));
 
     const columnData: ColumnDatum[] = useMemo(
-        () => xValues.map(x => ({
-            x,
-            bins: yValues.map(y => ({ y, count: cellMap.get(`${x}:${y}`) ?? 0 })),
-        })),
-        [xValues, yValues, cellMap],
+        () =>
+            xValues.map(x => ({
+                x,
+                bins: yValues.map(y => ({ y, count: cellMap.get(`${x}:${y}`) ?? 0 })),
+            })),
+        [xValues, yValues, cellMap]
     );
 
-    const values = useMemo(
-        () => data.map(c => c.value).filter(Number.isFinite),
-        [data],
+    const values = useMemo(() => data.map(c => c.value).filter(Number.isFinite), [data]);
+    const sourceByCell = useMemo(
+        () => new Map(data.map(item => [`${item.x}:${item.y}`, item])),
+        [data]
     );
     const minValue = values.length ? Math.min(...values) : 0;
     const maxValue = values.length ? Math.max(...values, 1) : 1;
@@ -112,6 +122,11 @@ const HeatmapChartInner = ({
                 <Group left={effectiveLeft} top={margin.top}>
                     <AxisLeft
                         scale={yAxisScale}
+                        tickFormat={value =>
+                            formatChartCell(value, {
+                                timeGranularity: data[0]?.yTimeGranularity,
+                            })
+                        }
                         tickLabelProps={() => ({
                             fill: C.muted,
                             fontSize: 11,
@@ -125,6 +140,11 @@ const HeatmapChartInner = ({
                     <AxisBottom
                         top={gridHeight}
                         scale={xAxisScale}
+                        tickFormat={value =>
+                            formatChartCell(value, {
+                                timeGranularity: data[0]?.xTimeGranularity,
+                            })
+                        }
                         tickLabelProps={() => ({
                             fill: C.muted,
                             fontSize: 11,
@@ -138,16 +158,16 @@ const HeatmapChartInner = ({
                     />
                     <HeatmapRect
                         data={columnData}
-                        xScale={(i) => i * step}
-                        yScale={(i) => i * step}
+                        xScale={i => i * step}
+                        yScale={i => i * step}
                         binWidth={cellSize}
                         binHeight={cellSize}
                         gap={GAP}
                         colorScale={colorScale}
-                        bins={(col) => col.bins}
-                        count={(bin) => bin.count}
+                        bins={col => col.bins}
+                        count={bin => bin.count}
                     >
-                        {(cells) =>
+                        {cells =>
                             cells.map(colCells =>
                                 colCells.map(cell => (
                                     <rect
@@ -160,11 +180,19 @@ const HeatmapChartInner = ({
                                         fill={cell.color ?? C.cellLow}
                                         onMouseMove={event => {
                                             const point = localPoint(event);
+                                            const source = sourceByCell.get(
+                                                `${cell.datum.x}:${cell.bin.y}`
+                                            );
                                             showTooltip({
                                                 tooltipData: {
                                                     x: cell.datum.x,
                                                     y: cell.bin.y,
                                                     value: cell.count ?? 0,
+                                                    xTimeGranularity:
+                                                        source?.xTimeGranularity,
+                                                    yTimeGranularity:
+                                                        source?.yTimeGranularity,
+                                                    valueFormat: source?.valueFormat,
                                                 },
                                                 tooltipLeft: point?.x,
                                                 tooltipTop: point?.y,
@@ -172,7 +200,7 @@ const HeatmapChartInner = ({
                                         }}
                                         onMouseLeave={hideTooltip}
                                     />
-                                )),
+                                ))
                             )
                         }
                     </HeatmapRect>
@@ -190,8 +218,19 @@ const HeatmapChartInner = ({
                         fontSize: 12,
                     }}
                 >
-                    <strong>{tooltipData.x}</strong> / {tooltipData.y}:{' '}
-                    {formatChartCell(tooltipData.value)}
+                    <strong>
+                        {formatChartCell(tooltipData.x, {
+                            timeGranularity: tooltipData.xTimeGranularity,
+                        })}
+                    </strong>{' '}
+                    /{' '}
+                    {formatChartCell(tooltipData.y, {
+                        timeGranularity: tooltipData.yTimeGranularity,
+                    })}
+                    :{' '}
+                    {formatChartCell(tooltipData.value, {
+                        valueFormat: tooltipData.valueFormat,
+                    })}
                 </TooltipWithBounds>
             )}
         </div>
@@ -202,12 +241,33 @@ type HeatmapChartProps = {
     data: HeatmapCell[];
 };
 
+const uniqueValues = (values: string[]) => [...new Set(values)];
+
+const sortHeatmapLabels = (
+    values: string[],
+    type: ChartResultColumn['type'] | undefined
+) => {
+    if (type !== 'string' && type !== 'day_of_week') {
+        return values;
+    }
+
+    return [...values].sort(compareCategoryLabels);
+};
+
 export const HeatmapChart = ({ data }: HeatmapChartProps) => {
-    const xValues = useMemo(() => [...new Set(data.map(c => c.x))], [data]);
-    const yValues = useMemo(() => [...new Set(data.map(c => c.y))], [data]);
+    const xType = data[0]?.xType;
+    const yType = data[0]?.yType;
+    const xValues = useMemo(
+        () => sortHeatmapLabels(uniqueValues(data.map(c => c.x)), xType),
+        [data, xType]
+    );
+    const yValues = useMemo(
+        () => sortHeatmapLabels(uniqueValues(data.map(c => c.y)), yType),
+        [data, yType]
+    );
     const cellMap = useMemo(
         () => new Map(data.map(c => [`${c.x}:${c.y}`, c.value])),
-        [data],
+        [data]
     );
     const height = margin.top + margin.bottom + yValues.length * DEFAULT_STEP;
 
@@ -218,9 +278,13 @@ export const HeatmapChart = ({ data }: HeatmapChartProps) => {
                     return width > 0 ? <div style={{ height }} /> : null;
                 }
                 const xMax = width - margin.left - margin.right;
-                const cellSize = xValues.length > 0
-                    ? Math.max(6, Math.min(40, Math.floor(xMax / xValues.length) - GAP))
-                    : DEFAULT_CELL_SIZE;
+                const cellSize =
+                    xValues.length > 0
+                        ? Math.max(
+                              6,
+                              Math.min(40, Math.floor(xMax / xValues.length) - GAP)
+                          )
+                        : DEFAULT_CELL_SIZE;
                 const step = cellSize + GAP;
                 const dynamicHeight = margin.top + margin.bottom + yValues.length * step;
 

@@ -55,9 +55,7 @@ export class UploadDatasetCommand implements Executable<
         }
 
         // js objects stream -> database insertion stream, completion of which returns the result
-        const dateKeys = columns
-            .filter(c => c.dataType === 'date')
-            .map(c => c.key);
+        const dateKeys = columns.filter(c => c.dataType === 'date').map(c => c.key);
 
         const result = await this.datasetRepo.createCompleteDataset(
             {
@@ -66,7 +64,8 @@ export class UploadDatasetCommand implements Executable<
                 sourceType,
                 columns: columns,
             },
-            insertRow => this.forwardRowsWithIndex(insertRow, previewRows, rowStream, dateKeys)
+            insertRow =>
+                this.forwardRowsWithIndex(insertRow, previewRows, rowStream, dateKeys)
         );
 
         return { id: result.id };
@@ -159,15 +158,20 @@ export class UploadDatasetCommand implements Executable<
     }
 
     private normalizeDates(row: DatasetRow, dateKeys: string[]): DatasetRow {
-        if (dateKeys.length === 0) {return row;}
+        if (dateKeys.length === 0) {
+            return row;
+        }
         const result = { ...row };
         for (const key of dateKeys) {
             const v = result[key];
             if (typeof v === 'string') {
                 const iso = parseStrictDate(v);
-                if (iso !== undefined) {result[key] = iso;}
+                if (iso !== undefined) {
+                    result[key] = iso;
+                }
             }
         }
+
         return result;
     }
 

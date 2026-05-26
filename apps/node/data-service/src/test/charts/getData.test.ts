@@ -1,11 +1,49 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { api, createTestUserWithOrg, startServer, stopServer, truncate } from '../setup';
+import {
+    api,
+    createTestUserWithOrg,
+    dbQuery,
+    startServer,
+    stopServer,
+    truncate,
+} from '../setup';
 import { createChart, encodeFilters, getColumnId, uploadDataset } from './helpers';
 
 beforeAll(startServer);
 afterAll(stopServer);
 afterEach(truncate);
+
+async function uploadCsvDataset(
+    orgId: string,
+    csv: string,
+    fileName: string
+): Promise<string> {
+    const form = new FormData();
+    form.append('file', new Blob([csv], { type: 'text/csv' }), fileName);
+
+    const res = await api(`/api/datasets?orgId=${orgId}`, { method: 'POST', body: form });
+    const body = (await res.json()) as { id: string };
+
+    return body.id;
+}
+
+async function uploadWeekdayDataset(orgId: string): Promise<string> {
+    return uploadCsvDataset(
+        orgId,
+        [
+            'weekday,shop,score',
+            'Sunday,B,7',
+            'Monday,A,5',
+            'Friday,A,4',
+            'Wednesday,B,3',
+            'Tuesday,A,2',
+            'Thursday,B,6',
+            'Saturday,A,1',
+        ].join('\n'),
+        'weekday.csv'
+    );
+}
 
 describe('GET /api/charts/:id/data - bar', () => {
     it('returns aggregated bar data grouped by dimension', async () => {
@@ -17,7 +55,7 @@ describe('GET /api/charts/:id/data - bar', () => {
         const chartId = await createChart(orgId, datasetId, {
             kind: 'bar',
             dimension: { columnId: cityId },
-            measures: [{ columnId: scoreId, aggregate: 'avg' }],
+            measures: [{ columnId: scoreId, aggregate: 'avg', valueFormat: 'rub' }],
         });
 
         const res = await api(`/api/charts/${chartId}/data`);
@@ -25,20 +63,112 @@ describe('GET /api/charts/:id/data - bar', () => {
 
         const body = (await res.json()) as {
             kind: string;
-            columns: { name: string; role: string }[];
+            columns: { name: string; role: string; valueFormat?: string }[];
             rows: Array<Array<string | number | null>>;
             truncated: boolean;
         };
 
         expect(body.kind).toBe('bar');
         expect(body.columns[0]).toMatchObject({ name: 'dim', role: 'dim' });
-        expect(body.columns[1]).toMatchObject({ name: 'm0', role: 'measure' });
+        expect(body.columns[1]).toMatchObject({
+            name: 'm0',
+            role: 'measure',
+            valueFormat: 'rub',
+        });
         expect(body.rows.length).toBeGreaterThan(0);
         expect(body.truncated).toBe(false);
         for (const row of body.rows) {
             expect(typeof row[0]).toBe('string');
             expect(typeof row[1]).toBe('number');
         }
+    });
+
+    it('sorts day_of_week dimensions from Monday to Sunday', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadWeekdayDataset(orgId);
+        const weekdayId = await getColumnId(datasetId, 'weekday');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: weekdayId },
+            measures: [{ columnId: scoreId, aggregate: 'sum' }],
+            orderBy: { ref: 'measure', index: 0, dir: 'desc' },
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as {
+            columns: Array<{ type: string }>;
+            rows: Array<Array<string | number | null>>;
+        };
+        expect(body.columns[0].type).toBe('day_of_week');
+        expect(body.rows.map(row => row[0])).toEqual([
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+        ]);
+    });
+
+    it('sorts plain string dimensions alphabetically', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadCsvDataset(
+            orgId,
+            ['city,score', 'Zurich,1', 'Amsterdam,2', 'Berlin,3'].join('\n'),
+            'cities.csv'
+        );
+        const cityId = await getColumnId(datasetId, 'city');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: cityId },
+            measures: [{ columnId: scoreId, aggregate: 'sum' }],
+            orderBy: { ref: 'measure', index: 0, dir: 'desc' },
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<Array<string | number | null>> };
+        expect(body.rows.map(row => row[0])).toEqual(['Amsterdam', 'Berlin', 'Zurich']);
+    });
+
+    it('sorts legacy string weekday dimensions from Monday to Sunday', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadWeekdayDataset(orgId);
+        const weekdayId = await getColumnId(datasetId, 'weekday');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        await dbQuery(
+            `UPDATE data.dataset_columns SET data_type = 'string' WHERE id = $1`,
+            [weekdayId]
+        );
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: weekdayId },
+            measures: [{ columnId: scoreId, aggregate: 'sum' }],
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<Array<string | number | null>> };
+        expect(body.rows.map(row => row[0])).toEqual([
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+        ]);
     });
 });
 
@@ -99,15 +229,23 @@ describe('GET /api/charts/:id/data - line', () => {
 
         const chartId = await createChart(orgId, datasetId, {
             kind: 'line',
-            dimension: { columnId: dateId, bin: { kind: 'time', granularity: 'day' } },
+            dimension: {
+                columnId: dateId,
+                grouping: { kind: 'time', granularity: 'day' },
+            },
             measures: [{ columnId: scoreId, aggregate: 'avg' }],
         });
 
         const res = await api(`/api/charts/${chartId}/data`);
         expect(res.status).toBe(200);
 
-        const body = (await res.json()) as { kind: string; rows: unknown[] };
+        const body = (await res.json()) as {
+            kind: string;
+            columns: Array<{ timeGranularity?: string }>;
+            rows: unknown[];
+        };
         expect(body.kind).toBe('line');
+        expect(body.columns[0].timeGranularity).toBe('day');
         expect(body.rows.length).toBeGreaterThan(0);
     });
 });
@@ -138,6 +276,35 @@ describe('GET /api/charts/:id/data - heatmap', () => {
         expect(body.kind).toBe('heatmap');
         expect(body.columns.map(c => c.role)).toEqual(['dim', 'dim', 'measure']);
         expect(body.rows.length).toBeGreaterThan(0);
+    });
+
+    it('sorts day_of_week heatmap axes from Monday to Sunday', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadWeekdayDataset(orgId);
+        const weekdayId = await getColumnId(datasetId, 'weekday');
+        const shopId = await getColumnId(datasetId, 'shop');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'heatmap',
+            x: { columnId: weekdayId },
+            y: { columnId: shopId },
+            measure: { columnId: scoreId, aggregate: 'sum' },
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<Array<string | number | null>> };
+        expect([...new Set(body.rows.map(row => row[0]))]).toEqual([
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+        ]);
     });
 });
 

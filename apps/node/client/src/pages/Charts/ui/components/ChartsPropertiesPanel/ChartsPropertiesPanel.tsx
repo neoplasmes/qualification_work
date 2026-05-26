@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useDeleteChartMutation, useListChartsQuery } from '@/entities/chart';
+import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -24,12 +25,22 @@ export const ChartsPropertiesPanel = () => {
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
+    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [deleteChart, deleteChartState] = useDeleteChartMutation();
     const selectedChartId = useSelector(selectSelectedChartId);
 
     const selectedChart = useMemo(
         () => getSelected(chartsQuery.data, selectedChartId),
         [chartsQuery.data, selectedChartId]
+    );
+    const selectedDatasetName = useMemo(
+        () =>
+            selectedChart
+                ? (datasetsQuery.data?.find(
+                      item => item.dataset.id === selectedChart.datasetId
+                  )?.dataset.name ?? 'Unknown dataset')
+                : '',
+        [datasetsQuery.data, selectedChart]
     );
 
     const handleDelete = async () => {
@@ -71,7 +82,7 @@ export const ChartsPropertiesPanel = () => {
                 headers={{ key: 'Property', value: 'Value' }}
                 rows={[
                     { key: 'Type', value: selectedChart.chartType },
-                    { key: 'Dataset', value: selectedChart.datasetId.slice(0, 8) },
+                    { key: 'Dataset', value: selectedDatasetName },
                     { key: 'Created', value: formatDate(selectedChart.createdAt) },
                     { key: 'Updated', value: formatDate(selectedChart.updatedAt) },
                 ]}

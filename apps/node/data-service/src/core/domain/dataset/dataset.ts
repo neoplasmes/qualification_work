@@ -8,7 +8,7 @@ export type Dataset = {
     updatedAt: Date;
 };
 
-export type ColumnDataType = 'number' | 'string' | 'date' | 'bool';
+export type ColumnDataType = 'number' | 'string' | 'date' | 'bool' | 'day_of_week';
 
 // database entity for a dataset column
 export type DatasetColumn = {

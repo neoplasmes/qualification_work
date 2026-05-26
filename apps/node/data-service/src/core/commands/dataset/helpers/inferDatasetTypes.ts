@@ -1,5 +1,7 @@
 import type { ColumnDataType } from '@/core/domain';
 
+import { isDayOfWeekValue } from './dayOfWeek';
+
 type JSObjectsRowData = Record<string, unknown>;
 
 // strict ISO 8601: date-only or date+time with optional timezone
@@ -77,7 +79,7 @@ export function parseStrictDate(s: string): string | undefined {
     return date.toISOString();
 }
 
-type ValueClass = 'bool' | 'number' | 'date' | 'string' | 'empty';
+type ValueClass = 'bool' | 'number' | 'date' | 'day_of_week' | 'string' | 'empty';
 
 function classifyValue(value: unknown): ValueClass {
     if (value === null || value === undefined || value === '') {
@@ -104,12 +106,20 @@ function classifyValue(value: unknown): ValueClass {
         }
 
         const trimmed = value.trim();
-        if (trimmed !== '' && !Number.isNaN(Number(trimmed)) && Number.isFinite(Number(trimmed))) {
+        if (
+            trimmed !== '' &&
+            !Number.isNaN(Number(trimmed)) &&
+            Number.isFinite(Number(trimmed))
+        ) {
             return 'number';
         }
 
         if (isStrictDate(trimmed)) {
             return 'date';
+        }
+
+        if (isDayOfWeekValue(trimmed)) {
+            return 'day_of_week';
         }
 
         return 'string';
@@ -122,6 +132,7 @@ function inferColumnType(values: unknown[]): ColumnDataType {
     let hasBool = false;
     let hasNumber = false;
     let hasDate = false;
+    let hasDayOfWeek = false;
     let hasString = false;
 
     for (const value of values) {
@@ -148,6 +159,12 @@ function inferColumnType(values: unknown[]): ColumnDataType {
             continue;
         }
 
+        if (cls === 'day_of_week') {
+            hasDayOfWeek = true;
+
+            continue;
+        }
+
         hasString = true;
     }
 
@@ -157,7 +174,11 @@ function inferColumnType(values: unknown[]): ColumnDataType {
     }
 
     // mixed types fall back to string
-    const typeCount = (hasBool ? 1 : 0) + (hasNumber ? 1 : 0) + (hasDate ? 1 : 0);
+    const typeCount =
+        (hasBool ? 1 : 0) +
+        (hasNumber ? 1 : 0) +
+        (hasDate ? 1 : 0) +
+        (hasDayOfWeek ? 1 : 0);
     if (typeCount > 1) {
         return 'string';
     }
@@ -168,6 +189,10 @@ function inferColumnType(values: unknown[]): ColumnDataType {
 
     if (hasDate) {
         return 'date';
+    }
+
+    if (hasDayOfWeek) {
+        return 'day_of_week';
     }
 
     if (hasNumber) {

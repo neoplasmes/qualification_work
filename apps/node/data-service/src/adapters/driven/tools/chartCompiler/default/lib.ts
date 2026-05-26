@@ -3,6 +3,8 @@ import type {
     ChartConfig,
     FilterClause,
     Measure,
+    MeasureValueFormat,
+    TimeGranularity,
 } from '@qualification-work/types';
 
 import type { ChartCompilationContext } from '@/core/ports/driven/repos';
@@ -12,8 +14,11 @@ export type ColumnMeta = ChartCompilationContext['columns'][number];
 // Describes a column SQL expression: the full expression for SELECT/GROUP BY and its result type.
 export type ColumnExpr = {
     sql: string; // full expression for SELECT/GROUP BY
-    resultType: 'number' | 'string' | 'date';
+    resultType: 'number' | 'string' | 'date' | 'day_of_week';
     columnKey: string;
+    sortExpressions: string[];
+    hasCategorySort: boolean;
+    timeGranularity?: TimeGranularity;
 };
 
 // —————————————————————————————————— helpers ——————————————————————————————————————
@@ -41,6 +46,35 @@ const dateColExpr = (k: string) =>
     ` THEN to_timestamp(NULLIF(data->>${k}, ''), 'DD.MM.YYYY')` +
     ` ELSE NULLIF(data->>${k}, '')::timestamptz END`;
 
+const dayOfWeekOrderExpr = (valueSql: string) => {
+    const normalized = `regexp_replace(lower(btrim(${valueSql})), '\\.$', '')`;
+
+    return (
+        `CASE ${normalized}` +
+        ` WHEN 'monday' THEN 1 WHEN 'mon' THEN 1` +
+        ` WHEN 'понедельник' THEN 1 WHEN 'пн' THEN 1` +
+        ` WHEN 'tuesday' THEN 2 WHEN 'tue' THEN 2 WHEN 'tues' THEN 2` +
+        ` WHEN 'вторник' THEN 2 WHEN 'вт' THEN 2` +
+        ` WHEN 'wednesday' THEN 3 WHEN 'wed' THEN 3` +
+        ` WHEN 'среда' THEN 3 WHEN 'ср' THEN 3` +
+        ` WHEN 'thursday' THEN 4 WHEN 'thu' THEN 4` +
+        ` WHEN 'thur' THEN 4 WHEN 'thurs' THEN 4` +
+        ` WHEN 'четверг' THEN 4 WHEN 'чт' THEN 4` +
+        ` WHEN 'friday' THEN 5 WHEN 'fri' THEN 5` +
+        ` WHEN 'пятница' THEN 5 WHEN 'пт' THEN 5` +
+        ` WHEN 'saturday' THEN 6 WHEN 'sat' THEN 6` +
+        ` WHEN 'суббота' THEN 6 WHEN 'сб' THEN 6` +
+        ` WHEN 'sunday' THEN 7 WHEN 'sun' THEN 7` +
+        ` WHEN 'воскресенье' THEN 7 WHEN 'вс' THEN 7` +
+        ` ELSE NULL END`
+    );
+};
+
+const categoricalSortExpressions = (valueSql: string) => [
+    dayOfWeekOrderExpr(valueSql),
+    `lower(btrim(${valueSql}))`,
+];
+
 const colTypeExprs: Record<
     string,
     { sql: (k: string) => string; resultType: ColumnExpr['resultType'] }
@@ -49,6 +83,30 @@ const colTypeExprs: Record<
     date: { sql: dateColExpr, resultType: 'date' },
     bool: { sql: k => `NULLIF(data->>${k}, '')::boolean::text`, resultType: 'string' },
     string: { sql: k => `data->>${k}`, resultType: 'string' },
+    day_of_week: { sql: k => `data->>${k}`, resultType: 'day_of_week' },
+};
+
+const makeColumnExpr = ({
+    sql,
+    resultType,
+    columnKey,
+    timeGranularity,
+}: {
+    sql: string;
+    resultType: ColumnExpr['resultType'];
+    columnKey: string;
+    timeGranularity?: TimeGranularity;
+}): ColumnExpr => {
+    const hasCategorySort = resultType === 'string' || resultType === 'day_of_week';
+
+    return {
+        sql,
+        resultType,
+        columnKey,
+        sortExpressions: hasCategorySort ? categoricalSortExpressions(sql) : [sql],
+        hasCategorySort,
+        timeGranularity,
+    };
 };
 
 /**
@@ -69,7 +127,12 @@ export function columnExpr(
     if (grouping?.kind === 'time') {
         const sql = `date_trunc('${grouping.granularity}', ${dateColExpr(safeKey)})`;
 
-        return { sql, resultType: 'date', columnKey: key };
+        return makeColumnExpr({
+            sql,
+            resultType: 'date',
+            columnKey: key,
+            timeGranularity: grouping.granularity,
+        });
     }
 
     if (grouping?.kind === 'numeric') {
@@ -79,12 +142,16 @@ export function columnExpr(
         }
         const sql = `floor(NULLIF(data->>${safeKey}, '')::numeric / ${step}) * ${step}`;
 
-        return { sql, resultType: 'number', columnKey: key };
+        return makeColumnExpr({ sql, resultType: 'number', columnKey: key });
     }
 
     const expr = colTypeExprs[col.dataType] ?? colTypeExprs.string;
 
-    return { sql: expr.sql(safeKey), resultType: expr.resultType, columnKey: key };
+    return makeColumnExpr({
+        sql: expr.sql(safeKey),
+        resultType: expr.resultType,
+        columnKey: key,
+    });
 }
 
 const aggFns: Record<string, (e: string) => string> = {
@@ -99,9 +166,9 @@ export function measureExpr(
     m: Measure,
     columnsById: Map<string, ColumnMeta>,
     alias: string
-): { sql: string; alias: string } {
+): { sql: string; alias: string; valueFormat?: MeasureValueFormat } {
     if (m.aggregate === 'count') {
-        return { sql: `count(*)::numeric`, alias };
+        return { sql: `count(*)::numeric`, alias, valueFormat: m.valueFormat };
     }
 
     if (!m.columnId) {
@@ -109,15 +176,16 @@ export function measureExpr(
     }
     const col = getColumn(columnsById, m.columnId);
     // count_distinct works on any type - don't cast the column expression
-    const valueExpr = m.aggregate === 'count_distinct'
-        ? `NULLIF(data->>${sqlString(col.key)}, '')`
-        : `NULLIF(data->>${sqlString(col.key)}, '')::numeric`;
+    const valueExpr =
+        m.aggregate === 'count_distinct'
+            ? `NULLIF(data->>${sqlString(col.key)}, '')`
+            : `NULLIF(data->>${sqlString(col.key)}, '')::numeric`;
     const fn = aggFns[m.aggregate];
     if (!fn) {
         throw new Error(`Unsupported aggregate: ${m.aggregate}`);
     }
 
-    return { sql: fn(valueExpr), alias };
+    return { sql: fn(valueExpr), alias, valueFormat: m.valueFormat };
 }
 
 export function buildWhere(
@@ -185,6 +253,7 @@ const castedSql: Record<string, (k: string) => string> = {
     date: dateColExpr,
     bool: k => `NULLIF(data->>${k}, '')::boolean`,
     string: k => `data->>${k}`,
+    day_of_week: k => `data->>${k}`,
 };
 
 function castedValueExpr(col: ColumnMeta): string {
@@ -217,6 +286,13 @@ export function buildOrderBy(
     series: ColumnExpr | null,
     measures: Array<{ alias: string }>
 ): string {
+    if (dim.hasCategorySort || series?.hasCategorySort) {
+        return buildSortOrderBy([
+            { expr: dim, prefix: 'dim' },
+            ...(series ? [{ expr: series, prefix: 'series' }] : []),
+        ]);
+    }
+
     if (!orderBy) {
         return measures[0] ? `${measures[0].alias} DESC NULLS LAST` : 'dim';
     }
@@ -235,6 +311,26 @@ export function buildOrderBy(
     const target = orderBy.index === 1 && series ? 'series' : 'dim';
 
     return `${target} ${dir}`;
+}
+
+export function buildSortSelects(expr: ColumnExpr, prefix: string): string[] {
+    return expr.sortExpressions.map((sql, index) => `${sql} AS ${prefix}_sort_${index}`);
+}
+
+export function buildSortGroupBy(prefix: string, expr: ColumnExpr): string[] {
+    return expr.sortExpressions.map((_, index) => `${prefix}_sort_${index}`);
+}
+
+export function buildSortOrderBy(
+    items: Array<{ expr: ColumnExpr; prefix: string }>
+): string {
+    return items
+        .flatMap(({ expr, prefix }) =>
+            expr.sortExpressions.map(
+                (_, index) => `${prefix}_sort_${index} ASC NULLS LAST`
+            )
+        )
+        .join(', ');
 }
 
 function pushParam(params: unknown[], value: unknown): number {
@@ -272,7 +368,7 @@ export function mergeFilters(
 
 export function coerce(
     value: unknown,
-    type: 'number' | 'string' | 'date'
+    type: 'number' | 'string' | 'date' | 'day_of_week'
 ): string | number | null {
     if (value === null || value === undefined) {
         return null;

@@ -12,7 +12,7 @@ export type DatasetColumn = {
     datasetId: string;
     key: string;
     displayName: string;
-    dataType: 'number' | 'string' | 'date' | 'bool';
+    dataType: 'number' | 'string' | 'date' | 'bool' | 'day_of_week';
     orderIndex: number;
 };
 

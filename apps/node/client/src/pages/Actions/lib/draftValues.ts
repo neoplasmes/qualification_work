@@ -1,5 +1,7 @@
 import type { ActionEffect, ActionParameterType } from '@/entities/action';
 
+import { isDayOfWeekValue } from '@/shared/lib/dayOfWeek';
+
 import type { ActionValueMappingDraft } from '../model';
 
 export const labelToKey = (label: string): string =>
@@ -39,6 +41,10 @@ export const parseDraftValue = (type: ActionParameterType, value: string): unkno
 
     if (type === 'bool') {
         return trimmed === 'true';
+    }
+
+    if (type === 'day_of_week' && !isDayOfWeekValue(trimmed)) {
+        throw new Error(`Default value for ${type} parameter must be a weekday.`);
     }
 
     return trimmed;

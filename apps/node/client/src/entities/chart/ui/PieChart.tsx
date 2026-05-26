@@ -113,8 +113,16 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
                         fontSize: 12,
                     }}
                 >
-                    <strong>{tooltipData.label}</strong>:{' '}
-                    {formatChartCell(tooltipData.value)} ({tooltipData.pct}%)
+                    <strong>
+                        {formatChartCell(tooltipData.label, {
+                            timeGranularity: tooltipData.labelTimeGranularity,
+                        })}
+                    </strong>
+                    :{' '}
+                    {formatChartCell(tooltipData.value, {
+                        valueFormat: tooltipData.valueFormat,
+                    })}{' '}
+                    ({tooltipData.pct}%)
                 </TooltipWithBounds>
             )}
         </div>

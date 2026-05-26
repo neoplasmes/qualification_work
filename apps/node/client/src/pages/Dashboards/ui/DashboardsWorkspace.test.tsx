@@ -60,7 +60,16 @@ const dataset = vi.hoisted(
                 createdAt: '2026-01-01T00:00:00.000Z',
                 updatedAt: '2026-01-01T00:00:00.000Z',
             },
-            columns: [],
+            columns: [
+                {
+                    id: 'column-score',
+                    datasetId: 'dataset-1',
+                    key: 'score',
+                    displayName: 'Score',
+                    dataType: 'number',
+                    orderIndex: 0,
+                },
+            ],
             totalRows: 3,
         }) satisfies DatasetMetadata
 );
@@ -213,10 +222,6 @@ describe('DashboardsWorkspace', () => {
         await user.type(
             getByDataTestId(container, dashboardsTestIds.metricNameInput),
             'Average'
-        );
-        await user.type(
-            getByDataTestId(container, dashboardsTestIds.metricExpressionInput),
-            'avg(score)'
         );
         await user.selectOptions(
             getByDataTestId(container, dashboardsTestIds.metricFormatSelect),

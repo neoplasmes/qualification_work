@@ -38,6 +38,8 @@ export type Aggregate =
     | 'count'           // COUNT(*)
     | 'count_distinct'; // COUNT(DISTINCT column)
 
+export type MeasureValueFormat = 'number' | 'rub' | 'usd' | 'percent';
+
 /**
  * A single aggregated value displayed on the chart
  */
@@ -51,6 +53,10 @@ export type Measure = {
      * optional label for this measure to display
      */
     alias?: string;
+    /**
+     * display format for this measure
+     */
+    valueFormat?: MeasureValueFormat;
 };
 
 /**
@@ -155,7 +161,9 @@ export type ChartConfig =
 export type ChartResultColumn = {
     name: string;
     role: 'dim' | 'series' | 'measure';
-    type: 'number' | 'string' | 'date';
+    type: 'number' | 'string' | 'date' | 'day_of_week';
+    timeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
 };
 
 /**

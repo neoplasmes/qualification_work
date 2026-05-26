@@ -77,6 +77,10 @@
         color: var(--color-outline);
         background-color: var(--color-surface-container-low);
     }
+
+    svg {
+        stroke-width: var(--icon-stroke-width, 2);
+    }
 }
 
 .size-sm.icon {
@@ -109,6 +113,24 @@
     &:focus-visible {
         border-color: var(--color-outline-new);
         background-color: var(--color-surface-container);
+    }
+}
+
+.plain {
+    border-color: transparent;
+    color: rgb(255 255 255 / 54%);
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        border-color: transparent;
+        color: var(--color-on-surface);
+        background-color: transparent;
+    }
+
+    &:disabled {
+        color: rgb(255 255 255 / 24%);
+        background-color: transparent;
     }
 }
 

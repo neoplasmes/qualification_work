@@ -1,5 +1,6 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus } from 'lucide-react';
+import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
@@ -8,6 +9,7 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
+import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { Badge } from '@/shared/ui';
@@ -29,6 +31,7 @@ export const ChartsLeftPanel = () => {
 
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
+    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
     const selectedChartId = useSelector(selectSelectedChartId);
     const filterDatasetIds = useSelector(selectFilterDatasetIds);
@@ -40,6 +43,14 @@ export const ChartsLeftPanel = () => {
         datasetIds: filterDatasetIds,
         dashboardIds: filterDashboardIds,
     });
+    const datasetNameById = useMemo(
+        () =>
+            new Map(
+                datasetsQuery.data?.map(item => [item.dataset.id, item.dataset.name]) ??
+                    []
+            ),
+        [datasetsQuery.data]
+    );
 
     return (
         <WorkspaceLeftPanel
@@ -64,7 +75,10 @@ export const ChartsLeftPanel = () => {
                     selected={selectedChartId === chart.id}
                     testId={chartsTestIds.chartListItem}
                     title={chart.name}
-                    meta={[formatDate(chart.createdAt), chart.datasetId.slice(0, 8)]}
+                    meta={[
+                        formatDate(chart.createdAt),
+                        datasetNameById.get(chart.datasetId) ?? 'Unknown dataset',
+                    ]}
                     badge={<Badge>{chart.chartType}</Badge>}
                     onClick={() => dispatch(selectChart(chart.id))}
                 />

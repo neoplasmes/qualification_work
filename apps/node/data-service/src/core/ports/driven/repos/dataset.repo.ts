@@ -102,13 +102,21 @@ export interface DatasetRepo {
     ): Promise<DatasetRow | null>;
 
     /**
-     * appends one row with next available row_index. uses row-level lock to avoid race
+     * appends one row with next available row_index, or inserts below afterRowId.
+     * uses row-level lock to avoid race
      *
      * @param datasetId
      * @param data
+     * @param afterRowId
      * @returns
      */
-    insertRow(datasetId: string, data: Record<string, unknown>): Promise<DatasetRow>;
+    insertRow(
+        datasetId: string,
+        data: Record<string, unknown>,
+        afterRowId?: string
+    ): Promise<DatasetRow | null>;
+
+    deleteRow(datasetId: string, rowId: string): Promise<DatasetRow | null>;
 
     /**
      * adds new columns to existing dataset, skipping ones whose key already exists

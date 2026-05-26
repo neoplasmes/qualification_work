@@ -16,7 +16,7 @@ const valuesSchema = z.record(z.string().min(1).max(255), valueSourceSchema);
 const parameterSchema = z.object({
     key: z.string().min(1).max(255),
     label: z.string().min(1).max(255),
-    type: z.enum(['string', 'number', 'date', 'bool']),
+    type: z.enum(['string', 'number', 'date', 'bool', 'day_of_week']),
     required: z.boolean().optional(),
     defaultValue: z.unknown().optional(),
 });
@@ -42,20 +42,24 @@ export const actionDefinitionSchema = z.object({
     name: z.string().min(1).max(255),
     description: z.string().max(2000).nullable().optional(),
     parameters: z.array(parameterSchema).max(50),
-    effects: z.array(z.discriminatedUnion('kind', [
-        insertRowEffectSchema,
-        updateRowsByMatchEffectSchema,
-    ])).min(1).max(20),
+    effects: z
+        .array(
+            z.discriminatedUnion('kind', [
+                insertRowEffectSchema,
+                updateRowsByMatchEffectSchema,
+            ])
+        )
+        .min(1)
+        .max(20),
 });
 
 export const createActionSchema = actionDefinitionSchema.extend({
     orgId: z.uuid(),
 });
 
-export const patchActionSchema = actionDefinitionSchema.partial().refine(
-    value => Object.keys(value).length > 0,
-    { message: 'patch body is empty' }
-);
+export const patchActionSchema = actionDefinitionSchema
+    .partial()
+    .refine(value => Object.keys(value).length > 0, { message: 'patch body is empty' });
 
 export const executeActionSchema = z.object({
     parameters: z.record(z.string(), z.unknown()).default({}),

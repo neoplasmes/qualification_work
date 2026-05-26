@@ -4,23 +4,25 @@ import type {
     CancelMergeCommand,
     CommitMergeCommand,
     DeleteDatasetCommand,
+    DeleteRowCommand,
     InsertRowCommand,
     PreviewMergeCommand,
     UpdateRowValuesCommand,
     UploadDatasetCommand,
 } from '@/core/commands';
+import type { TmpFileStorageTool } from '@/core/ports/driven/tools';
 import type {
     GetDatasetMetadataByDatasetIdQuery,
     GetDatasetRowsQuery,
     GetDatasetsMetadataByOrgIdQuery,
 } from '@/core/queries';
-import type { TmpFileStorageTool } from '@/core/ports/driven/tools';
 
 import type { MultipartParserTool } from '@/adapters/driven/tools/_multipartParser';
 
 import type { AppState } from '@/shared/appState';
 
 import { createDeleteDatasetHandler } from './delete.handler';
+import { createDeleteRowHandler } from './deleteRow.handler';
 import { createGetDatasetMetadataByDatasetIdHandler } from './getByDatasetId.handler';
 import { createGetDatasetsMetadataByOrgIdHandler } from './getByOrgId.handler';
 import { createGetDatasetRowsHandler } from './getRows.handler';
@@ -40,6 +42,7 @@ export type DatasetRouterDeps = {
     getDatasetRowsHandler: GetDatasetRowsQuery;
     uploadDatasetHandler: UploadDatasetCommand;
     deleteDatasetHandler: DeleteDatasetCommand;
+    deleteRowHandler: DeleteRowCommand;
     updateRowHandler: UpdateRowValuesCommand;
     insertRowHandler: InsertRowCommand;
     previewMergeHandler: PreviewMergeCommand;
@@ -70,6 +73,7 @@ export function createDatasetRouter(deps: DatasetRouterDeps): Router<AppState> {
 
     router.post('/:id/rows', createInsertRowHandler(deps.insertRowHandler));
     router.patch('/:id/rows/:rowId', createUpdateRowHandler(deps.updateRowHandler));
+    router.delete('/:id/rows/:rowId', createDeleteRowHandler(deps.deleteRowHandler));
 
     router.post(
         '/merge/preview',
@@ -84,10 +88,7 @@ export function createDatasetRouter(deps: DatasetRouterDeps): Router<AppState> {
         '/merge/:sessionId/commit',
         createMergeCommitHandler(deps.commitMergeHandler)
     );
-    router.delete(
-        '/merge/:sessionId',
-        createMergeCancelHandler(deps.cancelMergeHandler)
-    );
+    router.delete('/merge/:sessionId', createMergeCancelHandler(deps.cancelMergeHandler));
 
     return router;
 }

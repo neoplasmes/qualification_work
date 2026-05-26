@@ -4,6 +4,8 @@ export type Aggregate = 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinc
 
 export type TimeGranularity = 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
 
+export type MeasureValueFormat = 'number' | 'rub' | 'usd' | 'percent';
+
 export type AxisGrouping =
     | { kind: 'time'; granularity: TimeGranularity }
     | { kind: 'numeric'; step: number }

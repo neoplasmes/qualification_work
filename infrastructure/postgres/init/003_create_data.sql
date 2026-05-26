@@ -10,6 +10,11 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
+DO $$ BEGIN
+    ALTER TYPE data.column_data_type ADD VALUE IF NOT EXISTS 'day_of_week';
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
+
 -- Просто связующая таблица, данных в которых по сути нет
 CREATE TABLE IF NOT EXISTS data.datasets (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),

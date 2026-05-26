@@ -49,4 +49,34 @@ describe('ChartResult', () => {
 
         expect(screen.getByText('No plottable values for this chart.')).toBeVisible();
     });
+
+    it('formats table cells with result column metadata', () => {
+        render(
+            <ChartResult
+                ariaLabel="Formatted result"
+                kind="bar"
+                data={{
+                    columns: [
+                        {
+                            name: 'dim',
+                            role: 'dim',
+                            type: 'date',
+                            timeGranularity: 'month',
+                        },
+                        {
+                            name: 'm0',
+                            role: 'measure',
+                            type: 'number',
+                            valueFormat: 'rub',
+                        },
+                    ],
+                    rows: [['2026-05-01T00:00:00.000Z', 1500000]],
+                    truncated: false,
+                }}
+            />
+        );
+
+        expect(screen.getByRole('cell', { name: '05.2026' })).toBeVisible();
+        expect(screen.getByRole('cell', { name: '1500000 ₽' })).toBeVisible();
+    });
 });

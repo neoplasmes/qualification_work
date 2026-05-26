@@ -1,4 +1,5 @@
 import { ListFilter, ScrollText, Settings2, type LucideIcon } from 'lucide-react';
+import { m } from 'motion/react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import styles from './WorkspaceRightPanel.module.scss';
@@ -54,22 +55,31 @@ export const WorkspaceRightPanel = <T extends WorkspaceRightPanelTabKind>({
         >
             {activeTabs.map(tab => {
                 const { Icon, label } = TAB_META[tab];
+                const active = activeTab === tab;
 
                 return (
-                    <button
-                        key={tab}
-                        type="button"
-                        role="tab"
-                        aria-selected={activeTab === tab}
-                        data-test-id={tabTestIds?.[tab]}
-                        className={`${styles['tab']} ${
-                            activeTab === tab ? styles['active'] : ''
-                        }`}
-                        onClick={() => onTabChange(tab)}
-                    >
-                        <Icon size={15} />
-                        {label}
-                    </button>
+                    <div key={tab} className={styles['tab-wrapper']}>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={active}
+                            data-test-id={tabTestIds?.[tab]}
+                            className={`${styles['tab']} ${
+                                active ? styles['active'] : ''
+                            }`}
+                            onClick={() => onTabChange(tab)}
+                        >
+                            <Icon size={15} />
+                            {label}
+                        </button>
+                        {active ? (
+                            <m.div
+                                className={styles['active-tab']}
+                                layoutId="workspace-right-panel-active-tab"
+                                transition={{ duration: 0.3 }}
+                            />
+                        ) : null}
+                    </div>
                 );
             })}
         </div>

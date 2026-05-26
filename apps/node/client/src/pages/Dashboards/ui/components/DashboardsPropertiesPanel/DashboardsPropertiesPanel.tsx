@@ -5,7 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
-import { useDeleteDashboardMutation, useListDashboardsQuery } from '@/entities/dashboard';
+import {
+    useDeleteDashboardMutation,
+    useGetDashboardQuery,
+    useListDashboardsQuery,
+} from '@/entities/dashboard';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -26,11 +30,18 @@ export const DashboardsPropertiesPanel = () => {
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const [deleteDashboard, deleteDashboardState] = useDeleteDashboardMutation();
     const selectedDashboardId = useSelector(selectSelectedDashboardId);
+    const dashboardQuery = useGetDashboardQuery(selectedDashboardId ?? skipToken, {
+        refetchOnMountOrArgChange: true,
+    });
 
-    const selectedDashboard = useMemo(
+    const selectedListDashboard = useMemo(
         () => getSelected(dashboardsQuery.data, selectedDashboardId),
         [dashboardsQuery.data, selectedDashboardId]
     );
+    const selectedDashboard = dashboardQuery.data ?? selectedListDashboard;
+    const widgetsCount = dashboardQuery.data
+        ? dashboardQuery.data.items.length
+        : 'Loading...';
 
     const handleDelete = async () => {
         if (!selectedDashboard) {
@@ -72,7 +83,7 @@ export const DashboardsPropertiesPanel = () => {
                 aria-label="Dashboard properties"
                 headers={{ key: 'Property', value: 'Value' }}
                 rows={[
-                    { key: 'Widgets', value: selectedDashboard.items?.length ?? 0 },
+                    { key: 'Widgets', value: widgetsCount },
                     { key: 'Created', value: formatDate(selectedDashboard.createdAt) },
                     { key: 'Updated', value: formatDate(selectedDashboard.updatedAt) },
                 ]}

@@ -1,4 +1,5 @@
-import { ArrowDown, ArrowUp, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { useMemo } from 'react';
 
 import type { Chart } from '@/entities/chart';
 import type { DashboardItem } from '@/entities/dashboard';
@@ -6,8 +7,10 @@ import type { DashboardItem } from '@/entities/dashboard';
 import { Card, EmptyState, IconButton } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
+import { splitDashboardItems } from '../../../lib';
 
 import { DashboardChartCard } from '../DashboardChartCard';
+import { formatMetricValue } from './lib';
 
 import styles from './DashboardWidgets.module.scss';
 
@@ -27,43 +30,58 @@ export const DashboardWidgets = ({
     removing,
     onMoveItem,
     onRemoveItem,
-}: DashboardWidgetsProps) => (
-    <div
-        className={styles['grid']}
-        data-test-id={dashboardsTestIds.widgetList}
-        aria-label="Dashboard widgets"
-    >
-        {items.length === 0 && (
-            <EmptyState>Add a saved chart to this dashboard.</EmptyState>
-        )}
-        {items.map((item, index) =>
-            item.kind === 'chart' ? (
-                <ChartWidget
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    itemsCount={items.length}
-                    chart={chartsById.get(item.chartId)}
-                    reorderLoading={reorderLoading}
-                    removing={removing}
-                    onMoveItem={onMoveItem}
-                    onRemoveItem={onRemoveItem}
-                />
-            ) : (
-                <MetricWidget
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    itemsCount={items.length}
-                    reorderLoading={reorderLoading}
-                    removing={removing}
-                    onMoveItem={onMoveItem}
-                    onRemoveItem={onRemoveItem}
-                />
-            )
-        )}
-    </div>
-);
+}: DashboardWidgetsProps) => {
+    const { metricItems, chartItems } = useMemo(
+        () => splitDashboardItems(items),
+        [items]
+    );
+
+    return (
+        <div
+            className={styles['grid']}
+            data-test-id={dashboardsTestIds.widgetList}
+            aria-label="Dashboard widgets"
+        >
+            {items.length === 0 && (
+                <EmptyState>Add a saved chart to this dashboard.</EmptyState>
+            )}
+
+            {metricItems.length > 0 && (
+                <div className={styles['metrics']}>
+                    <h3 className={styles['metrics-title']}>Metrics</h3>
+                    <div className={styles['metrics-list']}>
+                        {metricItems.map(item => (
+                            <MetricWidget
+                                key={item.id}
+                                item={item}
+                                removing={removing}
+                                onRemoveItem={onRemoveItem}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {chartItems.length > 0 && (
+                <div className={styles['charts']}>
+                    {chartItems.map((item, index) => (
+                        <ChartWidget
+                            key={item.id}
+                            item={item}
+                            index={index}
+                            itemsCount={chartItems.length}
+                            chart={chartsById.get(item.chartId)}
+                            reorderLoading={reorderLoading}
+                            removing={removing}
+                            onMoveItem={onMoveItem}
+                            onRemoveItem={onRemoveItem}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 type WidgetCommonProps = {
     index: number;
@@ -102,83 +120,31 @@ const ChartWidget = ({
     />
 );
 
-type MetricWidgetProps = WidgetCommonProps & {
+type MetricWidgetProps = {
     item: Extract<DashboardItem, { kind: 'metric' }>;
+    removing: boolean;
+    onRemoveItem: (itemId: string) => void;
 };
 
-const MetricWidget = ({
-    item,
-    index,
-    itemsCount,
-    reorderLoading,
-    removing,
-    onMoveItem,
-    onRemoveItem,
-}: MetricWidgetProps) => (
+const MetricWidget = ({ item, removing, onRemoveItem }: MetricWidgetProps) => (
     <Card
         as="article"
-        className={styles['dashboard-card']}
+        className={styles['metric-card']}
         data-test-id={dashboardsTestIds.metricWidget}
     >
-        <div className={styles['card-header']}>
-            <div data-stack="v" data-gap="xs">
-                <h3>{item.name}</h3>
-                <p>
-                    {item.expression} · {item.format}
-                </p>
-            </div>
-            <div data-stack="h" data-gap="xs">
-                <MoveActions
-                    label={item.name}
-                    itemId={item.id}
-                    index={index}
-                    itemsCount={itemsCount}
-                    disabled={reorderLoading}
-                    onMoveItem={onMoveItem}
-                />
-                <IconButton
-                    aria-label={`Remove ${item.name}`}
-                    disabled={removing}
-                    onClick={() => onRemoveItem(item.id)}
-                >
-                    <X size={17} />
-                </IconButton>
-            </div>
-        </div>
+        <h3 className={styles['metric-title']}>{item.name}</h3>
+        <strong className={styles['metric-value']}>
+            {formatMetricValue(item.value, item.format)}
+        </strong>
+        <IconButton
+            tone="plain"
+            iconStrokeWidth={2.6}
+            className={styles['metric-remove']}
+            aria-label={`Remove ${item.name}`}
+            disabled={removing}
+            onClick={() => onRemoveItem(item.id)}
+        >
+            <X size={14} />
+        </IconButton>
     </Card>
-);
-
-type MoveActionsProps = {
-    label: string;
-    itemId: string;
-    index: number;
-    itemsCount: number;
-    disabled: boolean;
-    onMoveItem: (itemId: string, direction: -1 | 1) => void;
-};
-
-const MoveActions = ({
-    label,
-    itemId,
-    index,
-    itemsCount,
-    disabled,
-    onMoveItem,
-}: MoveActionsProps) => (
-    <div className={styles['widget-actions']}>
-        <IconButton
-            aria-label={`Move ${label} up`}
-            disabled={index === 0 || disabled}
-            onClick={() => onMoveItem(itemId, -1)}
-        >
-            <ArrowUp size={17} />
-        </IconButton>
-        <IconButton
-            aria-label={`Move ${label} down`}
-            disabled={index === itemsCount - 1 || disabled}
-            onClick={() => onMoveItem(itemId, 1)}
-        >
-            <ArrowDown size={17} />
-        </IconButton>
-    </div>
 );

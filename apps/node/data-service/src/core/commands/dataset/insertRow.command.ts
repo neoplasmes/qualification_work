@@ -8,12 +8,14 @@ import { coerceValueByType } from './helpers';
 export type InsertRowInput = {
     orgId: string;
     datasetId: string;
+    afterRowId?: string;
     data: Record<string, unknown>;
 };
 
-export class InsertRowCommand
-    implements Executable<[InsertRowInput], Promise<DatasetRow>>
-{
+export class InsertRowCommand implements Executable<
+    [InsertRowInput],
+    Promise<DatasetRow>
+> {
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
     async execute(input: InsertRowInput): Promise<DatasetRow> {
@@ -49,7 +51,17 @@ export class InsertRowCommand
             }
         }
 
-        return this.datasetRepo.insertRow(input.datasetId, coerced);
+        const inserted = await this.datasetRepo.insertRow(
+            input.datasetId,
+            coerced,
+            input.afterRowId
+        );
+
+        if (!inserted) {
+            throw new NotFoundError('row not found');
+        }
+
+        return inserted;
     }
 }
 

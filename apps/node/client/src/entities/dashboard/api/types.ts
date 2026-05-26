@@ -19,6 +19,7 @@ export type DashboardMetricItem = {
     name: string;
     expression: string;
     format: 'currency' | 'percent' | 'number';
+    value?: number | null;
     layout: DashboardItemLayout;
 };
 

@@ -2,6 +2,7 @@ import { lazy, type ReactNode } from 'react';
 
 import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
 
+import type { ChartResultColumn } from '../api';
 import type { ChartKind } from '../lib/chartKind';
 import { formatChartCell } from '../lib/formatChartCell';
 import {
@@ -26,15 +27,13 @@ const LazyPieChart = lazy(() =>
     import('./PieChart').then(module => ({ default: module.PieChart }))
 );
 
-type ChartResultColumn = { name: string; role?: 'dim' | 'series' | 'measure' };
-
 type ChartResultData = {
-    columns: ChartResultColumn[];
+    columns: Array<Partial<ChartResultColumn> & Pick<ChartResultColumn, 'name'>>;
     rows: Array<Array<string | number | null>>;
     truncated: boolean;
 };
 
-const colDisplayName = (col: ChartResultColumn): string => {
+const colDisplayName = (col: ChartResultData['columns'][number]): string => {
     if (col.role === 'dim') {
         return 'Category';
     }
@@ -62,12 +61,15 @@ type ChartResultProps = {
     kind?: ChartKind;
     barsLimit?: number;
     hideTable?: boolean;
+    frameless?: boolean;
     children?: ReactNode;
 };
 
 type CartesianChartProps = {
     series: ChartSeries[];
     labels: string[];
+    labelTimeGranularity?: ChartResultColumn['timeGranularity'];
+    valueFormat?: ChartResultColumn['valueFormat'];
 };
 
 type PieChartProps = {
@@ -78,6 +80,11 @@ type HeatmapChartProps = {
     data: HeatmapCell[];
 };
 
+const getFirstColumnByRole = (
+    columns: ChartResultData['columns'],
+    role: ChartResultColumn['role']
+) => columns.find(column => column.role === role);
+
 const chartFallback = <div className={styles['chart-loading']}>Loading chart...</div>;
 
 export const ChartResult = ({
@@ -86,10 +93,14 @@ export const ChartResult = ({
     kind,
     barsLimit = 10,
     hideTable = false,
+    frameless = false,
     children,
 }: ChartResultProps) => {
     const activeKind = kind ?? 'bar';
     const chart = parseChartResult(data, activeKind, barsLimit);
+    const xColumn = data.columns[0];
+    const yColumn = data.columns[1];
+    const measureColumn = getFirstColumnByRole(data.columns, 'measure');
     const heatmapRows = data.rows.filter(
         row => typeof row[2] === 'number' && Number.isFinite(row[2])
     );
@@ -97,6 +108,11 @@ export const ChartResult = ({
         x: String(row[0] ?? ''),
         y: String(row[1] ?? ''),
         value: row[2] as number,
+        xType: xColumn?.type,
+        yType: yColumn?.type,
+        xTimeGranularity: xColumn?.timeGranularity,
+        yTimeGranularity: yColumn?.timeGranularity,
+        valueFormat: measureColumn?.valueFormat,
     }));
     const heatmapWarnings =
         activeKind === 'heatmap' && heatmapRows.length !== data.rows.length
@@ -143,7 +159,12 @@ export const ChartResult = ({
                     <ClientOnlyDeffered<CartesianChartProps>
                         fallback={chartFallback}
                         LazyComponent={LazyLineChart}
-                        componentProps={{ series: chart.series, labels: chart.labels }}
+                        componentProps={{
+                            series: chart.series,
+                            labels: chart.labels,
+                            labelTimeGranularity: chart.labelTimeGranularity,
+                            valueFormat: chart.valueFormat,
+                        }}
                     />
                 );
             case 'pie':
@@ -159,14 +180,22 @@ export const ChartResult = ({
                     <ClientOnlyDeffered<CartesianChartProps>
                         fallback={chartFallback}
                         LazyComponent={LazyBarChart}
-                        componentProps={{ series: chart.series, labels: chart.labels }}
+                        componentProps={{
+                            series: chart.series,
+                            labels: chart.labels,
+                            labelTimeGranularity: chart.labelTimeGranularity,
+                            valueFormat: chart.valueFormat,
+                        }}
                     />
                 );
         }
     };
 
     return (
-        <div className={styles['root']} aria-label={ariaLabel}>
+        <div
+            className={`${styles['root']} ${frameless ? styles['frameless'] : ''}`}
+            aria-label={ariaLabel}
+        >
             <div className={styles['chart-wrap']}>{renderChart()}</div>
 
             {chartWarnings.map(warning => (
@@ -202,7 +231,10 @@ export const ChartResult = ({
                                     <tr key={index}>
                                         {row.map((cell, cellIndex) => (
                                             <td key={cellIndex}>
-                                                {formatChartCell(cell)}
+                                                {formatChartCell(
+                                                    cell,
+                                                    data.columns[cellIndex]
+                                                )}
                                             </td>
                                         ))}
                                     </tr>

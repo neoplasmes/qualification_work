@@ -93,10 +93,7 @@ export const DashboardsLeftPanel = () => {
                     selected={selectedDashboardId === item.id}
                     testId={dashboardsTestIds.dashboardListItem}
                     title={item.name}
-                    meta={[
-                        `${item.items?.length ?? 0} widgets`,
-                        formatDate(item.createdAt),
-                    ]}
+                    meta={[formatDate(item.createdAt)]}
                     icon={<LayoutDashboard size={18} />}
                     onClick={() => dispatch(selectDashboard(item.id))}
                 />

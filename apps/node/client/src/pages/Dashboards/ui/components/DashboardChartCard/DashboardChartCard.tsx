@@ -37,10 +37,11 @@ export const DashboardChartCard = ({
             <div className={styles['card-header']}>
                 <div data-stack="v" data-gap="xs">
                     <h3>{chart?.name ?? `Chart ${item.chartId.slice(0, 8)}`}</h3>
-                    <p>{chart?.chartType ?? 'chart'} widget</p>
                 </div>
                 <div data-stack="h" data-gap="xs">
                     <IconButton
+                        tone="plain"
+                        iconStrokeWidth={2.6}
                         aria-label={`Move ${chart?.name ?? item.chartId} up`}
                         disabled={index === 0 || reorderLoading}
                         onClick={() => onMoveItem(item.id, -1)}
@@ -48,6 +49,8 @@ export const DashboardChartCard = ({
                         <ArrowUp size={17} />
                     </IconButton>
                     <IconButton
+                        tone="plain"
+                        iconStrokeWidth={2.6}
                         aria-label={`Move ${chart?.name ?? item.chartId} down`}
                         disabled={index === itemsCount - 1 || reorderLoading}
                         onClick={() => onMoveItem(item.id, 1)}
@@ -55,6 +58,8 @@ export const DashboardChartCard = ({
                         <ArrowDown size={17} />
                     </IconButton>
                     <IconButton
+                        tone="plain"
+                        iconStrokeWidth={2.6}
                         aria-label={`Remove ${chart?.name ?? item.chartId}`}
                         disabled={removing}
                         onClick={() => onRemove(item.id)}
@@ -75,6 +80,7 @@ export const DashboardChartCard = ({
                     ariaLabel={`${chart?.name ?? item.chartId} dashboard chart`}
                     barsLimit={6}
                     hideTable
+                    frameless
                 />
             )}
         </Card>

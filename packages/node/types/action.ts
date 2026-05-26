@@ -1,4 +1,4 @@
-export type ActionParameterType = 'string' | 'number' | 'date' | 'bool';
+export type ActionParameterType = 'string' | 'number' | 'date' | 'bool' | 'day_of_week';
 
 export type ActionParameter = {
     key: string;

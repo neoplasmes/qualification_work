@@ -1,1 +1,0 @@
-export { DashboardsListPanel } from './DashboardsListPanel';

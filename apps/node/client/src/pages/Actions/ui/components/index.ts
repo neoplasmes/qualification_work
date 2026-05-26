@@ -1,7 +1,6 @@
 export { ActionEditor } from './ActionEditor';
 export { ActionsFilters } from './ActionsFilters';
 export { ActionsHistory } from './ActionsHistory';
-export { ActionsListPanel } from './ActionsListPanel';
 export { ActionsProperties } from './ActionsProperties';
 export { ActionsRightPanel } from './ActionsRightPanel';
 export { ConfigureForm } from './ConfigureForm';

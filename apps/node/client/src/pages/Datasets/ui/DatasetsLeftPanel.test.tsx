@@ -4,14 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 
-import { datasetsTestIds } from '../../../const';
+import { datasetsTestIds } from '../const';
 import {
     datasetsPageSlice,
     selectSelectedDatasetId,
     selectShowUpload,
     toggleChartFilter,
-} from '../../../model';
-
+} from '../model';
 import { DatasetsLeftPanel } from './DatasetsLeftPanel';
 
 vi.mock('@/features/authenticate', () => ({

@@ -4,9 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { dashboardsPageSlice } from '../../../model/dashboardsPageSlice';
-
-import { DashboardsListPanel } from './DashboardsListPanel';
+import { dashboardsPageSlice } from '../model/dashboardsPageSlice';
+import { DashboardsLeftPanel } from './DashboardsLeftPanel';
 
 const createDashboard = vi.fn();
 
@@ -53,11 +52,11 @@ const makeStore = () =>
 const renderPanel = () =>
     render(
         <Provider store={makeStore()}>
-            <DashboardsListPanel />
+            <DashboardsLeftPanel />
         </Provider>
     );
 
-describe('DashboardsListPanel', () => {
+describe('DashboardsLeftPanel', () => {
     beforeEach(() => {
         createDashboard.mockReset();
     });

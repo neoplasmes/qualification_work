@@ -12,9 +12,9 @@ import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
 
 import styles from './WorkspaceLayout.module.scss';
 
-const ActionsListPanel = lazy(() =>
+const ActionsLeftPanel = lazy(() =>
     import('@/pages/Actions').then(module => ({
-        default: module.ActionsListPanel,
+        default: module.ActionsLeftPanel,
     }))
 );
 const ActionsWorkspace = lazy(() =>
@@ -28,9 +28,9 @@ const ActionsRightPanel = lazy(() =>
     }))
 );
 
-const ChartsListPanel = lazy(() =>
+const ChartsLeftPanel = lazy(() =>
     import('@/pages/Charts').then(module => ({
-        default: module.ChartsListPanel,
+        default: module.ChartsLeftPanel,
     }))
 );
 const ChartsWorkspace = lazy(() =>
@@ -60,9 +60,9 @@ const DatasetsRightPanel = lazy(() =>
     }))
 );
 
-const DashboardsListPanel = lazy(() =>
+const DashboardsLeftPanel = lazy(() =>
     import('@/pages/Dashboards').then(module => ({
-        default: module.DashboardsListPanel,
+        default: module.DashboardsLeftPanel,
     }))
 );
 const DashboardsWorkspace = lazy(() =>
@@ -86,12 +86,12 @@ type WorkspaceSlots = {
 
 const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
     '/actions': {
-        Left: ActionsListPanel,
+        Left: ActionsLeftPanel,
         Center: ActionsWorkspace,
         Right: ActionsRightPanel,
     },
     '/charts': {
-        Left: ChartsListPanel,
+        Left: ChartsLeftPanel,
         Center: ChartsWorkspace,
         Right: ChartsWorkspaceRightPanel,
     },
@@ -101,7 +101,7 @@ const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
         Right: DatasetsRightPanel,
     },
     '/dashboards': {
-        Left: DashboardsListPanel,
+        Left: DashboardsLeftPanel,
         Center: DashboardsWorkspace,
         Right: DashboardsWorkspaceRightPanel,
     },

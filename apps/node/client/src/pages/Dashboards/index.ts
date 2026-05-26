@@ -1,6 +1,6 @@
 export {
     DashboardsPage,
-    DashboardsListPanel,
+    DashboardsLeftPanel,
     DashboardsWorkspace,
     DashboardsWorkspaceRightPanel,
     DashboardsFilterPanel,

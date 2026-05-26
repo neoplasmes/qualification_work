@@ -1,5 +1,4 @@
 export { ChartsFilterPanel } from './ChartsFilterPanel';
-export { ChartsListPanel } from './ChartsListPanel';
 export {
     CreateChartBuilderSection,
     EditChartBuilderSection,

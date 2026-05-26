@@ -1,4 +1,4 @@
-export { ActionsListPanel, ActionsPage, ActionsRightPanel, ActionsWorkspace } from './ui';
+export { ActionsLeftPanel, ActionsPage, ActionsRightPanel, ActionsWorkspace } from './ui';
 export {
     actionsPageInitialState,
     actionsPagePersistence,

@@ -1,4 +1,5 @@
 export const actionsTestIds = {
+    listPanel: 'actions-list-panel',
     workspace: 'actions-workspace',
     archiveButton: 'actions-archive-button',
     configureTab: 'actions-configure-tab',

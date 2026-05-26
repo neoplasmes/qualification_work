@@ -1,16 +1,17 @@
-import { AxisBottom, AxisLeft } from '@visx/axis';
-import { localPoint } from '@visx/event';
-import { Group } from '@visx/group';
 import { ParentSize } from '@visx/responsive';
-import { scaleBand, scaleLinear } from '@visx/scale';
-import { Bar } from '@visx/shape';
-import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
+import {
+    Axis,
+    BarGroup,
+    BarSeries,
+    buildChartTheme,
+    Tooltip,
+    XYChart,
+} from '@visx/xychart';
 
 import { formatAxisNumber, formatChartCell } from '../lib/formatChartCell';
-import type { ChartSeries } from '../lib/parseChartData';
+import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
 
 const C = {
-    primary: '#872557',
     muted: '#b0b0b0',
     outline: '#2c2a2b',
     surface: '#1a1a1a',
@@ -22,6 +23,28 @@ const CHART_HEIGHT = 360;
 const MIN_CHART_WIDTH = 180;
 const SERIES_COLORS = ['#872557', '#c85080', '#4a8f8f', '#d09a3a', '#7c6bc4', '#78a95a'];
 
+const chartTheme = buildChartTheme({
+    backgroundColor: C.surface,
+    colors: SERIES_COLORS,
+    gridColor: C.outline,
+    gridColorDark: C.outline,
+    tickLength: 8,
+    svgLabelSmall: {
+        fill: C.muted,
+        fontSize: 11,
+    },
+    htmlLabel: {
+        background: C.surfaceHigh,
+        color: C.onSurface,
+        border: `1px solid ${C.outline}`,
+        fontSize: 12,
+    },
+    xAxisLineStyles: { stroke: C.outline },
+    yAxisLineStyles: { stroke: C.outline },
+    xTickLineStyles: { stroke: C.outline },
+    yTickLineStyles: { stroke: C.outline },
+});
+
 type BarChartInnerProps = {
     series: ChartSeries[];
     labels: string[];
@@ -29,17 +52,16 @@ type BarChartInnerProps = {
     height: number;
 };
 
-const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) => {
-    const {
-        showTooltip,
-        hideTooltip,
-        tooltipData,
-        tooltipLeft,
-        tooltipTop,
-        tooltipOpen,
-    } = useTooltip<{ label: string; series: string; value: number }>();
+type BarTooltipDatum = ChartDataPoint;
 
+const getValues = (series: ChartSeries[]) =>
+    series.flatMap(item => item.points.map(point => point.value)).filter(Number.isFinite);
+
+const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) => {
     const rotateLabels = labels.length > 6;
+    const values = getValues(series);
+    const minValue = values.length ? Math.min(...values, 0) : 0;
+    const maxValue = values.length ? Math.max(...values, 1) : 1;
     const margin = {
         top: 16,
         right: 16,
@@ -47,135 +69,74 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
         left: 64,
     };
 
-    const xMax = width - margin.left - margin.right;
-    const yMax = height - margin.top - margin.bottom;
-
-    const xScale = scaleBand<string>({
-        range: [0, xMax],
-        domain: labels,
-        padding: 0.3,
-    });
-    const seriesNames = series.map(item => item.name);
-    const seriesScale = scaleBand<string>({
-        range: [0, xScale.bandwidth()],
-        domain: seriesNames,
-        padding: 0.12,
-    });
-    const values = series
-        .flatMap(item => item.points.map(point => point.value))
-        .filter(Number.isFinite);
-    const minValue = values.length ? Math.min(...values, 0) : 0;
-    const maxValue = values.length ? Math.max(...values, 1) : 1;
-
-    const yScale = scaleLinear<number>({
-        range: [yMax, 0],
-        domain: [minValue, maxValue],
-        nice: true,
-    });
-    const zeroY = yScale(0);
-
-    const tickLabelProps = () =>
-        ({
-            fill: C.muted,
-            fontSize: 11,
-            textAnchor: rotateLabels ? ('end' as const) : ('middle' as const),
-            angle: rotateLabels ? -45 : 0,
-            dx: rotateLabels ? '-0.25em' : '0',
-            dy: rotateLabels ? '0.25em' : '0.33em',
-        }) as const;
-
     return (
-        <div style={{ position: 'relative' }}>
-            <svg
+        <div data-testid="bar-chart-svg">
+            <XYChart
+                accessibilityLabel="Bar chart"
                 width={width}
                 height={height}
-                role="img"
-                aria-label="Bar chart"
-                data-testid="bar-chart-svg"
+                margin={margin}
+                theme={chartTheme}
+                xScale={{ type: 'band', domain: labels, padding: 0.3 }}
+                yScale={{
+                    type: 'linear',
+                    domain: [minValue, maxValue],
+                    nice: true,
+                    zero: true,
+                }}
             >
-                <Group left={margin.left} top={margin.top}>
-                    <AxisLeft
-                        scale={yScale}
-                        numTicks={5}
-                        tickFormat={v => formatAxisNumber(Number(v))}
-                        tickLabelProps={() => ({
-                            fill: C.muted,
-                            fontSize: 11,
-                            textAnchor: 'end' as const,
-                            dx: '-0.25em',
-                            dy: '0.33em',
-                        })}
-                        tickStroke={C.outline}
-                        stroke={C.outline}
-                    />
-                    <AxisBottom
-                        top={yMax}
-                        scale={xScale}
-                        numTicks={labels.length}
-                        tickFormat={v => formatChartCell(v)}
-                        tickLabelProps={tickLabelProps}
-                        tickStroke={C.outline}
-                        stroke={C.outline}
-                    />
-                    <line x1={0} x2={xMax} y1={zeroY} y2={zeroY} stroke={C.outline} />
-                    {series.map((seriesItem, seriesIndex) =>
-                        seriesItem.points.map(point => {
-                            const groupX = xScale(point.label) ?? 0;
-                            const barX =
-                                series.length > 1
-                                    ? groupX + (seriesScale(seriesItem.name) ?? 0)
-                                    : groupX;
-                            const valueY = yScale(point.value);
-                            const barY = Math.min(valueY, zeroY);
-                            const barWidth =
-                                series.length > 1 ? seriesScale.bandwidth() : xScale.bandwidth();
-                            const barHeight = Math.abs(zeroY - valueY);
+                <Axis
+                    orientation="left"
+                    numTicks={5}
+                    tickFormat={v => formatAxisNumber(Number(v))}
+                />
+                <Axis
+                    orientation="bottom"
+                    numTicks={labels.length}
+                    tickFormat={v => formatChartCell(v)}
+                    tickLabelProps={() => ({
+                        fill: C.muted,
+                        fontSize: 11,
+                        textAnchor: rotateLabels ? 'end' : 'middle',
+                        angle: rotateLabels ? -45 : 0,
+                        dx: rotateLabels ? '-0.25em' : '0',
+                        dy: rotateLabels ? '0.25em' : '0.33em',
+                    })}
+                />
+                <BarGroup padding={0.12}>
+                    {series.map(seriesItem => (
+                        <BarSeries
+                            key={seriesItem.name}
+                            dataKey={seriesItem.name}
+                            data={seriesItem.points}
+                            xAccessor={point => point.label}
+                            yAccessor={point => point.value}
+                            radius={2}
+                            radiusAll
+                        />
+                    ))}
+                </BarGroup>
+                <Tooltip<BarTooltipDatum>
+                    showVerticalCrosshair
+                    snapTooltipToDatumX
+                    style={chartTheme.htmlLabel}
+                    renderTooltip={({ tooltipData }) => {
+                        const nearest = tooltipData?.nearestDatum;
 
-                            return (
-                                <Bar
-                                    key={`${seriesItem.name}:${point.label}`}
-                                    x={barX}
-                                    y={barY}
-                                    width={barWidth}
-                                    height={barHeight}
-                                    fill={SERIES_COLORS[seriesIndex % SERIES_COLORS.length]}
-                                    rx={2}
-                                    onMouseMove={event => {
-                                        const cursorPoint = localPoint(event);
-                                        showTooltip({
-                                            tooltipData: {
-                                                label: point.label,
-                                                series: seriesItem.name,
-                                                value: point.value,
-                                            },
-                                            tooltipLeft: cursorPoint?.x,
-                                            tooltipTop: cursorPoint?.y,
-                                        });
-                                    }}
-                                    onMouseLeave={hideTooltip}
-                                />
-                            );
-                        })
-                    )}
-                </Group>
-            </svg>
-            {tooltipOpen && tooltipData && (
-                <TooltipWithBounds
-                    left={tooltipLeft}
-                    top={tooltipTop}
-                    style={{
-                        ...defaultStyles,
-                        background: C.surfaceHigh,
-                        color: C.onSurface,
-                        border: `1px solid ${C.outline}`,
-                        fontSize: 12,
+                        if (!nearest) {
+                            return null;
+                        }
+
+                        return (
+                            <>
+                                <strong>{formatChartCell(nearest.datum.label)}</strong>
+                                {series.length > 1 ? ` / ${nearest.key}` : ''}:{' '}
+                                {formatChartCell(nearest.datum.value)}
+                            </>
+                        );
                     }}
-                >
-                    <strong>{formatChartCell(tooltipData.label)}</strong>
-                    {series.length > 1 ? ` / ${tooltipData.series}` : ''}:{' '}
-                    {formatChartCell(tooltipData.value)}
-                </TooltipWithBounds>
-            )}
+                />
+            </XYChart>
         </div>
     );
 };

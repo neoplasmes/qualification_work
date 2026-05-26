@@ -30,6 +30,9 @@ import {
 
 import styles from '../../ActionsPage.module.scss';
 
+const EFFECT_KIND_OPTIONS = ['insertRow', 'updateRowsByMatch'] as const;
+const RUN_STATUS_OPTIONS = ['success', 'failed'] as const;
+
 export const ActionsFilters = () => {
     const dispatch = useDispatch();
     const meQuery = useGetMeQuery();
@@ -137,7 +140,7 @@ export const ActionsFilters = () => {
                     >
                         Clear effects
                     </Button>
-                    {(['insertRow', 'updateRowsByMatch'] as const).map(kind => (
+                    {EFFECT_KIND_OPTIONS.map(kind => (
                         <button
                             type="button"
                             data-test-id={actionsTestIds.filterChip}
@@ -166,7 +169,7 @@ export const ActionsFilters = () => {
                     >
                         Clear runs
                     </Button>
-                    {(['success', 'failed'] as const).map(status => (
+                    {RUN_STATUS_OPTIONS.map(status => (
                         <button
                             type="button"
                             data-test-id={actionsTestIds.filterChip}

@@ -1,14 +1,9 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { ScrollText } from 'lucide-react';
-import { useMemo } from 'react';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
-import {
-    useListActionRunsQuery,
-    useListActionsQuery,
-    type Action,
-} from '@/entities/action';
+import { useListActionRunsQuery, type Action } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { IconButton } from '@/shared/ui';
@@ -19,9 +14,13 @@ import styles from '../../ActionsPage.module.scss';
 
 type ActionsHistoryProps = {
     selectedAction: Action | undefined;
+    actionNamesById: Map<string, string>;
 };
 
-export const ActionsHistory = ({ selectedAction }: ActionsHistoryProps) => {
+export const ActionsHistory = ({
+    selectedAction,
+    actionNamesById,
+}: ActionsHistoryProps) => {
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const runsQuery = useListActionRunsQuery(
@@ -35,11 +34,6 @@ export const ActionsHistory = ({ selectedAction }: ActionsHistoryProps) => {
                   }
                 : { kind: 'org', orgId: org.id, limit: 50 }
             : skipToken
-    );
-    const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
-    const actionNames = useMemo(
-        () => new Map((actionsQuery.data ?? []).map(action => [action.id, action.name])),
-        [actionsQuery.data]
     );
 
     return (
@@ -69,7 +63,8 @@ export const ActionsHistory = ({ selectedAction }: ActionsHistoryProps) => {
                         <div className={styles['card-header']}>
                             <div>
                                 <div className={styles['action-name']}>
-                                    {actionNames.get(run.actionId) ?? 'Archived action'}
+                                    {actionNamesById.get(run.actionId) ??
+                                        'Archived action'}
                                 </div>
                                 <div className={styles['meta']}>
                                     <span>{formatDate(run.executedAt)}</span>

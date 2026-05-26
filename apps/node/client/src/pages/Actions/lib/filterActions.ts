@@ -4,14 +4,19 @@ import type { ActionListFilters } from '../model';
 
 export const filterActions = (actions: Action[], filters: ActionListFilters) => {
     const search = filters.searchText.trim().toLowerCase();
-    const actionIdsByRunStatus =
-        filters.runStatuses.length > 0
-            ? new Set(
-                  filters.runs
-                      .filter(run => filters.runStatuses.includes(run.status))
-                      .map(run => run.actionId)
-              )
-            : null;
+    const datasetIdSet =
+        filters.datasetIds.length > 0 ? new Set(filters.datasetIds) : null;
+    const effectKindSet =
+        filters.effectKinds.length > 0 ? new Set(filters.effectKinds) : null;
+    const runStatusSet =
+        filters.runStatuses.length > 0 ? new Set(filters.runStatuses) : null;
+    const actionIdsByRunStatus = runStatusSet
+        ? new Set(
+              filters.runs
+                  .filter(run => runStatusSet.has(run.status))
+                  .map(run => run.actionId)
+          )
+        : null;
 
     return actions.filter(action => {
         if (
@@ -23,15 +28,15 @@ export const filterActions = (actions: Action[], filters: ActionListFilters) => 
         }
 
         if (
-            filters.datasetIds.length > 0 &&
-            !action.effects.some(effect => filters.datasetIds.includes(effect.datasetId))
+            datasetIdSet &&
+            !action.effects.some(effect => datasetIdSet.has(effect.datasetId))
         ) {
             return false;
         }
 
         if (
-            filters.effectKinds.length > 0 &&
-            !action.effects.some(effect => filters.effectKinds.includes(effect.kind))
+            effectKindSet &&
+            !action.effects.some(effect => effectKindSet.has(effect.kind))
         ) {
             return false;
         }

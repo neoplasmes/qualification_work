@@ -1,14 +1,30 @@
-import type { ReactNode } from 'react';
+import { lazy, type ReactNode } from 'react';
+
+import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
 
 import type { ChartKind } from '../lib/chartKind';
 import { formatChartCell } from '../lib/formatChartCell';
-import { parseChartResult } from '../lib/parseChartData';
-import { BarChart } from './BarChart';
-import { HeatmapChart, type HeatmapCell } from './HeatmapChart';
-import { LineChart } from './LineChart';
-import { PieChart } from './PieChart';
+import {
+    parseChartResult,
+    type ChartDataPoint,
+    type ChartSeries,
+} from '../lib/parseChartData';
+import type { HeatmapCell } from './HeatmapChart';
 
 import styles from './ChartResult.module.scss';
+
+const LazyBarChart = lazy(() =>
+    import('./BarChart').then(module => ({ default: module.BarChart }))
+);
+const LazyHeatmapChart = lazy(() =>
+    import('./HeatmapChart').then(module => ({ default: module.HeatmapChart }))
+);
+const LazyLineChart = lazy(() =>
+    import('./LineChart').then(module => ({ default: module.LineChart }))
+);
+const LazyPieChart = lazy(() =>
+    import('./PieChart').then(module => ({ default: module.PieChart }))
+);
 
 type ChartResultColumn = { name: string; role?: 'dim' | 'series' | 'measure' };
 
@@ -49,6 +65,21 @@ type ChartResultProps = {
     children?: ReactNode;
 };
 
+type CartesianChartProps = {
+    series: ChartSeries[];
+    labels: string[];
+};
+
+type PieChartProps = {
+    data: ChartDataPoint[];
+};
+
+type HeatmapChartProps = {
+    data: HeatmapCell[];
+};
+
+const chartFallback = <div className={styles['chart-loading']}>Loading chart...</div>;
+
 export const ChartResult = ({
     data,
     ariaLabel,
@@ -72,10 +103,12 @@ export const ChartResult = ({
             ? ['Rows with non-numeric measure values were omitted.']
             : [];
     const tableWarnings = chart.warnings.filter(w => w.startsWith('Chart preview shows'));
-    const chartWarnings = [...new Set([
-        ...chart.warnings.filter(w => !w.startsWith('Chart preview shows')),
-        ...heatmapWarnings,
-    ])];
+    const chartWarnings = [
+        ...new Set([
+            ...chart.warnings.filter(w => !w.startsWith('Chart preview shows')),
+            ...heatmapWarnings,
+        ]),
+    ];
 
     const renderChart = () => {
         if (activeKind === 'heatmap') {
@@ -87,7 +120,13 @@ export const ChartResult = ({
                 );
             }
 
-            return <HeatmapChart data={heatmapCells} />;
+            return (
+                <ClientOnlyDeffered<HeatmapChartProps>
+                    fallback={chartFallback}
+                    LazyComponent={LazyHeatmapChart}
+                    componentProps={{ data: heatmapCells }}
+                />
+            );
         }
 
         if (chart.points.length === 0) {
@@ -100,11 +139,29 @@ export const ChartResult = ({
 
         switch (activeKind) {
             case 'line':
-                return <LineChart series={chart.series} labels={chart.labels} />;
+                return (
+                    <ClientOnlyDeffered<CartesianChartProps>
+                        fallback={chartFallback}
+                        LazyComponent={LazyLineChart}
+                        componentProps={{ series: chart.series, labels: chart.labels }}
+                    />
+                );
             case 'pie':
-                return <PieChart data={chart.points} />;
+                return (
+                    <ClientOnlyDeffered<PieChartProps>
+                        fallback={chartFallback}
+                        LazyComponent={LazyPieChart}
+                        componentProps={{ data: chart.points }}
+                    />
+                );
             default:
-                return <BarChart series={chart.series} labels={chart.labels} />;
+                return (
+                    <ClientOnlyDeffered<CartesianChartProps>
+                        fallback={chartFallback}
+                        LazyComponent={LazyBarChart}
+                        componentProps={{ series: chart.series, labels: chart.labels }}
+                    />
+                );
         }
     };
 
@@ -121,7 +178,11 @@ export const ChartResult = ({
             {!hideTable && (
                 <>
                     {tableWarnings.map(warning => (
-                        <div key={warning} role="status" className={styles['chart-warning']}>
+                        <div
+                            key={warning}
+                            role="status"
+                            className={styles['chart-warning']}
+                        >
                             {warning}
                         </div>
                     ))}
@@ -130,7 +191,9 @@ export const ChartResult = ({
                             <thead>
                                 <tr>
                                     {data.columns.map(column => (
-                                        <th key={column.name}>{colDisplayName(column)}</th>
+                                        <th key={column.name}>
+                                            {colDisplayName(column)}
+                                        </th>
                                     ))}
                                 </tr>
                             </thead>
@@ -138,7 +201,9 @@ export const ChartResult = ({
                                 {data.rows.map((row, index) => (
                                     <tr key={index}>
                                         {row.map((cell, cellIndex) => (
-                                            <td key={cellIndex}>{formatChartCell(cell)}</td>
+                                            <td key={cellIndex}>
+                                                {formatChartCell(cell)}
+                                            </td>
                                         ))}
                                     </tr>
                                 ))}

@@ -10,6 +10,8 @@ import { useListActionRunsQuery, useListActionsQuery } from '@/entities/action';
 import { formatDate } from '@/shared/lib/formatDate';
 import { Button, IconButton } from '@/shared/ui';
 
+import { actionsTestIds } from '../../../const';
+import { canMutate } from '../../../lib';
 import { filterActions } from '../../../model/actionDraft';
 import {
     selectAction,
@@ -23,8 +25,6 @@ import {
 } from '../../../model/actionsPageSlice';
 
 import styles from '../../ActionsPage.module.scss';
-
-const canMutate = (role: string | undefined) => role === 'owner' || role === 'editor';
 
 export const ActionsListPanel = () => {
     const dispatch = useDispatch();
@@ -62,7 +62,7 @@ export const ActionsListPanel = () => {
     );
 
     return (
-        <aside className={styles['panel']}>
+        <aside className={styles['panel']} data-test-id={actionsTestIds.listPanel}>
             <div className={styles['header-row']}>
                 <div data-stack="v" data-gap="xs">
                     <h1 className={styles['title']}>Actions</h1>

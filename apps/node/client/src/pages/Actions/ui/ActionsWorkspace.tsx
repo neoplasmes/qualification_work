@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -9,7 +9,11 @@ import {
     usePatchActionMutation,
 } from '@/features/manageActions';
 
-import { useArchiveActionMutation, useListActionsQuery } from '@/entities/action';
+import {
+    useArchiveActionMutation,
+    useListActionsQuery,
+    type Action,
+} from '@/entities/action';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
@@ -35,6 +39,7 @@ import {
     type ActionDraft,
     type ActionEffectDraft,
     type ActionParameterDraft,
+    type ActionsWorkspaceTab,
     type ActionValueMappingDraft,
 } from '../model';
 import { ConfigureForm } from './components/ConfigureForm';
@@ -45,24 +50,12 @@ import { WorkspaceTabs } from './components/WorkspaceTabs';
 import styles from './ActionsPage.module.scss';
 
 export const ActionsWorkspace = () => {
-    const dispatch = useDispatch();
-    const [draft, setDraft] = useState<ActionDraft>(() => createBlankActionDraft());
-    const [draftSourceId, setDraftSourceId] = useState<string | null>(null);
-    const [runValues, setRunValues] = useState<Record<string, string>>({});
-    const [error, setError] = useState('');
-    const [lastRunMessage, setLastRunMessage] = useState('');
-    const [archiveConfirmationId, setArchiveConfirmationId] = useState<string | null>(
-        null
-    );
-
-    const workspaceTab = useSelector(selectActionsWorkspaceTab);
     const selectedActionId = useSelector(selectSelectedActionId);
     const isCreatingAction = useSelector(selectIsCreatingAction);
 
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
     const selectedAction = useMemo(
         () =>
@@ -71,137 +64,181 @@ export const ActionsWorkspace = () => {
                 : getSelectedAction(actionsQuery.data, selectedActionId),
         [actionsQuery.data, isCreatingAction, selectedActionId]
     );
-    const editable = canMutate(org?.role);
+
+    if (!selectedAction && !isCreatingAction) {
+        return (
+            <section
+                className={styles['workspace']}
+                data-test-id={actionsTestIds.workspace}
+                aria-label="Action details"
+            >
+                <p className={styles['placeholder']}>Select or create an action.</p>
+            </section>
+        );
+    }
+
+    // key drops local state on action switch instead of syncing via effect
+    const editorKey = isCreatingAction ? '__new__' : (selectedAction?.id ?? '__none__');
+
+    return (
+        <ActionEditor
+            key={editorKey}
+            selectedAction={selectedAction}
+            isCreatingAction={isCreatingAction}
+            orgId={org?.id}
+            orgRole={org?.role}
+            refetchActions={actionsQuery.refetch}
+        />
+    );
+};
+
+type ActionEditorProps = {
+    selectedAction: Action | undefined;
+    isCreatingAction: boolean;
+    orgId: string | undefined;
+    orgRole: string | undefined;
+    refetchActions: () => unknown;
+};
+
+const ActionEditor = ({
+    selectedAction,
+    isCreatingAction,
+    orgId,
+    orgRole,
+    refetchActions,
+}: ActionEditorProps) => {
+    const dispatch = useDispatch();
+    const workspaceTab = useSelector(selectActionsWorkspaceTab);
+
+    const [draft, setDraft] = useState<ActionDraft>(() =>
+        selectedAction ? actionToDraft(selectedAction) : createBlankActionDraft()
+    );
+    const [runValues, setRunValues] = useState<Record<string, string>>(() =>
+        selectedAction ? getDefaultRunValues(selectedAction.parameters) : {}
+    );
+    const [error, setError] = useState('');
+    const [lastRunMessage, setLastRunMessage] = useState('');
+    const [archiveConfirmationId, setArchiveConfirmationId] = useState<string | null>(
+        null
+    );
+
+    const datasetsQuery = useListDatasetsQuery(orgId ?? skipToken);
+
+    const editable = canMutate(orgRole);
 
     const [createAction, createState] = useCreateActionMutation();
     const [patchAction, patchState] = usePatchActionMutation();
     const [archiveAction, archiveState] = useArchiveActionMutation();
     const [executeAction, executeState] = useExecuteActionMutation();
 
-    useEffect(() => {
-        if (isCreatingAction) {
-            if (draftSourceId !== 'new') {
-                setDraft(createBlankActionDraft());
-                setDraftSourceId('new');
-                setRunValues({});
+    const updateParameter = useCallback(
+        (parameterId: string, patch: Partial<ActionParameterDraft>) => {
+            setDraft(current => ({
+                ...current,
+                parameters: current.parameters.map(parameter => {
+                    if (parameter.id !== parameterId) {
+                        return parameter;
+                    }
+
+                    const next = { ...parameter, ...patch };
+                    if ('label' in patch && parameter.keyAutoGenerated) {
+                        next.key = labelToKey(patch.label ?? '');
+                    }
+                    if ('key' in patch) {
+                        next.keyAutoGenerated = false;
+                    }
+
+                    return next;
+                }),
+            }));
+        },
+        []
+    );
+
+    const updateEffect = useCallback(
+        (effectId: string, patch: Partial<ActionEffectDraft>) => {
+            setDraft(current => ({
+                ...current,
+                effects: current.effects.map(effect =>
+                    effect.id === effectId ? { ...effect, ...patch } : effect
+                ),
+            }));
+        },
+        []
+    );
+
+    const updateMapping = useCallback(
+        (
+            effectId: string,
+            mappingId: string,
+            patch: Partial<ActionValueMappingDraft>
+        ) => {
+            setDraft(current => ({
+                ...current,
+                effects: current.effects.map(effect =>
+                    effect.id === effectId
+                        ? {
+                              ...effect,
+                              values: effect.values.map(mapping =>
+                                  mapping.id === mappingId
+                                      ? { ...mapping, ...patch }
+                                      : mapping
+                              ),
+                          }
+                        : effect
+                ),
+            }));
+        },
+        []
+    );
+
+    const handleSave = useCallback(
+        async (event: FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            if (!orgId || !editable) {
+                return;
+            }
+
+            try {
                 setError('');
-                setLastRunMessage('');
+                const payload = draftToActionPayload(draft);
+                if (isCreatingAction) {
+                    const created = await createAction({
+                        orgId,
+                        ...payload,
+                    }).unwrap();
+                    dispatch(cancelCreateAction());
+                    dispatch(selectAction(created.id));
+                } else if (selectedAction) {
+                    const saved = await patchAction({
+                        actionId: selectedAction.id,
+                        ...payload,
+                    }).unwrap();
+                    dispatch(selectAction(saved.id));
+                }
+                await refetchActions();
+            } catch (saveError) {
+                setError(
+                    saveError instanceof Error
+                        ? saveError.message
+                        : getApiErrorMessage(saveError, 'Unable to save this action.')
+                );
             }
+        },
+        [
+            draft,
+            orgId,
+            editable,
+            isCreatingAction,
+            selectedAction,
+            createAction,
+            patchAction,
+            dispatch,
+            refetchActions,
+        ]
+    );
 
-            return;
-        }
-
-        if (!selectedAction) {
-            setDraftSourceId(null);
-            setDraft(createBlankActionDraft());
-            setRunValues({});
-
-            return;
-        }
-
-        if (draftSourceId === selectedAction.id) {
-            return;
-        }
-
-        setDraft(actionToDraft(selectedAction));
-        setDraftSourceId(selectedAction.id);
-        setRunValues(getDefaultRunValues(selectedAction.parameters));
-        setError('');
-        setLastRunMessage('');
-        setArchiveConfirmationId(null);
-    }, [draftSourceId, isCreatingAction, selectedAction]);
-
-    const updateParameter = (
-        parameterId: string,
-        patch: Partial<ActionParameterDraft>
-    ) => {
-        setDraft(current => ({
-            ...current,
-            parameters: current.parameters.map(parameter => {
-                if (parameter.id !== parameterId) {
-                    return parameter;
-                }
-
-                const next = { ...parameter, ...patch };
-                if ('label' in patch && parameter.keyAutoGenerated) {
-                    next.key = labelToKey(patch.label ?? '');
-                }
-                if ('key' in patch) {
-                    next.keyAutoGenerated = false;
-                }
-
-                return next;
-            }),
-        }));
-    };
-
-    const updateEffect = (effectId: string, patch: Partial<ActionEffectDraft>) => {
-        setDraft(current => ({
-            ...current,
-            effects: current.effects.map(effect =>
-                effect.id === effectId ? { ...effect, ...patch } : effect
-            ),
-        }));
-    };
-
-    const updateMapping = (
-        effectId: string,
-        mappingId: string,
-        patch: Partial<ActionValueMappingDraft>
-    ) => {
-        setDraft(current => ({
-            ...current,
-            effects: current.effects.map(effect =>
-                effect.id === effectId
-                    ? {
-                          ...effect,
-                          values: effect.values.map(mapping =>
-                              mapping.id === mappingId
-                                  ? { ...mapping, ...patch }
-                                  : mapping
-                          ),
-                      }
-                    : effect
-            ),
-        }));
-    };
-
-    const handleSave = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (!org || !editable) {
-            return;
-        }
-
-        try {
-            setError('');
-            const payload = draftToActionPayload(draft);
-            if (isCreatingAction) {
-                const created = await createAction({
-                    orgId: org.id,
-                    ...payload,
-                }).unwrap();
-                dispatch(cancelCreateAction());
-                dispatch(selectAction(created.id));
-                setDraftSourceId(null);
-            } else if (selectedAction) {
-                const saved = await patchAction({
-                    actionId: selectedAction.id,
-                    ...payload,
-                }).unwrap();
-                dispatch(selectAction(saved.id));
-                setDraftSourceId(null);
-            }
-            await actionsQuery.refetch();
-        } catch (saveError) {
-            setError(
-                saveError instanceof Error
-                    ? saveError.message
-                    : getApiErrorMessage(saveError, 'Unable to save this action.')
-            );
-        }
-    };
-
-    const handleArchive = async () => {
+    const handleArchive = useCallback(async () => {
         if (!selectedAction || !editable) {
             return;
         }
@@ -217,47 +254,62 @@ export const ActionsWorkspace = () => {
             await archiveAction(selectedAction.id).unwrap();
             dispatch(selectAction(null));
             setArchiveConfirmationId(null);
-            await actionsQuery.refetch();
+            await refetchActions();
         } catch (archiveError) {
             setError(getApiErrorMessage(archiveError, 'Unable to archive this action.'));
         }
-    };
+    }, [
+        selectedAction,
+        editable,
+        archiveConfirmationId,
+        archiveAction,
+        dispatch,
+        refetchActions,
+    ]);
 
-    const handleRun = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (!selectedAction || !editable) {
-            return;
-        }
+    const handleRun = useCallback(
+        async (event: FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            if (!selectedAction || !editable) {
+                return;
+            }
 
-        try {
-            setError('');
-            setLastRunMessage('');
-            const parameters = coerceRunValues(selectedAction.parameters, runValues);
-            const result = await executeAction({
-                actionId: selectedAction.id,
-                parameters,
-            }).unwrap();
-            setLastRunMessage(
-                result.status === 'success'
-                    ? `Run completed with ${result.changes.length} changes.`
-                    : (result.errorMessage ?? 'Run failed.')
-            );
-        } catch (runError) {
-            setError(
-                runError instanceof Error
-                    ? runError.message
-                    : getApiErrorMessage(runError, 'Unable to run this action.')
-            );
-        }
-    };
+            try {
+                setError('');
+                setLastRunMessage('');
+                const parameters = coerceRunValues(selectedAction.parameters, runValues);
+                const result = await executeAction({
+                    actionId: selectedAction.id,
+                    parameters,
+                }).unwrap();
+                setLastRunMessage(
+                    result.status === 'success'
+                        ? `Run completed with ${result.changes.length} changes.`
+                        : (result.errorMessage ?? 'Run failed.')
+                );
+            } catch (runError) {
+                setError(
+                    runError instanceof Error
+                        ? runError.message
+                        : getApiErrorMessage(runError, 'Unable to run this action.')
+                );
+            }
+        },
+        [selectedAction, editable, runValues, executeAction]
+    );
 
-    if (!selectedAction && !isCreatingAction) {
-        return (
-            <section className={styles['workspace']} aria-label="Action details">
-                <p className={styles['placeholder']}>Select or create an action.</p>
-            </section>
-        );
-    }
+    const handleArchiveClick = useCallback(() => void handleArchive(), [handleArchive]);
+
+    const handleRunValueChange = useCallback((key: string, value: string) => {
+        setRunValues(current => ({ ...current, [key]: value }));
+    }, []);
+
+    const handleTabChange = useCallback(
+        (tab: ActionsWorkspaceTab) => dispatch(setActionsWorkspaceTab(tab)),
+        [dispatch]
+    );
+
+    const saving = createState.isLoading || patchState.isLoading;
 
     return (
         <section
@@ -273,20 +325,20 @@ export const ActionsWorkspace = () => {
                 archiveConfirmationId={archiveConfirmationId}
                 archiveDisabled={!editable || archiveState.isLoading}
                 editable={editable}
-                onArchive={() => void handleArchive()}
+                onArchive={handleArchiveClick}
             />
 
             <WorkspaceTabs
                 activeTab={workspaceTab}
                 runDisabled={isCreatingAction}
-                onChange={tab => dispatch(setActionsWorkspaceTab(tab))}
+                onChange={handleTabChange}
             />
 
-            {error && (
+            {error ? (
                 <div role="alert" className={`${styles['status']} ${styles['error']}`}>
                     {error}
                 </div>
-            )}
+            ) : null}
 
             {!editable && (
                 <div className={styles['status']}>
@@ -299,8 +351,8 @@ export const ActionsWorkspace = () => {
                 <ConfigureForm
                     draft={draft}
                     datasets={datasetsQuery.data ?? []}
-                    disabled={!editable || createState.isLoading || patchState.isLoading}
-                    saving={createState.isLoading || patchState.isLoading}
+                    disabled={!editable || saving}
+                    saving={saving}
                     onSubmit={handleSave}
                     onDraftChange={setDraft}
                     onUpdateParameter={updateParameter}
@@ -313,9 +365,7 @@ export const ActionsWorkspace = () => {
                     runValues={runValues}
                     disabled={!editable || executeState.isLoading}
                     lastRunMessage={lastRunMessage}
-                    onRunValueChange={(key, value) =>
-                        setRunValues(current => ({ ...current, [key]: value }))
-                    }
+                    onRunValueChange={handleRunValueChange}
                     onSubmit={handleRun}
                 />
             )}

@@ -66,6 +66,13 @@ export const ActionsRightPanel = () => {
         [actionsQuery.data, isCreatingAction, selectedActionId]
     );
 
+    const actionNamesById = useMemo(
+        () => new Map((actionsQuery.data ?? []).map(action => [action.id, action.name])),
+        [actionsQuery.data]
+    );
+
+    const refetchActions = actionsQuery.refetch;
+
     return (
         <aside className={styles['right-panel']} data-test-id={actionsTestIds.rightPanel}>
             <div className={`${styles['tabs']} ${styles['tabs-three']}`}>
@@ -88,10 +95,16 @@ export const ActionsRightPanel = () => {
             </div>
 
             {activeTab === 'history' && (
-                <ActionsHistory selectedAction={selectedAction} />
+                <ActionsHistory
+                    selectedAction={selectedAction}
+                    actionNamesById={actionNamesById}
+                />
             )}
             {activeTab === 'properties' && (
-                <ActionsProperties selectedAction={selectedAction} />
+                <ActionsProperties
+                    selectedAction={selectedAction}
+                    refetchActions={refetchActions}
+                />
             )}
             {activeTab === 'filters' && <ActionsFilters />}
         </aside>

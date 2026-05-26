@@ -34,6 +34,10 @@ const loginThroughUi = async (page: Page, user: TestUser) => {
     await expect(page).toHaveURL(/\/datasets$/, { timeout: 30_000 });
 };
 
+const expectByDataTestId = async (page: Page, testId: string) => {
+    await expect(page.locator(`[data-test-id="${testId}"]`)).toBeVisible();
+};
+
 test.describe('auth guard state', () => {
     test('redirects unauthenticated user to sign-in', async ({ page }) => {
         await page.goto('/datasets');
@@ -124,14 +128,27 @@ test.describe('navigation state', () => {
         await registerByApi(request, user);
         await loginThroughUi(page, user);
 
+        await expectByDataTestId(page, 'datasets-upload-panel');
+        await expectByDataTestId(page, 'datasets-workspace');
+        await expectByDataTestId(page, 'datasets-right-panel');
+
         await page.goto('/charts');
         await expect(page).toHaveURL(/\/charts$/);
+        await expectByDataTestId(page, 'charts-list-panel');
+        await expectByDataTestId(page, 'charts-workspace');
+        await expectByDataTestId(page, 'charts-filter-panel');
 
         await page.goto('/dashboards');
         await expect(page).toHaveURL(/\/dashboards$/);
+        await expectByDataTestId(page, 'dashboards-list-panel');
+        await expectByDataTestId(page, 'dashboards-workspace');
+        await expectByDataTestId(page, 'dashboards-filter-panel');
 
         await page.goto('/actions');
         await expect(page).toHaveURL(/\/actions$/);
+        await expectByDataTestId(page, 'actions-list-panel');
+        await expectByDataTestId(page, 'actions-workspace');
+        await expectByDataTestId(page, 'actions-right-panel');
     });
 
     test('workspace select shows active org name', async ({ page, request }) => {

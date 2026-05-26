@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
-import type { Dispatch, SetStateAction } from 'react';
+import { useMemo, type Dispatch, type SetStateAction } from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
@@ -15,6 +15,7 @@ import {
 import type {
     ActionDraft,
     ActionEffectDraft,
+    ActionParameterDraft,
     ActionValueMappingDraft,
 } from '../../../model';
 
@@ -26,7 +27,8 @@ import styles from './EffectEditor.module.scss';
 type EffectEditorProps = {
     effect: ActionEffectDraft;
     index: number;
-    draft: ActionDraft;
+    parameters: ActionParameterDraft[];
+    effectsCount: number;
     datasets: DatasetMetadata[];
     disabled: boolean;
     collapsed: boolean;
@@ -43,7 +45,8 @@ type EffectEditorProps = {
 export const EffectEditor = ({
     effect,
     index,
-    draft,
+    parameters,
+    effectsCount,
     datasets,
     disabled,
     collapsed,
@@ -52,12 +55,17 @@ export const EffectEditor = ({
     onUpdateEffect,
     onUpdateMapping,
 }: EffectEditorProps) => {
-    const columns = getDatasetColumns(datasets, effect.datasetId);
-    const datasetName = datasets.find(d => d.dataset.id === effect.datasetId)?.dataset
-        .name;
-    const summary = datasetName
-        ? `${datasetName} · ${effect.values.length} value${effect.values.length !== 1 ? 's' : ''}`
-        : `${effect.values.length} value${effect.values.length !== 1 ? 's' : ''}`;
+    const columns = useMemo(
+        () => getDatasetColumns(datasets, effect.datasetId),
+        [datasets, effect.datasetId]
+    );
+    const summary = useMemo(() => {
+        const datasetName = datasets.find(d => d.dataset.id === effect.datasetId)?.dataset
+            .name;
+        const valuesPart = `${effect.values.length} value${effect.values.length !== 1 ? 's' : ''}`;
+
+        return datasetName ? `${datasetName} · ${valuesPart}` : valuesPart;
+    }, [datasets, effect.datasetId, effect.values.length]);
 
     return (
         <div
@@ -67,7 +75,7 @@ export const EffectEditor = ({
         >
             <EffectHeader
                 index={index}
-                draft={draft}
+                effectsCount={effectsCount}
                 effect={effect}
                 disabled={disabled}
                 collapsed={collapsed}
@@ -81,7 +89,7 @@ export const EffectEditor = ({
                     <div className={styles['form-grid']}>
                         <EffectFields
                             effect={effect}
-                            draft={draft}
+                            parameters={parameters}
                             columns={columns}
                             datasets={datasets}
                             disabled={disabled}
@@ -114,7 +122,7 @@ export const EffectEditor = ({
                                 effect={effect}
                                 mapping={mapping}
                                 columns={columns}
-                                draft={draft}
+                                parameters={parameters}
                                 disabled={disabled}
                                 onUpdateEffect={onUpdateEffect}
                                 onUpdateMapping={onUpdateMapping}
@@ -129,7 +137,7 @@ export const EffectEditor = ({
 
 type EffectHeaderProps = {
     index: number;
-    draft: ActionDraft;
+    effectsCount: number;
     effect: ActionEffectDraft;
     disabled: boolean;
     collapsed: boolean;
@@ -140,7 +148,7 @@ type EffectHeaderProps = {
 
 const EffectHeader = ({
     index,
-    draft,
+    effectsCount,
     effect,
     disabled,
     collapsed,
@@ -175,7 +183,7 @@ const EffectHeader = ({
             </IconButton>
             <IconButton
                 aria-label="Move effect down"
-                disabled={disabled || index === draft.effects.length - 1}
+                disabled={disabled || index === effectsCount - 1}
                 onClick={() =>
                     onDraftChange(current => ({
                         ...current,
@@ -187,7 +195,7 @@ const EffectHeader = ({
             </IconButton>
             <IconButton
                 aria-label="Remove effect"
-                disabled={disabled || draft.effects.length === 1}
+                disabled={disabled || effectsCount === 1}
                 onClick={() =>
                     onDraftChange(current => ({
                         ...current,

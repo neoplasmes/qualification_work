@@ -9,6 +9,9 @@ import type {
 import type { ChartCompilationContext } from '@/core/ports/driven/repos';
 
 import {
+    buildSortGroupBy,
+    buildSortOrderBy,
+    buildSortSelects,
     buildWhere,
     coerce,
     columnExpr,
@@ -30,30 +33,62 @@ export async function executePieChart(
     const slice = columnExpr(getColumn(columnsById, config.slice.columnId), null);
     const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId);
     const m = measureExpr(config.measure, columnsById, 'm0');
+    const sliceSortSelects = buildSortSelects(slice, 'slice');
+    const sliceSortColumns = buildSortGroupBy('slice', slice);
+    const sliceSortOrder = buildSortOrderBy([{ expr: slice, prefix: 'slice' }]);
 
     const topN = config.slice.topN ?? limit;
     const other = config.slice.otherBucket ?? false;
 
     const inner = `
-            SELECT ${slice.sql} AS slice, ${m.sql} AS m0
+            SELECT ${slice.sql} AS slice
+                ${sliceSortSelects.map(select => `, ${select}`).join('')}
+                , ${m.sql} AS m0
             FROM data.dataset_rows
             WHERE ${whereSql}
-            GROUP BY slice
+            GROUP BY slice, ${sliceSortColumns.join(', ')}
         `;
 
     const sql = other
         ? `
             WITH base AS (${inner}),
             ranked AS (
-                SELECT slice, m0, ROW_NUMBER() OVER (ORDER BY m0 DESC NULLS LAST) AS rn FROM base
+                SELECT
+                    slice,
+                    ${sliceSortColumns.join(', ')},
+                    m0,
+                    ROW_NUMBER() OVER (ORDER BY m0 DESC NULLS LAST) AS rn
+                FROM base
+            ),
+            selected AS (
+                SELECT slice, ${sliceSortColumns.join(', ')}, m0
+                FROM ranked
+                WHERE rn <= $${params.length + 1}
+                UNION ALL
+                SELECT
+                    '__other__'::text AS slice,
+                    ${sliceSortColumns.map(column => `NULL AS ${column}`).join(', ')},
+                    COALESCE(SUM(m0), 0) AS m0
+                FROM ranked
+                WHERE rn > $${params.length + 1}
             )
-            SELECT slice, m0 FROM ranked WHERE rn <= $${params.length + 1}
-            UNION ALL
-            SELECT '__other__'::text AS slice, COALESCE(SUM(m0), 0) AS m0
-            FROM ranked WHERE rn > $${params.length + 1}
-            ORDER BY m0 DESC NULLS LAST
+            SELECT slice, m0 FROM selected
+            ORDER BY ${sliceSortOrder}, m0 DESC NULLS LAST
             `
-        : `${inner} ORDER BY m0 DESC NULLS LAST LIMIT $${params.length + 1}`;
+        : `
+            WITH base AS (${inner}),
+            ranked AS (
+                SELECT
+                    slice,
+                    ${sliceSortColumns.join(', ')},
+                    m0,
+                    ROW_NUMBER() OVER (ORDER BY m0 DESC NULLS LAST) AS rn
+                FROM base
+            )
+            SELECT slice, m0 FROM ranked
+            WHERE rn <= $${params.length + 1}
+            ORDER BY ${sliceSortOrder}, m0 DESC NULLS LAST
+        `;
 
     params.push(other ? topN : limit + 1);
 
@@ -64,8 +99,18 @@ export async function executePieChart(
     return {
         kind: 'pie',
         columns: [
-            { name: 'slice', role: 'dim', type: slice.resultType },
-            { name: 'm0', role: 'measure', type: 'number' },
+            {
+                name: 'slice',
+                role: 'dim',
+                type: slice.resultType,
+                timeGranularity: slice.timeGranularity,
+            },
+            {
+                name: 'm0',
+                role: 'measure',
+                type: 'number',
+                valueFormat: m.valueFormat,
+            },
         ],
         rows: trimmed.map(r => [coerce(r.slice, slice.resultType), numberOrNull(r.m0)]),
         truncated,

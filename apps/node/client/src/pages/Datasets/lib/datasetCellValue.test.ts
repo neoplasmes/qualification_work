@@ -18,4 +18,11 @@ describe('dataset cell values', () => {
             '2026-05-26T00:00:00.000Z'
         );
     });
+
+    it('validates and trims day_of_week values', () => {
+        expect(isValidDatasetCellValue(' Monday ', 'day_of_week')).toBe(true);
+        expect(isValidDatasetCellValue('пн.', 'day_of_week')).toBe(true);
+        expect(isValidDatasetCellValue('coffee', 'day_of_week')).toBe(false);
+        expect(parseDatasetCellValue(' Monday ', 'day_of_week')).toBe('Monday');
+    });
 });

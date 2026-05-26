@@ -1,17 +1,18 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
-import { createRedisCache, type RedisCache } from '@qualification-work/redis-cache';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import { createRedisCache, type RedisCache } from '@qualification-work/redis-cache';
 
 import {
     ArchiveActionCommand,
     CancelMergeCommand,
-    CreateActionCommand,
     CommitMergeCommand,
+    CreateActionCommand,
     CreateChartCommand,
     DeleteChartCommand,
     DeleteDatasetCommand,
+    DeleteRowCommand,
     ExecuteActionCommand,
     InsertRowCommand,
     PatchActionCommand,
@@ -116,6 +117,7 @@ export function createAppWithCleanup(
     const baseDeleteDatasetHandler = new DeleteDatasetCommand(datasetRepo);
     const baseUpdateRowHandler = new UpdateRowValuesCommand(datasetRepo);
     const baseInsertRowHandler = new InsertRowCommand(datasetRepo);
+    const baseDeleteRowHandler = new DeleteRowCommand(datasetRepo);
     const previewMergeHandler = new PreviewMergeCommand(
         datasetRepo,
         mergeSessionRepo,
@@ -188,14 +190,7 @@ export function createAppWithCleanup(
             offset: number,
             limit: number,
             orgs: OrgMembership[]
-        ) => [
-            'datasets',
-            'rows',
-            datasetId,
-            offset,
-            limit,
-            accessFingerprint(orgs),
-        ],
+        ) => ['datasets', 'rows', datasetId, offset, limit, accessFingerprint(orgs)],
         tags: (datasetId: string) => [`dataset:${datasetId}`],
         ttlSeconds: 30,
     }) as GetDatasetRowsQuery;
@@ -213,8 +208,7 @@ export function createAppWithCleanup(
     } as UploadDatasetCommand;
     const deleteDatasetHandler = {
         execute: async (datasetId: string) => {
-            const metadata =
-                await datasetRepo.getDatasetMetadataByDatasetId(datasetId);
+            const metadata = await datasetRepo.getDatasetMetadataByDatasetId(datasetId);
             const tags = await datasetTagsForInvalidation(
                 chartRepo,
                 datasetId,
@@ -241,6 +235,14 @@ export function createAppWithCleanup(
             return result;
         },
     } as InsertRowCommand;
+    const deleteRowHandler = {
+        execute: async (...args: Parameters<DeleteRowCommand['execute']>) => {
+            const result = await baseDeleteRowHandler.execute(...args);
+            await invalidateDataset(cache, chartRepo, args[0].datasetId, args[0].orgId);
+
+            return result;
+        },
+    } as DeleteRowCommand;
     const commitMergeHandler = {
         execute: async (...args: Parameters<CommitMergeCommand['execute']>) => {
             const result = await baseCommitMergeHandler.execute(...args);
@@ -402,19 +404,16 @@ export function createAppWithCleanup(
         tags: (actionId: string) => [`action:${actionId}`],
         ttlSeconds: 60,
     }) as GetActionByIdQuery;
-    const getActionsByOrgIdHandler = cache.wrapExecutable(
-        baseGetActionsByOrgIdHandler,
-        {
-            key: (orgId: string, orgs: OrgMembership[]) => [
-                'actions',
-                'list',
-                orgId,
-                accessFingerprint(orgs),
-            ],
-            tags: (orgId: string) => [`org:${orgId}:actions`],
-            ttlSeconds: 60,
-        }
-    ) as GetActionsByOrgIdQuery;
+    const getActionsByOrgIdHandler = cache.wrapExecutable(baseGetActionsByOrgIdHandler, {
+        key: (orgId: string, orgs: OrgMembership[]) => [
+            'actions',
+            'list',
+            orgId,
+            accessFingerprint(orgs),
+        ],
+        tags: (orgId: string) => [`org:${orgId}:actions`],
+        ttlSeconds: 60,
+    }) as GetActionsByOrgIdQuery;
     const listActionRunsHandler = cache.wrapExecutable(baseListActionRunsHandler, {
         key: (input: ListActionRunsInput) => [
             'actions',
@@ -483,6 +482,7 @@ export function createAppWithCleanup(
         getDatasetRowsHandler,
         uploadDatasetHandler,
         deleteDatasetHandler,
+        deleteRowHandler,
         updateRowHandler,
         insertRowHandler,
         previewMergeHandler,

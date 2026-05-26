@@ -9,6 +9,9 @@ import type {
 import type { ChartCompilationContext } from '@/core/ports/driven/repos';
 
 import {
+    buildSortGroupBy,
+    buildSortOrderBy,
+    buildSortSelects,
     buildWhere,
     coerce,
     columnExpr,
@@ -31,13 +34,29 @@ export async function executeHeatmapChart(
     const y = columnExpr(getColumn(columnsById, config.y.columnId), config.y.grouping);
     const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId);
     const m = measureExpr(config.measure, columnsById, 'm0');
+    const xSortSelects = buildSortSelects(x, 'x');
+    const ySortSelects = buildSortSelects(y, 'y');
+    const groupCols = [
+        'x',
+        ...buildSortGroupBy('x', x),
+        'y',
+        ...buildSortGroupBy('y', y),
+    ];
+    const orderSql = buildSortOrderBy([
+        { expr: x, prefix: 'x' },
+        { expr: y, prefix: 'y' },
+    ]);
 
     const sql = `
-        SELECT ${x.sql} AS x, ${y.sql} AS y, ${m.sql} AS m0
+        SELECT ${x.sql} AS x
+            ${xSortSelects.map(select => `, ${select}`).join('')}
+            , ${y.sql} AS y
+            ${ySortSelects.map(select => `, ${select}`).join('')}
+            , ${m.sql} AS m0
         FROM data.dataset_rows
         WHERE ${whereSql}
-        GROUP BY x, y
-        ORDER BY x, y
+        GROUP BY ${groupCols.join(', ')}
+        ORDER BY ${orderSql}
         LIMIT $${params.length + 1}
         `;
     params.push(limit + 1);
@@ -49,9 +68,24 @@ export async function executeHeatmapChart(
     return {
         kind: 'heatmap',
         columns: [
-            { name: 'x', role: 'dim', type: x.resultType },
-            { name: 'y', role: 'dim', type: y.resultType },
-            { name: 'm0', role: 'measure', type: 'number' },
+            {
+                name: 'x',
+                role: 'dim',
+                type: x.resultType,
+                timeGranularity: x.timeGranularity,
+            },
+            {
+                name: 'y',
+                role: 'dim',
+                type: y.resultType,
+                timeGranularity: y.timeGranularity,
+            },
+            {
+                name: 'm0',
+                role: 'measure',
+                type: 'number',
+                valueFormat: m.valueFormat,
+            },
         ],
         rows: trimmed.map(r => [
             coerce(r.x, x.resultType),

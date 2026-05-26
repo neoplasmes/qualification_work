@@ -13,6 +13,8 @@ import type { ChartCompilationContext } from '@/core/ports/driven/repos';
 
 import {
     buildOrderBy,
+    buildSortGroupBy,
+    buildSortSelects,
     buildWhere,
     coerce,
     columnExpr,
@@ -45,13 +47,21 @@ export async function executeBarOrLineChart(
         measureExpr(m, columnsById, `m${i}`)
     );
 
-    const groupCols = series ? [dim.sql, series.sql] : [dim.sql];
+    const dimSortSelects = buildSortSelects(dim, 'dim');
+    const seriesSortSelects = series ? buildSortSelects(series, 'series') : [];
+    const groupCols = [
+        'dim',
+        ...buildSortGroupBy('dim', dim),
+        ...(series ? ['series', ...buildSortGroupBy('series', series)] : []),
+    ];
     const orderSql = buildOrderBy(config.orderBy, dim, series, measureExprs);
 
     const sql = `
         SELECT
             ${dim.sql} AS dim
+            ${dimSortSelects.map(select => `, ${select}`).join('')}
             ${series ? `, ${series.sql} AS series` : ''}
+            ${seriesSortSelects.map(select => `, ${select}`).join('')}
             ${measureExprs.map(e => `, ${e.sql} AS ${e.alias}`).join('')}
         FROM data.dataset_rows
         WHERE ${whereSql}
@@ -66,14 +76,27 @@ export async function executeBarOrLineChart(
     const trimmed = truncated ? rows.slice(0, limit) : rows;
 
     const columns: ChartResultColumn[] = [
-        { name: 'dim', role: 'dim', type: dim.resultType },
+        {
+            name: 'dim',
+            role: 'dim',
+            type: dim.resultType,
+            timeGranularity: dim.timeGranularity,
+        },
         ...(series
-            ? [{ name: 'series', role: 'series', type: series.resultType } as const]
+            ? [
+                  {
+                      name: 'series',
+                      role: 'series',
+                      type: series.resultType,
+                      timeGranularity: series.timeGranularity,
+                  } as const,
+              ]
             : []),
         ...measureExprs.map<ChartResultColumn>(e => ({
             name: e.alias,
             role: 'measure',
             type: 'number',
+            valueFormat: e.valueFormat,
         })),
     ];
 

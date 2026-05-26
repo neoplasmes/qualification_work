@@ -7,6 +7,7 @@ import { DatasetChartBuilder } from './DatasetChartBuilder';
 
 const previewChart = vi.fn();
 const createChart = vi.fn();
+const updateChart = vi.fn();
 
 const previewResponse = {
     kind: 'heatmap' as const,
@@ -19,7 +20,7 @@ const previewResponse = {
 vi.mock('../api', () => ({
     usePreviewChartDataMutation: () => [previewChart, { isLoading: false }],
     useCreateChartMutation: () => [createChart, { isLoading: false }],
-    useUpdateChartMutation: () => [vi.fn(), { isLoading: false }],
+    useUpdateChartMutation: () => [updateChart, { isLoading: false }],
 }));
 
 vi.mock('@/entities/chart', () => ({
@@ -68,8 +69,10 @@ describe('DatasetChartBuilder', () => {
     beforeEach(() => {
         previewChart.mockReset();
         createChart.mockReset();
+        updateChart.mockReset();
         previewChart.mockReturnValue({ unwrap: () => Promise.resolve(previewResponse) });
         createChart.mockReturnValue({ unwrap: () => Promise.resolve({ id: 'chart-1' }) });
+        updateChart.mockReturnValue({ unwrap: () => Promise.resolve(undefined) });
     });
 
     it('previews chart without saving, then saves on confirm', async () => {
@@ -91,7 +94,7 @@ describe('DatasetChartBuilder', () => {
         await user.selectOptions(screen.getByLabelText('Y axis'), 'country');
         await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
         await user.selectOptions(screen.getByLabelText('Column'), 'score');
-        await user.click(screen.getByRole('button', { name: /preview/i }));
+        await user.click(screen.getByRole('button', { name: 'Preview' }));
 
         await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
         expect(previewChart).toHaveBeenCalledWith(
@@ -131,7 +134,7 @@ describe('DatasetChartBuilder', () => {
             </MemoryRouter>
         );
 
-        await user.click(screen.getByRole('button', { name: /preview/i }));
+        await user.click(screen.getByRole('button', { name: 'Preview' }));
         await waitFor(() =>
             expect(screen.getByTestId('chart-result')).toBeInTheDocument()
         );
@@ -139,7 +142,7 @@ describe('DatasetChartBuilder', () => {
         await user.click(screen.getByRole('button', { name: /edit/i }));
 
         expect(screen.queryByTestId('chart-result')).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /preview/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument();
     });
 
     it('builds correct heatmap config with between filter', async () => {
@@ -157,11 +160,12 @@ describe('DatasetChartBuilder', () => {
         await user.selectOptions(screen.getByLabelText('Y axis'), 'country');
         await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
         await user.selectOptions(screen.getByLabelText('Column'), 'score');
+        await user.selectOptions(screen.getByLabelText('Value format'), 'rub');
         await user.selectOptions(screen.getByLabelText('Filter rows'), 'on');
         await user.selectOptions(screen.getByLabelText('Filter column'), 'score');
         await user.selectOptions(screen.getByLabelText('Condition'), 'between');
         await user.type(screen.getByLabelText('Value'), '10, 50');
-        await user.click(screen.getByRole('button', { name: /preview/i }));
+        await user.click(screen.getByRole('button', { name: 'Preview' }));
 
         await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
         expect(previewChart).toHaveBeenCalledWith({
@@ -171,9 +175,45 @@ describe('DatasetChartBuilder', () => {
                 kind: 'heatmap',
                 x: { columnId: 'city' },
                 y: { columnId: 'country' },
-                measure: { aggregate: 'avg', columnId: 'score' },
+                measure: { aggregate: 'avg', columnId: 'score', valueFormat: 'rub' },
                 filters: [{ columnId: 'score', op: 'between', value: [10, 50] }],
             }),
         });
+    });
+
+    it('saves edited chart without requesting preview', async () => {
+        const user = userEvent.setup();
+        const onChartUpdated = vi.fn();
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder
+                    orgId="org-1"
+                    selectedDataset={dataset}
+                    editChartId="chart-1"
+                    onChartUpdated={onChartUpdated}
+                />
+            </MemoryRouter>
+        );
+
+        await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
+        await user.selectOptions(screen.getByLabelText('Column'), 'score');
+        await user.click(screen.getByRole('button', { name: /save without preview/i }));
+
+        await waitFor(() => expect(updateChart).toHaveBeenCalledTimes(1));
+        expect(previewChart).not.toHaveBeenCalled();
+        expect(updateChart).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chartId: 'chart-1',
+                config: expect.objectContaining({
+                    measure: {
+                        aggregate: 'avg',
+                        columnId: 'score',
+                        valueFormat: 'number',
+                    },
+                }),
+            })
+        );
+        expect(onChartUpdated).toHaveBeenCalledWith('chart-1');
     });
 });

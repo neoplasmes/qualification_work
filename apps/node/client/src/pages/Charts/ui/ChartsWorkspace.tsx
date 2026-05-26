@@ -215,7 +215,7 @@ export const ChartsWorkspace = () => {
                                 eyebrow="Chart"
                                 title={selectedChart.name}
                                 fallbackTitle="Untitled chart"
-                                meta={`${selectedChart.chartType} · dataset ${selectedChart.datasetId.slice(0, 8)}`}
+                                meta={selectedChart.chartType}
                                 saving={patchChartState.isLoading}
                                 editButtonTestId={chartsTestIds.renameButton}
                                 inputTestId={chartsTestIds.renameInput}

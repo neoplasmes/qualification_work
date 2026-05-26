@@ -59,6 +59,40 @@ vi.mock('@/entities/dashboard', () => ({
     }),
 }));
 
+vi.mock('@/entities/dataset', () => ({
+    useListDatasetsQuery: () => ({
+        data: [
+            {
+                dataset: {
+                    id: 'dataset-1',
+                    name: 'Invoices',
+                    orgId: 'org-1',
+                    sourceType: 'manual',
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                    updatedAt: '2026-01-01T00:00:00.000Z',
+                },
+                columns: [],
+                totalRows: 1,
+            },
+            {
+                dataset: {
+                    id: 'dataset-2',
+                    name: 'Statuses',
+                    orgId: 'org-1',
+                    sourceType: 'manual',
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                    updatedAt: '2026-01-01T00:00:00.000Z',
+                },
+                columns: [],
+                totalRows: 1,
+            },
+        ],
+        isLoading: false,
+        isFetching: false,
+        refetch: vi.fn(),
+    }),
+}));
+
 const getByDataTestId = <T extends HTMLElement>(
     container: HTMLElement,
     testId: string
@@ -106,6 +140,8 @@ describe('ChartsLeftPanel', () => {
         );
 
         expect(screen.getByRole('button', { name: /Revenue/ })).toBeInTheDocument();
+        expect(screen.getByText('Invoices')).toBeInTheDocument();
+        expect(screen.queryByText('dataset-1')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Status/ })).not.toBeInTheDocument();
     });
 });

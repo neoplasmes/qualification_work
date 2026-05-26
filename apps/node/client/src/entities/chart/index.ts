@@ -17,4 +17,6 @@ export type {
     FilterClause,
     FilterOperation,
     GetChartDataPayload,
+    MeasureValueFormat,
+    TimeGranularity,
 } from './api';

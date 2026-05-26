@@ -1,6 +1,7 @@
 import type { ColumnDataType } from '@/core/domain';
-
 import { ValidationError } from '@/core/errors';
+
+import { isDayOfWeekValue } from './dayOfWeek';
 import { parseStrictDate } from './inferDatasetTypes';
 
 /**
@@ -37,7 +38,10 @@ export function coerceValueByType(
             }
         }
 
-        throw new ValidationError([columnKey], `expected number for column "${columnKey}"`);
+        throw new ValidationError(
+            [columnKey],
+            `expected number for column "${columnKey}"`
+        );
     }
 
     if (dataType === 'bool') {
@@ -47,8 +51,12 @@ export function coerceValueByType(
 
         if (typeof value === 'string') {
             const lowered = value.toLowerCase().trim();
-            if (lowered === 'true') {return true;}
-            if (lowered === 'false') {return false;}
+            if (lowered === 'true') {
+                return true;
+            }
+            if (lowered === 'false') {
+                return false;
+            }
         }
 
         throw new ValidationError([columnKey], `expected bool for column "${columnKey}"`);
@@ -57,7 +65,10 @@ export function coerceValueByType(
     if (dataType === 'date') {
         if (value instanceof Date) {
             if (Number.isNaN(value.getTime())) {
-                throw new ValidationError([columnKey], `expected date for column "${columnKey}"`);
+                throw new ValidationError(
+                    [columnKey],
+                    `expected date for column "${columnKey}"`
+                );
             }
 
             return value.toISOString();
@@ -71,6 +82,17 @@ export function coerceValueByType(
         }
 
         throw new ValidationError([columnKey], `expected date for column "${columnKey}"`);
+    }
+
+    if (dataType === 'day_of_week') {
+        if (typeof value === 'string' && isDayOfWeekValue(value)) {
+            return value.trim();
+        }
+
+        throw new ValidationError(
+            [columnKey],
+            `expected day_of_week for column "${columnKey}"`
+        );
     }
 
     return value;

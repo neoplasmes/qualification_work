@@ -7,8 +7,23 @@
 }
 
 .grid-container {
+    position: relative;
     flex: 1;
     min-height: 0;
+}
+
+.floating-actions {
+    position: absolute;
+    right: var(--spacing-md);
+    bottom: var(--spacing-md);
+    z-index: 15;
+
+    padding: var(--spacing-xs);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    background: var(--color-surface-container-high);
+    box-shadow: 0 18px 40px rgb(0 0 0 / 35%);
 }
 
 .panel-placeholder {

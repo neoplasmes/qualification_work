@@ -6,7 +6,7 @@ import {
     isForeignKeyViolation,
     loadScript,
 } from '@qualification-work/microservice-utils/pg';
-import type { Dashboard } from '@qualification-work/types';
+import type { Dashboard, DashboardMetricItem } from '@qualification-work/types';
 
 import { NotFoundError } from '@/core/errors';
 import type { DashboardMetricSpec, DashboardRepo } from '@/core/ports/driven/repos';
@@ -24,6 +24,15 @@ type DashboardHead = {
     created_at: Date;
     updated_at: Date;
 };
+
+type DatasetColumnRow = {
+    key: string;
+    display_name: string;
+    data_type: string;
+};
+
+const metricExpressionPattern = /^([a-z_]+)\((.*)\)$/i;
+const metricAggregates = new Set(['sum', 'avg', 'min', 'max', 'count', 'count_distinct']);
 
 export class PgDashboardRepo implements DashboardRepo {
     private readonly findByIdSql: string;
@@ -87,7 +96,7 @@ export class PgDashboardRepo implements DashboardRepo {
             return null;
         }
 
-        return PgDashboardRepo.toDashboard(rows[0]);
+        return this.toDashboard(rows[0]);
     }
 
     async listByOrg(
@@ -229,16 +238,135 @@ export class PgDashboardRepo implements DashboardRepo {
         };
     }
 
-    private static toDashboard(
+    private async toDashboard(
         row: DashboardHead & { items: Dashboard['items'] }
-    ): Dashboard {
+    ): Promise<Dashboard> {
+        const items = await Promise.all(
+            row.items.map(item =>
+                item.kind === 'metric' ? this.withMetricValue(item) : item
+            )
+        );
+
         return {
             id: row.id,
             orgId: row.org_id,
             name: row.name,
             createdAt: row.created_at.toISOString(),
             updatedAt: row.updated_at.toISOString(),
-            items: row.items,
+            items,
         };
+    }
+
+    private async withMetricValue(
+        item: DashboardMetricItem
+    ): Promise<DashboardMetricItem> {
+        const value = await this.evaluateMetric(item);
+
+        return { ...item, value };
+    }
+
+    private async evaluateMetric(item: DashboardMetricItem): Promise<number | null> {
+        const parsed = this.parseMetricExpression(item.expression);
+        if (!parsed) {
+            return null;
+        }
+
+        const { aggregate, columnName } = parsed;
+        const column = columnName
+            ? await this.findMetricColumn(item.datasetId, columnName)
+            : null;
+
+        if (aggregate !== 'count' && !column) {
+            return null;
+        }
+
+        if (
+            column &&
+            aggregate !== 'count' &&
+            aggregate !== 'count_distinct' &&
+            column.data_type !== 'number'
+        ) {
+            return null;
+        }
+
+        const sql = this.metricSql(aggregate, Boolean(column));
+        if (!sql) {
+            return null;
+        }
+
+        const params = column ? [item.datasetId, column.key] : [item.datasetId];
+        const { rows } = await this.pool.query<{ value: string | number | null }>(
+            sql,
+            params
+        );
+        const rawValue = rows[0]?.value;
+
+        return rawValue === null || rawValue === undefined ? null : Number(rawValue);
+    }
+
+    private parseMetricExpression(
+        expression: string
+    ): { aggregate: string; columnName: string | null } | null {
+        const match = metricExpressionPattern.exec(expression.trim());
+        if (!match) {
+            return null;
+        }
+
+        const aggregate = match[1].toLowerCase();
+        if (!metricAggregates.has(aggregate)) {
+            return null;
+        }
+
+        const columnName = match[2].trim();
+        if (aggregate === 'count' && (!columnName || columnName === '*')) {
+            return { aggregate, columnName: null };
+        }
+
+        return { aggregate, columnName };
+    }
+
+    private async findMetricColumn(
+        datasetId: string,
+        columnName: string
+    ): Promise<DatasetColumnRow | null> {
+        const { rows } = await this.pool.query<DatasetColumnRow>(
+            `SELECT key, display_name, data_type
+            FROM data.dataset_columns
+            WHERE dataset_id = $1 AND (key = $2 OR display_name = $2)
+            LIMIT 1`,
+            [datasetId, columnName]
+        );
+
+        return rows[0] ?? null;
+    }
+
+    private metricSql(aggregate: string, hasColumn: boolean): string | null {
+        if (aggregate === 'count') {
+            return `SELECT count(*)::numeric AS value
+            FROM data.dataset_rows
+            WHERE dataset_id = $1`;
+        }
+
+        if (!hasColumn) {
+            return null;
+        }
+
+        const valueExpr = `NULLIF(data->>$2, '')`;
+
+        const sqlByAggregate: Record<string, string> = {
+            sum: `sum(${valueExpr}::numeric)`,
+            avg: `avg(${valueExpr}::numeric)`,
+            min: `min(${valueExpr}::numeric)`,
+            max: `max(${valueExpr}::numeric)`,
+            count_distinct: `count(distinct ${valueExpr})::numeric`,
+        };
+        const sql = sqlByAggregate[aggregate];
+        if (!sql) {
+            return null;
+        }
+
+        return `SELECT ${sql} AS value
+        FROM data.dataset_rows
+        WHERE dataset_id = $1`;
     }
 }

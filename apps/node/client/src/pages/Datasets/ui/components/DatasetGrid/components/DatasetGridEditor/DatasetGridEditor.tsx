@@ -9,7 +9,7 @@ import DataEditor, {
 
 import '@glideapps/glide-data-grid/dist/index.css';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, type ComponentProps } from 'react';
 
 import { formatChartCell } from '@/entities/chart';
 
@@ -22,16 +22,17 @@ export const DatasetGridEditor = ({
     columns,
     rows,
     displayEdits,
-    isInsertingRow,
-    newRowValues,
+    insertDraft,
     gridWidth,
     gridHeight,
     hasMore,
     onCellCommit,
-    onNewRowValueChange,
+    onDraftValueChange,
+    onRowContextMenu,
     onLoadMore,
 }: DatasetGridEditorProps) => {
-    const rowCount = rows.length + (isInsertingRow ? 1 : 0);
+    const draftIndex = insertDraft?.visualIndex ?? null;
+    const rowCount = rows.length + (insertDraft ? 1 : 0);
     const gridColumns = useMemo<GridColumn[]>(
         () =>
             columns.map(column => ({
@@ -50,8 +51,8 @@ export const DatasetGridEditor = ({
                 return getEmptyCell();
             }
 
-            if (isInsertingRow && rowIndex === rows.length) {
-                const value = newRowValues[column.key] ?? '';
+            if (draftIndex !== null && rowIndex === draftIndex) {
+                const value = insertDraft?.values[column.key] ?? '';
 
                 return {
                     kind: GridCellKind.Text,
@@ -61,7 +62,7 @@ export const DatasetGridEditor = ({
                 };
             }
 
-            const dataRow = rows[rowIndex];
+            const dataRow = rows[toSourceRowIndex(rowIndex, draftIndex)];
             if (!dataRow) {
                 return getEmptyCell();
             }
@@ -77,7 +78,7 @@ export const DatasetGridEditor = ({
                 allowOverlay: true,
             };
         },
-        [columns, displayEdits, isInsertingRow, newRowValues, rows]
+        [columns, displayEdits, draftIndex, insertDraft?.values, rows]
     );
 
     const onCellEdited = useCallback(
@@ -87,18 +88,45 @@ export const DatasetGridEditor = ({
                 return;
             }
 
-            if (isInsertingRow && rowIndex === rows.length) {
-                onNewRowValueChange(prev => ({ ...prev, [column.key]: newValue.data }));
+            if (draftIndex !== null && rowIndex === draftIndex) {
+                onDraftValueChange(prev => ({ ...prev, [column.key]: newValue.data }));
 
                 return;
             }
 
-            const dataRow = rows[rowIndex];
+            const dataRow = rows[toSourceRowIndex(rowIndex, draftIndex)];
             if (dataRow) {
                 onCellCommit(dataRow.id, column, newValue.data);
             }
         },
-        [columns, isInsertingRow, onCellCommit, onNewRowValueChange, rows]
+        [columns, draftIndex, onCellCommit, onDraftValueChange, rows]
+    );
+
+    const handleCellContextMenu = useCallback(
+        (
+            _cell: Item,
+            event: Parameters<
+                NonNullable<ComponentProps<typeof DataEditor>['onCellContextMenu']>
+            >[1]
+        ) => {
+            event.preventDefault();
+
+            const rowIndex = event.location[1];
+            if (draftIndex !== null && rowIndex === draftIndex) {
+                return;
+            }
+
+            const sourceRowIndex = toSourceRowIndex(rowIndex, draftIndex);
+            if (!rows[sourceRowIndex]) {
+                return;
+            }
+
+            onRowContextMenu(sourceRowIndex, {
+                x: event.bounds.x,
+                y: event.bounds.y + event.bounds.height,
+            });
+        },
+        [draftIndex, onRowContextMenu, rows]
     );
 
     const onVisibleRegionChanged = useCallback(
@@ -133,6 +161,7 @@ export const DatasetGridEditor = ({
             getCellContent={getCellContent}
             onCellEdited={onCellEdited}
             validateCell={validateCell}
+            onCellContextMenu={handleCellContextMenu}
             onVisibleRegionChanged={onVisibleRegionChanged}
             rowMarkers="number"
             headerHeight={HEADER_H}
@@ -150,3 +179,6 @@ const getEmptyCell = (): GridCell => ({
     displayData: '',
     allowOverlay: false,
 });
+
+const toSourceRowIndex = (rowIndex: number, draftIndex: number | null) =>
+    draftIndex !== null && rowIndex > draftIndex ? rowIndex - 1 : rowIndex;

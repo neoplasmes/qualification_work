@@ -6,6 +6,8 @@ import { Button, FormField, Select } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
+import { DashboardFormSection } from '../DashboardFormSection';
+
 import styles from './AddChartForm.module.scss';
 
 type AddChartFormProps = {
@@ -23,8 +25,9 @@ export const AddChartForm = ({
     onChange,
     onAdd,
 }: AddChartFormProps) => (
-    <div className={styles['add-chart']}>
-        <FormField label="Add saved chart">
+    <div className={styles['form']} data-gap="sm">
+        <DashboardFormSection>Charts</DashboardFormSection>
+        <FormField label="Saved chart">
             <Select
                 data-test-id={dashboardsTestIds.addChartSelect}
                 value={value}

@@ -3,7 +3,15 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import type { Dashboard } from '@qualification-work/types';
 
-import { api, apiAs, resetTestIdentity, startServer, stopServer, truncate } from '../lib';
+import {
+    api,
+    apiAs,
+    dbQuery,
+    resetTestIdentity,
+    startServer,
+    stopServer,
+    truncate,
+} from '../lib';
 import {
     addChartItem,
     bootFixture,
@@ -68,6 +76,44 @@ describe('GET /api/dashboards/:id', () => {
         expect(body.items[1].kind).toBe('metric');
         expect(body.items[0].layout.posX).toBe(0);
         expect(body.items[0].layout.width).toBe(12);
+    });
+
+    it('returns calculated metric value', async () => {
+        const dashboardId = await createDashboard(orgId);
+
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index)
+            VALUES
+                ($1, 'amount', 'Amount', 'number', 0)`,
+            [datasetId]
+        );
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES
+                ($1, 0, '{"amount": 10}'::jsonb),
+                ($1, 1, '{"amount": 15}'::jsonb)`,
+            [datasetId]
+        );
+        await api(`/api/dashboards/${dashboardId}/items`, {
+            method: 'POST',
+            body: JSON.stringify({
+                kind: 'metric',
+                datasetId,
+                name: 'Revenue',
+                expression: 'sum(amount)',
+                format: 'currency',
+            }),
+        });
+
+        const res = await api(`/api/dashboards/${dashboardId}`);
+        const body = (await res.json()) as Dashboard;
+        const metric = body.items.find(item => item.kind === 'metric');
+
+        expect(metric).toMatchObject({
+            kind: 'metric',
+            value: 25,
+        });
     });
 
     it('404 for non-existent id', async () => {

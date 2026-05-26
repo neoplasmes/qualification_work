@@ -10,6 +10,7 @@ export {
     CancelMergeCommand,
     CommitMergeCommand,
     DeleteDatasetCommand,
+    DeleteRowCommand,
     InsertRowCommand,
     PreviewMergeCommand,
     UpdateRowValuesCommand,

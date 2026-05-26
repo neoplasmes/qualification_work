@@ -8,6 +8,7 @@ import {
     XYChart,
 } from '@visx/xychart';
 
+import type { MeasureValueFormat, TimeGranularity } from '../api';
 import { formatAxisNumber, formatChartCell } from '../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
 
@@ -48,6 +49,8 @@ const chartTheme = buildChartTheme({
 type BarChartInnerProps = {
     series: ChartSeries[];
     labels: string[];
+    labelTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
     width: number;
     height: number;
 };
@@ -57,7 +60,14 @@ type BarTooltipDatum = ChartDataPoint;
 const getValues = (series: ChartSeries[]) =>
     series.flatMap(item => item.points.map(point => point.value)).filter(Number.isFinite);
 
-const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) => {
+const BarChartInner = ({
+    series,
+    labels,
+    labelTimeGranularity,
+    valueFormat,
+    width,
+    height,
+}: BarChartInnerProps) => {
     const rotateLabels = labels.length > 6;
     const values = getValues(series);
     const minValue = values.length ? Math.min(...values, 0) : 0;
@@ -88,12 +98,14 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
                 <Axis
                     orientation="left"
                     numTicks={5}
-                    tickFormat={v => formatAxisNumber(Number(v))}
+                    tickFormat={v => formatAxisNumber(Number(v), valueFormat)}
                 />
                 <Axis
                     orientation="bottom"
                     numTicks={labels.length}
-                    tickFormat={v => formatChartCell(v)}
+                    tickFormat={v =>
+                        formatChartCell(v, { timeGranularity: labelTimeGranularity })
+                    }
                     tickLabelProps={() => ({
                         fill: C.muted,
                         fontSize: 11,
@@ -117,7 +129,6 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
                     ))}
                 </BarGroup>
                 <Tooltip<BarTooltipDatum>
-                    showVerticalCrosshair
                     snapTooltipToDatumX
                     renderTooltip={({ tooltipData }) => {
                         const nearest = tooltipData?.nearestDatum;
@@ -128,9 +139,16 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
 
                         return (
                             <>
-                                <strong>{formatChartCell(nearest.datum.label)}</strong>
+                                <strong>
+                                    {formatChartCell(nearest.datum.label, {
+                                        timeGranularity:
+                                            nearest.datum.labelTimeGranularity,
+                                    })}
+                                </strong>
                                 {series.length > 1 ? ` / ${nearest.key}` : ''}:{' '}
-                                {formatChartCell(nearest.datum.value)}
+                                {formatChartCell(nearest.datum.value, {
+                                    valueFormat: nearest.datum.valueFormat,
+                                })}
                             </>
                         );
                     }}
@@ -143,15 +161,24 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
 type BarChartProps = {
     series: ChartSeries[];
     labels: string[];
+    labelTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
 };
 
-export const BarChart = ({ series, labels }: BarChartProps) => (
+export const BarChart = ({
+    series,
+    labels,
+    labelTimeGranularity,
+    valueFormat,
+}: BarChartProps) => (
     <ParentSize style={{ height: CHART_HEIGHT }}>
         {({ width }) =>
             width >= MIN_CHART_WIDTH ? (
                 <BarChartInner
                     series={series}
                     labels={labels}
+                    labelTimeGranularity={labelTimeGranularity}
+                    valueFormat={valueFormat}
                     width={width}
                     height={CHART_HEIGHT}
                 />

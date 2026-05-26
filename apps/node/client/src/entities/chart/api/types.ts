@@ -1,5 +1,9 @@
 export type ChartType = 'bar' | 'line' | 'pie' | 'heatmap';
 
+export type TimeGranularity = 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
+
+export type MeasureValueFormat = 'number' | 'rub' | 'usd' | 'percent';
+
 export type FilterOperation =
     | 'eq'
     | 'neq'
@@ -38,7 +42,9 @@ export type GetChartDataPayload = {
 export type ChartResultColumn = {
     name: string;
     role: 'dim' | 'series' | 'measure';
-    type: 'number' | 'string' | 'date';
+    type: 'number' | 'string' | 'date' | 'day_of_week';
+    timeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
 };
 
 export type ChartResponse = {

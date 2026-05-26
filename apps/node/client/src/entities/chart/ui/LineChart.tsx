@@ -9,6 +9,7 @@ import {
     XYChart,
 } from '@visx/xychart';
 
+import type { MeasureValueFormat, TimeGranularity } from '../api';
 import { formatAxisNumber, formatChartCell } from '../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
 
@@ -49,6 +50,8 @@ const chartTheme = buildChartTheme({
 type LineChartInnerProps = {
     series: ChartSeries[];
     labels: string[];
+    labelTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
     width: number;
     height: number;
 };
@@ -61,7 +64,14 @@ const getValues = (series: ChartSeries[]) =>
 const getSeriesColor = (seriesIndex: number) =>
     SERIES_COLORS[seriesIndex % SERIES_COLORS.length];
 
-const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) => {
+const LineChartInner = ({
+    series,
+    labels,
+    labelTimeGranularity,
+    valueFormat,
+    width,
+    height,
+}: LineChartInnerProps) => {
     const rotateLabels = labels.length > 6;
     const values = getValues(series);
     const minValue = values.length ? Math.min(...values, 0) : 0;
@@ -87,12 +97,14 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
                 <Axis
                     orientation="left"
                     numTicks={5}
-                    tickFormat={v => formatAxisNumber(Number(v))}
+                    tickFormat={v => formatAxisNumber(Number(v), valueFormat)}
                 />
                 <Axis
                     orientation="bottom"
                     numTicks={labels.length}
-                    tickFormat={v => formatChartCell(v)}
+                    tickFormat={v =>
+                        formatChartCell(v, { timeGranularity: labelTimeGranularity })
+                    }
                     tickLabelProps={() => ({
                         fill: C.muted,
                         fontSize: 11,
@@ -139,7 +151,6 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
                     );
                 })}
                 <Tooltip<LineTooltipDatum>
-                    showVerticalCrosshair
                     showDatumGlyph
                     snapTooltipToDatumX
                     style={chartTheme.htmlLabel}
@@ -154,9 +165,16 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
 
                         return (
                             <>
-                                <strong>{formatChartCell(nearest.datum.label)}</strong>
+                                <strong>
+                                    {formatChartCell(nearest.datum.label, {
+                                        timeGranularity:
+                                            nearest.datum.labelTimeGranularity,
+                                    })}
+                                </strong>
                                 {series.length > 1 ? ` / ${seriesName}` : ''}:{' '}
-                                {formatChartCell(nearest.datum.value)}
+                                {formatChartCell(nearest.datum.value, {
+                                    valueFormat: nearest.datum.valueFormat,
+                                })}
                             </>
                         );
                     }}
@@ -169,15 +187,24 @@ const LineChartInner = ({ series, labels, width, height }: LineChartInnerProps) 
 type LineChartProps = {
     series: ChartSeries[];
     labels: string[];
+    labelTimeGranularity?: TimeGranularity;
+    valueFormat?: MeasureValueFormat;
 };
 
-export const LineChart = ({ series, labels }: LineChartProps) => (
+export const LineChart = ({
+    series,
+    labels,
+    labelTimeGranularity,
+    valueFormat,
+}: LineChartProps) => (
     <ParentSize style={{ height: CHART_HEIGHT }}>
         {({ width }) =>
             width >= MIN_CHART_WIDTH ? (
                 <LineChartInner
                     series={series}
                     labels={labels}
+                    labelTimeGranularity={labelTimeGranularity}
+                    valueFormat={valueFormat}
                     width={width}
                     height={CHART_HEIGHT}
                 />

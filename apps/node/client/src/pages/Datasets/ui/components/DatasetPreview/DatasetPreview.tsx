@@ -1,8 +1,8 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Plus } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 
 import {
+    useDeleteRowMutation,
     useGetDatasetRowsQuery,
     useInsertRowMutation,
     useUpdateRowMutation,
@@ -11,14 +11,17 @@ import {
     type DatasetRow,
 } from '@/entities/dataset';
 
-import { Button, PanelPlaceholder, StatusMessage } from '@/shared/ui';
+import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
-import { datasetsTestIds, HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
+import { HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
 import { getInsertRowData, isInsertRowValid, parseDatasetCellValue } from '../../../lib';
 
 import { DatasetGrid } from '../DatasetGrid';
+import type { InsertRowDraft } from '../DatasetGrid/types';
 import { DatasetPreviewHeader } from '../DatasetPreviewHeader';
-import { NewRowActions } from '../NewRowActions';
+import type { DatasetRowContextMenuState } from '../DatasetRowContextMenu';
+import { DatasetPreviewOverlays } from './DatasetPreviewOverlays';
+import { useMeasuredSize } from './useMeasuredSize';
 
 import styles from './DatasetPreview.module.scss';
 
@@ -33,13 +36,15 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         Map<string, Record<string, unknown>>
     >(new Map());
     const pendingEditsRef = useRef<Map<string, Record<string, unknown>>>(new Map());
-    const [isInsertingRow, setIsInsertingRow] = useState(false);
-    const [newRowValues, setNewRowValues] = useState<Record<string, string>>({});
-    const gridContainerRef = useRef<HTMLDivElement>(null);
-    const [gridSize, setGridSize] = useState({ w: 0, h: 0 });
+    const [insertDraft, setInsertDraft] = useState<InsertRowDraft | null>(null);
+    const [contextMenu, setContextMenu] = useState<DatasetRowContextMenuState | null>(
+        null
+    );
+    const { ref: gridContainerRef, size: gridSize } = useMeasuredSize<HTMLDivElement>();
 
     const [updateRow] = useUpdateRowMutation();
     const [insertRow, insertState] = useInsertRowMutation();
+    const [deleteRow, deleteState] = useDeleteRowMutation();
 
     const rowsQuery = useGetDatasetRowsQuery(
         selectedDataset
@@ -54,10 +59,16 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const columns = selectedDataset?.columns ?? [];
     const totalRows = rowsQuery.data?.totalRows ?? selectedDataset?.totalRows ?? 0;
     const hasMore = allRows.length < totalRows;
-    const allRowsLoaded = !hasMore;
-    const showAddRow = allRowsLoaded && !!selectedDataset && rowsQuery.data !== undefined;
-    const rowCount = allRows.length + (isInsertingRow ? 1 : 0);
     const gridHeight = Math.max(gridSize.h, HEADER_H + ROW_H);
+
+    useEffect(() => {
+        setFetchOffset(0);
+        setAllRows([]);
+        setDisplayEdits(new Map());
+        pendingEditsRef.current.clear();
+        setInsertDraft(null);
+        setContextMenu(null);
+    }, [selectedDataset?.dataset.id]);
 
     // append rows from current page
     useEffect(() => {
@@ -74,24 +85,6 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         });
     }, [rowsQuery.data, rowsQuery.isFetching, fetchOffset]);
 
-    // measure grid container
-    useEffect(() => {
-        const el = gridContainerRef.current;
-        if (!el) {
-            return;
-        }
-
-        const ro = new ResizeObserver(([e]) =>
-            setGridSize({
-                w: Math.floor(e.contentRect.width),
-                h: Math.floor(e.contentRect.height),
-            })
-        );
-        ro.observe(el);
-
-        return () => ro.disconnect();
-    }, []);
-
     // flush pending cell edits every 1s
     useEffect(() => {
         if (!selectedDataset) {
@@ -101,6 +94,10 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         const datasetId = selectedDataset.dataset.id;
         const orgId = selectedDataset.dataset.orgId;
         const id = setInterval(() => {
+            if (insertDraft || contextMenu?.mode === 'delete') {
+                return;
+            }
+
             if (!pendingEditsRef.current.size) {
                 return;
             }
@@ -113,7 +110,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         }, 1000);
 
         return () => clearInterval(id);
-    }, [selectedDataset?.dataset.id, updateRow]);
+    }, [contextMenu?.mode, insertDraft, selectedDataset?.dataset.id, updateRow]);
 
     const commitCell = useCallback(
         (rowId: string, col: DatasetColumn, rawValue: string) => {
@@ -140,8 +137,66 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         }
     }, [hasMore, allRows.length, rowsQuery.isFetching]);
 
+    const handleDraftValueChange = useCallback(
+        (value: SetStateAction<Record<string, string>>) => {
+            setInsertDraft(current => {
+                if (!current) {
+                    return current;
+                }
+
+                return {
+                    ...current,
+                    values: typeof value === 'function' ? value(current.values) : value,
+                };
+            });
+        },
+        []
+    );
+
+    const resetRows = useCallback(() => {
+        setAllRows([]);
+        setFetchOffset(0);
+        setDisplayEdits(new Map());
+        pendingEditsRef.current.clear();
+    }, []);
+
+    const handleRowContextMenu = useCallback(
+        (rowIndex: number, position: { x: number; y: number }) => {
+            if (insertDraft) {
+                return;
+            }
+
+            const row = allRows[rowIndex];
+            if (!row) {
+                return;
+            }
+
+            setContextMenu({
+                rowId: row.id,
+                rowIndex,
+                x: position.x,
+                y: position.y,
+                mode: 'actions',
+            });
+        },
+        [allRows, insertDraft]
+    );
+
+    const handleInsertBelow = () => {
+        if (!contextMenu) {
+            return;
+        }
+
+        setInsertDraft({
+            afterRowId: contextMenu.rowId,
+            visualIndex: contextMenu.rowIndex + 1,
+            values: {},
+        });
+        setContextMenu(null);
+    };
+
     const handleInsertConfirm = async () => {
-        if (!selectedDataset) {
+        if (!selectedDataset || !insertDraft) {
             return;
         }
 
@@ -149,16 +204,37 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             await insertRow({
                 datasetId: selectedDataset.dataset.id,
                 orgId: selectedDataset.dataset.orgId,
-                data: getInsertRowData(columns, newRowValues),
+                afterRowId: insertDraft.afterRowId,
+                data: getInsertRowData(columns, insertDraft.values),
             }).unwrap();
-            setIsInsertingRow(false);
-            setNewRowValues({});
+            setInsertDraft(null);
+            resetRows();
         } catch {
             // silent - user can retry
         }
     };
 
-    const isNewRowValid = isInsertRowValid(columns, newRowValues);
+    const handleDeleteConfirm = async () => {
+        if (!selectedDataset || !contextMenu) {
+            return;
+        }
+
+        try {
+            await deleteRow({
+                datasetId: selectedDataset.dataset.id,
+                orgId: selectedDataset.dataset.orgId,
+                rowId: contextMenu.rowId,
+            }).unwrap();
+            setContextMenu(null);
+            resetRows();
+        } catch {
+            // silent - user can retry
+        }
+    };
+
+    const isNewRowValid = insertDraft
+        ? isInsertRowValid(columns, insertDraft.values)
+        : false;
 
     return (
         <section className={styles['preview']} aria-label="Dataset preview">
@@ -183,40 +259,35 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                         columns={columns}
                         rows={allRows}
                         displayEdits={displayEdits}
-                        isInsertingRow={isInsertingRow}
-                        newRowValues={newRowValues}
+                        insertDraft={insertDraft}
                         gridWidth={gridSize.w}
                         gridHeight={gridHeight}
                         hasMore={hasMore}
                         onCellCommit={commitCell}
-                        onNewRowValueChange={setNewRowValues}
+                        onDraftValueChange={handleDraftValueChange}
+                        onRowContextMenu={handleRowContextMenu}
                         onLoadMore={handleLoadMore}
                     />
                 )}
-            </div>
 
-            {isInsertingRow && (
-                <NewRowActions
-                    valid={isNewRowValid}
-                    loading={insertState.isLoading}
-                    onConfirm={() => void handleInsertConfirm()}
-                    onCancel={() => {
-                        setIsInsertingRow(false);
-                        setNewRowValues({});
-                    }}
+                <DatasetPreviewOverlays
+                    insertDraft={insertDraft}
+                    contextMenu={contextMenu}
+                    insertValid={isNewRowValid}
+                    insertLoading={insertState.isLoading}
+                    deleteLoading={deleteState.isLoading}
+                    onInsertConfirm={() => void handleInsertConfirm()}
+                    onInsertCancel={() => setInsertDraft(null)}
+                    onInsertBelow={handleInsertBelow}
+                    onAskDelete={() =>
+                        setContextMenu(current =>
+                            current ? { ...current, mode: 'delete' } : current
+                        )
+                    }
+                    onDeleteConfirm={() => void handleDeleteConfirm()}
+                    onMenuCancel={() => setContextMenu(null)}
                 />
-            )}
-
-            {showAddRow && !isInsertingRow && (
-                <Button
-                    className={styles['add-row-button']}
-                    data-test-id={datasetsTestIds.addRowButton}
-                    onClick={() => setIsInsertingRow(true)}
-                >
-                    <Plus size={16} />
-                    Add row
-                </Button>
-            )}
+            </div>
         </section>
     );
 };

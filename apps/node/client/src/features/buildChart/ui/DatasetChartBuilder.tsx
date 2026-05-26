@@ -1,4 +1,4 @@
-import { ChartNoAxesColumnIncreasing, FolderKanban, Play, Save } from 'lucide-react';
+import { FolderKanban, Play, Save } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 
 import {
@@ -19,6 +19,7 @@ import {
     useUpdateChartMutation,
     type Aggregate,
     type AxisGrouping,
+    type MeasureValueFormat,
     type TimeGranularity,
 } from '../api';
 import {
@@ -30,6 +31,7 @@ import styles from './DatasetChartBuilder.module.scss';
 
 const chartTypes = ['bar', 'line', 'pie', 'heatmap'] as const;
 const aggregates = ['count', 'sum', 'avg', 'min', 'max', 'count_distinct'] as const;
+const valueFormats = ['number', 'rub', 'usd', 'percent'] as const;
 const filterOperations = [
     'eq',
     'neq',
@@ -59,6 +61,13 @@ const AGGREGATE_LABELS: Record<Aggregate, string> = {
     min: 'Min',
     max: 'Max',
     count_distinct: 'Count unique',
+};
+
+const VALUE_FORMAT_LABELS: Record<MeasureValueFormat, string> = {
+    number: 'Number',
+    rub: 'Ruble',
+    usd: 'Dollar',
+    percent: 'Percent',
 };
 
 const GROUPING_LABELS: Record<GroupingMode, string> = {
@@ -127,10 +136,20 @@ const buildGrouping = (
     return undefined;
 };
 
-const buildMeasure = (aggregate: Aggregate, measureColumnId: string, alias?: string) =>
+const buildMeasure = (
+    aggregate: Aggregate,
+    measureColumnId: string,
+    valueFormat: MeasureValueFormat,
+    alias?: string
+) =>
     aggregate === 'count'
-        ? { aggregate, ...(alias ? { alias } : {}) }
-        : { aggregate, columnId: measureColumnId, ...(alias ? { alias } : {}) };
+        ? { aggregate, valueFormat, ...(alias ? { alias } : {}) }
+        : {
+              aggregate,
+              columnId: measureColumnId,
+              valueFormat,
+              ...(alias ? { alias } : {}),
+          };
 
 const buildFilter = (
     column: DatasetColumn,
@@ -182,9 +201,11 @@ type BuildChartConfigInput = {
     heatmapYColumnId: string;
     heatmapYGrouping: AxisGrouping | undefined;
     aggregate: Aggregate;
+    valueFormat: MeasureValueFormat;
     measureColumnId: string;
     secondMeasureEnabled: boolean;
     secondAggregate: Aggregate;
+    secondValueFormat: MeasureValueFormat;
     secondMeasureColumnId: string;
     limit: number;
     topN: number;
@@ -203,9 +224,11 @@ const buildChartConfig = ({
     heatmapYColumnId,
     heatmapYGrouping,
     aggregate,
+    valueFormat,
     measureColumnId,
     secondMeasureEnabled,
     secondAggregate,
+    secondValueFormat,
     secondMeasureColumnId,
     limit,
     topN,
@@ -216,7 +239,7 @@ const buildChartConfig = ({
     seriesOtherBucket,
     filter,
 }: BuildChartConfigInput) => {
-    const firstMeasure = buildMeasure(aggregate, measureColumnId);
+    const firstMeasure = buildMeasure(aggregate, measureColumnId, valueFormat);
     const base = {
         limit,
         orderBy: { ref: 'measure', index: 0, dir: sortDirection },
@@ -251,7 +274,14 @@ const buildChartConfig = ({
     const measures = [
         firstMeasure,
         ...(secondMeasureEnabled
-            ? [buildMeasure(secondAggregate, secondMeasureColumnId, 'm1')]
+            ? [
+                  buildMeasure(
+                      secondAggregate,
+                      secondMeasureColumnId,
+                      secondValueFormat,
+                      'm1'
+                  ),
+              ]
             : []),
     ];
 
@@ -323,7 +353,11 @@ export const configToBuilderFields = (
             | { columnId?: string; topN?: number; otherBucket?: boolean }
             | undefined;
         const measure = config.measure as
-            | { aggregate?: Aggregate; columnId?: string }
+            | {
+                  aggregate?: Aggregate;
+                  columnId?: string;
+                  valueFormat?: MeasureValueFormat;
+              }
             | undefined;
         if (slice?.columnId) {
             result.dimensionColumnId = slice.columnId;
@@ -340,6 +374,9 @@ export const configToBuilderFields = (
         if (measure?.columnId) {
             result.measureColumnId = measure.columnId;
         }
+        if (measure?.valueFormat) {
+            result.valueFormat = measure.valueFormat;
+        }
 
         return result;
     }
@@ -348,7 +385,11 @@ export const configToBuilderFields = (
         const x = config.x as { columnId?: string; grouping?: unknown } | undefined;
         const y = config.y as { columnId?: string; grouping?: unknown } | undefined;
         const measure = config.measure as
-            | { aggregate?: Aggregate; columnId?: string }
+            | {
+                  aggregate?: Aggregate;
+                  columnId?: string;
+                  valueFormat?: MeasureValueFormat;
+              }
             | undefined;
         const xg = x?.grouping as
             | { granularity?: TimeGranularity; step?: number }
@@ -381,6 +422,9 @@ export const configToBuilderFields = (
         }
         if (measure?.columnId) {
             result.measureColumnId = measure.columnId;
+        }
+        if (measure?.valueFormat) {
+            result.valueFormat = measure.valueFormat;
         }
 
         return result;
@@ -419,13 +463,20 @@ export const configToBuilderFields = (
     }
 
     const measures = config.measures as
-        | Array<{ aggregate?: Aggregate; columnId?: string }>
+        | Array<{
+              aggregate?: Aggregate;
+              columnId?: string;
+              valueFormat?: MeasureValueFormat;
+          }>
         | undefined;
     if (measures?.[0]?.aggregate) {
         result.aggregate = measures[0].aggregate;
     }
     if (measures?.[0]?.columnId) {
         result.measureColumnId = measures[0].columnId;
+    }
+    if (measures?.[0]?.valueFormat) {
+        result.valueFormat = measures[0].valueFormat;
     }
     if (measures?.[1]) {
         result.secondMeasureEnabled = true;
@@ -434,6 +485,9 @@ export const configToBuilderFields = (
         }
         if (measures[1].columnId) {
             result.secondMeasureColumnId = measures[1].columnId;
+        }
+        if (measures[1].valueFormat) {
+            result.secondValueFormat = measures[1].valueFormat;
         }
     } else {
         result.secondMeasureEnabled = false;
@@ -487,12 +541,16 @@ export const DatasetChartBuilder = ({
         setHeatmapYStep,
         aggregate,
         setAggregate,
+        valueFormat,
+        setValueFormat,
         measureColumnId,
         setMeasureColumnId,
         secondMeasureEnabled,
         setSecondMeasureEnabled,
         secondAggregate,
         setSecondAggregate,
+        secondValueFormat,
+        setSecondValueFormat,
         secondMeasureColumnId,
         setSecondMeasureColumnId,
         limit,
@@ -622,28 +680,26 @@ export const DatasetChartBuilder = ({
         }
     };
 
-    const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
+    const buildCurrentConfig = () => {
         if (
             chartType === 'heatmap' &&
             activeDimensionColumnId === activeHeatmapYColumnId
         ) {
             setChartError('X and Y axes must be different columns.');
 
-            return;
+            return null;
         }
 
         if (!canPreview) {
             setChartError('Choose compatible columns for this chart.');
 
-            return;
+            return null;
         }
 
         if (filterEnabled && !nullaryFilter && !filterValue.trim()) {
             setChartError('Fill filter value or turn the filter off.');
 
-            return;
+            return null;
         }
 
         if (filterEnabled && filterOperation === 'between') {
@@ -654,7 +710,7 @@ export const DatasetChartBuilder = ({
             if (parts.length !== 2) {
                 setChartError('Between filter expects two comma-separated values.');
 
-                return;
+                return null;
             }
         }
 
@@ -675,7 +731,7 @@ export const DatasetChartBuilder = ({
             ? heatmapYGroupingMode
             : 'none';
 
-        const config = buildChartConfig({
+        return buildChartConfig({
             chartType,
             dimensionColumnId: activeDimensionColumnId,
             dimensionGrouping: buildGrouping(
@@ -690,10 +746,12 @@ export const DatasetChartBuilder = ({
                 heatmapYStep
             ),
             aggregate,
+            valueFormat,
             measureColumnId: activeMeasureColumnId,
             secondMeasureEnabled:
                 secondMeasureEnabled && chartType !== 'pie' && chartType !== 'heatmap',
             secondAggregate,
+            secondValueFormat,
             secondMeasureColumnId: activeSecondMeasureColumnId,
             limit,
             topN,
@@ -705,6 +763,15 @@ export const DatasetChartBuilder = ({
             seriesOtherBucket,
             filter,
         });
+    };
+
+    const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const config = buildCurrentConfig();
+        if (!config) {
+            return;
+        }
 
         try {
             const data = await previewChart({
@@ -721,11 +788,7 @@ export const DatasetChartBuilder = ({
         }
     };
 
-    const handleSave = async () => {
-        if (!savedConfig) {
-            return;
-        }
-
+    const saveChartConfig = async (config: Record<string, unknown>) => {
         const fallbackName = `${selectedDataset.dataset.name} ${chartType}`;
         const name = chartName.trim() || fallbackName;
 
@@ -735,7 +798,7 @@ export const DatasetChartBuilder = ({
                     chartId: editChartId,
                     name,
                     chartType,
-                    config: savedConfig,
+                    config,
                 }).unwrap();
                 onChartUpdated?.(editChartId);
             } else {
@@ -744,13 +807,30 @@ export const DatasetChartBuilder = ({
                     datasetId: selectedDataset.dataset.id,
                     name,
                     chartType,
-                    config: savedConfig,
+                    config,
                 }).unwrap();
                 onChartCreated?.(chart.id);
             }
         } catch (error) {
             setChartError(getApiErrorMessage(error, 'Unable to save this chart.'));
         }
+    };
+
+    const handleSave = async () => {
+        if (!savedConfig) {
+            return;
+        }
+
+        await saveChartConfig(savedConfig);
+    };
+
+    const handleSaveWithoutPreview = async () => {
+        const config = buildCurrentConfig();
+        if (!config) {
+            return;
+        }
+
+        await saveChartConfig(config);
     };
 
     const isSaving = editChartId
@@ -760,11 +840,7 @@ export const DatasetChartBuilder = ({
     if (step === 'preview' && previewData) {
         return (
             <section className={styles['chart-builder']} aria-label="Chart builder">
-                <div data-stack="h" data-align="center" data-justify="between">
-                    <span className={styles['eyebrow']}>Chart builder</span>
-                    <ChartNoAxesColumnIncreasing size={20} />
-                </div>
-
+                <div className={styles['section']}>Preview</div>
                 <ChartResult
                     data={previewData}
                     kind={previewData.kind}
@@ -822,12 +898,9 @@ export const DatasetChartBuilder = ({
 
     return (
         <section className={styles['chart-builder']} aria-label="Chart builder">
-            <div data-stack="h" data-align="center" data-justify="between">
-                <span className={styles['eyebrow']}>Chart builder</span>
-                <ChartNoAxesColumnIncreasing size={20} />
-            </div>
-
             <form className={styles['chart-form']} onSubmit={handlePreview}>
+                <div className={styles['section']}>Chart</div>
+
                 {!editChartId && (
                     <label className={styles['control']}>
                         <span>Chart name</span>
@@ -1032,6 +1105,22 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
+                <label className={styles['control']}>
+                    <span>Value format</span>
+                    <Select
+                        value={valueFormat}
+                        onChange={event =>
+                            setValueFormat(event.target.value as MeasureValueFormat)
+                        }
+                    >
+                        {valueFormats.map(item => (
+                            <option key={item} value={item}>
+                                {VALUE_FORMAT_LABELS[item]}
+                            </option>
+                        ))}
+                    </Select>
+                </label>
+
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
                     <label className={styles['control']}>
                         <span>2nd measure</span>
@@ -1064,6 +1153,23 @@ export const DatasetChartBuilder = ({
                                     {aggregates.map(item => (
                                         <option key={item} value={item}>
                                             {AGGREGATE_LABELS[item]}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </label>
+                            <label className={styles['control']}>
+                                <span>2nd value format</span>
+                                <Select
+                                    value={secondValueFormat}
+                                    onChange={event =>
+                                        setSecondValueFormat(
+                                            event.target.value as MeasureValueFormat
+                                        )
+                                    }
+                                >
+                                    {valueFormats.map(item => (
+                                        <option key={item} value={item}>
+                                            {VALUE_FORMAT_LABELS[item]}
                                         </option>
                                     ))}
                                 </Select>
@@ -1280,6 +1386,17 @@ export const DatasetChartBuilder = ({
                     <Play size={18} />
                     Preview
                 </Button>
+                {editChartId && (
+                    <Button
+                        type="button"
+                        disabled={!canPreview || isSaving}
+                        isLoading={isSaving}
+                        onClick={() => void handleSaveWithoutPreview()}
+                    >
+                        <Save size={18} />
+                        Save without preview
+                    </Button>
+                )}
             </form>
 
             {chartError && <StatusMessage tone="error">{chartError}</StatusMessage>}

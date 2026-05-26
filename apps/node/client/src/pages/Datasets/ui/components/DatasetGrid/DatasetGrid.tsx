@@ -19,16 +19,16 @@ export const DatasetGrid = ({
     columns,
     rows,
     displayEdits,
-    isInsertingRow,
-    newRowValues,
+    insertDraft,
     gridWidth,
     gridHeight,
     hasMore,
     onCellCommit,
-    onNewRowValueChange,
+    onDraftValueChange,
+    onRowContextMenu,
     onLoadMore,
 }: DatasetGridProps) => {
-    const isEmpty = rows.length === 0 && !isInsertingRow;
+    const isEmpty = rows.length === 0 && !insertDraft;
 
     return (
         <div
@@ -56,13 +56,13 @@ export const DatasetGrid = ({
                             columns,
                             rows,
                             displayEdits,
-                            isInsertingRow,
-                            newRowValues,
+                            insertDraft,
                             gridWidth,
                             gridHeight,
                             hasMore,
                             onCellCommit,
-                            onNewRowValueChange,
+                            onDraftValueChange,
+                            onRowContextMenu,
                             onLoadMore,
                         }}
                     />

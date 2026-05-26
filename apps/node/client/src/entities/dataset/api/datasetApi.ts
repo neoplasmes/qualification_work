@@ -65,12 +65,31 @@ export const datasetApi = api.injectEndpoints({
         }),
         insertRow: builder.mutation<
             DatasetRow,
-            { datasetId: string; orgId: string; data: Record<string, unknown> }
+            {
+                datasetId: string;
+                orgId: string;
+                afterRowId?: string;
+                data: Record<string, unknown>;
+            }
         >({
-            query: ({ datasetId, orgId, data }) => ({
+            query: ({ datasetId, orgId, afterRowId, data }) => ({
                 url: `/data/datasets/${datasetId}/rows?orgId=${encodeURIComponent(orgId)}`,
                 method: 'POST',
-                body: { data },
+                body: { afterRowId, data },
+            }),
+            invalidatesTags: (_result, _error, arg) => [
+                { type: 'DatasetRows', id: arg.datasetId },
+                { type: 'Datasets', id: arg.datasetId },
+                { type: 'Datasets', id: 'LIST' },
+            ],
+        }),
+        deleteRow: builder.mutation<
+            DatasetRow,
+            { datasetId: string; rowId: string; orgId: string }
+        >({
+            query: ({ datasetId, rowId, orgId }) => ({
+                url: `/data/datasets/${datasetId}/rows/${rowId}?orgId=${encodeURIComponent(orgId)}`,
+                method: 'DELETE',
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'DatasetRows', id: arg.datasetId },
@@ -83,6 +102,7 @@ export const datasetApi = api.injectEndpoints({
 
 export const {
     useDeleteDatasetMutation,
+    useDeleteRowMutation,
     useGetDatasetMetadataQuery,
     useGetDatasetRowsQuery,
     useInsertRowMutation,

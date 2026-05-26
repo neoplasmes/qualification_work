@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ChartType, FilterOperation } from '@/entities/chart';
 
-import type { Aggregate, TimeGranularity } from '../api';
+import type { Aggregate, MeasureValueFormat, TimeGranularity } from '../api';
 
 type GroupingMode = 'none' | 'time' | 'numeric';
 
@@ -20,9 +20,11 @@ export type ChartBuilderFields = {
     heatmapYGranularity: TimeGranularity;
     heatmapYStep: number;
     aggregate: Aggregate;
+    valueFormat: MeasureValueFormat;
     measureColumnId: string;
     secondMeasureEnabled: boolean;
     secondAggregate: Aggregate;
+    secondValueFormat: MeasureValueFormat;
     secondMeasureColumnId: string;
     limit: number;
     topN: number;
@@ -49,9 +51,11 @@ const defaultFields = ((): ChartBuilderFields => ({
     heatmapYGranularity: 'month',
     heatmapYStep: 10,
     aggregate: 'count',
+    valueFormat: 'number',
     measureColumnId: '',
     secondMeasureEnabled: false,
     secondAggregate: 'avg',
+    secondValueFormat: 'number',
     secondMeasureColumnId: '',
     limit: CHART_RESULT_LIMIT,
     topN: 12,
@@ -93,9 +97,11 @@ type Setters = {
     setHeatmapYGranularity(v: TimeGranularity): void;
     setHeatmapYStep(v: number): void;
     setAggregate(v: Aggregate): void;
+    setValueFormat(v: MeasureValueFormat): void;
     setMeasureColumnId(v: string): void;
     setSecondMeasureEnabled(v: boolean): void;
     setSecondAggregate(v: Aggregate): void;
+    setSecondValueFormat(v: MeasureValueFormat): void;
     setSecondMeasureColumnId(v: string): void;
     setLimit(v: number): void;
     setTopN(v: number): void;
@@ -186,6 +192,10 @@ export const useChartBuilderState = (
         ),
         setHeatmapYStep: useCallback((v: number) => patch({ heatmapYStep: v }), [patch]),
         setAggregate: useCallback((v: Aggregate) => patch({ aggregate: v }), [patch]),
+        setValueFormat: useCallback(
+            (v: MeasureValueFormat) => patch({ valueFormat: v }),
+            [patch]
+        ),
         setMeasureColumnId: useCallback(
             (v: string) => patch({ measureColumnId: v }),
             [patch]
@@ -196,6 +206,10 @@ export const useChartBuilderState = (
         ),
         setSecondAggregate: useCallback(
             (v: Aggregate) => patch({ secondAggregate: v }),
+            [patch]
+        ),
+        setSecondValueFormat: useCallback(
+            (v: MeasureValueFormat) => patch({ secondValueFormat: v }),
             [patch]
         ),
         setSecondMeasureColumnId: useCallback(

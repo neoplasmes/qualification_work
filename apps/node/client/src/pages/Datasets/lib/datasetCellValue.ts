@@ -1,5 +1,7 @@
 import type { DatasetColumn } from '@/entities/dataset';
 
+import { isDayOfWeekValue } from '@/shared/lib/dayOfWeek';
+
 const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME_NO_TZ_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 
@@ -33,6 +35,10 @@ export const isValidDatasetCellValue = (
         return !Number.isNaN(new Date(normalized).getTime());
     }
 
+    if (dataType === 'day_of_week') {
+        return isDayOfWeekValue(value);
+    }
+
     return true;
 };
 
@@ -50,6 +56,10 @@ export const parseDatasetCellValue = (
 
     if (dataType === 'date') {
         return parseDateValue(value);
+    }
+
+    if (dataType === 'day_of_week') {
+        return value.trim();
     }
 
     return value;

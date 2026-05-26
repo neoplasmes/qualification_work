@@ -10,6 +10,12 @@
     background-color: var(--color-surface-container-low);
 }
 
+.frameless {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+}
+
 .chart-wrap {
     position: relative;
     width: 100%;

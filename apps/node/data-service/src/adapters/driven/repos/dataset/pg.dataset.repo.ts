@@ -31,6 +31,8 @@ const datasetRowColumnMap: Partial<Record<keyof DatasetRow, string>> = {
     rowIndex: 'row_index AS "rowIndex"',
 };
 
+const rowIndexShiftOffset = 1_000_000;
+
 export class PgDatasetRepo implements DatasetRepo {
     constructor(private readonly pool: Pool) {}
 
@@ -415,8 +417,9 @@ export class PgDatasetRepo implements DatasetRepo {
 
     async insertRow(
         datasetId: string,
-        data: Record<string, unknown>
-    ): Promise<DatasetRow> {
+        data: Record<string, unknown>,
+        afterRowId?: string
+    ): Promise<DatasetRow | null> {
         const client = await this.pool.connect();
 
         try {
@@ -425,14 +428,15 @@ export class PgDatasetRepo implements DatasetRepo {
             // lock by dataset to serialize concurrent inserts and avoid duplicate row_index
             await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [datasetId]);
 
-            const [{ nextIndex }] = await client
-                .query<{ nextIndex: number }>(
-                    `SELECT COALESCE(MAX(row_index), -1) + 1 AS "nextIndex"
-                    FROM data.dataset_rows
-                    WHERE dataset_id = $1`,
-                    [datasetId]
-                )
-                .then(result => result.rows);
+            const nextIndex = afterRowId
+                ? await this.insertIndexAfterRow(client, datasetId, afterRowId)
+                : await this.nextAppendIndex(client, datasetId);
+
+            if (nextIndex === null) {
+                await client.query('ROLLBACK');
+
+                return null;
+            }
 
             const [row] = await client
                 .query<DatasetRow>(
@@ -457,6 +461,107 @@ export class PgDatasetRepo implements DatasetRepo {
         } finally {
             client.release();
         }
+    }
+
+    async deleteRow(datasetId: string, rowId: string): Promise<DatasetRow | null> {
+        const client = await this.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+            await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [datasetId]);
+
+            const [row] = await client
+                .query<DatasetRow>(
+                    `DELETE FROM data.dataset_rows
+                    WHERE dataset_id = $1 AND id = $2
+                    RETURNING
+                        id,
+                        ${datasetRowColumnMap.datasetId},
+                        ${datasetRowColumnMap.rowIndex},
+                        data`,
+                    [datasetId, rowId]
+                )
+                .then(result => result.rows);
+
+            if (!row) {
+                await client.query('ROLLBACK');
+
+                return null;
+            }
+
+            await client.query(
+                `UPDATE data.dataset_rows
+                SET row_index = row_index + $2
+                WHERE dataset_id = $1 AND row_index > $3`,
+                [datasetId, rowIndexShiftOffset, row.rowIndex]
+            );
+            await client.query(
+                `UPDATE data.dataset_rows
+                SET row_index = row_index - $2
+                WHERE dataset_id = $1 AND row_index > $3`,
+                [datasetId, rowIndexShiftOffset + 1, row.rowIndex + rowIndexShiftOffset]
+            );
+
+            await client.query('COMMIT');
+
+            return row;
+        } catch (err) {
+            await client.query('ROLLBACK');
+
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    private async nextAppendIndex(
+        client: Pick<Pool, 'query'>,
+        datasetId: string
+    ): Promise<number> {
+        const [{ nextIndex }] = await client
+            .query<{ nextIndex: number }>(
+                `SELECT COALESCE(MAX(row_index), -1) + 1 AS "nextIndex"
+                FROM data.dataset_rows
+                WHERE dataset_id = $1`,
+                [datasetId]
+            )
+            .then(result => result.rows);
+
+        return nextIndex;
+    }
+
+    private async insertIndexAfterRow(
+        client: Pick<Pool, 'query'>,
+        datasetId: string,
+        afterRowId: string
+    ): Promise<number | null> {
+        const [target] = await client
+            .query<{ rowIndex: number }>(
+                `SELECT row_index AS "rowIndex"
+                FROM data.dataset_rows
+                WHERE dataset_id = $1 AND id = $2`,
+                [datasetId, afterRowId]
+            )
+            .then(result => result.rows);
+
+        if (!target) {
+            return null;
+        }
+
+        await client.query(
+            `UPDATE data.dataset_rows
+            SET row_index = row_index + $2
+            WHERE dataset_id = $1 AND row_index > $3`,
+            [datasetId, rowIndexShiftOffset, target.rowIndex]
+        );
+        await client.query(
+            `UPDATE data.dataset_rows
+            SET row_index = row_index - $2
+            WHERE dataset_id = $1 AND row_index > $3`,
+            [datasetId, rowIndexShiftOffset - 1, target.rowIndex + rowIndexShiftOffset]
+        );
+
+        return target.rowIndex + 1;
     }
 
     async addColumns(

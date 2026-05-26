@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -107,6 +107,19 @@ export const DashboardsWorkspace = () => {
     useEffect(() => {
         setSelectedMetricDatasetId(datasetsQuery.data?.[0]?.dataset.id ?? '');
     }, [datasetsQuery.data]);
+
+    const handleMetricNameChange = useCallback(
+        (value: string) => dispatch(setWorkspaceMetricName(value)),
+        [dispatch]
+    );
+    const handleMetricExpressionChange = useCallback(
+        (value: string) => dispatch(setWorkspaceMetricExpression(value)),
+        [dispatch]
+    );
+    const handleMetricFormatChange = useCallback(
+        (value: typeof metricFormat) => dispatch(setWorkspaceMetricFormat(value)),
+        [dispatch]
+    );
 
     const handleRenameDashboard = async (name: string) => {
         if (!dashboard) {
@@ -271,15 +284,9 @@ export const DashboardsWorkspace = () => {
                                 metricFormat={metricFormat}
                                 disabled={addMetricState.isLoading}
                                 onDatasetChange={setSelectedMetricDatasetId}
-                                onNameChange={value =>
-                                    dispatch(setWorkspaceMetricName(value))
-                                }
-                                onExpressionChange={value =>
-                                    dispatch(setWorkspaceMetricExpression(value))
-                                }
-                                onFormatChange={value =>
-                                    dispatch(setWorkspaceMetricFormat(value))
-                                }
+                                onNameChange={handleMetricNameChange}
+                                onExpressionChange={handleMetricExpressionChange}
+                                onFormatChange={handleMetricFormatChange}
                                 onSubmit={handleAddMetric}
                             />
                         </>

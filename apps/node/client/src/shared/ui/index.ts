@@ -15,6 +15,7 @@ export { PanelPlaceholder } from './PanelPlaceholder';
 export { Select } from './Select';
 export { SelectableList } from './SelectableList';
 export { EntityHeader, SectionHeader } from './SectionHeader';
+export { Separator } from './Separator';
 export { SegmentedTabs, type SegmentedTabOption } from './SegmentedTabs';
 export { StatusMessage } from './StatusMessage';
 export { Table, type TableRow } from './Table';

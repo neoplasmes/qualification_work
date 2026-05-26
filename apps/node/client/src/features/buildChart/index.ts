@@ -9,6 +9,7 @@ export type {
     AxisGrouping,
     CreateChartPayload,
     CreateChartResponse,
+    MeasureValueFormat,
     PatchChartPayload,
     PreviewChartPayload,
     TimeGranularity,

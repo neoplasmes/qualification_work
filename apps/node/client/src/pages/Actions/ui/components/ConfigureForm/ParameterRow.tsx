@@ -58,6 +58,7 @@ export const ParameterRow = ({
                     <option value="number">Number</option>
                     <option value="date">Date</option>
                     <option value="bool">Bool</option>
+                    <option value="day_of_week">Day of week</option>
                 </Select>
             </FormField>
             <Checkbox

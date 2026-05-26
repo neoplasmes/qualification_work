@@ -11,6 +11,7 @@ import { DatasetPreview } from './DatasetPreview';
 const mocks = vi.hoisted(() => ({
     updateRow: vi.fn(),
     insertRow: vi.fn(),
+    deleteRow: vi.fn(),
 }));
 
 const columns = vi.hoisted(
@@ -73,23 +74,28 @@ vi.mock('@/entities/dataset', () => ({
     }),
     useUpdateRowMutation: () => [mocks.updateRow],
     useInsertRowMutation: () => [mocks.insertRow, { isLoading: false }],
+    useDeleteRowMutation: () => [mocks.deleteRow, { isLoading: false }],
 }));
 
 vi.mock('../DatasetGrid', () => ({
     DatasetGrid: ({
         columns,
-        isInsertingRow,
+        insertDraft,
         onCellCommit,
-        onNewRowValueChange,
+        onDraftValueChange,
+        onRowContextMenu,
     }: DatasetGridProps) => (
         <div data-testid="mock-grid">
             <button type="button" onClick={() => onCellCommit('row-1', columns[0], '42')}>
                 Commit amount
             </button>
-            {isInsertingRow && (
+            <button type="button" onClick={() => onRowContextMenu(0, { x: 12, y: 24 })}>
+                Open row menu
+            </button>
+            {insertDraft && (
                 <button
                     type="button"
-                    onClick={() => onNewRowValueChange({ amount: '12', name: 'Alice' })}
+                    onClick={() => onDraftValueChange({ amount: '12', name: 'Alice' })}
                 >
                     Fill new row
                 </button>
@@ -115,6 +121,9 @@ describe('DatasetPreview', () => {
         mocks.insertRow.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
+        mocks.deleteRow.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue(undefined),
+        });
     });
 
     afterEach(() => {
@@ -127,7 +136,7 @@ describe('DatasetPreview', () => {
         expect(screen.getByText('1 of 1 rows')).toBeInTheDocument();
     });
 
-    it('flushes edited cells and inserts valid rows', async () => {
+    it('flushes edited cells and inserts a draft row below the selected row', async () => {
         const { container } = render(
             <DatasetPreview selectedDataset={selectedDataset} />
         );
@@ -145,14 +154,38 @@ describe('DatasetPreview', () => {
             values: { amount: 42 },
         });
 
-        fireEvent.click(getByDataTestId(container, datasetsTestIds.addRowButton));
+        fireEvent.click(screen.getByRole('button', { name: 'Open row menu' }));
+        fireEvent.click(getByDataTestId(container, datasetsTestIds.insertRowMenuItem));
         fireEvent.click(screen.getByRole('button', { name: 'Fill new row' }));
+        expect(mocks.insertRow).not.toHaveBeenCalled();
+
         fireEvent.click(getByDataTestId(container, datasetsTestIds.confirmInsertButton));
 
         expect(mocks.insertRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
+            afterRowId: 'row-1',
             data: { amount: 12, name: 'Alice' },
+        });
+    });
+
+    it('confirms row deletion from the context menu before calling backend', () => {
+        const { container } = render(
+            <DatasetPreview selectedDataset={selectedDataset} />
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Open row menu' }));
+        fireEvent.click(getByDataTestId(container, datasetsTestIds.deleteRowMenuItem));
+        expect(mocks.deleteRow).not.toHaveBeenCalled();
+
+        fireEvent.click(
+            getByDataTestId(container, datasetsTestIds.confirmDeleteRowButton)
+        );
+
+        expect(mocks.deleteRow).toHaveBeenCalledWith({
+            datasetId: 'dataset-1',
+            orgId: 'org-1',
+            rowId: 'row-1',
         });
     });
 });

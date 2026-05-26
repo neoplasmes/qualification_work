@@ -2,7 +2,7 @@ import type { Pool } from 'pg';
 
 import type { ChartConfig, ChartType } from '@qualification-work/types';
 
-import type { Chart } from '@/core/domain';
+import type { Chart, ColumnDataType } from '@/core/domain';
 import type {
     ChartCompilationContext,
     ChartRepo,
@@ -133,7 +133,7 @@ export class PgChartRepo implements ChartRepo {
         const { rows: columns } = await this.pool.query<{
             id: string;
             key: string;
-            dataType: 'number' | 'string' | 'date' | 'bool';
+            dataType: ColumnDataType;
         }>(
             `SELECT id, key, data_type AS "dataType"
              FROM data.dataset_columns
@@ -176,7 +176,7 @@ export class PgChartRepo implements ChartRepo {
         const { rows: columns } = await this.pool.query<{
             id: string;
             key: string;
-            dataType: 'number' | 'string' | 'date' | 'bool';
+            dataType: ColumnDataType;
         }>(
             `SELECT id, key, data_type AS "dataType"
              FROM data.dataset_columns

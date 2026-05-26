@@ -1,0 +1,28 @@
+.preview-header {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+    justify-content: space-between;
+
+    background-color: rgb(19 18 18 / 70%);
+    backdrop-filter: blur(12px);
+}
+
+.eyebrow {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-outline);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.page-indicator {
+    min-width: 104px;
+    font-size: var(--font-size-sm);
+    color: var(--color-on-surface-variant);
+    text-align: center;
+}

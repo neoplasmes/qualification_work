@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import type { ChartType } from '@/features/charts';
+import type { ChartType } from '@/entities/chart';
 
 type ChartsPageState = {
     selectedChartId: string | null;
@@ -72,7 +72,10 @@ export const chartsPageSlice = createSlice({
         setShowDatasetPicker(state, action: PayloadAction<boolean>) {
             state.showDatasetPicker = action.payload;
         },
-        setChartsFilterActiveTab(state, action: PayloadAction<'datasets' | 'dashboards'>) {
+        setChartsFilterActiveTab(
+            state,
+            action: PayloadAction<'datasets' | 'dashboards'>
+        ) {
             state.chartsFilterActiveTab = action.payload;
         },
         initWorkspaceDraft(

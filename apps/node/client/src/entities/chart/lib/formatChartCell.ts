@@ -7,6 +7,7 @@ const formatIsoDate = (value: string): string => {
     if (/T00:00:00(\.0+)?$/.test(noTz)) {
         return noTz.slice(0, 10);
     }
+
     return noTz;
 };
 
@@ -35,11 +36,14 @@ export const formatAxisNumber = (value: number): string => {
     const abs = Math.abs(value);
     if (abs >= 1_000_000) {
         const n = value / 1_000_000;
+
         return (Number.isInteger(n) ? n.toString() : n.toFixed(1)) + 'M';
     }
     if (abs >= 1_000) {
         const n = value / 1_000;
+
         return (Number.isInteger(n) ? n.toString() : n.toFixed(1)) + 'K';
     }
+
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
 };

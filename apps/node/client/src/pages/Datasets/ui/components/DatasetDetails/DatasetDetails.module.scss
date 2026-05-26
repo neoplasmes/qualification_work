@@ -1,0 +1,115 @@
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.details-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.details-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+
+    > * {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.eyebrow {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-outline);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-title {
+    overflow: hidden;
+    font-family: var(--font-headline);
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.status {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-on-surface-variant);
+    background-color: var(--color-surface-container-low);
+}
+
+.error {
+    border-color: var(--color-error-container);
+    color: var(--color-on-error-container);
+    background-color: rgb(140 0 0 / 18%);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-sm);
+
+    div {
+        padding: var(--spacing-sm);
+        border: 1px solid var(--color-outline-new);
+        border-radius: var(--radius-xs);
+        background-color: var(--color-surface-container-low);
+    }
+
+    dt {
+        margin-bottom: var(--spacing-xs);
+        font-size: var(--font-size-xs);
+        color: var(--color-on-surface-variant);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    dd {
+        font-family: var(--font-headline);
+        font-size: var(--font-size-xs);
+        font-weight: 800;
+    }
+}
+
+.columns-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+}
+
+.column-chip {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: space-between;
+
+    min-width: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    background-color: var(--color-surface-container-low);
+
+    span {
+        overflow: hidden;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    small {
+        flex-shrink: 0;
+        font-size: var(--font-size-xs);
+        color: var(--color-on-surface-variant);
+    }
+}

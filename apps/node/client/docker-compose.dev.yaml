@@ -71,7 +71,7 @@ services:
       REDIS_PASSWORD: dev_password
       REDIS_DB: '0'
     volumes:
-      - ../../../e2e/backend/docker-compose/keys/jwt.private.pem:/run/secrets/jwt.private.pem:ro
+      - ../../../e2e/docker-compose/keys/jwt.private.pem:/run/secrets/jwt.private.pem:ro
     depends_on:
       pgbouncer:
         condition: service_started
@@ -135,8 +135,8 @@ services:
       - ./docker-compose/openresty/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
       - ./docker-compose/openresty/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./docker-compose/openresty/upstreams.conf:/etc/nginx/conf.d/upstreams.conf:ro
-      - ../../../e2e/backend/docker-compose/keys/localhost.pem:/run/secrets/localhost.pem:ro
-      - ../../../e2e/backend/docker-compose/keys/localhost-key.pem:/run/secrets/localhost-key.pem:ro
+      - ../../../e2e/docker-compose/keys/localhost.pem:/run/secrets/localhost.pem:ro
+      - ../../../e2e/docker-compose/keys/localhost-key.pem:/run/secrets/localhost-key.pem:ro
     depends_on:
       auth:
         condition: service_started

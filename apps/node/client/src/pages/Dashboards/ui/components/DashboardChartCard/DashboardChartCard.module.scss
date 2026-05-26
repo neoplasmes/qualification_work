@@ -1,0 +1,36 @@
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    background-color: var(--color-surface-container-lowest);
+
+    h3 {
+        overflow: hidden;
+        font-family: var(--font-headline);
+        font-size: var(--font-size-lg);
+        font-weight: 800;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    p {
+        font-size: var(--font-size-sm);
+        line-height: 1.5;
+        color: var(--color-on-surface-variant);
+    }
+}
+
+.card-header {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+    justify-content: space-between;
+}

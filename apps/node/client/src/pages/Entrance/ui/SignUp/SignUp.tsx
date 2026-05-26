@@ -5,7 +5,7 @@ import {
     useLoginMutation,
     useRegisterMutation,
     useWaitForWorkspace,
-} from '@/features/auth';
+} from '@/features/authenticate';
 
 import { getApiErrorMessage } from '@/shared/api';
 

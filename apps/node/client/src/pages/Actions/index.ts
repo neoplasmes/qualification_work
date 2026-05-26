@@ -1,9 +1,4 @@
-export {
-    ActionsListPanel,
-    ActionsPage,
-    ActionsRightPanel,
-    ActionsWorkspace,
-} from './ui';
+export { ActionsListPanel, ActionsPage, ActionsRightPanel, ActionsWorkspace } from './ui';
 export {
     actionsPageInitialState,
     actionsPageSlice,
@@ -30,4 +25,4 @@ export {
     toggleActionsDatasetFilter,
     toggleActionsEffectFilter,
     toggleActionsRunStatusFilter,
-} from './model/actionsPageSlice';
+} from './model';

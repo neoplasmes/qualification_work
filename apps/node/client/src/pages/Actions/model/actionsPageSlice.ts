@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import type { ActionRunStatus } from '@/features/actions';
+import type { ActionRunStatus } from '@/entities/action';
 
 export type ActionsWorkspaceTab = 'configure' | 'run';
 export type ActionsRightPanelTab = 'history' | 'properties' | 'filters';

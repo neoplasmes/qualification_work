@@ -1,37 +1,36 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Pencil, RefreshCcw, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/auth';
+import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
+
 import {
     useDeleteChartMutation,
     useLazyGetChartDataQuery,
     useListChartsQuery,
     type ChartResponse,
     type FilterClause,
-} from '@/features/charts';
-import { useListDatasetsQuery, type DatasetMetadata } from '@/features/datasets';
-
-import { ChartResult } from '@/entities/chart';
-
-import { DatasetChartBuilder, configToBuilderFields } from '@/widgets/DatasetChartBuilder';
+} from '@/entities/chart';
+import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
-import { Button } from '@/shared/ui';
 
-import { CreateChartModal } from './CreateChartModal';
-
+import { chartsTestIds } from '../const';
 import {
+    selectBuilderDatasetId,
     selectChart,
     selectSelectedChartId,
-    selectBuilderDatasetId,
     selectShowDatasetPicker,
     setBuilderDatasetId,
     setShowDatasetPicker,
-} from '../model/chartsPageSlice';
+} from '../model';
+import {
+    CreateChartBuilderSection,
+    EditChartBuilderSection,
+} from './components/ChartBuilderSection';
+import { CreateChartModal } from './components/CreateChartModal';
+import { SavedChartDetails } from './components/SavedChartDetails';
 
 import styles from './ChartsPage.module.scss';
 
@@ -70,7 +69,9 @@ export const ChartsWorkspace = () => {
     const editDataset = useMemo(
         () =>
             selectedChart
-                ? (datasetsQuery.data?.find(d => d.dataset.id === selectedChart.datasetId) ?? null)
+                ? (datasetsQuery.data?.find(
+                      d => d.dataset.id === selectedChart.datasetId
+                  ) ?? null)
                 : null,
         [datasetsQuery.data, selectedChart]
     );
@@ -105,6 +106,7 @@ export const ChartsWorkspace = () => {
         if (!selectedChart) {
             setChartResult(null);
             setIsEditing(false);
+
             return;
         }
 
@@ -128,7 +130,10 @@ export const ChartsWorkspace = () => {
     };
 
     const handleChartUpdated = async () => {
-        if (!selectedChart) {return;}
+        if (!selectedChart) {
+            return;
+        }
+
         await chartsQuery.refetch();
         setIsEditing(false);
         void loadChartData(selectedChart.id).catch(loadError => {
@@ -172,11 +177,17 @@ export const ChartsWorkspace = () => {
     };
 
     const selectedChartResult =
-        selectedChart && chartResult?.chartId === selectedChart.id ? chartResult.data : null;
+        selectedChart && chartResult?.chartId === selectedChart.id
+            ? chartResult.data
+            : null;
 
     return (
         <>
-            <section className={styles['panel']} aria-label="Chart details">
+            <section
+                className={styles['panel']}
+                data-test-id={chartsTestIds.workspace}
+                aria-label="Chart details"
+            >
                 {!selectedChart && !builderDataset && (
                     <p className={styles['panel-placeholder']}>
                         Select a chart or create a new one.
@@ -184,115 +195,37 @@ export const ChartsWorkspace = () => {
                 )}
 
                 {builderDataset && org && (
-                    <>
-                        <div className={styles['builder-header']}>
-                            <div data-stack="v" data-gap="xs">
-                                <span className={styles['eyebrow']}>New chart</span>
-                                <h2 className={styles['title']}>{builderDataset.dataset.name}</h2>
-                            </div>
-                            <Button onClick={() => dispatch(setShowDatasetPicker(true))}>
-                                Change dataset
-                            </Button>
-                        </div>
-                        <DatasetChartBuilder
-                            key={builderDataset.dataset.id}
-                            orgId={org.id}
-                            selectedDataset={builderDataset}
-                            onChartCreated={chartId => void handleChartCreated(chartId)}
-                        />
-                    </>
+                    <CreateChartBuilderSection
+                        orgId={org.id}
+                        dataset={builderDataset}
+                        onChangeDataset={() => dispatch(setShowDatasetPicker(true))}
+                        onChartCreated={chartId => void handleChartCreated(chartId)}
+                    />
                 )}
 
                 {selectedChart && !builderDataset && !isEditing && (
-                    <>
-                        <div className={styles['detail-header']}>
-                            <div data-stack="v" data-gap="xs">
-                                <span className={styles['eyebrow']}>Chart</span>
-                                <h2 className={styles['title']}>{selectedChart.name}</h2>
-                                <p className={styles['muted']}>
-                                    {selectedChart.chartType} &middot; dataset{' '}
-                                    {selectedChart.datasetId.slice(0, 8)}
-                                </p>
-                            </div>
-                            <div data-stack="h" data-gap="sm">
-                                <Button
-                                    disabled={!editDataset}
-                                    onClick={() => setIsEditing(true)}
-                                >
-                                    <Pencil size={18} />
-                                    Edit
-                                </Button>
-                                <Button
-                                    disabled={chartDataQuery.isFetching}
-                                    onClick={() => void handleRefreshData()}
-                                >
-                                    <RefreshCcw size={18} />
-                                    Refresh data
-                                </Button>
-                                <Button
-                                    variant="danger"
-                                    disabled={deleteChartState.isLoading}
-                                    onClick={() => void handleDeleteChart()}
-                                >
-                                    <Trash2 size={18} />
-                                    {deleteConfirmationId === selectedChart.id
-                                        ? 'Confirm delete'
-                                        : 'Delete'}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div
-                                role="alert"
-                                className={`${styles['status']} ${styles['error']}`}
-                            >
-                                {error}
-                            </div>
-                        )}
-
-                        {chartDataQuery.isFetching && (
-                            <div className={styles['status']}>Loading chart data...</div>
-                        )}
-
-                        {selectedChartResult && (
-                            <ChartResult
-                                data={selectedChartResult}
-                                kind={selectedChartResult.kind}
-                                ariaLabel="Saved chart result"
-                            >
-                                <span>
-                                    Aggregated at{' '}
-                                    {formatDate(selectedChartResult.aggregatedAt)}
-                                </span>
-                            </ChartResult>
-                        )}
-                    </>
+                    <SavedChartDetails
+                        chart={selectedChart}
+                        chartResult={selectedChartResult}
+                        error={error}
+                        isLoadingData={chartDataQuery.isFetching}
+                        isDeleting={deleteChartState.isLoading}
+                        canEdit={Boolean(editDataset)}
+                        deleteConfirmationId={deleteConfirmationId}
+                        onEdit={() => setIsEditing(true)}
+                        onRefreshData={() => void handleRefreshData()}
+                        onDelete={() => void handleDeleteChart()}
+                    />
                 )}
 
                 {selectedChart && !builderDataset && isEditing && editDataset && org && (
-                    <>
-                        <div className={styles['builder-header']}>
-                            <div data-stack="v" data-gap="xs">
-                                <span className={styles['eyebrow']}>Edit chart</span>
-                                <h2 className={styles['title']}>{selectedChart.name}</h2>
-                            </div>
-                            <Button onClick={() => setIsEditing(false)}>
-                                Cancel
-                            </Button>
-                        </div>
-                        <DatasetChartBuilder
-                            key={`edit-${selectedChart.id}`}
-                            orgId={org.id}
-                            selectedDataset={editDataset}
-                            editChartId={selectedChart.id}
-                            initialFields={configToBuilderFields(
-                                selectedChart.config,
-                                selectedChart.chartType
-                            )}
-                            onChartUpdated={() => void handleChartUpdated()}
-                        />
-                    </>
+                    <EditChartBuilderSection
+                        orgId={org.id}
+                        chart={selectedChart}
+                        dataset={editDataset}
+                        onCancel={() => setIsEditing(false)}
+                        onChartUpdated={() => void handleChartUpdated()}
+                    />
                 )}
             </section>
 

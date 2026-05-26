@@ -1,0 +1,14 @@
+.table-wrap {
+    overflow: hidden;
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+}
+
+.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    font-size: var(--font-size-sm);
+    color: var(--color-on-surface-variant);
+}

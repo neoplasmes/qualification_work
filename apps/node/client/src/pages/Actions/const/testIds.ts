@@ -1,6 +1,10 @@
 export const actionsTestIds = {
     listPanel: 'actions-list-panel',
     workspace: 'actions-workspace',
+    workspaceViewTab: 'actions-workspace-view-tab',
+    workspaceEditTab: 'actions-workspace-edit-tab',
+    renameButton: 'actions-rename-button',
+    renameInput: 'actions-rename-input',
     archiveButton: 'actions-archive-button',
     configureTab: 'actions-configure-tab',
     runTab: 'actions-run-tab',

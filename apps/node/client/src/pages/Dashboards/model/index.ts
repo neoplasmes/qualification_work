@@ -17,6 +17,8 @@ export {
     selectWorkspaceMetricFormat,
     selectWorkspaceMetricName,
     setDashboardsFilterActiveTab,
+    setDashboardsRightPanelTab,
+    selectDashboardsRightPanelTab,
     setDashboardsWorkspaceDraftName,
     setWorkspaceMetricExpression,
     setWorkspaceMetricFormat,
@@ -24,5 +26,5 @@ export {
     toggleChartFilter,
     toggleDatasetFilter,
 } from './dashboardsPageSlice';
-export type { DashboardsPageState } from './dashboardsPageSlice';
+export type { DashboardsPageState, DashboardsRightPanelTab } from './dashboardsPageSlice';
 export { dashboardsPagePersistence } from './dashboardsPagePersistence';

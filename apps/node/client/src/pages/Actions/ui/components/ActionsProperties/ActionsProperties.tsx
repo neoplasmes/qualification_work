@@ -10,14 +10,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-    Badge,
-    Button,
-    Card,
-    PanelPlaceholder,
-    SectionHeader,
-    StatusMessage,
-} from '@/shared/ui';
+import { Badge, Button, Card, PanelPlaceholder, StatusMessage, Table } from '@/shared/ui';
 
 import { canMutate, getEffectLabel } from '../../../lib';
 import { selectAction } from '../../../model';
@@ -91,29 +84,26 @@ export const ActionsProperties = ({
 
     return (
         <section className={styles['right-section']} aria-label="Action properties">
-            <SectionHeader
-                eyebrow="Properties"
-                title={selectedAction.name}
-                headingLevel={3}
-            />
+            <div data-stack="v" data-gap="xs">
+                <span className={styles['eyebrow']}>Properties</span>
+                <h3 className={styles['section-title']}>{selectedAction.name}</h3>
+            </div>
 
             {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-            <div className={styles['properties-grid']}>
-                <PropertyRow label="Effects" value={selectedAction.effects.length} />
-                <PropertyRow label="Params" value={selectedAction.parameters.length} />
-                <PropertyRow
-                    label="Created"
-                    value={formatDate(selectedAction.createdAt)}
-                />
-                <PropertyRow
-                    label="Updated"
-                    value={formatDate(selectedAction.updatedAt)}
-                />
-            </div>
+            <Table
+                aria-label="Action properties"
+                headers={{ key: 'Property', value: 'Value' }}
+                rows={[
+                    { key: 'Effects', value: selectedAction.effects.length },
+                    { key: 'Params', value: selectedAction.parameters.length },
+                    { key: 'Created', value: formatDate(selectedAction.createdAt) },
+                    { key: 'Updated', value: formatDate(selectedAction.updatedAt) },
+                ]}
+            />
 
             <Card className={styles['card']}>
-                <SectionHeader eyebrow="Datasets" />
+                <span className={styles['eyebrow']}>Datasets</span>
                 <div className={styles['meta']}>
                     {affectedDatasets.map(datasetId => (
                         <Badge key={datasetId}>
@@ -124,7 +114,7 @@ export const ActionsProperties = ({
             </Card>
 
             <Card className={styles['card']}>
-                <SectionHeader eyebrow="Effects" />
+                <span className={styles['eyebrow']}>Effects</span>
                 <div className={styles['stack']}>
                     {selectedAction.effects.map((effect, index) => (
                         <StatusMessage
@@ -154,10 +144,3 @@ export const ActionsProperties = ({
         </section>
     );
 };
-
-const PropertyRow = ({ label, value }: { label: string; value: string | number }) => (
-    <div className={styles['property-row']}>
-        <span>{label}</span>
-        <span>{value}</span>
-    </div>
-);

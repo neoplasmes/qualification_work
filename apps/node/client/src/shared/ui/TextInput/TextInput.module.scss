@@ -21,6 +21,16 @@
         color: var(--color-outline);
         background-color: var(--color-surface-container-lowest);
     }
+
+    // hide native number spinners
+    &[type='number'] {
+        appearance: textfield;
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            appearance: none;
+        }
+    }
 }
 
 .invalid {

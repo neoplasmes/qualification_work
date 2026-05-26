@@ -3,9 +3,11 @@ import { configToBuilderFields, DatasetChartBuilder } from '@/features/buildChar
 import type { Chart } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button, EntityHeader } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
+
+import styles from './ChartBuilderSection.module.scss';
 
 type CreateChartBuilderSectionProps = {
     orgId: string;
@@ -18,7 +20,6 @@ type EditChartBuilderSectionProps = {
     orgId: string;
     chart: Chart;
     dataset: DatasetMetadata;
-    onCancel: () => void;
     onChartUpdated: () => void;
 };
 
@@ -29,18 +30,18 @@ export const CreateChartBuilderSection = ({
     onChartCreated,
 }: CreateChartBuilderSectionProps) => (
     <>
-        <EntityHeader
-            eyebrow="New chart"
-            title={dataset.dataset.name}
-            actions={
-                <Button
-                    data-test-id={chartsTestIds.changeDatasetButton}
-                    onClick={onChangeDataset}
-                >
-                    Change dataset
-                </Button>
-            }
-        />
+        <div className={styles['builder-header']}>
+            <div data-stack="v" data-gap="xs">
+                <span className={styles['eyebrow']}>New chart</span>
+                <h2 className={styles['title']}>{dataset.dataset.name}</h2>
+            </div>
+            <Button
+                data-test-id={chartsTestIds.changeDatasetButton}
+                onClick={onChangeDataset}
+            >
+                Change dataset
+            </Button>
+        </div>
         <DatasetChartBuilder
             key={dataset.dataset.id}
             orgId={orgId}
@@ -54,26 +55,14 @@ export const EditChartBuilderSection = ({
     orgId,
     chart,
     dataset,
-    onCancel,
     onChartUpdated,
 }: EditChartBuilderSectionProps) => (
-    <>
-        <EntityHeader
-            eyebrow="Edit chart"
-            title={chart.name}
-            actions={
-                <Button data-test-id={chartsTestIds.cancelEditButton} onClick={onCancel}>
-                    Cancel
-                </Button>
-            }
-        />
-        <DatasetChartBuilder
-            key={`edit-${chart.id}`}
-            orgId={orgId}
-            selectedDataset={dataset}
-            editChartId={chart.id}
-            initialFields={configToBuilderFields(chart.config, chart.chartType)}
-            onChartUpdated={onChartUpdated}
-        />
-    </>
+    <DatasetChartBuilder
+        key={`edit-${chart.id}`}
+        orgId={orgId}
+        selectedDataset={dataset}
+        editChartId={chart.id}
+        initialFields={configToBuilderFields(chart.config, chart.chartType)}
+        onChartUpdated={onChartUpdated}
+    />
 );

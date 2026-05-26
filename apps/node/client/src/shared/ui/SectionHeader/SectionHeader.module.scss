@@ -1,8 +1,5 @@
 .header {
-    display: flex;
     gap: var(--spacing-sm);
-    align-items: flex-start;
-    justify-content: space-between;
 }
 
 .content {
@@ -12,10 +9,7 @@
 }
 
 .actions {
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--spacing-sm);
-    justify-content: flex-end;
 }
 
 .eyebrow {

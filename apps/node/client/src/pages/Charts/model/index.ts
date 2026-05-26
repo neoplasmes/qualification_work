@@ -8,6 +8,7 @@ export {
     selectBuilderDatasetId,
     selectChart,
     selectChartsFilterActiveTab,
+    selectChartsRightPanelTab,
     selectFilterDashboardIds,
     selectFilterDatasetIds,
     selectSelectedChartId,
@@ -19,6 +20,7 @@ export {
     selectWorkspaceFilterOverrideText,
     setBuilderDatasetId,
     setChartsFilterActiveTab,
+    setChartsRightPanelTab,
     setShowDatasetPicker,
     setWorkspaceDraftChartType,
     setWorkspaceDraftConfigText,
@@ -27,5 +29,5 @@ export {
     toggleDashboardFilter,
     toggleDatasetFilter,
 } from './chartsPageSlice';
-export type { ChartsPageState } from './chartsPageSlice';
+export type { ChartsPageState, ChartsRightPanelTab } from './chartsPageSlice';
 export { chartsPagePersistence } from './chartsPagePersistence';

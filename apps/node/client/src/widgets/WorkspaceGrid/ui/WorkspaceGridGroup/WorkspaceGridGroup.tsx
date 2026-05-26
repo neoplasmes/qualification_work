@@ -2,10 +2,10 @@ import React, { Children, useLayoutEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
-    WorkspaceGridPanelModel,
-    type WorkspaceGridGroupDirection,
     selectPanelSizes,
     setPanelSizes,
+    WorkspaceGridPanelModel,
+    type WorkspaceGridGroupDirection,
 } from '../../model';
 import {
     WorkspaceGridPanelInternal,
@@ -109,7 +109,7 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         panelModels.current.set(linked[0], firstModel);
 
         for (; i < childrenArray.length; ) {
-            const prevWrapped = linked[i - 1];
+            const prevWrapped = linked[linked.length - 1];
             const prevModel = panelModels.current.get(prevWrapped)!;
 
             const nextKey = `panel-${i}`;

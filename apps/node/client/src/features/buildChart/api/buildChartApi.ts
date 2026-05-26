@@ -5,6 +5,7 @@ import { api } from '@/shared/api';
 import type {
     CreateChartPayload,
     CreateChartResponse,
+    PatchChartPayload,
     PreviewChartPayload,
     UpdateChartPayload,
 } from './types';
@@ -31,6 +32,18 @@ export const buildChartApi = api.injectEndpoints({
                 { type: 'Charts', id: 'LIST' },
             ],
         }),
+        patchChart: builder.mutation<void, PatchChartPayload>({
+            query: ({ chartId, ...body }) => ({
+                url: `/data/charts/${chartId}`,
+                method: 'PATCH',
+                body,
+                responseHandler: 'text',
+            }),
+            invalidatesTags: (_result, _error, arg) => [
+                { type: 'Charts', id: arg.chartId },
+                { type: 'Charts', id: 'LIST' },
+            ],
+        }),
         previewChartData: builder.mutation<ChartResponse, PreviewChartPayload>({
             query: body => ({
                 url: '/data/charts/preview',
@@ -43,6 +56,7 @@ export const buildChartApi = api.injectEndpoints({
 
 export const {
     useCreateChartMutation,
+    usePatchChartMutation,
     usePreviewChartDataMutation,
     useUpdateChartMutation,
 } = buildChartApi;

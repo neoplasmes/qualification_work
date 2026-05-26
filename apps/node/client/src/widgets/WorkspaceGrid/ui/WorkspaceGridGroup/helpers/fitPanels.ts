@@ -25,8 +25,9 @@ export const fitPanels = (
         const shrinkRatio = availableSize / totalSize;
         models.forEach((model, i) => model.setFittedSizePx(sizes[i] * shrinkRatio));
     } else if (totalSize < availableSize) {
-        // expand last panel to fill remaining space
-        const last = models[models.length - 1];
-        last.setFittedSizePx(sizes[sizes.length - 1] + availableSize - totalSize);
+        // expand the second-to-last panel (center content area) so edge panels stay near their
+        // initial size and remain freely resizable; fall back to last panel for <= 2 panels
+        const targetIdx = models.length > 2 ? models.length - 2 : models.length - 1;
+        models[targetIdx].setFittedSizePx(sizes[targetIdx] + availableSize - totalSize);
     }
 };

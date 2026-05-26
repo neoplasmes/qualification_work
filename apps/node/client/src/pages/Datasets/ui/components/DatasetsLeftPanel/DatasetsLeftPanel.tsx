@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { RefreshCcw, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -11,14 +11,7 @@ import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
-import {
-    Badge,
-    Button,
-    EmptyState,
-    IconButton,
-    SectionHeader,
-    StatusMessage,
-} from '@/shared/ui';
+import { Badge, Button, EmptyState, StatusMessage } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 import { filterDatasets } from '../../../lib';
@@ -30,9 +23,9 @@ import {
     setShowUpload,
 } from '../../../model';
 
-import styles from './DatasetsUploadPanel.module.scss';
+import styles from './DatasetsLeftPanel.module.scss';
 
-export const DatasetsUploadPanel = () => {
+export const DatasetsLeftPanel = () => {
     const dispatch = useDispatch();
 
     const meQuery = useGetMeQuery();
@@ -73,20 +66,12 @@ export const DatasetsUploadPanel = () => {
             className={styles['side-panel']}
             data-test-id={datasetsTestIds.uploadPanel}
         >
-            <SectionHeader
-                title="Datasets"
-                headingLevel={1}
-                description={`${filteredDatasets?.length ?? 0} datasets`}
-                actions={
-                    <IconButton
-                        aria-label="Refresh datasets"
-                        disabled={datasetsQuery.isFetching}
-                        onClick={() => void datasetsQuery.refetch()}
-                    >
-                        <RefreshCcw size={18} />
-                    </IconButton>
-                }
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <h1 className={styles['title']}>Datasets</h1>
+                <span className={styles['muted']}>
+                    {filteredDatasets?.length ?? 0} datasets
+                </span>
+            </div>
 
             <Button
                 className={styles['full-button']}
@@ -121,8 +106,6 @@ export const DatasetsUploadPanel = () => {
                                 {item.dataset.name}
                             </div>
                             <div className={styles['dataset-meta']}>
-                                <span>{item.totalRows} rows</span>
-                                <span>{item.columns.length} cols</span>
                                 <span>{formatDate(item.dataset.createdAt)}</span>
                             </div>
                         </div>

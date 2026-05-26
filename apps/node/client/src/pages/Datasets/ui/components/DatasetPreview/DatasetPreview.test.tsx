@@ -47,39 +47,30 @@ const selectedDataset = vi.hoisted(
                 updatedAt: '2026-01-01T00:00:00.000Z',
             },
             columns,
-            totalRows: 201,
+            totalRows: 1,
         }) satisfies DatasetMetadata
 );
 
-const rowsByOffset = vi.hoisted(() => {
-    const row = (id: string, amount: number): DatasetRow => ({
-        id,
+const mockRow = vi.hoisted(
+    (): DatasetRow => ({
+        id: 'row-1',
         datasetId: 'dataset-1',
-        rowIndex: amount,
-        data: { amount, name: `Row ${amount}` },
-    });
-
-    return new Map<number, DatasetRow[]>([
-        [0, [row('row-1', 1)]],
-        [200, [row('row-201', 201)]],
-    ]);
-});
+        rowIndex: 1,
+        data: { amount: 1, name: 'Row 1' },
+    })
+);
 
 vi.mock('@/entities/dataset', () => ({
-    useGetDatasetRowsQuery: (arg: { offset: number } | symbol) => {
-        const offset = typeof arg === 'object' ? arg.offset : 0;
-
-        return {
-            data: {
-                rows: rowsByOffset.get(offset) ?? [],
-                totalRows: selectedDataset.totalRows,
-                offset,
-                limit: 200,
-            },
-            isLoading: false,
-            isFetching: false,
-        };
-    },
+    useGetDatasetRowsQuery: () => ({
+        data: {
+            rows: [mockRow],
+            totalRows: selectedDataset.totalRows,
+            offset: 0,
+            limit: 200,
+        },
+        isLoading: false,
+        isFetching: false,
+    }),
     useUpdateRowMutation: () => [mocks.updateRow],
     useInsertRowMutation: () => [mocks.insertRow, { isLoading: false }],
 }));
@@ -130,19 +121,10 @@ describe('DatasetPreview', () => {
         vi.useRealTimers();
     });
 
-    it('paginates dataset rows and jumps to the last page', () => {
-        const { container } = render(
-            <DatasetPreview selectedDataset={selectedDataset} />
-        );
+    it('shows loaded row count for selected dataset', () => {
+        render(<DatasetPreview selectedDataset={selectedDataset} />);
 
-        expect(screen.getByText('1-200 of 201')).toBeInTheDocument();
-
-        fireEvent.click(getByDataTestId(container, datasetsTestIds.nextRowsButton));
-
-        expect(screen.getByText('201-201 of 201')).toBeInTheDocument();
-        expect(
-            getByDataTestId<HTMLButtonElement>(container, datasetsTestIds.lastPageButton)
-        ).toBeDisabled();
+        expect(screen.getByText('1 of 1 rows')).toBeInTheDocument();
     });
 
     it('flushes edited cells and inserts valid rows', async () => {
@@ -163,7 +145,6 @@ describe('DatasetPreview', () => {
             values: { amount: 42 },
         });
 
-        fireEvent.click(getByDataTestId(container, datasetsTestIds.nextRowsButton));
         fireEvent.click(getByDataTestId(container, datasetsTestIds.addRowButton));
         fireEvent.click(screen.getByRole('button', { name: 'Fill new row' }));
         fireEvent.click(getByDataTestId(container, datasetsTestIds.confirmInsertButton));

@@ -4,6 +4,7 @@ import DataEditor, {
     type GridCell,
     type GridColumn,
     type Item,
+    type Rectangle,
 } from '@glideapps/glide-data-grid';
 
 import '@glideapps/glide-data-grid/dist/index.css';
@@ -25,8 +26,10 @@ export const DatasetGridEditor = ({
     newRowValues,
     gridWidth,
     gridHeight,
+    hasMore,
     onCellCommit,
     onNewRowValueChange,
+    onLoadMore,
 }: DatasetGridEditorProps) => {
     const rowCount = rows.length + (isInsertingRow ? 1 : 0);
     const gridColumns = useMemo<GridColumn[]>(
@@ -98,6 +101,15 @@ export const DatasetGridEditor = ({
         [columns, isInsertingRow, onCellCommit, onNewRowValueChange, rows]
     );
 
+    const onVisibleRegionChanged = useCallback(
+        (range: Rectangle) => {
+            if (hasMore && range.y + range.height >= rowCount - 8) {
+                onLoadMore();
+            }
+        },
+        [hasMore, rowCount, onLoadMore]
+    );
+
     const validateCell = useCallback(
         ([columnIndex]: Item, newValue: EditableGridCell): boolean => {
             const column = columns[columnIndex];
@@ -121,6 +133,7 @@ export const DatasetGridEditor = ({
             getCellContent={getCellContent}
             onCellEdited={onCellEdited}
             validateCell={validateCell}
+            onVisibleRegionChanged={onVisibleRegionChanged}
             rowMarkers="number"
             headerHeight={HEADER_H}
             rowHeight={ROW_H}

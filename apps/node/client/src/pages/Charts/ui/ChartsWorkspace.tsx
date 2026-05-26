@@ -2,10 +2,16 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import {
+    WorkspaceModeTabs,
+    type WorkspaceModeTabOption,
+} from '@/widgets/WorkspaceModeTabs';
+import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
+
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
+import { usePatchChartMutation } from '@/features/buildChart';
 
 import {
-    useDeleteChartMutation,
     useLazyGetChartDataQuery,
     useListChartsQuery,
     type ChartResponse,
@@ -35,6 +41,21 @@ import { SavedChartDetails } from './components/SavedChartDetails';
 
 import styles from './ChartsPage.module.scss';
 
+type WorkspaceMode = 'view' | 'edit';
+
+const CHARTS_WORKSPACE_MODE_TABS = [
+    {
+        value: 'view',
+        label: 'View',
+        testId: chartsTestIds.workspaceViewTab,
+    },
+    {
+        value: 'edit',
+        label: 'Edit',
+        testId: chartsTestIds.workspaceEditTab,
+    },
+] as const satisfies readonly WorkspaceModeTabOption<WorkspaceMode>[];
+
 export const ChartsWorkspace = () => {
     const dispatch = useDispatch();
     const [error, setError] = useState('');
@@ -43,7 +64,6 @@ export const ChartsWorkspace = () => {
         chartId: string;
         data: ChartResponse;
     } | null>(null);
-    const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
     const chartDataRequestRef = useRef(0);
 
     const selectedChartId = useSelector(selectSelectedChartId);
@@ -55,7 +75,7 @@ export const ChartsWorkspace = () => {
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [getChartData, chartDataQuery] = useLazyGetChartDataQuery();
-    const [deleteChart, deleteChartState] = useDeleteChartMutation();
+    const [patchChart, patchChartState] = usePatchChartMutation();
 
     const selectedChart = useMemo(
         () => getSelected(chartsQuery.data, selectedChartId),
@@ -112,7 +132,6 @@ export const ChartsWorkspace = () => {
         }
 
         setError('');
-        setDeleteConfirmationId(null);
         setChartResult(null);
         setIsEditing(false);
         void loadChartData(selectedChart.id).catch(loadError => {
@@ -142,38 +161,23 @@ export const ChartsWorkspace = () => {
         });
     };
 
-    const handleRefreshData = async () => {
+    const handleRenameChart = async (name: string) => {
         if (!selectedChart) {
             return;
         }
 
         try {
             setError('');
-            await loadChartData(selectedChart.id);
-        } catch (refreshError) {
-            setError(getApiErrorMessage(refreshError, 'Unable to refresh chart data.'));
-        }
-    };
-
-    const handleDeleteChart = async () => {
-        if (!selectedChart) {
-            return;
-        }
-
-        if (deleteConfirmationId !== selectedChart.id) {
-            setDeleteConfirmationId(selectedChart.id);
-
-            return;
-        }
-
-        try {
-            await deleteChart(selectedChart.id).unwrap();
-            dispatch(selectChart(null));
-            setChartResult(null);
-            setDeleteConfirmationId(null);
+            await patchChart({ chartId: selectedChart.id, name }).unwrap();
             await chartsQuery.refetch();
-        } catch (deleteError) {
-            setError(getApiErrorMessage(deleteError, 'Unable to delete this chart.'));
+        } catch (renameError) {
+            const message = getApiErrorMessage(
+                renameError,
+                'Unable to rename this chart.'
+            );
+            setError(message);
+
+            throw new Error(message);
         }
     };
 
@@ -204,29 +208,45 @@ export const ChartsWorkspace = () => {
                     />
                 )}
 
-                {selectedChart && !builderDataset && !isEditing && (
-                    <SavedChartDetails
-                        chart={selectedChart}
-                        chartResult={selectedChartResult}
-                        error={error}
-                        isLoadingData={chartDataQuery.isFetching}
-                        isDeleting={deleteChartState.isLoading}
-                        canEdit={Boolean(editDataset)}
-                        deleteConfirmationId={deleteConfirmationId}
-                        onEdit={() => setIsEditing(true)}
-                        onRefreshData={() => void handleRefreshData()}
-                        onDelete={() => void handleDeleteChart()}
-                    />
-                )}
+                {selectedChart && !builderDataset && (
+                    <>
+                        <div data-stack="v" data-gap="sm">
+                            <WorkspaceTitleEditor
+                                eyebrow="Chart"
+                                title={selectedChart.name}
+                                fallbackTitle="Untitled chart"
+                                meta={`${selectedChart.chartType} · dataset ${selectedChart.datasetId.slice(0, 8)}`}
+                                saving={patchChartState.isLoading}
+                                editButtonTestId={chartsTestIds.renameButton}
+                                inputTestId={chartsTestIds.renameInput}
+                                onRename={handleRenameChart}
+                            />
 
-                {selectedChart && !builderDataset && isEditing && editDataset && org && (
-                    <EditChartBuilderSection
-                        orgId={org.id}
-                        chart={selectedChart}
-                        dataset={editDataset}
-                        onCancel={() => setIsEditing(false)}
-                        onChartUpdated={() => void handleChartUpdated()}
-                    />
+                            <WorkspaceModeTabs
+                                value={isEditing ? 'edit' : 'view'}
+                                options={CHARTS_WORKSPACE_MODE_TABS}
+                                layoutId="charts-workspace-mode"
+                                onChange={mode => setIsEditing(mode === 'edit')}
+                            />
+                        </div>
+
+                        {!isEditing && (
+                            <SavedChartDetails
+                                chartResult={selectedChartResult}
+                                error={error}
+                                isLoadingData={chartDataQuery.isFetching}
+                            />
+                        )}
+
+                        {isEditing && editDataset && org && (
+                            <EditChartBuilderSection
+                                orgId={org.id}
+                                chart={selectedChart}
+                                dataset={editDataset}
+                                onChartUpdated={() => void handleChartUpdated()}
+                            />
+                        )}
+                    </>
                 )}
             </section>
 

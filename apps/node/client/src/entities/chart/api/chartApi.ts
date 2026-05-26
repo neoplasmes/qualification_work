@@ -65,6 +65,7 @@ export const chartApi = api.injectEndpoints({
 
 export const {
     useDeleteChartMutation,
+    useGetChartDataQuery,
     useGetChartQuery,
     useLazyGetChartDataQuery,
     useLazyGetChartQuery,

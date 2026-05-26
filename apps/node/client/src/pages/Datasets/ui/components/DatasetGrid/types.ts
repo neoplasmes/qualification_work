@@ -1,4 +1,4 @@
-import type { Dispatch, RefObject, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
 import type { DatasetColumn, DatasetRow } from '@/entities/dataset';
 
@@ -10,9 +10,10 @@ export type DatasetGridProps = {
     newRowValues: Record<string, string>;
     gridWidth: number;
     gridHeight: number;
-    wrapRef: RefObject<HTMLDivElement | null>;
+    hasMore: boolean;
     onCellCommit: (rowId: string, column: DatasetColumn, rawValue: string) => void;
     onNewRowValueChange: Dispatch<SetStateAction<Record<string, string>>>;
+    onLoadMore: () => void;
 };
 
-export type DatasetGridEditorProps = Omit<DatasetGridProps, 'wrapRef'>;
+export type DatasetGridEditorProps = DatasetGridProps;

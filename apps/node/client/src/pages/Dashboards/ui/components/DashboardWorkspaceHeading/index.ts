@@ -1,0 +1,1 @@
+export { DashboardWorkspaceHeading } from './DashboardWorkspaceHeading';

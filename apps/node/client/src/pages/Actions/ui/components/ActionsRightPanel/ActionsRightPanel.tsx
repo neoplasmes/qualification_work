@@ -1,7 +1,8 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { ListFilter, ScrollText, Settings2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { WorkspaceRightPanel } from '@/widgets/WorkspaceRightPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
@@ -21,33 +22,17 @@ import { ActionsFilters } from '../ActionsFilters';
 import { ActionsHistory } from '../ActionsHistory';
 import { ActionsProperties } from '../ActionsProperties';
 
-import styles from '../../ActionsPage.module.scss';
+const ACTIONS_RIGHT_PANEL_TABS = [
+    'history',
+    'properties',
+    'filters',
+] as const satisfies readonly ActionsRightPanelTab[];
 
-const tabs: Array<{
-    id: ActionsRightPanelTab;
-    label: string;
-    testId: string;
-    icon: typeof ScrollText;
-}> = [
-    {
-        id: 'history',
-        label: 'History',
-        testId: actionsTestIds.historyTab,
-        icon: ScrollText,
-    },
-    {
-        id: 'properties',
-        label: 'Properties',
-        testId: actionsTestIds.propertiesTab,
-        icon: Settings2,
-    },
-    {
-        id: 'filters',
-        label: 'Filters',
-        testId: actionsTestIds.filtersTab,
-        icon: ListFilter,
-    },
-];
+const ACTIONS_RIGHT_PANEL_TAB_TEST_IDS = {
+    history: actionsTestIds.historyTab,
+    properties: actionsTestIds.propertiesTab,
+    filters: actionsTestIds.filtersTab,
+} satisfies Partial<Record<ActionsRightPanelTab, string>>;
 
 export const ActionsRightPanel = () => {
     const dispatch = useDispatch();
@@ -74,26 +59,13 @@ export const ActionsRightPanel = () => {
     const refetchActions = actionsQuery.refetch;
 
     return (
-        <aside className={styles['right-panel']} data-test-id={actionsTestIds.rightPanel}>
-            <div className={`${styles['tabs']} ${styles['tabs-three']}`}>
-                {tabs.map(tab => {
-                    const Icon = tab.icon;
-
-                    return (
-                        <button
-                            type="button"
-                            key={tab.id}
-                            data-test-id={tab.testId}
-                            className={`${styles['tab']} ${activeTab === tab.id ? styles['active'] : ''}`}
-                            onClick={() => dispatch(setActionsRightPanelTab(tab.id))}
-                        >
-                            <Icon size={15} />
-                            {tab.label}
-                        </button>
-                    );
-                })}
-            </div>
-
+        <WorkspaceRightPanel
+            activeTab={activeTab}
+            activeTabs={ACTIONS_RIGHT_PANEL_TABS}
+            testId={actionsTestIds.rightPanel}
+            tabTestIds={ACTIONS_RIGHT_PANEL_TAB_TEST_IDS}
+            onTabChange={tab => dispatch(setActionsRightPanelTab(tab))}
+        >
             {activeTab === 'history' && (
                 <ActionsHistory
                     selectedAction={selectedAction}
@@ -107,6 +79,6 @@ export const ActionsRightPanel = () => {
                 />
             )}
             {activeTab === 'filters' && <ActionsFilters />}
-        </aside>
+        </WorkspaceRightPanel>
     );
 };

@@ -89,22 +89,17 @@ const ChartWidget = ({
     onMoveItem,
     onRemoveItem,
 }: ChartWidgetProps) => (
-    <div className={styles['widget-wrap']} data-test-id={dashboardsTestIds.chartWidget}>
-        <MoveActions
-            label={chart?.name ?? item.id}
-            itemId={item.id}
-            index={index}
-            itemsCount={itemsCount}
-            disabled={reorderLoading}
-            onMoveItem={onMoveItem}
-        />
-        <DashboardChartCard
-            item={item}
-            chart={chart}
-            removing={removing}
-            onRemove={onRemoveItem}
-        />
-    </div>
+    <DashboardChartCard
+        item={item}
+        chart={chart}
+        index={index}
+        itemsCount={itemsCount}
+        reorderLoading={reorderLoading}
+        removing={removing}
+        onMoveItem={onMoveItem}
+        onRemove={onRemoveItem}
+        data-test-id={dashboardsTestIds.chartWidget}
+    />
 );
 
 type MetricWidgetProps = WidgetCommonProps & {

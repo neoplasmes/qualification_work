@@ -8,17 +8,12 @@ import {
     useUpdateRowMutation,
     type DatasetColumn,
     type DatasetMetadata,
+    type DatasetRow,
 } from '@/entities/dataset';
 
 import { Button, PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
-import {
-    datasetsTestIds,
-    HEADER_H,
-    MAX_GRID_H,
-    ROW_H,
-    ROWS_PAGE_SIZE,
-} from '../../../const';
+import { datasetsTestIds, HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
 import { getInsertRowData, isInsertRowValid, parseDatasetCellValue } from '../../../lib';
 
 import { DatasetGrid } from '../DatasetGrid';
@@ -32,15 +27,16 @@ type DatasetPreviewProps = {
 };
 
 export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
-    const [rowsOffset, setRowsOffset] = useState(0);
+    const [fetchOffset, setFetchOffset] = useState(0);
+    const [allRows, setAllRows] = useState<DatasetRow[]>([]);
     const [displayEdits, setDisplayEdits] = useState<
         Map<string, Record<string, unknown>>
     >(new Map());
     const pendingEditsRef = useRef<Map<string, Record<string, unknown>>>(new Map());
     const [isInsertingRow, setIsInsertingRow] = useState(false);
     const [newRowValues, setNewRowValues] = useState<Record<string, string>>({});
-    const wrapRef = useRef<HTMLDivElement>(null);
-    const [gridWidth, setGridWidth] = useState(0);
+    const gridContainerRef = useRef<HTMLDivElement>(null);
+    const [gridSize, setGridSize] = useState({ w: 0, h: 0 });
 
     const [updateRow] = useUpdateRowMutation();
     const [insertRow, insertState] = useInsertRowMutation();
@@ -49,35 +45,47 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         selectedDataset
             ? {
                   datasetId: selectedDataset.dataset.id,
-                  offset: rowsOffset,
+                  offset: fetchOffset,
                   limit: ROWS_PAGE_SIZE,
               }
             : skipToken
     );
 
     const columns = selectedDataset?.columns ?? [];
-    const rows = rowsQuery.data?.rows ?? [];
     const totalRows = rowsQuery.data?.totalRows ?? selectedDataset?.totalRows ?? 0;
-    const hasPreviousRows = rowsOffset > 0;
-    const hasNextRows = rowsOffset + ROWS_PAGE_SIZE < totalRows;
-    const lastPageOffset =
-        totalRows === 0
-            ? 0
-            : Math.floor((totalRows - 1) / ROWS_PAGE_SIZE) * ROWS_PAGE_SIZE;
-    const isOnLastPage = totalRows === 0 || rowsOffset >= lastPageOffset;
-    const showAddRow = !hasNextRows && !!selectedDataset && !!rowsQuery.data;
+    const hasMore = allRows.length < totalRows;
+    const allRowsLoaded = !hasMore;
+    const showAddRow = allRowsLoaded && !!selectedDataset && rowsQuery.data !== undefined;
+    const rowCount = allRows.length + (isInsertingRow ? 1 : 0);
+    const gridHeight = Math.max(gridSize.h, HEADER_H + ROW_H);
 
-    const rowCount = rows.length + (isInsertingRow ? 1 : 0);
-    const gridHeight = Math.min(HEADER_H + rowCount * ROW_H, MAX_GRID_H);
-
+    // append rows from current page
     useEffect(() => {
-        const el = wrapRef.current;
+        if (!rowsQuery.data || rowsQuery.isFetching) {
+            return;
+        }
+
+        setAllRows(prev => {
+            if (prev.length !== fetchOffset) {
+                return prev;
+            }
+
+            return [...prev, ...rowsQuery.data!.rows];
+        });
+    }, [rowsQuery.data, rowsQuery.isFetching, fetchOffset]);
+
+    // measure grid container
+    useEffect(() => {
+        const el = gridContainerRef.current;
         if (!el) {
             return;
         }
 
         const ro = new ResizeObserver(([e]) =>
-            setGridWidth(Math.floor(e.contentRect.width))
+            setGridSize({
+                w: Math.floor(e.contentRect.width),
+                h: Math.floor(e.contentRect.height),
+            })
         );
         ro.observe(el);
 
@@ -126,6 +134,12 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         []
     );
 
+    const handleLoadMore = useCallback(() => {
+        if (hasMore && !rowsQuery.isFetching) {
+            setFetchOffset(allRows.length);
+        }
+    }, [hasMore, allRows.length, rowsQuery.isFetching]);
+
     const handleInsertConfirm = async () => {
         if (!selectedDataset) {
             return;
@@ -150,51 +164,47 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         <section className={styles['preview']} aria-label="Dataset preview">
             <DatasetPreviewHeader
                 hasDataset={!!selectedDataset}
-                hasPreviousRows={hasPreviousRows}
-                hasNextRows={hasNextRows}
-                isFetching={rowsQuery.isFetching}
-                isOnLastPage={isOnLastPage}
-                lastPageOffset={lastPageOffset}
-                rowsOffset={rowsOffset}
+                loadedCount={allRows.length}
                 totalRows={totalRows}
-                onRowsOffsetChange={setRowsOffset}
+                isFetching={rowsQuery.isFetching}
             />
 
             {!selectedDataset && (
                 <PanelPlaceholder>Select a dataset to preview rows.</PanelPlaceholder>
             )}
 
-            {selectedDataset && rowsQuery.isLoading && (
+            {selectedDataset && rowsQuery.isLoading && allRows.length === 0 && (
                 <StatusMessage>Loading rows...</StatusMessage>
             )}
 
-            {selectedDataset && rowsQuery.data && (
-                <>
+            <div ref={gridContainerRef} className={styles['grid-container']}>
+                {selectedDataset && rowsQuery.data && gridSize.w > 0 && (
                     <DatasetGrid
                         columns={columns}
-                        rows={rows}
+                        rows={allRows}
                         displayEdits={displayEdits}
                         isInsertingRow={isInsertingRow}
                         newRowValues={newRowValues}
-                        gridWidth={gridWidth}
+                        gridWidth={gridSize.w}
                         gridHeight={gridHeight}
-                        wrapRef={wrapRef}
+                        hasMore={hasMore}
                         onCellCommit={commitCell}
                         onNewRowValueChange={setNewRowValues}
+                        onLoadMore={handleLoadMore}
                     />
+                )}
+            </div>
 
-                    {isInsertingRow && (
-                        <NewRowActions
-                            valid={isNewRowValid}
-                            loading={insertState.isLoading}
-                            onConfirm={() => void handleInsertConfirm()}
-                            onCancel={() => {
-                                setIsInsertingRow(false);
-                                setNewRowValues({});
-                            }}
-                        />
-                    )}
-                </>
+            {isInsertingRow && (
+                <NewRowActions
+                    valid={isNewRowValid}
+                    loading={insertState.isLoading}
+                    onConfirm={() => void handleInsertConfirm()}
+                    onCancel={() => {
+                        setIsInsertingRow(false);
+                        setNewRowValues({});
+                    }}
+                />
             )}
 
             {showAddRow && !isInsertingRow && (

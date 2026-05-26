@@ -140,7 +140,7 @@ describe('ActionsWorkspace', () => {
             unwrap: vi.fn().mockResolvedValue({ ...action, id: 'created-action' }),
         });
         mocks.patchAction.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(action),
+            unwrap: vi.fn().mockResolvedValue(undefined),
         });
         mocks.archiveAction.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
@@ -165,10 +165,15 @@ describe('ActionsWorkspace', () => {
         const user = userEvent.setup();
         const { container } = renderWorkspace({ isCreatingAction: true });
 
-        await user.type(
-            getByDataTestId(container, actionsTestIds.actionNameInput),
-            'Close invoice'
+        await user.click(getByDataTestId(container, actionsTestIds.renameButton));
+        const nameInput = getByDataTestId<HTMLInputElement>(
+            container,
+            actionsTestIds.renameInput
         );
+        await user.clear(nameInput);
+        await user.type(nameInput, 'Close invoice');
+        await user.keyboard('{Enter}');
+
         await user.type(
             getByDataTestId(container, actionsTestIds.parameterLabelInput),
             'Invoice ID'
@@ -208,6 +213,26 @@ describe('ActionsWorkspace', () => {
         );
     });
 
+    it('renames existing action from workspace title', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace({ selectedActionId: 'action-1' });
+
+        await user.click(getByDataTestId(container, actionsTestIds.renameButton));
+        const nameInput = getByDataTestId<HTMLInputElement>(
+            container,
+            actionsTestIds.renameInput
+        );
+        await user.clear(nameInput);
+        await user.type(nameInput, 'Post payment');
+        await user.keyboard('{Enter}');
+
+        await waitFor(() => expect(mocks.patchAction).toHaveBeenCalledTimes(1));
+        expect(mocks.patchAction).toHaveBeenCalledWith({
+            actionId: 'action-1',
+            name: 'Post payment',
+        });
+    });
+
     it('runs selected action with coerced input values', async () => {
         const user = userEvent.setup();
         const { container } = renderWorkspace({
@@ -227,5 +252,18 @@ describe('ActionsWorkspace', () => {
             actionId: 'action-1',
             parameters: { amount: 15, paid: false },
         });
+    });
+
+    it('maps View tab to run and Edit tab to configure', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace({ selectedActionId: 'action-1' });
+
+        await user.click(getByDataTestId(container, actionsTestIds.workspaceViewTab));
+        expect(getByDataTestId(container, actionsTestIds.runForm)).toBeInTheDocument();
+
+        await user.click(getByDataTestId(container, actionsTestIds.workspaceEditTab));
+        expect(
+            getByDataTestId(container, actionsTestIds.configureForm)
+        ).toBeInTheDocument();
     });
 });

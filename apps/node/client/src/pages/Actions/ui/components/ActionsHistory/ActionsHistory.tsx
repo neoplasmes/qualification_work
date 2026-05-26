@@ -1,12 +1,11 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { ScrollText } from 'lucide-react';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListActionRunsQuery, type Action } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Badge, EmptyState, IconButton, SectionHeader, StatusMessage } from '@/shared/ui';
+import { Badge, EmptyState, StatusMessage } from '@/shared/ui';
 
 import { summarizeRun } from '../../../lib';
 
@@ -38,18 +37,9 @@ export const ActionsHistory = ({
 
     return (
         <section className={styles['right-section']} aria-label="Action history">
-            <SectionHeader
-                eyebrow={selectedAction ? 'Action runs' : 'Recent runs'}
-                actions={
-                    <IconButton
-                        aria-label="Refresh history"
-                        disabled={runsQuery.isFetching}
-                        onClick={() => void runsQuery.refetch()}
-                    >
-                        <ScrollText size={16} />
-                    </IconButton>
-                }
-            />
+            <span className={styles['eyebrow']}>
+                {selectedAction ? 'Action runs' : 'Recent runs'}
+            </span>
 
             <div className={styles['history-list']}>
                 {runsQuery.isLoading && (

@@ -28,6 +28,8 @@ export type UpdateChartPayload = {
     config?: Record<string, unknown>;
 };
 
+export type PatchChartPayload = UpdateChartPayload;
+
 export type PreviewChartPayload = {
     datasetId: string;
     chartType: ChartType;

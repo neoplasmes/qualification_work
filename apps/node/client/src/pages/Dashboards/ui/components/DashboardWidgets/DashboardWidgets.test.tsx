@@ -10,12 +10,14 @@ import { dashboardsTestIds } from '../../../const';
 import { DashboardWidgets } from './DashboardWidgets';
 
 const mocks = vi.hoisted(() => ({
-    getChartData: vi.fn(),
+    getChartData: vi
+        .fn()
+        .mockReturnValue({ data: undefined, isLoading: false, isFetching: false }),
 }));
 
 vi.mock('@/entities/chart', () => ({
     ChartResult: () => <div data-testid="chart-result" />,
-    useLazyGetChartDataQuery: () => [mocks.getChartData, { isFetching: false }],
+    useGetChartDataQuery: (chartId: string) => mocks.getChartData(chartId),
 }));
 
 const chart: Chart = {
@@ -87,8 +89,12 @@ describe('DashboardWidgets', () => {
         expect(onRemoveItem).toHaveBeenCalledWith('item-metric');
     });
 
-    it('loads chart data for chart widgets on demand', async () => {
-        const user = userEvent.setup();
+    it('auto-loads chart data for chart widgets on mount', () => {
+        mocks.getChartData.mockReturnValue({
+            data: { rows: [] },
+            isLoading: false,
+            isFetching: false,
+        });
 
         render(
             <DashboardWidgets
@@ -101,8 +107,6 @@ describe('DashboardWidgets', () => {
             />
         );
 
-        await user.click(screen.getByRole('button', { name: 'Load chart data' }));
-
-        expect(mocks.getChartData).toHaveBeenCalledWith('chart-1', false);
+        expect(mocks.getChartData).toHaveBeenCalledWith('chart-1');
     });
 });

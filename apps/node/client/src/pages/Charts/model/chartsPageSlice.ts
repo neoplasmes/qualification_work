@@ -2,6 +2,8 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 import type { ChartType } from '@/entities/chart';
 
+export type ChartsRightPanelTab = 'properties' | 'filters';
+
 export type ChartsPageState = {
     selectedChartId: string | null;
     filterDatasetIds: string[];
@@ -9,6 +11,7 @@ export type ChartsPageState = {
     builderDatasetId: string | null;
     showDatasetPicker: boolean;
     chartsFilterActiveTab: 'datasets' | 'dashboards';
+    chartsRightPanelTab: ChartsRightPanelTab;
     workspaceDraftChartId: string | null;
     workspaceDraftName: string;
     workspaceDraftChartType: ChartType;
@@ -25,6 +28,7 @@ export const chartsPageInitialState: ChartsPageState = {
     builderDatasetId: null,
     showDatasetPicker: false,
     chartsFilterActiveTab: 'datasets',
+    chartsRightPanelTab: 'properties',
     workspaceDraftChartId: null,
     workspaceDraftName: '',
     workspaceDraftChartType: 'bar',
@@ -78,6 +82,9 @@ export const chartsPageSlice = createSlice({
         ) {
             state.chartsFilterActiveTab = action.payload;
         },
+        setChartsRightPanelTab(state, action: PayloadAction<ChartsRightPanelTab>) {
+            state.chartsRightPanelTab = action.payload;
+        },
         initWorkspaceDraft(
             state,
             action: PayloadAction<{
@@ -124,6 +131,7 @@ export const {
     setBuilderDatasetId,
     setShowDatasetPicker,
     setChartsFilterActiveTab,
+    setChartsRightPanelTab,
     initWorkspaceDraft,
     resetWorkspaceDraft,
     setWorkspaceDraftName,
@@ -144,6 +152,8 @@ export const selectShowDatasetPicker = (state: StateWithChartsPage) =>
     state.chartsPage.showDatasetPicker;
 export const selectChartsFilterActiveTab = (state: StateWithChartsPage) =>
     state.chartsPage.chartsFilterActiveTab;
+export const selectChartsRightPanelTab = (state: StateWithChartsPage) =>
+    state.chartsPage.chartsRightPanelTab;
 export const selectWorkspaceDraftChartId = (state: StateWithChartsPage) =>
     state.chartsPage.workspaceDraftChartId;
 export const selectWorkspaceDraftName = (state: StateWithChartsPage) =>

@@ -10,6 +10,9 @@ export const dashboardsTestIds = {
     filterChip: 'dashboards-filter-chip',
     clearFilterButton: 'dashboards-clear-filter-button',
     workspace: 'dashboards-workspace',
+    workspaceViewTab: 'dashboards-workspace-view-tab',
+    workspaceEditTab: 'dashboards-workspace-edit-tab',
+    renameButton: 'dashboards-rename-button',
     deleteButton: 'dashboards-delete-button',
     renameForm: 'dashboards-rename-form',
     renameInput: 'dashboards-rename-input',
@@ -26,4 +29,7 @@ export const dashboardsTestIds = {
     widgetList: 'dashboards-widget-list',
     metricWidget: 'dashboards-metric-widget',
     chartWidget: 'dashboards-chart-widget',
+    rightPanel: 'dashboards-right-panel',
+    propertiesTab: 'dashboards-properties-tab',
+    filterTab: 'dashboards-filter-tab',
 } as const;

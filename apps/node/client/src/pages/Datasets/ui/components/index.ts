@@ -3,6 +3,6 @@ export { DatasetPreview } from './DatasetPreview';
 export { DatasetsFilterPanel } from './DatasetsFilterPanel';
 export { DatasetsPropertiesPanel } from './DatasetsPropertiesPanel';
 export { DatasetsRightPanel } from './DatasetsRightPanel';
-export { DatasetsUploadPanel } from './DatasetsUploadPanel';
+export { DatasetsLeftPanel } from './DatasetsLeftPanel';
 export { MergeDatasetModal } from './MergeDatasetModal';
 export { UploadDatasetModal } from './UploadDatasetModal';

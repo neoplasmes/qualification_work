@@ -12,7 +12,7 @@ import {
     toggleChartFilter,
 } from '../../../model';
 
-import { DatasetsUploadPanel } from './DatasetsUploadPanel';
+import { DatasetsLeftPanel } from './DatasetsLeftPanel';
 
 vi.mock('@/features/authenticate', () => ({
     useGetMeQuery: () => ({ data: { id: 'user-1' } }),
@@ -98,13 +98,13 @@ const makeStore = (withFilter = false) => {
     return store;
 };
 
-describe('DatasetsUploadPanel', () => {
+describe('DatasetsLeftPanel', () => {
     it('selects a dataset and opens upload modal state', async () => {
         const user = userEvent.setup();
         const store = makeStore();
         const { container } = render(
             <Provider store={store}>
-                <DatasetsUploadPanel />
+                <DatasetsLeftPanel />
             </Provider>
         );
 
@@ -118,7 +118,7 @@ describe('DatasetsUploadPanel', () => {
     it('renders datasets filtered by chart relationships', () => {
         render(
             <Provider store={makeStore(true)}>
-                <DatasetsUploadPanel />
+                <DatasetsLeftPanel />
             </Provider>
         );
 

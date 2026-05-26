@@ -36,3 +36,41 @@ describe('PUT /api/charts/:id', () => {
         expect(res.status).toBe(204);
     });
 });
+
+describe('PATCH /api/charts/:id', () => {
+    it('patches chart name and returns 204', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: 'col' },
+            measures: [],
+        });
+
+        const res = await api(`/api/charts/${chartId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ name: 'patched chart' }),
+        });
+        expect(res.status).toBe(204);
+
+        const check = await api(`/api/charts/${chartId}`);
+        const body = (await check.json()) as { name: string };
+        expect(body.name).toBe('patched chart');
+    });
+
+    it('rejects empty patch body', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: 'col' },
+            measures: [],
+        });
+
+        const res = await api(`/api/charts/${chartId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({}),
+        });
+        expect(res.status).toBe(400);
+    });
+});

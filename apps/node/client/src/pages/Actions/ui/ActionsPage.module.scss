@@ -1,6 +1,5 @@
 .panel,
-.workspace,
-.right-panel {
+.workspace {
     overflow: auto;
     display: flex;
     flex: 1;
@@ -11,7 +10,6 @@
     min-height: 0;
 }
 
-.right-panel,
 .workspace {
     padding: var(--spacing-md);
 }
@@ -92,46 +90,6 @@
     gap: var(--spacing-sm);
     align-items: flex-start;
     justify-content: space-between;
-}
-
-.tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--spacing-xs);
-}
-
-.tabs-three {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.tab {
-    cursor: pointer;
-
-    display: inline-flex;
-    gap: var(--spacing-xs);
-    align-items: center;
-    justify-content: center;
-
-    min-height: 36px;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: 1px solid var(--color-outline-new);
-    border-radius: var(--radius-xs);
-
-    font-size: var(--font-size-xs);
-    font-weight: 800;
-    color: var(--color-on-surface-variant);
-
-    background-color: var(--color-surface-container-low);
-
-    &.active {
-        border-color: var(--color-on-surface);
-        color: var(--color-on-surface);
-        background-color: var(--color-surface-container);
-    }
-
-    &:focus {
-        outline: none;
-    }
 }
 
 .tab-count,
@@ -273,21 +231,4 @@
 .right-section {
     display: grid;
     gap: var(--spacing-md);
-}
-
-.properties-grid {
-    display: grid;
-    gap: var(--spacing-sm);
-}
-
-.property-row {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    gap: var(--spacing-sm);
-
-    font-size: var(--font-size-sm);
-
-    span:first-child {
-        color: var(--color-on-surface-variant);
-    }
 }

@@ -13,7 +13,6 @@ import {
     FilterChip,
     FormField,
     IconButton,
-    SectionHeader,
     SegmentedTabs,
     SelectableList,
     TextInput,
@@ -62,19 +61,17 @@ export const ActionsFilters = () => {
 
     return (
         <section className={styles['right-section']} aria-label="Action filters">
-            <SectionHeader
-                eyebrow="Filter by"
-                actions={
-                    <IconButton
-                        data-test-id={actionsTestIds.clearFiltersButton}
-                        aria-label="Clear filters"
-                        style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
-                        onClick={() => dispatch(clearAllActionsFilters())}
-                    >
-                        <X size={16} />
-                    </IconButton>
-                }
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <span className={styles['eyebrow']}>Filter by</span>
+                <IconButton
+                    data-test-id={actionsTestIds.clearFiltersButton}
+                    aria-label="Clear filters"
+                    style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
+                    onClick={() => dispatch(clearAllActionsFilters())}
+                >
+                    <X size={16} />
+                </IconButton>
+            </div>
 
             <FormField label="Search">
                 <TextInput

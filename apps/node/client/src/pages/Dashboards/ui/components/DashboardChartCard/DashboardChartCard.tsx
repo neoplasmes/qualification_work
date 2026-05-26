@@ -1,33 +1,39 @@
-import { RefreshCcw, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, X } from 'lucide-react';
 
-import { ChartResult, useLazyGetChartDataQuery, type Chart } from '@/entities/chart';
+import { ChartResult, useGetChartDataQuery, type Chart } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
 
-import { Button, Card, IconButton } from '@/shared/ui';
+import { Card, IconButton, StatusMessage } from '@/shared/ui';
 
 import styles from './DashboardChartCard.module.scss';
 
 type DashboardChartCardProps = {
     item: DashboardChartItem;
     chart: Chart | undefined;
+    index: number;
+    itemsCount: number;
+    reorderLoading: boolean;
     removing: boolean;
+    onMoveItem: (itemId: string, direction: -1 | 1) => void;
     onRemove: (itemId: string) => void;
+    'data-test-id'?: string;
 };
 
 export const DashboardChartCard = ({
     item,
     chart,
+    index,
+    itemsCount,
+    reorderLoading,
     removing,
+    onMoveItem,
     onRemove,
+    'data-test-id': testId,
 }: DashboardChartCardProps) => {
-    const [getChartData, chartDataQuery] = useLazyGetChartDataQuery();
-
-    const loadChartData = () => {
-        void getChartData(item.chartId, false);
-    };
+    const chartDataQuery = useGetChartDataQuery(item.chartId);
 
     return (
-        <Card as="article" className={styles['dashboard-card']}>
+        <Card as="article" className={styles['dashboard-card']} data-test-id={testId}>
             <div className={styles['card-header']}>
                 <div data-stack="v" data-gap="xs">
                     <h3>{chart?.name ?? `Chart ${item.chartId.slice(0, 8)}`}</h3>
@@ -35,11 +41,18 @@ export const DashboardChartCard = ({
                 </div>
                 <div data-stack="h" data-gap="xs">
                     <IconButton
-                        aria-label={`Refresh ${chart?.name ?? item.chartId}`}
-                        disabled={chartDataQuery.isFetching}
-                        onClick={loadChartData}
+                        aria-label={`Move ${chart?.name ?? item.chartId} up`}
+                        disabled={index === 0 || reorderLoading}
+                        onClick={() => onMoveItem(item.id, -1)}
                     >
-                        <RefreshCcw size={17} />
+                        <ArrowUp size={17} />
+                    </IconButton>
+                    <IconButton
+                        aria-label={`Move ${chart?.name ?? item.chartId} down`}
+                        disabled={index === itemsCount - 1 || reorderLoading}
+                        onClick={() => onMoveItem(item.id, 1)}
+                    >
+                        <ArrowDown size={17} />
                     </IconButton>
                     <IconButton
                         aria-label={`Remove ${chart?.name ?? item.chartId}`}
@@ -51,10 +64,8 @@ export const DashboardChartCard = ({
                 </div>
             </div>
 
-            {!chartDataQuery.data && (
-                <Button isLoading={chartDataQuery.isFetching} onClick={loadChartData}>
-                    Load chart data
-                </Button>
+            {chartDataQuery.isLoading && (
+                <StatusMessage>Loading chart data...</StatusMessage>
             )}
 
             {chartDataQuery.data && (

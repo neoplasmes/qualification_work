@@ -1,3 +1,4 @@
+export { ActionEditor } from './ActionEditor';
 export { ActionsFilters } from './ActionsFilters';
 export { ActionsHistory } from './ActionsHistory';
 export { ActionsListPanel } from './ActionsListPanel';

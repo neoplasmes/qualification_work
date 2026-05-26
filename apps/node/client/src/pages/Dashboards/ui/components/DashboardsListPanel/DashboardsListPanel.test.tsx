@@ -62,19 +62,7 @@ describe('DashboardsListPanel', () => {
         createDashboard.mockReset();
     });
 
-    it('validates empty dashboard names before calling create', async () => {
-        const user = userEvent.setup();
-        renderPanel();
-
-        await user.click(screen.getByRole('button', { name: /create/i }));
-
-        expect(screen.getByRole('alert')).toHaveTextContent(
-            'Dashboard name can not be empty.'
-        );
-        expect(createDashboard).not.toHaveBeenCalled();
-    });
-
-    it('shows existing dashboards and creates a new one', async () => {
+    it('shows existing dashboards and creates a new one with default name', async () => {
         const user = userEvent.setup();
         createDashboard.mockReturnValue({
             unwrap: () => Promise.resolve({ id: 'dashboard-2' }),
@@ -84,12 +72,11 @@ describe('DashboardsListPanel', () => {
 
         expect(screen.getByRole('button', { name: /Revenue/ })).toBeInTheDocument();
 
-        await user.type(screen.getByLabelText('New dashboard'), 'Operations');
-        await user.click(screen.getByRole('button', { name: /create/i }));
+        await user.click(screen.getByRole('button', { name: /new dashboard/i }));
         await waitFor(() =>
             expect(createDashboard).toHaveBeenCalledWith({
                 orgId: 'org-1',
-                name: 'Operations',
+                name: 'New dashboard',
             })
         );
     });

@@ -12,11 +12,7 @@ import {
 } from '@/features/manageDashboards';
 
 import { useListChartsQuery } from '@/entities/chart';
-import {
-    useDeleteDashboardMutation,
-    useGetDashboardQuery,
-    useListDashboardsQuery,
-} from '@/entities/dashboard';
+import { useGetDashboardQuery, useListDashboardsQuery } from '@/entities/dashboard';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
@@ -29,23 +25,19 @@ import {
     clearWorkspaceMetricForm,
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
-    selectDashboard,
-    selectDashboardsWorkspaceDraftName,
     selectSelectedDashboardId,
     selectWorkspaceDraftDashboardId,
     selectWorkspaceMetricExpression,
     selectWorkspaceMetricFormat,
     selectWorkspaceMetricName,
-    setDashboardsWorkspaceDraftName,
     setWorkspaceMetricExpression,
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
 } from '../model';
 import { AddChartForm } from './components/AddChartForm';
 import { AddMetricForm } from './components/AddMetricForm';
-import { DashboardNameForm } from './components/DashboardNameForm';
 import { DashboardWidgets } from './components/DashboardWidgets';
-import { WorkspaceHeader } from './components/WorkspaceHeader';
+import { DashboardWorkspaceHeading } from './components/DashboardWorkspaceHeading';
 
 import styles from './DashboardsPage.module.scss';
 
@@ -53,12 +45,11 @@ export const DashboardsWorkspace = () => {
     const dispatch = useDispatch();
     const [selectedChartId, setSelectedChartId] = useState('');
     const [selectedMetricDatasetId, setSelectedMetricDatasetId] = useState('');
-    const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState('');
 
     const selectedDashboardId = useSelector(selectSelectedDashboardId);
     const workspaceDraftDashboardId = useSelector(selectWorkspaceDraftDashboardId);
-    const draftName = useSelector(selectDashboardsWorkspaceDraftName);
     const metricName = useSelector(selectWorkspaceMetricName);
     const metricExpression = useSelector(selectWorkspaceMetricExpression);
     const metricFormat = useSelector(selectWorkspaceMetricFormat);
@@ -83,7 +74,6 @@ export const DashboardsWorkspace = () => {
     );
 
     const [renameDashboard, renameState] = useRenameDashboardMutation();
-    const [deleteDashboard, deleteState] = useDeleteDashboardMutation();
     const [addDashboardChart, addChartState] = useAddDashboardChartMutation();
     const [addDashboardMetric, addMetricState] = useAddDashboardMetricMutation();
     const [reorderDashboardItems, reorderState] = useReorderDashboardItemsMutation();
@@ -107,7 +97,7 @@ export const DashboardsWorkspace = () => {
             })
         );
         setError('');
-        setDeleteConfirmationId(null);
+        setIsEditing(false);
     }, [dashboard?.id]);
 
     useEffect(() => {
@@ -118,26 +108,24 @@ export const DashboardsWorkspace = () => {
         setSelectedMetricDatasetId(datasetsQuery.data?.[0]?.dataset.id ?? '');
     }, [datasetsQuery.data]);
 
-    const handleRenameDashboard = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
+    const handleRenameDashboard = async (name: string) => {
         if (!dashboard) {
             return;
         }
 
-        const name = draftName.trim();
-        if (!name) {
-            setError('Dashboard name can not be empty.');
-
-            return;
-        }
-
         try {
+            setError('');
             await renameDashboard({ dashboardId: dashboard.id, name }).unwrap();
             await dashboardsQuery.refetch();
             await dashboardQuery.refetch();
         } catch (renameError) {
-            setError(getApiErrorMessage(renameError, 'Unable to rename this dashboard.'));
+            const message = getApiErrorMessage(
+                renameError,
+                'Unable to rename this dashboard.'
+            );
+            setError(message);
+
+            throw new Error(message);
         }
     };
 
@@ -153,6 +141,7 @@ export const DashboardsWorkspace = () => {
                 height: 8,
             }).unwrap();
             await dashboardQuery.refetch();
+            await dashboardsQuery.refetch();
         } catch (addError) {
             setError(getApiErrorMessage(addError, 'Unable to add this chart.'));
         }
@@ -185,6 +174,7 @@ export const DashboardsWorkspace = () => {
             dispatch(clearWorkspaceMetricForm());
             setError('');
             await dashboardQuery.refetch();
+            await dashboardsQuery.refetch();
         } catch (addError) {
             setError(getApiErrorMessage(addError, 'Unable to add this metric.'));
         }
@@ -221,28 +211,9 @@ export const DashboardsWorkspace = () => {
         try {
             await removeDashboardItem({ dashboardId: dashboard.id, itemId }).unwrap();
             await dashboardQuery.refetch();
+            await dashboardsQuery.refetch();
         } catch (removeError) {
             setError(getApiErrorMessage(removeError, 'Unable to remove this widget.'));
-        }
-    };
-
-    const handleDeleteDashboard = async () => {
-        if (!dashboard) {
-            return;
-        }
-
-        if (deleteConfirmationId !== dashboard.id) {
-            setDeleteConfirmationId(dashboard.id);
-
-            return;
-        }
-
-        try {
-            await deleteDashboard(dashboard.id).unwrap();
-            dispatch(selectDashboard(null));
-            await dashboardsQuery.refetch();
-        } catch (deleteError) {
-            setError(getApiErrorMessage(deleteError, 'Unable to delete this dashboard.'));
         }
     };
 
@@ -258,64 +229,61 @@ export const DashboardsWorkspace = () => {
 
             {dashboard && (
                 <>
-                    <WorkspaceHeader
-                        dashboard={dashboard}
+                    <DashboardWorkspaceHeading
+                        name={dashboard.name}
                         widgetsCount={dashboardItems.length}
-                        deleteConfirmationId={deleteConfirmationId}
-                        deleteDisabled={deleteState.isLoading}
-                        onDelete={() => void handleDeleteDashboard()}
-                    />
-
-                    <DashboardNameForm
-                        value={draftName}
-                        originalName={dashboard.name}
-                        saving={renameState.isLoading}
-                        refreshing={dashboardQuery.isFetching}
-                        onChange={value =>
-                            dispatch(setDashboardsWorkspaceDraftName(value))
-                        }
-                        onRefresh={() => void dashboardQuery.refetch()}
-                        onSubmit={handleRenameDashboard}
-                    />
-
-                    <AddChartForm
-                        charts={chartsQuery.data}
-                        value={selectedChartId}
-                        disabled={addChartState.isLoading}
-                        onChange={setSelectedChartId}
-                        onAdd={() => void handleAddChart()}
-                    />
-
-                    <AddMetricForm
-                        datasets={datasetsQuery.data}
-                        datasetId={selectedMetricDatasetId}
-                        metricName={metricName}
-                        metricExpression={metricExpression}
-                        metricFormat={metricFormat}
-                        disabled={addMetricState.isLoading}
-                        onDatasetChange={setSelectedMetricDatasetId}
-                        onNameChange={value => dispatch(setWorkspaceMetricName(value))}
-                        onExpressionChange={value =>
-                            dispatch(setWorkspaceMetricExpression(value))
-                        }
-                        onFormatChange={value =>
-                            dispatch(setWorkspaceMetricFormat(value))
-                        }
-                        onSubmit={handleAddMetric}
+                        editing={isEditing}
+                        renaming={renameState.isLoading}
+                        onRename={handleRenameDashboard}
+                        onEditingChange={setIsEditing}
                     />
 
                     {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-                    <DashboardWidgets
-                        items={dashboardItems}
-                        chartsById={chartsById}
-                        reorderLoading={reorderState.isLoading}
-                        removing={removeItemState.isLoading}
-                        onMoveItem={(itemId, direction) =>
-                            void handleMoveItem(itemId, direction)
-                        }
-                        onRemoveItem={itemId => void handleRemoveItem(itemId)}
-                    />
+                    {!isEditing && (
+                        <DashboardWidgets
+                            items={dashboardItems}
+                            chartsById={chartsById}
+                            reorderLoading={reorderState.isLoading}
+                            removing={removeItemState.isLoading}
+                            onMoveItem={(itemId, direction) =>
+                                void handleMoveItem(itemId, direction)
+                            }
+                            onRemoveItem={itemId => void handleRemoveItem(itemId)}
+                        />
+                    )}
+
+                    {isEditing && (
+                        <>
+                            <AddChartForm
+                                charts={chartsQuery.data}
+                                value={selectedChartId}
+                                disabled={addChartState.isLoading}
+                                onChange={setSelectedChartId}
+                                onAdd={() => void handleAddChart()}
+                            />
+
+                            <AddMetricForm
+                                datasets={datasetsQuery.data}
+                                datasetId={selectedMetricDatasetId}
+                                metricName={metricName}
+                                metricExpression={metricExpression}
+                                metricFormat={metricFormat}
+                                disabled={addMetricState.isLoading}
+                                onDatasetChange={setSelectedMetricDatasetId}
+                                onNameChange={value =>
+                                    dispatch(setWorkspaceMetricName(value))
+                                }
+                                onExpressionChange={value =>
+                                    dispatch(setWorkspaceMetricExpression(value))
+                                }
+                                onFormatChange={value =>
+                                    dispatch(setWorkspaceMetricFormat(value))
+                                }
+                                onSubmit={handleAddMetric}
+                            />
+                        </>
+                    )}
                 </>
             )}
         </section>

@@ -119,7 +119,6 @@ const BarChartInner = ({ series, labels, width, height }: BarChartInnerProps) =>
                 <Tooltip<BarTooltipDatum>
                     showVerticalCrosshair
                     snapTooltipToDatumX
-                    style={chartTheme.htmlLabel}
                     renderTooltip={({ tooltipData }) => {
                         const nearest = tooltipData?.nearestDatum;
 

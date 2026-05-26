@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Plus, RefreshCcw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -8,14 +8,7 @@ import { useListChartsQuery, type Chart } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-    Badge,
-    Button,
-    EmptyState,
-    IconButton,
-    SectionHeader,
-    StatusMessage,
-} from '@/shared/ui';
+import { Badge, Button, EmptyState, StatusMessage } from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
 import { filterCharts } from '../../../lib';
@@ -54,22 +47,12 @@ export const ChartsListPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={chartsTestIds.listPanel}>
-            <SectionHeader
-                title="Charts"
-                headingLevel={1}
-                description={
-                    filteredCharts ? `${filteredCharts.length} charts` : 'Loading'
-                }
-                actions={
-                    <IconButton
-                        aria-label="Refresh charts"
-                        disabled={chartsQuery.isFetching}
-                        onClick={() => void chartsQuery.refetch()}
-                    >
-                        <RefreshCcw size={18} />
-                    </IconButton>
-                }
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <h1 className={styles['title']}>Charts</h1>
+                <span className={styles['muted']}>
+                    {filteredCharts ? `${filteredCharts.length} charts` : 'Loading'}
+                </span>
+            </div>
 
             <Button
                 className={styles['full-button']}

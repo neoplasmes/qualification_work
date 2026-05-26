@@ -11,14 +11,7 @@ import {
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import {
-    Button,
-    ButtonLink,
-    EntityHeader,
-    Select,
-    StatusMessage,
-    TextInput,
-} from '@/shared/ui';
+import { Button, ButtonLink, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import {
     useCreateChartMutation,
@@ -767,10 +760,10 @@ export const DatasetChartBuilder = ({
     if (step === 'preview' && previewData) {
         return (
             <section className={styles['chart-builder']} aria-label="Chart builder">
-                <EntityHeader
-                    eyebrow="Chart builder"
-                    actions={<ChartNoAxesColumnIncreasing size={20} />}
-                />
+                <div data-stack="h" data-align="center" data-justify="between">
+                    <span className={styles['eyebrow']}>Chart builder</span>
+                    <ChartNoAxesColumnIncreasing size={20} />
+                </div>
 
                 <ChartResult
                     data={previewData}
@@ -781,14 +774,16 @@ export const DatasetChartBuilder = ({
                 />
 
                 <div data-stack="v" data-gap="sm">
-                    <label className={styles['control']}>
-                        <span>Chart name</span>
-                        <TextInput
-                            value={chartName}
-                            placeholder={`${selectedDataset.dataset.name} ${chartType}`}
-                            onChange={event => setChartName(event.target.value)}
-                        />
-                    </label>
+                    {!editChartId && (
+                        <label className={styles['control']}>
+                            <span>Chart name</span>
+                            <TextInput
+                                value={chartName}
+                                placeholder={`${selectedDataset.dataset.name} ${chartType}`}
+                                onChange={event => setChartName(event.target.value)}
+                            />
+                        </label>
+                    )}
 
                     <div data-stack="h" data-gap="sm">
                         <Button
@@ -827,20 +822,22 @@ export const DatasetChartBuilder = ({
 
     return (
         <section className={styles['chart-builder']} aria-label="Chart builder">
-            <EntityHeader
-                eyebrow="Chart builder"
-                actions={<ChartNoAxesColumnIncreasing size={20} />}
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <span className={styles['eyebrow']}>Chart builder</span>
+                <ChartNoAxesColumnIncreasing size={20} />
+            </div>
 
             <form className={styles['chart-form']} onSubmit={handlePreview}>
-                <label className={styles['control']}>
-                    <span>Chart name</span>
-                    <TextInput
-                        value={chartName}
-                        placeholder={`${selectedDataset.dataset.name} chart`}
-                        onChange={event => setChartName(event.target.value)}
-                    />
-                </label>
+                {!editChartId && (
+                    <label className={styles['control']}>
+                        <span>Chart name</span>
+                        <TextInput
+                            value={chartName}
+                            placeholder={`${selectedDataset.dataset.name} chart`}
+                            onChange={event => setChartName(event.target.value)}
+                        />
+                    </label>
+                )}
 
                 <label className={styles['control']}>
                     <span>Chart type</span>

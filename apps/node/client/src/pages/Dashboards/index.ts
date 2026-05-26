@@ -2,6 +2,7 @@ export {
     DashboardsPage,
     DashboardsListPanel,
     DashboardsWorkspace,
+    DashboardsWorkspaceRightPanel,
     DashboardsFilterPanel,
 } from './ui';
 export {

@@ -1,5 +1,6 @@
 export {
     useDeleteChartMutation,
+    useGetChartDataQuery,
     useGetChartQuery,
     useLazyGetChartDataQuery,
     useLazyGetChartQuery,

@@ -3,7 +3,7 @@ import { GitMerge, Trash2 } from 'lucide-react';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, EntityHeader, SectionHeader, StatusMessage } from '@/shared/ui';
+import { Button, StatusMessage, Table } from '@/shared/ui';
 
 import styles from './DatasetDetails.module.scss';
 
@@ -25,54 +25,46 @@ export const DatasetDetails = ({
     onMerge,
 }: DatasetDetailsProps) => (
     <section className={styles['details']} aria-label="Dataset details">
-        <EntityHeader
-            eyebrow="Dataset"
-            title={selectedDataset.dataset.name}
-            actions={
-                <>
-                    <Button onClick={onMerge}>
-                        <GitMerge size={18} />
-                        Merge data
-                    </Button>
-                    <Button variant="danger" disabled={deleting} onClick={onDelete}>
-                        <Trash2 size={18} />
-                        {deleteConfirmationId === selectedDataset.dataset.id
-                            ? 'Confirm delete'
-                            : 'Delete'}
-                    </Button>
-                </>
-            }
-        />
+        <div className={styles['details-header']}>
+            <div data-stack="v" data-gap="xs">
+                <span className={styles['eyebrow']}>Dataset</span>
+                <h2 className={styles['detail-title']}>{selectedDataset.dataset.name}</h2>
+            </div>
+            <div className={styles['details-actions']}>
+                <Button onClick={onMerge}>
+                    <GitMerge size={18} />
+                    Merge data
+                </Button>
+                <Button variant="danger" disabled={deleting} onClick={onDelete}>
+                    <Trash2 size={18} />
+                    {deleteConfirmationId === selectedDataset.dataset.id
+                        ? 'Confirm delete'
+                        : 'Delete'}
+                </Button>
+            </div>
+        </div>
 
         {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-        <dl className={styles['stats']}>
-            <div>
-                <dt>Rows</dt>
-                <dd>{selectedDataset.totalRows}</dd>
-            </div>
-            <div>
-                <dt>Columns</dt>
-                <dd>{selectedDataset.columns.length}</dd>
-            </div>
-            <div>
-                <dt>Source</dt>
-                <dd>{selectedDataset.dataset.sourceType}</dd>
-            </div>
-            <div>
-                <dt>Created</dt>
-                <dd>{formatDate(selectedDataset.dataset.createdAt)}</dd>
-            </div>
-        </dl>
+        <Table
+            aria-label="Dataset properties"
+            headers={{ key: 'Property', value: 'Value' }}
+            rows={[
+                { key: 'Rows', value: selectedDataset.totalRows },
+                { key: 'Columns', value: selectedDataset.columns.length },
+                { key: 'Source', value: selectedDataset.dataset.sourceType },
+                { key: 'Created', value: formatDate(selectedDataset.dataset.createdAt) },
+            ]}
+        />
 
-        <SectionHeader eyebrow="Columns" />
-        <div className={styles['columns-list']} aria-label="Dataset columns">
-            {selectedDataset.columns.map(column => (
-                <div key={column.id} className={styles['column-chip']}>
-                    <span>{column.displayName}</span>
-                    <small>{column.dataType}</small>
-                </div>
-            ))}
-        </div>
+        <Table
+            aria-label="Dataset columns"
+            headers={{ key: 'Column', value: 'Type' }}
+            rows={selectedDataset.columns.map(column => ({
+                id: column.id,
+                key: column.displayName,
+                value: column.dataType,
+            }))}
+        />
     </section>
 );

@@ -12,7 +12,6 @@ import {
     EmptyState,
     FilterChip,
     IconButton,
-    SectionHeader,
     SegmentedTabs,
     SelectableList,
     StatusMessage,
@@ -59,19 +58,17 @@ export const ChartsFilterPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={chartsTestIds.filterPanel}>
-            <SectionHeader
-                eyebrow="Filter by"
-                actions={
-                    <IconButton
-                        data-test-id={chartsTestIds.clearFilterButton}
-                        aria-label="Clear filter"
-                        style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
-                        onClick={handleClear}
-                    >
-                        <X size={16} />
-                    </IconButton>
-                }
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <span className={styles['eyebrow']}>Filter by</span>
+                <IconButton
+                    data-test-id={chartsTestIds.clearFilterButton}
+                    aria-label="Clear filter"
+                    style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
+                    onClick={handleClear}
+                >
+                    <X size={16} />
+                </IconButton>
+            </div>
 
             <SegmentedTabs
                 value={activeTab}

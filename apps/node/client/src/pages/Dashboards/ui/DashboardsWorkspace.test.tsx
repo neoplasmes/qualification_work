@@ -1,5 +1,5 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -170,9 +170,12 @@ describe('DashboardsWorkspace', () => {
         mocks.refetchDashboard.mockResolvedValue(undefined);
     });
 
-    it('renames dashboard from workspace form', async () => {
+    it('renames dashboard from workspace title', async () => {
         const user = userEvent.setup();
         const { container } = renderWorkspace();
+
+        await user.click(getByDataTestId(container, dashboardsTestIds.renameButton));
+
         const nameInput = getByDataTestId<HTMLInputElement>(
             container,
             dashboardsTestIds.renameInput
@@ -180,7 +183,7 @@ describe('DashboardsWorkspace', () => {
 
         await user.clear(nameInput);
         await user.type(nameInput, 'Operations');
-        await user.click(getByDataTestId(container, dashboardsTestIds.saveNameButton));
+        await user.click(screen.getByRole('button', { name: 'Save name' }));
 
         await waitFor(() => expect(mocks.renameDashboard).toHaveBeenCalledTimes(1));
         expect(mocks.renameDashboard).toHaveBeenCalledWith({
@@ -189,9 +192,22 @@ describe('DashboardsWorkspace', () => {
         });
     });
 
+    it('does not render duplicate rename form in edit mode', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace();
+
+        await user.click(getByDataTestId(container, dashboardsTestIds.workspaceEditTab));
+
+        expect(
+            container.querySelector(`[data-test-id="${dashboardsTestIds.renameForm}"]`)
+        ).toBeNull();
+    });
+
     it('adds chart and metric widgets from central controls', async () => {
         const user = userEvent.setup();
         const { container } = renderWorkspace();
+
+        await user.click(getByDataTestId(container, dashboardsTestIds.workspaceEditTab));
 
         await user.click(getByDataTestId(container, dashboardsTestIds.addChartButton));
         await user.type(

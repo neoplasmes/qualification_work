@@ -1,9 +1,14 @@
 .preview {
     display: flex;
-    flex: 0 0 auto;
+    flex: 1;
     flex-direction: column;
-    gap: var(--spacing-md);
-    min-height: 360px;
+    gap: var(--spacing-sm);
+    min-height: 0;
+}
+
+.grid-container {
+    flex: 1;
+    min-height: 0;
 }
 
 .panel-placeholder {

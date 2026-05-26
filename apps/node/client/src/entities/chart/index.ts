@@ -3,6 +3,7 @@ export { formatChartCell } from './lib';
 export { ChartResult } from './ui';
 export {
     useDeleteChartMutation,
+    useGetChartDataQuery,
     useGetChartQuery,
     useLazyGetChartDataQuery,
     useLazyGetChartQuery,

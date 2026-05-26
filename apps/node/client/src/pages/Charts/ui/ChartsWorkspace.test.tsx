@@ -21,6 +21,7 @@ import { ChartsWorkspace } from './ChartsWorkspace';
 const mocks = vi.hoisted(() => ({
     getChartData: vi.fn(),
     deleteChart: vi.fn(),
+    patchChart: vi.fn(),
     refetchCharts: vi.fn(),
 }));
 
@@ -100,6 +101,7 @@ vi.mock('@/entities/dataset', () => ({
 
 vi.mock('@/features/buildChart', () => ({
     configToBuilderFields: () => ({}),
+    usePatchChartMutation: () => [mocks.patchChart, { isLoading: false }],
     DatasetChartBuilder: ({
         selectedDataset,
         onChartCreated,
@@ -156,27 +158,17 @@ describe('ChartsWorkspace', () => {
         mocks.deleteChart.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
+        mocks.patchChart.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue(undefined),
+        });
         mocks.refetchCharts.mockResolvedValue(undefined);
     });
 
-    it('loads, refreshes and deletes the selected chart', async () => {
-        const user = userEvent.setup();
-        const { container, store } = renderWorkspace({ selectedChartId: 'chart-1' });
+    it('loads chart data when a chart is selected', async () => {
+        renderWorkspace({ selectedChartId: 'chart-1' });
 
         await screen.findByTestId('chart-result');
         expect(mocks.getChartData).toHaveBeenCalledWith('chart-1', false);
-
-        await user.click(getByDataTestId(container, chartsTestIds.refreshDataButton));
-
-        await waitFor(() => expect(mocks.getChartData).toHaveBeenCalledTimes(2));
-
-        await user.click(getByDataTestId(container, chartsTestIds.deleteButton));
-        expect(screen.getByText('Confirm delete')).toBeInTheDocument();
-
-        await user.click(getByDataTestId(container, chartsTestIds.deleteButton));
-
-        await waitFor(() => expect(mocks.deleteChart).toHaveBeenCalledWith('chart-1'));
-        expect(selectSelectedChartId(store.getState())).toBeNull();
     });
 
     it('selects a dataset from modal and finishes builder creation', async () => {
@@ -194,5 +186,26 @@ describe('ChartsWorkspace', () => {
         await waitFor(() => expect(mocks.refetchCharts).toHaveBeenCalledTimes(1));
         expect(selectBuilderDatasetId(store.getState())).toBeNull();
         expect(selectSelectedChartId(store.getState())).toBe('chart-new');
+    });
+
+    it('renames selected chart from workspace title', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace({ selectedChartId: 'chart-1' });
+
+        await user.click(getByDataTestId(container, chartsTestIds.renameButton));
+
+        const nameInput = getByDataTestId<HTMLInputElement>(
+            container,
+            chartsTestIds.renameInput
+        );
+        await user.clear(nameInput);
+        await user.type(nameInput, 'Operations');
+        await user.keyboard('{Enter}');
+
+        await waitFor(() => expect(mocks.patchChart).toHaveBeenCalledTimes(1));
+        expect(mocks.patchChart).toHaveBeenCalledWith({
+            chartId: 'chart-1',
+            name: 'Operations',
+        });
     });
 });

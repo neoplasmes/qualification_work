@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Plus, RefreshCcw, Workflow } from 'lucide-react';
+import { Plus, Workflow } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -8,13 +8,7 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useListActionRunsQuery, useListActionsQuery } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-    Button,
-    EmptyState,
-    IconButton,
-    SectionHeader,
-    StatusMessage,
-} from '@/shared/ui';
+import { Button, EmptyState, StatusMessage } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { canMutate } from '../../../lib';
@@ -69,20 +63,10 @@ export const ActionsListPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={actionsTestIds.listPanel}>
-            <SectionHeader
-                title="Actions"
-                headingLevel={1}
-                description={`${filteredActions.length} actions`}
-                actions={
-                    <IconButton
-                        aria-label="Refresh actions"
-                        disabled={actionsQuery.isFetching}
-                        onClick={() => void actionsQuery.refetch()}
-                    >
-                        <RefreshCcw size={18} />
-                    </IconButton>
-                }
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <h1 className={styles['title']}>Actions</h1>
+                <span className={styles['muted']}>{filteredActions.length} actions</span>
+            </div>
 
             <Button
                 disabled={!canMutate(org?.role)}

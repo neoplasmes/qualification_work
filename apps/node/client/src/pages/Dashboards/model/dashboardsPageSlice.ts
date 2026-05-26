@@ -1,10 +1,13 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
+export type DashboardsRightPanelTab = 'properties' | 'filters';
+
 export type DashboardsPageState = {
     selectedDashboardId: string | null;
     filterChartIds: string[];
     filterDatasetIds: string[];
     dashboardsFilterActiveTab: 'charts' | 'datasets';
+    dashboardsRightPanelTab: DashboardsRightPanelTab;
     workspaceDraftDashboardId: string | null;
     workspaceDraftName: string;
     workspaceMetricName: string;
@@ -19,6 +22,7 @@ export const dashboardsPageInitialState: DashboardsPageState = {
     filterChartIds: [],
     filterDatasetIds: [],
     dashboardsFilterActiveTab: 'charts',
+    dashboardsRightPanelTab: 'properties',
     workspaceDraftDashboardId: null,
     workspaceDraftName: '',
     workspaceMetricName: '',
@@ -63,6 +67,12 @@ export const dashboardsPageSlice = createSlice({
         ) {
             state.dashboardsFilterActiveTab = action.payload;
         },
+        setDashboardsRightPanelTab(
+            state,
+            action: PayloadAction<DashboardsRightPanelTab>
+        ) {
+            state.dashboardsRightPanelTab = action.payload;
+        },
         initDashboardsWorkspaceDraft(
             state,
             action: PayloadAction<{ dashboardId: string; name: string }>
@@ -104,6 +114,7 @@ export const {
     clearChartFilter,
     clearDatasetFilter,
     setDashboardsFilterActiveTab,
+    setDashboardsRightPanelTab,
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
     setDashboardsWorkspaceDraftName,
@@ -121,6 +132,8 @@ export const selectFilterDatasetIds = (state: StateWithDashboardsPage) =>
     state.dashboardsPage.filterDatasetIds;
 export const selectDashboardsFilterActiveTab = (state: StateWithDashboardsPage) =>
     state.dashboardsPage.dashboardsFilterActiveTab;
+export const selectDashboardsRightPanelTab = (state: StateWithDashboardsPage) =>
+    state.dashboardsPage.dashboardsRightPanelTab;
 export const selectWorkspaceDraftDashboardId = (state: StateWithDashboardsPage) =>
     state.dashboardsPage.workspaceDraftDashboardId;
 export const selectDashboardsWorkspaceDraftName = (state: StateWithDashboardsPage) =>

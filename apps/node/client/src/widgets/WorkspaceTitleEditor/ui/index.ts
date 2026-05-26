@@ -1,0 +1,1 @@
+export { WorkspaceTitleEditor } from './WorkspaceTitleEditor';

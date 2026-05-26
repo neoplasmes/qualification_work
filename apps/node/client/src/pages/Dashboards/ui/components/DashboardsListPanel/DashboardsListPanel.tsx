@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { LayoutDashboard, Plus, RefreshCcw } from 'lucide-react';
+import { LayoutDashboard, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -11,15 +11,7 @@ import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-    Button,
-    EmptyState,
-    FormField,
-    IconButton,
-    SectionHeader,
-    StatusMessage,
-    TextInput,
-} from '@/shared/ui';
+import { Button, EmptyState, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 import { filterDashboards } from '../../../lib';
@@ -34,7 +26,6 @@ import styles from './DashboardsListPanel.module.scss';
 
 export const DashboardsListPanel = () => {
     const dispatch = useDispatch();
-    const [name, setName] = useState('');
     const [error, setError] = useState('');
 
     const meQuery = useGetMeQuery();
@@ -58,17 +49,8 @@ export const DashboardsListPanel = () => {
         [dashboardsQuery.data, chartsQuery.data, filterChartIds, filterDatasetIds]
     );
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
+    const handleCreate = async () => {
         if (!org) {
-            return;
-        }
-
-        const trimmed = name.trim();
-        if (!trimmed) {
-            setError('Dashboard name can not be empty.');
-
             return;
         }
 
@@ -77,9 +59,8 @@ export const DashboardsListPanel = () => {
         try {
             const result = await createDashboard({
                 orgId: org.id,
-                name: trimmed,
+                name: 'New dashboard',
             }).unwrap();
-            setName('');
             dispatch(selectDashboard(result.id));
             await dashboardsQuery.refetch();
         } catch (createError) {
@@ -89,43 +70,21 @@ export const DashboardsListPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={dashboardsTestIds.listPanel}>
-            <SectionHeader
-                title="Dashboards"
-                headingLevel={1}
-                description={`${filteredDashboards?.length ?? 0} dashboards`}
-                actions={
-                    <IconButton
-                        aria-label="Refresh dashboards"
-                        disabled={dashboardsQuery.isFetching}
-                        onClick={() => void dashboardsQuery.refetch()}
-                    >
-                        <RefreshCcw size={18} />
-                    </IconButton>
-                }
-            />
+            <div data-stack="h" data-align="center" data-justify="between">
+                <h1 className={styles['title']}>Dashboards</h1>
+                <span className={styles['muted']}>
+                    {filteredDashboards?.length ?? 0} dashboards
+                </span>
+            </div>
 
-            <form
-                className={styles['create-form']}
-                data-test-id={dashboardsTestIds.createForm}
-                onSubmit={handleSubmit}
+            <Button
+                data-test-id={dashboardsTestIds.createButton}
+                disabled={createState.isLoading}
+                onClick={() => void handleCreate()}
             >
-                <FormField label="New dashboard">
-                    <TextInput
-                        data-test-id={dashboardsTestIds.createNameInput}
-                        value={name}
-                        placeholder="Sales overview"
-                        onChange={event => setName(event.target.value)}
-                    />
-                </FormField>
-                <Button
-                    type="submit"
-                    data-test-id={dashboardsTestIds.createButton}
-                    disabled={createState.isLoading}
-                >
-                    <Plus size={18} />
-                    Create
-                </Button>
-            </form>
+                <Plus size={18} />
+                New dashboard
+            </Button>
 
             {error && <StatusMessage tone="error">{error}</StatusMessage>}
 

@@ -7,7 +7,6 @@ import {
     EmptyState,
     FilterChip,
     IconButton,
-    SectionHeader,
     SelectableList,
     StatusMessage,
 } from '@/shared/ui';
@@ -28,18 +27,16 @@ export const DatasetsFilterPanel = ({
     onClear,
 }: DatasetsFilterPanelProps) => (
     <aside className={styles['panel']}>
-        <SectionHeader
-            eyebrow="Filter by dataset"
-            actions={
-                <IconButton
-                    aria-label="Clear dataset filter"
-                    style={{ visibility: selectedIds.length > 0 ? 'visible' : 'hidden' }}
-                    onClick={onClear}
-                >
-                    <X size={16} />
-                </IconButton>
-            }
-        />
+        <div data-stack="h" data-align="center" data-justify="between">
+            <span className={styles['eyebrow']}>Filter by dataset</span>
+            <IconButton
+                aria-label="Clear dataset filter"
+                style={{ visibility: selectedIds.length > 0 ? 'visible' : 'hidden' }}
+                onClick={onClear}
+            >
+                <X size={16} />
+            </IconButton>
+        </div>
 
         <SelectableList>
             {!datasets && <StatusMessage centered>Loading...</StatusMessage>}

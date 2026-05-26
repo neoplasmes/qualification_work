@@ -19,6 +19,7 @@ import { createDeleteChartHandler } from './delete.handler';
 import { createGetChartByIdHandler } from './getById.handler';
 import { createGetChartsByOrgIdHandler } from './getByOrgId.handler';
 import { createGetChartDataHandler } from './getData.handler';
+import { createPatchChartHandler } from './patch.handler';
 import { createPreviewChartDataHandler } from './preview.handler';
 import { createUpdateChartHandler } from './update.handler';
 
@@ -37,6 +38,7 @@ export function createChartsRouter(
     router.post('/preview', createPreviewChartDataHandler(previewChartDataHandler));
     router.get('/:id', createGetChartByIdHandler(getChartByIdHandler));
     router.post('/', createCreateChartHandler(createChartHandler));
+    router.patch('/:id', createPatchChartHandler(updateChartHandler));
     router.put('/:id', createUpdateChartHandler(updateChartHandler));
     router.delete('/:id', createDeleteChartHandler(deleteChartHandler));
 

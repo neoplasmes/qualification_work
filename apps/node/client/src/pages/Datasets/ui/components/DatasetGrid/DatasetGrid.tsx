@@ -23,15 +23,15 @@ export const DatasetGrid = ({
     newRowValues,
     gridWidth,
     gridHeight,
-    wrapRef,
+    hasMore,
     onCellCommit,
     onNewRowValueChange,
+    onLoadMore,
 }: DatasetGridProps) => {
     const isEmpty = rows.length === 0 && !isInsertingRow;
 
     return (
         <div
-            ref={wrapRef}
             className={styles['table-wrap']}
             data-test-id={datasetsTestIds.previewGrid}
             data-testid="dataset-preview-grid"
@@ -60,8 +60,10 @@ export const DatasetGrid = ({
                             newRowValues,
                             gridWidth,
                             gridHeight,
+                            hasMore,
                             onCellCommit,
                             onNewRowValueChange,
+                            onLoadMore,
                         }}
                     />
                 )

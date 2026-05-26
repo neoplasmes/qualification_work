@@ -38,15 +38,15 @@ const ChartsWorkspace = lazy(() =>
         default: module.ChartsWorkspace,
     }))
 );
-const ChartsFilterPanel = lazy(() =>
+const ChartsWorkspaceRightPanel = lazy(() =>
     import('@/pages/Charts').then(module => ({
-        default: module.ChartsFilterPanel,
+        default: module.ChartsWorkspaceRightPanel,
     }))
 );
 
-const DatasetsUploadPanel = lazy(() =>
+const DatasetsLeftPanel = lazy(() =>
     import('@/pages/Datasets').then(module => ({
-        default: module.DatasetsUploadPanel,
+        default: module.DatasetsLeftPanel,
     }))
 );
 const DatasetsWorkspace = lazy(() =>
@@ -70,9 +70,9 @@ const DashboardsWorkspace = lazy(() =>
         default: module.DashboardsWorkspace,
     }))
 );
-const DashboardsFilterPanel = lazy(() =>
+const DashboardsWorkspaceRightPanel = lazy(() =>
     import('@/pages/Dashboards').then(module => ({
-        default: module.DashboardsFilterPanel,
+        default: module.DashboardsWorkspaceRightPanel,
     }))
 );
 
@@ -93,17 +93,17 @@ const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
     '/charts': {
         Left: ChartsListPanel,
         Center: ChartsWorkspace,
-        Right: ChartsFilterPanel,
+        Right: ChartsWorkspaceRightPanel,
     },
     '/datasets': {
-        Left: DatasetsUploadPanel,
+        Left: DatasetsLeftPanel,
         Center: DatasetsWorkspace,
         Right: DatasetsRightPanel,
     },
     '/dashboards': {
         Left: DashboardsListPanel,
         Center: DashboardsWorkspace,
-        Right: DashboardsFilterPanel,
+        Right: DashboardsWorkspaceRightPanel,
     },
 };
 
@@ -130,19 +130,19 @@ export const WorkspaceLayout = () => {
                 collapseLeft={isLeftCollapsed}
                 collapseRight={isRightCollapsed}
             >
-                <WorkspaceGrid.Panel initialSize="320px" minSize="240px" maxSize="480px">
+                <WorkspaceGrid.Panel initialSize="320px" minSize="300px" maxSize="800px">
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Left}
                     />
                 </WorkspaceGrid.Panel>
-                <WorkspaceGrid.Panel initialSize="800px" minSize="480px" maxSize="9999px">
+                <WorkspaceGrid.Panel initialSize="800px" minSize="600px" maxSize="9999px">
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Center}
                     />
                 </WorkspaceGrid.Panel>
-                <WorkspaceGrid.Panel initialSize="320px" minSize="240px" maxSize="480px">
+                <WorkspaceGrid.Panel initialSize="320px" minSize="300px" maxSize="800px">
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Right}

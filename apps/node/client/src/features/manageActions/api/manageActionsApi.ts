@@ -43,11 +43,12 @@ export const manageActionsApi = api.injectEndpoints({
                 { type: 'Actions', id: 'LIST' },
             ],
         }),
-        patchAction: builder.mutation<Action, PatchActionPayload>({
+        patchAction: builder.mutation<void, PatchActionPayload>({
             query: ({ actionId, ...body }) => ({
                 url: `/data/actions/${actionId}`,
                 method: 'PATCH',
                 body,
+                responseHandler: 'text',
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Actions', id: arg.actionId },

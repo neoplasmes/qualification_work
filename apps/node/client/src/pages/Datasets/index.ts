@@ -1,6 +1,5 @@
 export {
-    DatasetsPage,
-    DatasetsUploadPanel,
+    DatasetsLeftPanel,
     DatasetsWorkspace,
     DatasetsFilterPanel,
     DatasetsRightPanel,

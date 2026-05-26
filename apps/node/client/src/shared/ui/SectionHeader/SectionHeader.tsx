@@ -23,6 +23,8 @@ export const SectionHeader = ({
 
     return (
         <div
+            data-stack="v"
+            data-justify="between"
             className={[styles['header'], className ?? ''].filter(Boolean).join(' ')}
             {...props}
         >
@@ -31,7 +33,11 @@ export const SectionHeader = ({
                 {title && <Heading className={styles['title']}>{title}</Heading>}
                 {description && <p className={styles['muted']}>{description}</p>}
             </div>
-            {actions && <div className={styles['actions']}>{actions}</div>}
+            {actions && (
+                <div data-stack="v" className={styles['actions']}>
+                    {actions}
+                </div>
+            )}
         </div>
     );
 };

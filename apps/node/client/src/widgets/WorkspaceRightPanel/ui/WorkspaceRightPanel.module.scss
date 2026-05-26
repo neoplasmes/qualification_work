@@ -4,31 +4,32 @@
     flex: 1;
     flex-direction: column;
     gap: var(--spacing-md);
-    padding: var(--spacing-md);
     min-width: 0;
     min-height: 0;
 }
 
-.filter-tabs {
+.tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(var(--tabs-count), minmax(0, 1fr));
     gap: var(--spacing-xs);
 }
 
-.filter-tab {
+.tab {
     cursor: pointer;
 
-    display: flex;
+    display: inline-flex;
     gap: var(--spacing-xs);
     align-items: center;
     justify-content: center;
 
+    min-width: 0;
+    min-height: 36px;
     padding: var(--spacing-xs) var(--spacing-sm);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
 
     font-size: var(--font-size-xs);
-    font-weight: 700;
+    font-weight: 800;
     color: var(--color-on-surface-variant);
 
     background-color: var(--color-surface-container-low);

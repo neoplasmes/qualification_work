@@ -1,0 +1,6 @@
+.list {
+    overflow: auto;
+    display: grid;
+    gap: var(--spacing-xs);
+    align-content: start;
+}

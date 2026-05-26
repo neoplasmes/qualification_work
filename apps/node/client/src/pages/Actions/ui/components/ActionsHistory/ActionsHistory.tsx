@@ -6,7 +6,7 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useListActionRunsQuery, type Action } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { IconButton } from '@/shared/ui';
+import { Badge, EmptyState, IconButton, SectionHeader, StatusMessage } from '@/shared/ui';
 
 import { summarizeRun } from '../../../lib';
 
@@ -38,26 +38,24 @@ export const ActionsHistory = ({
 
     return (
         <section className={styles['right-section']} aria-label="Action history">
-            <div className={styles['header-row']}>
-                <span className={styles['eyebrow']}>
-                    {selectedAction ? 'Action runs' : 'Recent runs'}
-                </span>
-                <IconButton
-                    aria-label="Refresh history"
-                    disabled={runsQuery.isFetching}
-                    onClick={() => void runsQuery.refetch()}
-                >
-                    <ScrollText size={16} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                eyebrow={selectedAction ? 'Action runs' : 'Recent runs'}
+                actions={
+                    <IconButton
+                        aria-label="Refresh history"
+                        disabled={runsQuery.isFetching}
+                        onClick={() => void runsQuery.refetch()}
+                    >
+                        <ScrollText size={16} />
+                    </IconButton>
+                }
+            />
 
             <div className={styles['history-list']}>
                 {runsQuery.isLoading && (
-                    <div className={styles['status']}>Loading history...</div>
+                    <StatusMessage centered>Loading history...</StatusMessage>
                 )}
-                {runsQuery.data?.length === 0 && (
-                    <div className={styles['empty']}>No runs yet.</div>
-                )}
+                {runsQuery.data?.length === 0 && <EmptyState>No runs yet.</EmptyState>}
                 {runsQuery.data?.map(run => (
                     <article key={run.id} className={styles['run-card']}>
                         <div className={styles['card-header']}>
@@ -71,15 +69,9 @@ export const ActionsHistory = ({
                                     <span>{summarizeRun(run)}</span>
                                 </div>
                             </div>
-                            <span
-                                className={`${styles['badge']} ${
-                                    run.status === 'success'
-                                        ? styles['badge-success']
-                                        : styles['badge-failed']
-                                }`}
-                            >
+                            <Badge tone={run.status === 'success' ? 'success' : 'danger'}>
                                 {run.status}
-                            </span>
+                            </Badge>
                         </div>
                     </article>
                 ))}

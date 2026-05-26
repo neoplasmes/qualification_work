@@ -26,7 +26,7 @@ import {
     useLogoutMutation,
 } from '@/features/authenticate';
 
-import { IconButton, IconButtonLink, Logo } from '@/shared/ui';
+import { FormField, IconButton, IconButtonLink, Logo, Select } from '@/shared/ui';
 
 import styles from './NavBar.module.scss';
 
@@ -91,9 +91,8 @@ export const NavBar: FC = () => {
                 </ul>
             </nav>
             <div className={styles['workspace-controls']}>
-                <label className={styles['workspace-select']}>
-                    <span>Workspace</span>
-                    <select
+                <FormField label="Workspace" className={styles['workspace-select']}>
+                    <Select
                         data-testid="workspace-select"
                         value={activeOrg?.id ?? ''}
                         disabled={orgs.length === 0}
@@ -105,8 +104,8 @@ export const NavBar: FC = () => {
                                 {org.name} ({org.role})
                             </option>
                         ))}
-                    </select>
-                </label>
+                    </Select>
+                </FormField>
 
                 {isWorkspacePage && (
                     <>

@@ -27,3 +27,5 @@ export {
     toggleDashboardFilter,
     toggleDatasetFilter,
 } from './chartsPageSlice';
+export type { ChartsPageState } from './chartsPageSlice';
+export { chartsPagePersistence } from './chartsPagePersistence';

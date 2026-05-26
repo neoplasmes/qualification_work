@@ -1,7 +1,7 @@
 import { FileSpreadsheet } from 'lucide-react';
 import { lazy } from 'react';
 
-import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
+import { ClientOnlyDeffered, EmptyState } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 
@@ -37,10 +37,9 @@ export const DatasetGrid = ({
             data-testid="dataset-preview-grid"
         >
             {isEmpty ? (
-                <div className={styles['empty']}>
-                    <FileSpreadsheet size={22} />
+                <EmptyState icon={<FileSpreadsheet size={22} />}>
                     Dataset has no preview rows.
-                </div>
+                </EmptyState>
             ) : (
                 gridWidth > 0 && (
                     <ClientOnlyDeffered<DatasetGridEditorProps>

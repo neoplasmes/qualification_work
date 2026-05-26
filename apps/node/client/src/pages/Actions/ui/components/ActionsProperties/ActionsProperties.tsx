@@ -10,7 +10,14 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button } from '@/shared/ui';
+import {
+    Badge,
+    Button,
+    Card,
+    PanelPlaceholder,
+    SectionHeader,
+    StatusMessage,
+} from '@/shared/ui';
 
 import { canMutate, getEffectLabel } from '../../../lib';
 import { selectAction } from '../../../model';
@@ -79,23 +86,18 @@ export const ActionsProperties = ({
     };
 
     if (!selectedAction) {
-        return (
-            <p className={styles['placeholder']}>Select an action to view properties.</p>
-        );
+        return <PanelPlaceholder>Select an action to view properties.</PanelPlaceholder>;
     }
 
     return (
         <section className={styles['right-section']} aria-label="Action properties">
-            <div data-stack="v" data-gap="xs">
-                <span className={styles['eyebrow']}>Properties</span>
-                <h3 className={styles['section-title']}>{selectedAction.name}</h3>
-            </div>
+            <SectionHeader
+                eyebrow="Properties"
+                title={selectedAction.name}
+                headingLevel={3}
+            />
 
-            {error && (
-                <div role="alert" className={`${styles['status']} ${styles['error']}`}>
-                    {error}
-                </div>
-            )}
+            {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
             <div className={styles['properties-grid']}>
                 <PropertyRow label="Effects" value={selectedAction.effects.length} />
@@ -110,30 +112,29 @@ export const ActionsProperties = ({
                 />
             </div>
 
-            <div className={styles['card']}>
-                <span className={styles['eyebrow']}>Datasets</span>
+            <Card className={styles['card']}>
+                <SectionHeader eyebrow="Datasets" />
                 <div className={styles['meta']}>
                     {affectedDatasets.map(datasetId => (
-                        <span key={datasetId} className={styles['badge']}>
+                        <Badge key={datasetId}>
                             {datasetsById.get(datasetId) ?? 'Unknown dataset'}
-                        </span>
+                        </Badge>
                     ))}
                 </div>
-            </div>
+            </Card>
 
-            <div className={styles['card']}>
-                <span className={styles['eyebrow']}>Effects</span>
+            <Card className={styles['card']}>
+                <SectionHeader eyebrow="Effects" />
                 <div className={styles['stack']}>
                     {selectedAction.effects.map((effect, index) => (
-                        <div
+                        <StatusMessage
                             key={`${effect.kind}-${effect.datasetId}-${index}`}
-                            className={styles['status']}
                         >
                             {index + 1}. {getEffectLabel(effect.kind)}
-                        </div>
+                        </StatusMessage>
                     ))}
                 </div>
-            </div>
+            </Card>
 
             <Button
                 variant="danger"

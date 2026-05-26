@@ -11,7 +11,14 @@ import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
-import { Button, IconButton } from '@/shared/ui';
+import {
+    Badge,
+    Button,
+    EmptyState,
+    IconButton,
+    SectionHeader,
+    StatusMessage,
+} from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 import { filterDatasets } from '../../../lib';
@@ -66,21 +73,20 @@ export const DatasetsUploadPanel = () => {
             className={styles['side-panel']}
             data-test-id={datasetsTestIds.uploadPanel}
         >
-            <div data-stack="h" data-align="center" data-justify="between">
-                <div data-stack="v" data-gap="xs">
-                    <h1 className={styles['title']}>Datasets</h1>
-                    <p className={styles['muted']}>
-                        {filteredDatasets?.length ?? 0} datasets
-                    </p>
-                </div>
-                <IconButton
-                    aria-label="Refresh datasets"
-                    disabled={datasetsQuery.isFetching}
-                    onClick={() => void datasetsQuery.refetch()}
-                >
-                    <RefreshCcw size={18} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                title="Datasets"
+                headingLevel={1}
+                description={`${filteredDatasets?.length ?? 0} datasets`}
+                actions={
+                    <IconButton
+                        aria-label="Refresh datasets"
+                        disabled={datasetsQuery.isFetching}
+                        onClick={() => void datasetsQuery.refetch()}
+                    >
+                        <RefreshCcw size={18} />
+                    </IconButton>
+                }
+            />
 
             <Button
                 className={styles['full-button']}
@@ -93,10 +99,10 @@ export const DatasetsUploadPanel = () => {
 
             <section className={styles['dataset-list']} aria-label="Datasets">
                 {datasetsQuery.isLoading && (
-                    <div className={styles['status']}>Loading datasets...</div>
+                    <StatusMessage centered>Loading datasets...</StatusMessage>
                 )}
                 {filteredDatasets?.length === 0 && (
-                    <div className={styles['empty']}>Upload a dataset to start.</div>
+                    <EmptyState>Upload a dataset to start.</EmptyState>
                 )}
                 {filteredDatasets?.map((item: DatasetMetadata) => (
                     <button
@@ -120,7 +126,7 @@ export const DatasetsUploadPanel = () => {
                                 <span>{formatDate(item.dataset.createdAt)}</span>
                             </div>
                         </div>
-                        <span className={styles['badge']}>{item.dataset.sourceType}</span>
+                        <Badge>{item.dataset.sourceType}</Badge>
                     </button>
                 ))}
             </section>

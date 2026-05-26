@@ -3,7 +3,7 @@ import { RefreshCcw, X } from 'lucide-react';
 import { ChartResult, useLazyGetChartDataQuery, type Chart } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
 
-import { Button, IconButton } from '@/shared/ui';
+import { Button, Card, IconButton } from '@/shared/ui';
 
 import styles from './DashboardChartCard.module.scss';
 
@@ -27,7 +27,7 @@ export const DashboardChartCard = ({
     };
 
     return (
-        <article className={styles['dashboard-card']}>
+        <Card as="article" className={styles['dashboard-card']}>
             <div className={styles['card-header']}>
                 <div data-stack="v" data-gap="xs">
                     <h3>{chart?.name ?? `Chart ${item.chartId.slice(0, 8)}`}</h3>
@@ -52,8 +52,8 @@ export const DashboardChartCard = ({
             </div>
 
             {!chartDataQuery.data && (
-                <Button disabled={chartDataQuery.isFetching} onClick={loadChartData}>
-                    {chartDataQuery.isFetching ? 'Loading data' : 'Load chart data'}
+                <Button isLoading={chartDataQuery.isFetching} onClick={loadChartData}>
+                    Load chart data
                 </Button>
             )}
 
@@ -66,6 +66,6 @@ export const DashboardChartCard = ({
                     hideTable
                 />
             )}
-        </article>
+        </Card>
     );
 };

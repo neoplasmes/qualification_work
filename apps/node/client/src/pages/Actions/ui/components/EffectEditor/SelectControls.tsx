@@ -1,5 +1,7 @@
 import type { DatasetMetadata } from '@/entities/dataset';
 
+import { Select } from '@/shared/ui';
+
 import type { ActionParameterDraft } from '../../../model';
 
 type SelectProps = {
@@ -20,7 +22,7 @@ export const ColumnSelect = ({
     testId,
     onChange,
 }: ColumnSelectProps) => (
-    <select
+    <Select
         data-test-id={testId}
         value={value}
         disabled={disabled}
@@ -32,7 +34,7 @@ export const ColumnSelect = ({
                 {column.displayName}
             </option>
         ))}
-    </select>
+    </Select>
 );
 
 type ParameterSelectProps = SelectProps & {
@@ -46,7 +48,7 @@ export const ParameterSelect = ({
     testId,
     onChange,
 }: ParameterSelectProps) => (
-    <select
+    <Select
         data-test-id={testId}
         value={value}
         disabled={disabled}
@@ -60,5 +62,5 @@ export const ParameterSelect = ({
                     {parameter.label.trim() || parameter.key.trim()}
                 </option>
             ))}
-    </select>
+    </Select>
 );

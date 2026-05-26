@@ -1,11 +1,11 @@
 import type { DatasetMetadata } from '@/entities/dataset';
 
+import { FormField, Select, TextInput } from '@/shared/ui';
+
 import { actionsTestIds } from '../../../const';
 import type { ActionEffectDraft, ActionParameterDraft } from '../../../model';
 
 import { ColumnSelect, ParameterSelect } from './SelectControls';
-
-import styles from './EffectEditor.module.scss';
 
 type EffectFieldsProps = {
     effect: ActionEffectDraft;
@@ -25,9 +25,8 @@ export const EffectFields = ({
     onUpdateEffect,
 }: EffectFieldsProps) => (
     <>
-        <label className={styles['control']}>
-            <span>Type</span>
-            <select
+        <FormField label="Type">
+            <Select
                 data-test-id={actionsTestIds.effectTypeSelect}
                 value={effect.kind}
                 disabled={disabled}
@@ -39,11 +38,10 @@ export const EffectFields = ({
             >
                 <option value="insertRow">Insert row</option>
                 <option value="updateRowsByMatch">Update rows by match</option>
-            </select>
-        </label>
-        <label className={styles['control']}>
-            <span>Dataset</span>
-            <select
+            </Select>
+        </FormField>
+        <FormField label="Dataset">
+            <Select
                 data-test-id={actionsTestIds.effectDatasetSelect}
                 value={effect.datasetId}
                 disabled={disabled}
@@ -57,12 +55,11 @@ export const EffectFields = ({
                         {item.dataset.name}
                     </option>
                 ))}
-            </select>
-        </label>
+            </Select>
+        </FormField>
         {effect.kind === 'updateRowsByMatch' && (
             <>
-                <label className={styles['control']}>
-                    <span>Match column</span>
+                <FormField label="Match column">
                     <ColumnSelect
                         testId={actionsTestIds.effectMatchColumnSelect}
                         columns={columns}
@@ -72,9 +69,8 @@ export const EffectFields = ({
                             onUpdateEffect(effect.id, { matchColumnKey: value })
                         }
                     />
-                </label>
-                <label className={styles['control']}>
-                    <span>Match parameter</span>
+                </FormField>
+                <FormField label="Match parameter">
                     <ParameterSelect
                         testId={actionsTestIds.effectMatchParameterSelect}
                         parameters={parameters}
@@ -84,10 +80,9 @@ export const EffectFields = ({
                             onUpdateEffect(effect.id, { matchParameterKey: value })
                         }
                     />
-                </label>
-                <label className={styles['control']}>
-                    <span>Max rows</span>
-                    <input
+                </FormField>
+                <FormField label="Max rows">
+                    <TextInput
                         data-test-id={actionsTestIds.effectMaxRowsInput}
                         type="number"
                         min={1}
@@ -97,7 +92,7 @@ export const EffectFields = ({
                             onUpdateEffect(effect.id, { maxRows: event.target.value })
                         }
                     />
-                </label>
+                </FormField>
             </>
         )}
     </>

@@ -10,3 +10,4 @@ export {
     selectIsRightCollapsed,
     type PanelLayoutState,
 } from './panelLayoutSlice';
+export { panelLayoutPersistence } from './panelLayoutPersistence';

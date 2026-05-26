@@ -1,7 +1,7 @@
 import { RefreshCcw, Save } from 'lucide-react';
 import type { FormEvent } from 'react';
 
-import { Button } from '@/shared/ui';
+import { Button, FormField, TextInput } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -31,14 +31,13 @@ export const DashboardNameForm = ({
         data-test-id={dashboardsTestIds.renameForm}
         onSubmit={onSubmit}
     >
-        <label className={styles['control']}>
-            <span>Name</span>
-            <input
+        <FormField label="Name">
+            <TextInput
                 data-test-id={dashboardsTestIds.renameInput}
                 value={value}
                 onChange={event => onChange(event.target.value)}
             />
-        </label>
+        </FormField>
         <Button
             type="submit"
             data-test-id={dashboardsTestIds.saveNameButton}

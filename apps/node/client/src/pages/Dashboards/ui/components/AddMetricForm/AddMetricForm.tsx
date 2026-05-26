@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import type { DashboardMetricItem } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button } from '@/shared/ui';
+import { Button, FormField, Select, TextInput } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -43,9 +43,8 @@ export const AddMetricForm = ({
         aria-label="Add metric"
         onSubmit={onSubmit}
     >
-        <label className={styles['control']}>
-            <span>Metric dataset</span>
-            <select
+        <FormField label="Metric dataset">
+            <Select
                 data-test-id={dashboardsTestIds.metricDatasetSelect}
                 value={datasetId}
                 onChange={event => onDatasetChange(event.target.value)}
@@ -55,29 +54,26 @@ export const AddMetricForm = ({
                         {item.dataset.name}
                     </option>
                 ))}
-            </select>
-        </label>
-        <label className={styles['control']}>
-            <span>Metric name</span>
-            <input
+            </Select>
+        </FormField>
+        <FormField label="Metric name">
+            <TextInput
                 data-test-id={dashboardsTestIds.metricNameInput}
                 value={metricName}
                 placeholder="Average score"
                 onChange={event => onNameChange(event.target.value)}
             />
-        </label>
-        <label className={styles['control']}>
-            <span>Expression</span>
-            <input
+        </FormField>
+        <FormField label="Expression">
+            <TextInput
                 data-test-id={dashboardsTestIds.metricExpressionInput}
                 value={metricExpression}
                 placeholder="avg(score)"
                 onChange={event => onExpressionChange(event.target.value)}
             />
-        </label>
-        <label className={styles['control']}>
-            <span>Format</span>
-            <select
+        </FormField>
+        <FormField label="Format">
+            <Select
                 data-test-id={dashboardsTestIds.metricFormatSelect}
                 value={metricFormat}
                 onChange={event =>
@@ -87,8 +83,8 @@ export const AddMetricForm = ({
                 <option value="number">number</option>
                 <option value="currency">currency</option>
                 <option value="percent">percent</option>
-            </select>
-        </label>
+            </Select>
+        </FormField>
         <Button
             type="submit"
             data-test-id={dashboardsTestIds.addMetricButton}

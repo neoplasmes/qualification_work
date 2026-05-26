@@ -11,7 +11,14 @@ import {
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { Button, ButtonLink } from '@/shared/ui';
+import {
+    Button,
+    ButtonLink,
+    EntityHeader,
+    Select,
+    StatusMessage,
+    TextInput,
+} from '@/shared/ui';
 
 import {
     useCreateChartMutation,
@@ -760,10 +767,10 @@ export const DatasetChartBuilder = ({
     if (step === 'preview' && previewData) {
         return (
             <section className={styles['chart-builder']} aria-label="Chart builder">
-                <div data-stack="h" data-gap="sm" data-align="center">
-                    <ChartNoAxesColumnIncreasing size={20} />
-                    <span className={styles['eyebrow']}>Chart builder</span>
-                </div>
+                <EntityHeader
+                    eyebrow="Chart builder"
+                    actions={<ChartNoAxesColumnIncreasing size={20} />}
+                />
 
                 <ChartResult
                     data={previewData}
@@ -776,7 +783,7 @@ export const DatasetChartBuilder = ({
                 <div data-stack="v" data-gap="sm">
                     <label className={styles['control']}>
                         <span>Chart name</span>
-                        <input
+                        <TextInput
                             value={chartName}
                             placeholder={`${selectedDataset.dataset.name} ${chartType}`}
                             onChange={event => setChartName(event.target.value)}
@@ -796,14 +803,11 @@ export const DatasetChartBuilder = ({
                         <Button
                             type="button"
                             disabled={isSaving}
+                            isLoading={isSaving}
                             onClick={() => void handleSave()}
                         >
                             <Save size={18} />
-                            {isSaving
-                                ? 'Saving...'
-                                : editChartId
-                                  ? 'Save changes'
-                                  : 'Save chart'}
+                            {editChartId ? 'Save changes' : 'Save chart'}
                         </Button>
                         {!editChartId && (
                             <ButtonLink to="/charts">
@@ -814,12 +818,7 @@ export const DatasetChartBuilder = ({
                     </div>
 
                     {chartError && (
-                        <div
-                            role="alert"
-                            className={`${styles['status']} ${styles['error']}`}
-                        >
-                            {chartError}
-                        </div>
+                        <StatusMessage tone="error">{chartError}</StatusMessage>
                     )}
                 </div>
             </section>
@@ -828,15 +827,15 @@ export const DatasetChartBuilder = ({
 
     return (
         <section className={styles['chart-builder']} aria-label="Chart builder">
-            <div data-stack="h" data-gap="sm" data-align="center">
-                <ChartNoAxesColumnIncreasing size={20} />
-                <span className={styles['eyebrow']}>Chart builder</span>
-            </div>
+            <EntityHeader
+                eyebrow="Chart builder"
+                actions={<ChartNoAxesColumnIncreasing size={20} />}
+            />
 
             <form className={styles['chart-form']} onSubmit={handlePreview}>
                 <label className={styles['control']}>
                     <span>Chart name</span>
-                    <input
+                    <TextInput
                         value={chartName}
                         placeholder={`${selectedDataset.dataset.name} chart`}
                         onChange={event => setChartName(event.target.value)}
@@ -845,7 +844,7 @@ export const DatasetChartBuilder = ({
 
                 <label className={styles['control']}>
                     <span>Chart type</span>
-                    <select
+                    <Select
                         value={chartType}
                         onChange={event => setChartType(event.target.value as ChartType)}
                     >
@@ -854,12 +853,12 @@ export const DatasetChartBuilder = ({
                                 {CHART_TYPE_LABELS[type]}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </label>
 
                 <label className={styles['control']}>
                     <span>{chartType === 'pie' ? 'Slice by' : 'X axis'}</span>
-                    <select
+                    <Select
                         value={activeDimensionColumnId}
                         onChange={event =>
                             handleDimensionColumnChange(event.target.value)
@@ -870,13 +869,13 @@ export const DatasetChartBuilder = ({
                                 {column.displayName}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </label>
 
                 {chartType === 'heatmap' && (
                     <label className={styles['control']}>
                         <span>Y axis</span>
-                        <select
+                        <Select
                             value={activeHeatmapYColumnId}
                             onChange={event =>
                                 handleHeatmapYColumnChange(event.target.value)
@@ -887,13 +886,13 @@ export const DatasetChartBuilder = ({
                                     {column.displayName}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </label>
                 )}
 
                 <label className={styles['control']}>
                     <span>Group by</span>
-                    <select
+                    <Select
                         value={
                             dimGroupingModes.includes(dimensionGroupingMode)
                                 ? dimensionGroupingMode
@@ -908,13 +907,13 @@ export const DatasetChartBuilder = ({
                                 {GROUPING_LABELS[mode]}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </label>
 
                 {dimensionGroupingMode === 'time' && (
                     <label className={styles['control']}>
                         <span>Time unit</span>
-                        <select
+                        <Select
                             value={dimensionGranularity}
                             onChange={event =>
                                 setDimensionGranularity(
@@ -927,14 +926,14 @@ export const DatasetChartBuilder = ({
                                     {GRANULARITY_LABELS[item]}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </label>
                 )}
 
                 {dimensionGroupingMode === 'numeric' && (
                     <label className={styles['control']}>
                         <span>Bucket size</span>
-                        <input
+                        <TextInput
                             type="number"
                             min={1}
                             value={dimensionStep}
@@ -948,7 +947,7 @@ export const DatasetChartBuilder = ({
                 {chartType === 'heatmap' && (
                     <label className={styles['control']}>
                         <span>Group Y by</span>
-                        <select
+                        <Select
                             value={
                                 heatmapYGroupingModes.includes(heatmapYGroupingMode)
                                     ? heatmapYGroupingMode
@@ -965,14 +964,14 @@ export const DatasetChartBuilder = ({
                                     {GROUPING_LABELS[mode]}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </label>
                 )}
 
                 {chartType === 'heatmap' && heatmapYGroupingMode === 'time' && (
                     <label className={styles['control']}>
                         <span>Y time unit</span>
-                        <select
+                        <Select
                             value={heatmapYGranularity}
                             onChange={event =>
                                 setHeatmapYGranularity(
@@ -985,14 +984,14 @@ export const DatasetChartBuilder = ({
                                     {GRANULARITY_LABELS[item]}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </label>
                 )}
 
                 {chartType === 'heatmap' && heatmapYGroupingMode === 'numeric' && (
                     <label className={styles['control']}>
                         <span>Y bucket size</span>
-                        <input
+                        <TextInput
                             type="number"
                             min={1}
                             value={heatmapYStep}
@@ -1007,7 +1006,7 @@ export const DatasetChartBuilder = ({
 
                 <label className={styles['control']}>
                     <span>Aggregation</span>
-                    <select
+                    <Select
                         value={aggregate}
                         onChange={event => setAggregate(event.target.value as Aggregate)}
                     >
@@ -1016,13 +1015,13 @@ export const DatasetChartBuilder = ({
                                 {AGGREGATE_LABELS[item]}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </label>
 
                 {needsColumn(aggregate) && (
                     <label className={styles['control']}>
                         <span>Column</span>
-                        <select
+                        <Select
                             data-testid="primary-measure-select"
                             value={activeMeasureColumnId}
                             onChange={event => setMeasureColumnId(event.target.value)}
@@ -1032,14 +1031,14 @@ export const DatasetChartBuilder = ({
                                     {column.displayName}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </label>
                 )}
 
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
                     <label className={styles['control']}>
                         <span>2nd measure</span>
-                        <select
+                        <Select
                             value={secondMeasureEnabled ? 'on' : 'off'}
                             onChange={event =>
                                 setSecondMeasureEnabled(event.target.value === 'on')
@@ -1047,7 +1046,7 @@ export const DatasetChartBuilder = ({
                         >
                             <option value="off">Off</option>
                             <option value="on">On</option>
-                        </select>
+                        </Select>
                     </label>
                 )}
 
@@ -1057,7 +1056,7 @@ export const DatasetChartBuilder = ({
                         <>
                             <label className={styles['control']}>
                                 <span>2nd aggregation</span>
-                                <select
+                                <Select
                                     value={secondAggregate}
                                     onChange={event =>
                                         setSecondAggregate(
@@ -1070,12 +1069,12 @@ export const DatasetChartBuilder = ({
                                             {AGGREGATE_LABELS[item]}
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
                             </label>
                             {needsColumn(secondAggregate) && (
                                 <label className={styles['control']}>
                                     <span>2nd column</span>
-                                    <select
+                                    <Select
                                         data-testid="second-measure-select"
                                         value={activeSecondMeasureColumnId}
                                         onChange={event =>
@@ -1087,7 +1086,7 @@ export const DatasetChartBuilder = ({
                                                 {column.displayName}
                                             </option>
                                         ))}
-                                    </select>
+                                    </Select>
                                 </label>
                             )}
                         </>
@@ -1095,7 +1094,7 @@ export const DatasetChartBuilder = ({
 
                 <label className={styles['control']}>
                     <span>Sort</span>
-                    <select
+                    <Select
                         value={sortDirection}
                         onChange={event =>
                             setSortDirection(event.target.value as 'asc' | 'desc')
@@ -1106,12 +1105,12 @@ export const DatasetChartBuilder = ({
                                 {SORT_LABELS[dir]}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </label>
 
                 <label className={styles['control']}>
                     <span>Row limit</span>
-                    <input
+                    <TextInput
                         type="number"
                         min={1}
                         max={200}
@@ -1127,7 +1126,7 @@ export const DatasetChartBuilder = ({
                 {chartType === 'pie' && (
                     <label className={styles['control']}>
                         <span>Max slices</span>
-                        <input
+                        <TextInput
                             type="number"
                             min={1}
                             max={50}
@@ -1147,7 +1146,7 @@ export const DatasetChartBuilder = ({
 
                         <label className={styles['control']}>
                             <span>Color by</span>
-                            <select
+                            <Select
                                 value={seriesEnabled ? 'on' : 'off'}
                                 onChange={event =>
                                     setSeriesEnabled(event.target.value === 'on')
@@ -1155,7 +1154,7 @@ export const DatasetChartBuilder = ({
                             >
                                 <option value="off">Off</option>
                                 <option value="on">On</option>
-                            </select>
+                            </Select>
                         </label>
                     </>
                 )}
@@ -1164,7 +1163,7 @@ export const DatasetChartBuilder = ({
                     <>
                         <label className={styles['control']}>
                             <span>Color column</span>
-                            <select
+                            <Select
                                 value={activeSeriesColumnId}
                                 onChange={event => setSeriesColumnId(event.target.value)}
                             >
@@ -1173,11 +1172,11 @@ export const DatasetChartBuilder = ({
                                         {column.displayName}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                         </label>
                         <label className={styles['control']}>
                             <span>Max series</span>
-                            <input
+                            <TextInput
                                 type="number"
                                 min={1}
                                 max={50}
@@ -1195,7 +1194,7 @@ export const DatasetChartBuilder = ({
                         {chartType === 'bar' && (
                             <label className={styles['control']}>
                                 <span>Group rest</span>
-                                <select
+                                <Select
                                     value={seriesOtherBucket ? 'on' : 'off'}
                                     onChange={event =>
                                         setSeriesOtherBucket(event.target.value === 'on')
@@ -1203,7 +1202,7 @@ export const DatasetChartBuilder = ({
                                 >
                                     <option value="on">On</option>
                                     <option value="off">Off</option>
-                                </select>
+                                </Select>
                             </label>
                         )}
                     </>
@@ -1213,20 +1212,20 @@ export const DatasetChartBuilder = ({
 
                 <label className={styles['control']}>
                     <span>Filter rows</span>
-                    <select
+                    <Select
                         value={filterEnabled ? 'on' : 'off'}
                         onChange={event => setFilterEnabled(event.target.value === 'on')}
                     >
                         <option value="off">Off</option>
                         <option value="on">On</option>
-                    </select>
+                    </Select>
                 </label>
 
                 {filterEnabled && (
                     <>
                         <label className={styles['control']}>
                             <span>Filter column</span>
-                            <select
+                            <Select
                                 value={activeFilterColumn?.id ?? ''}
                                 onChange={event => setFilterColumnId(event.target.value)}
                             >
@@ -1235,12 +1234,12 @@ export const DatasetChartBuilder = ({
                                         {column.displayName}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                         </label>
 
                         <label className={styles['control']}>
                             <span>Condition</span>
-                            <select
+                            <Select
                                 value={filterOperation}
                                 onChange={event =>
                                     setFilterOperation(
@@ -1253,13 +1252,13 @@ export const DatasetChartBuilder = ({
                                         {FILTER_OP_LABELS[operation]}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                         </label>
 
                         {!nullaryFilter && (
                             <label className={styles['control']}>
                                 <span>Value</span>
-                                <input
+                                <TextInput
                                     value={filterValue}
                                     placeholder={
                                         filterOperation === 'between'
@@ -1276,17 +1275,17 @@ export const DatasetChartBuilder = ({
                     </>
                 )}
 
-                <Button type="submit" disabled={!canPreview || previewState.isLoading}>
+                <Button
+                    type="submit"
+                    disabled={!canPreview || previewState.isLoading}
+                    isLoading={previewState.isLoading}
+                >
                     <Play size={18} />
-                    {previewState.isLoading ? 'Loading...' : 'Preview'}
+                    Preview
                 </Button>
             </form>
 
-            {chartError && (
-                <div role="alert" className={`${styles['status']} ${styles['error']}`}>
-                    {chartError}
-                </div>
-            )}
+            {chartError && <StatusMessage tone="error">{chartError}</StatusMessage>}
         </section>
     );
 };

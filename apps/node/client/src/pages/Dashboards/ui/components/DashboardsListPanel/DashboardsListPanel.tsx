@@ -11,7 +11,15 @@ import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, IconButton } from '@/shared/ui';
+import {
+    Button,
+    EmptyState,
+    FormField,
+    IconButton,
+    SectionHeader,
+    StatusMessage,
+    TextInput,
+} from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 import { filterDashboards } from '../../../lib';
@@ -81,36 +89,34 @@ export const DashboardsListPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={dashboardsTestIds.listPanel}>
-            <div data-stack="h" data-align="center" data-justify="between">
-                <div data-stack="v" data-gap="xs">
-                    <h1 className={styles['title']}>Dashboards</h1>
-                    <p className={styles['muted']}>
-                        {filteredDashboards?.length ?? 0} dashboards
-                    </p>
-                </div>
-                <IconButton
-                    aria-label="Refresh dashboards"
-                    disabled={dashboardsQuery.isFetching}
-                    onClick={() => void dashboardsQuery.refetch()}
-                >
-                    <RefreshCcw size={18} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                title="Dashboards"
+                headingLevel={1}
+                description={`${filteredDashboards?.length ?? 0} dashboards`}
+                actions={
+                    <IconButton
+                        aria-label="Refresh dashboards"
+                        disabled={dashboardsQuery.isFetching}
+                        onClick={() => void dashboardsQuery.refetch()}
+                    >
+                        <RefreshCcw size={18} />
+                    </IconButton>
+                }
+            />
 
             <form
                 className={styles['create-form']}
                 data-test-id={dashboardsTestIds.createForm}
                 onSubmit={handleSubmit}
             >
-                <label className={styles['control']}>
-                    <span>New dashboard</span>
-                    <input
+                <FormField label="New dashboard">
+                    <TextInput
                         data-test-id={dashboardsTestIds.createNameInput}
                         value={name}
                         placeholder="Sales overview"
                         onChange={event => setName(event.target.value)}
                     />
-                </label>
+                </FormField>
                 <Button
                     type="submit"
                     data-test-id={dashboardsTestIds.createButton}
@@ -121,20 +127,14 @@ export const DashboardsListPanel = () => {
                 </Button>
             </form>
 
-            {error && (
-                <div role="alert" className={`${styles['status']} ${styles['error']}`}>
-                    {error}
-                </div>
-            )}
+            {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
             <section className={styles['dashboard-list']} aria-label="Dashboards">
                 {dashboardsQuery.isLoading && (
-                    <div className={styles['status']}>Loading dashboards...</div>
+                    <StatusMessage centered>Loading dashboards...</StatusMessage>
                 )}
                 {filteredDashboards?.length === 0 && (
-                    <div className={styles['empty']}>
-                        Create a dashboard to arrange saved charts.
-                    </div>
+                    <EmptyState>Create a dashboard to arrange saved charts.</EmptyState>
                 )}
                 {filteredDashboards?.map(item => (
                     <button

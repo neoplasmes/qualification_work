@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 
@@ -13,73 +13,75 @@ import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
 import styles from './WorkspaceLayout.module.scss';
 
 const ActionsListPanel = lazy(() =>
-    import('@/pages/Actions/ui/components/ActionsListPanel').then(module => ({
+    import('@/pages/Actions').then(module => ({
         default: module.ActionsListPanel,
     }))
 );
 const ActionsWorkspace = lazy(() =>
-    import('@/pages/Actions/ui/ActionsWorkspace').then(module => ({
+    import('@/pages/Actions').then(module => ({
         default: module.ActionsWorkspace,
     }))
 );
 const ActionsRightPanel = lazy(() =>
-    import('@/pages/Actions/ui/components/ActionsRightPanel').then(module => ({
+    import('@/pages/Actions').then(module => ({
         default: module.ActionsRightPanel,
     }))
 );
 
 const ChartsListPanel = lazy(() =>
-    import('@/pages/Charts/ui/components/ChartsListPanel').then(module => ({
+    import('@/pages/Charts').then(module => ({
         default: module.ChartsListPanel,
     }))
 );
 const ChartsWorkspace = lazy(() =>
-    import('@/pages/Charts/ui/ChartsWorkspace').then(module => ({
+    import('@/pages/Charts').then(module => ({
         default: module.ChartsWorkspace,
     }))
 );
 const ChartsFilterPanel = lazy(() =>
-    import('@/pages/Charts/ui/components/ChartsFilterPanel').then(module => ({
+    import('@/pages/Charts').then(module => ({
         default: module.ChartsFilterPanel,
     }))
 );
 
 const DatasetsUploadPanel = lazy(() =>
-    import('@/pages/Datasets/ui/components/DatasetsUploadPanel').then(module => ({
+    import('@/pages/Datasets').then(module => ({
         default: module.DatasetsUploadPanel,
     }))
 );
 const DatasetsWorkspace = lazy(() =>
-    import('@/pages/Datasets/ui/DatasetsWorkspace').then(module => ({
+    import('@/pages/Datasets').then(module => ({
         default: module.DatasetsWorkspace,
     }))
 );
 const DatasetsRightPanel = lazy(() =>
-    import('@/pages/Datasets/ui/components/DatasetsRightPanel').then(module => ({
+    import('@/pages/Datasets').then(module => ({
         default: module.DatasetsRightPanel,
     }))
 );
 
 const DashboardsListPanel = lazy(() =>
-    import('@/pages/Dashboards/ui/components/DashboardsListPanel').then(module => ({
+    import('@/pages/Dashboards').then(module => ({
         default: module.DashboardsListPanel,
     }))
 );
 const DashboardsWorkspace = lazy(() =>
-    import('@/pages/Dashboards/ui/DashboardsWorkspace').then(module => ({
+    import('@/pages/Dashboards').then(module => ({
         default: module.DashboardsWorkspace,
     }))
 );
 const DashboardsFilterPanel = lazy(() =>
-    import('@/pages/Dashboards/ui/components/DashboardsFilterPanel').then(module => ({
+    import('@/pages/Dashboards').then(module => ({
         default: module.DashboardsFilterPanel,
     }))
 );
 
+type WorkspaceSlot = LazyExoticComponent<ComponentType>;
+
 type WorkspaceSlots = {
-    Left: typeof ActionsListPanel;
-    Center: typeof ActionsWorkspace;
-    Right: typeof ActionsRightPanel;
+    Left: WorkspaceSlot;
+    Center: WorkspaceSlot;
+    Right: WorkspaceSlot;
 };
 
 const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {

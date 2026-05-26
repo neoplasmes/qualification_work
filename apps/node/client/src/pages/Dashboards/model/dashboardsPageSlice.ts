@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-type DashboardsPageState = {
+export type DashboardsPageState = {
     selectedDashboardId: string | null;
     filterChartIds: string[];
     filterDatasetIds: string[];
@@ -57,7 +57,10 @@ export const dashboardsPageSlice = createSlice({
         clearDatasetFilter(state) {
             state.filterDatasetIds = [];
         },
-        setDashboardsFilterActiveTab(state, action: PayloadAction<'charts' | 'datasets'>) {
+        setDashboardsFilterActiveTab(
+            state,
+            action: PayloadAction<'charts' | 'datasets'>
+        ) {
             state.dashboardsFilterActiveTab = action.payload;
         },
         initDashboardsWorkspaceDraft(

@@ -17,6 +17,7 @@ import {
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
+import { StatusMessage } from '@/shared/ui';
 
 import { actionsTestIds } from '../const';
 import {
@@ -334,17 +335,13 @@ const ActionEditor = ({
                 onChange={handleTabChange}
             />
 
-            {error ? (
-                <div role="alert" className={`${styles['status']} ${styles['error']}`}>
-                    {error}
-                </div>
-            ) : null}
+            {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
 
             {!editable && (
-                <div className={styles['status']}>
+                <StatusMessage>
                     Viewer role can inspect actions and history, but can not edit or run
                     them.
-                </div>
+                </StatusMessage>
             )}
 
             {workspaceTab === 'configure' ? (

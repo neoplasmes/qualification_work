@@ -15,6 +15,7 @@ import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
+import { PanelPlaceholder } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
 import {
@@ -189,9 +190,9 @@ export const ChartsWorkspace = () => {
                 aria-label="Chart details"
             >
                 {!selectedChart && !builderDataset && (
-                    <p className={styles['panel-placeholder']}>
+                    <PanelPlaceholder>
                         Select a chart or create a new one.
-                    </p>
+                    </PanelPlaceholder>
                 )}
 
                 {builderDataset && org && (

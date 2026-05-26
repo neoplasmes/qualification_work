@@ -3,7 +3,7 @@ import { GitMerge, Trash2 } from 'lucide-react';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button } from '@/shared/ui';
+import { Button, EntityHeader, SectionHeader, StatusMessage } from '@/shared/ui';
 
 import styles from './DatasetDetails.module.scss';
 
@@ -25,30 +25,26 @@ export const DatasetDetails = ({
     onMerge,
 }: DatasetDetailsProps) => (
     <section className={styles['details']} aria-label="Dataset details">
-        <div className={styles['details-header']}>
-            <div data-stack="v" data-gap="xs">
-                <span className={styles['eyebrow']}>Dataset</span>
-                <h2 className={styles['detail-title']}>{selectedDataset.dataset.name}</h2>
-            </div>
-            <div className={styles['details-actions']}>
-                <Button onClick={onMerge}>
-                    <GitMerge size={18} />
-                    Merge data
-                </Button>
-                <Button variant="danger" disabled={deleting} onClick={onDelete}>
-                    <Trash2 size={18} />
-                    {deleteConfirmationId === selectedDataset.dataset.id
-                        ? 'Confirm delete'
-                        : 'Delete'}
-                </Button>
-            </div>
-        </div>
+        <EntityHeader
+            eyebrow="Dataset"
+            title={selectedDataset.dataset.name}
+            actions={
+                <>
+                    <Button onClick={onMerge}>
+                        <GitMerge size={18} />
+                        Merge data
+                    </Button>
+                    <Button variant="danger" disabled={deleting} onClick={onDelete}>
+                        <Trash2 size={18} />
+                        {deleteConfirmationId === selectedDataset.dataset.id
+                            ? 'Confirm delete'
+                            : 'Delete'}
+                    </Button>
+                </>
+            }
+        />
 
-        {error && (
-            <div role="alert" className={`${styles['status']} ${styles['error']}`}>
-                {error}
-            </div>
-        )}
+        {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
         <dl className={styles['stats']}>
             <div>
@@ -69,7 +65,7 @@ export const DatasetDetails = ({
             </div>
         </dl>
 
-        <span className={styles['eyebrow']}>Columns</span>
+        <SectionHeader eyebrow="Columns" />
         <div className={styles['columns-list']} aria-label="Dataset columns">
             {selectedDataset.columns.map(column => (
                 <div key={column.id} className={styles['column-chip']}>

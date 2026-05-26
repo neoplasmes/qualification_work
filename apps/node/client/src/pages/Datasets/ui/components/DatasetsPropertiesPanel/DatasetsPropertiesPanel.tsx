@@ -8,13 +8,12 @@ import { useDeleteDatasetMutation, useListDatasetsQuery } from '@/entities/datas
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
+import { PanelPlaceholder } from '@/shared/ui';
 
 import { selectDataset, selectSelectedDatasetId } from '../../../model';
 
 import { DatasetDetails } from '../DatasetDetails';
 import { MergeDatasetModal } from '../MergeDatasetModal';
-
-import styles from './DatasetsPropertiesPanel.module.scss';
 
 export const DatasetsPropertiesPanel = () => {
     const dispatch = useDispatch();
@@ -58,11 +57,7 @@ export const DatasetsPropertiesPanel = () => {
     };
 
     if (!selectedDataset) {
-        return (
-            <p className={styles['panel-placeholder']}>
-                Select a dataset to view properties.
-            </p>
-        );
+        return <PanelPlaceholder>Select a dataset to view properties.</PanelPlaceholder>;
     }
 
     return (

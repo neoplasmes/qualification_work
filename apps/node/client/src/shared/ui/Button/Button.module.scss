@@ -36,6 +36,16 @@
     }
 }
 
+.size-sm.button {
+    min-height: 36px;
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-xs);
+}
+
+.size-md.button {
+    min-height: 44px;
+}
+
 .icon {
     cursor: pointer;
 
@@ -69,6 +79,16 @@
     }
 }
 
+.size-sm.icon {
+    width: 32px;
+    height: 32px;
+}
+
+.size-md.icon {
+    width: 36px;
+    height: 36px;
+}
+
 .danger {
     border-color: var(--color-error-container);
     color: var(--color-on-error-container);
@@ -78,5 +98,27 @@
     &:focus-visible {
         border-color: var(--color-on-error-container);
         background-color: rgb(140 0 0 / 24%);
+    }
+}
+
+.ghost {
+    border-color: transparent;
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--color-outline-new);
+        background-color: var(--color-surface-container);
+    }
+}
+
+.loader {
+    flex: 0 0 auto;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

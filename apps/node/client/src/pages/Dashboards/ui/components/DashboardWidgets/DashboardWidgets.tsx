@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, X } from 'lucide-react';
 import type { Chart } from '@/entities/chart';
 import type { DashboardItem } from '@/entities/dashboard';
 
-import { IconButton } from '@/shared/ui';
+import { Card, EmptyState, IconButton } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -34,7 +34,7 @@ export const DashboardWidgets = ({
         aria-label="Dashboard widgets"
     >
         {items.length === 0 && (
-            <div className={styles['empty']}>Add a saved chart to this dashboard.</div>
+            <EmptyState>Add a saved chart to this dashboard.</EmptyState>
         )}
         {items.map((item, index) =>
             item.kind === 'chart' ? (
@@ -120,7 +120,8 @@ const MetricWidget = ({
     onMoveItem,
     onRemoveItem,
 }: MetricWidgetProps) => (
-    <article
+    <Card
+        as="article"
         className={styles['dashboard-card']}
         data-test-id={dashboardsTestIds.metricWidget}
     >
@@ -149,7 +150,7 @@ const MetricWidget = ({
                 </IconButton>
             </div>
         </div>
-    </article>
+    </Card>
 );
 
 type MoveActionsProps = {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useUploadDatasetMutation } from '@/features/uploadDataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { Button, Dropzone, Modal } from '@/shared/ui';
+import { Button, Dropzone, Modal, StatusMessage } from '@/shared/ui';
 
 import styles from './UploadDatasetModal.module.scss';
 
@@ -77,22 +77,17 @@ export const UploadDatasetModal = ({
                 </span>
             </Dropzone>
 
-            {selectedFile && (
-                <div className={styles['status']}>Selected: {selectedFile.name}</div>
-            )}
+            {selectedFile && <StatusMessage>Selected: {selectedFile.name}</StatusMessage>}
 
-            {uploadError && (
-                <div role="alert" className={`${styles['status']} ${styles['error']}`}>
-                    {uploadError}
-                </div>
-            )}
+            {uploadError && <StatusMessage tone="error">{uploadError}</StatusMessage>}
 
             <Button
                 disabled={!selectedFile || !org || uploadState.isLoading}
+                isLoading={uploadState.isLoading}
                 onClick={() => void handleUpload()}
             >
                 <Upload size={18} />
-                {uploadState.isLoading ? 'Uploading...' : 'Upload dataset'}
+                Upload dataset
             </Button>
         </Modal>
     );

@@ -1,7 +1,7 @@
+import { SegmentedTabs } from '@/shared/ui';
+
 import { actionsTestIds } from '../../../const';
 import type { ActionsWorkspaceTab } from '../../../model';
-
-import styles from '../../ActionsPage.module.scss';
 
 type WorkspaceTabsProps = {
     activeTab: ActionsWorkspaceTab;
@@ -14,23 +14,21 @@ export const WorkspaceTabs = ({
     runDisabled,
     onChange,
 }: WorkspaceTabsProps) => (
-    <div className={styles['tabs']}>
-        <button
-            type="button"
-            data-test-id={actionsTestIds.configureTab}
-            className={`${styles['tab']} ${activeTab === 'configure' ? styles['active'] : ''}`}
-            onClick={() => onChange('configure')}
-        >
-            Configure
-        </button>
-        <button
-            type="button"
-            data-test-id={actionsTestIds.runTab}
-            className={`${styles['tab']} ${activeTab === 'run' ? styles['active'] : ''}`}
-            disabled={runDisabled}
-            onClick={() => onChange('run')}
-        >
-            Run
-        </button>
-    </div>
+    <SegmentedTabs
+        value={activeTab}
+        options={[
+            {
+                value: 'configure',
+                label: 'Configure',
+                testId: actionsTestIds.configureTab,
+            },
+            {
+                value: 'run',
+                label: 'Run',
+                testId: actionsTestIds.runTab,
+                disabled: runDisabled,
+            },
+        ]}
+        onChange={onChange}
+    />
 );

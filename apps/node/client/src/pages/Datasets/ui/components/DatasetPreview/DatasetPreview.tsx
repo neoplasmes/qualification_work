@@ -10,6 +10,8 @@ import {
     type DatasetMetadata,
 } from '@/entities/dataset';
 
+import { Button, PanelPlaceholder, StatusMessage } from '@/shared/ui';
+
 import {
     datasetsTestIds,
     HEADER_H,
@@ -159,13 +161,11 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             />
 
             {!selectedDataset && (
-                <p className={styles['panel-placeholder']}>
-                    Select a dataset to preview rows.
-                </p>
+                <PanelPlaceholder>Select a dataset to preview rows.</PanelPlaceholder>
             )}
 
             {selectedDataset && rowsQuery.isLoading && (
-                <div className={styles['status']}>Loading rows...</div>
+                <StatusMessage>Loading rows...</StatusMessage>
             )}
 
             {selectedDataset && rowsQuery.data && (
@@ -198,15 +198,14 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             )}
 
             {showAddRow && !isInsertingRow && (
-                <button
-                    type="button"
+                <Button
                     className={styles['add-row-button']}
                     data-test-id={datasetsTestIds.addRowButton}
                     onClick={() => setIsInsertingRow(true)}
                 >
                     <Plus size={16} />
                     Add row
-                </button>
+                </Button>
             )}
         </section>
     );

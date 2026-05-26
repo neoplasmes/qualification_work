@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { IconButton } from '@/shared/ui';
+import { FormField, IconButton, SegmentedTabs, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import type {
@@ -43,8 +43,7 @@ export const MappingRow = ({
         data-test-id={actionsTestIds.mappingRow}
         data-mapping-id={mapping.id}
     >
-        <label className={styles['control']}>
-            <span>Column</span>
+        <FormField label="Column">
             <ColumnSelect
                 testId={actionsTestIds.mappingColumnSelect}
                 columns={columns}
@@ -54,43 +53,33 @@ export const MappingRow = ({
                     onUpdateMapping(effect.id, mapping.id, { columnKey: value })
                 }
             />
-        </label>
-        <div className={styles['control']}>
-            <div className={styles['value-header']}>
-                <span>Value</span>
-                <div className={styles['source-toggle']}>
-                    <button
-                        type="button"
-                        data-test-id={actionsTestIds.mappingSourceParameterButton}
-                        disabled={disabled}
-                        className={`${styles['source-btn']} ${
-                            mapping.sourceKind === 'parameter' ? styles['active'] : ''
-                        }`}
-                        onClick={() =>
-                            onUpdateMapping(effect.id, mapping.id, {
-                                sourceKind: 'parameter',
-                            })
-                        }
-                    >
-                        param
-                    </button>
-                    <button
-                        type="button"
-                        data-test-id={actionsTestIds.mappingSourceLiteralButton}
-                        disabled={disabled}
-                        className={`${styles['source-btn']} ${
-                            mapping.sourceKind === 'literal' ? styles['active'] : ''
-                        }`}
-                        onClick={() =>
-                            onUpdateMapping(effect.id, mapping.id, {
-                                sourceKind: 'literal',
-                            })
-                        }
-                    >
-                        literal
-                    </button>
+        </FormField>
+        <FormField
+            label={
+                <div className={styles['value-header']}>
+                    <span>Value</span>
                 </div>
-            </div>
+            }
+        >
+            <SegmentedTabs
+                value={mapping.sourceKind}
+                disabled={disabled}
+                options={[
+                    {
+                        value: 'parameter',
+                        label: 'param',
+                        testId: actionsTestIds.mappingSourceParameterButton,
+                    },
+                    {
+                        value: 'literal',
+                        label: 'literal',
+                        testId: actionsTestIds.mappingSourceLiteralButton,
+                    },
+                ]}
+                onChange={value =>
+                    onUpdateMapping(effect.id, mapping.id, { sourceKind: value })
+                }
+            />
             {mapping.sourceKind === 'parameter' ? (
                 <ParameterSelect
                     testId={actionsTestIds.mappingParameterSelect}
@@ -102,7 +91,7 @@ export const MappingRow = ({
                     }
                 />
             ) : (
-                <input
+                <TextInput
                     data-test-id={actionsTestIds.mappingLiteralInput}
                     value={mapping.literalValue}
                     disabled={disabled}
@@ -114,7 +103,7 @@ export const MappingRow = ({
                     }
                 />
             )}
-        </div>
+        </FormField>
         <IconButton
             data-test-id={actionsTestIds.removeValueButton}
             aria-label="Remove value"

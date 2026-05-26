@@ -7,7 +7,7 @@ export type ActionsRightPanelTab = 'history' | 'properties' | 'filters';
 export type ActionsFilterTab = 'datasets' | 'effects' | 'runs';
 export type ActionsEffectFilter = 'insertRow' | 'updateRowsByMatch';
 
-type ActionsPageState = {
+export type ActionsPageState = {
     selectedActionId: string | null;
     isCreatingAction: boolean;
     workspaceTab: ActionsWorkspaceTab;

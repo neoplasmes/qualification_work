@@ -11,7 +11,14 @@ import {
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { Button, Modal } from '@/shared/ui';
+import {
+    Button,
+    Checkbox,
+    FormField,
+    Modal,
+    StatusMessage,
+    TextInput,
+} from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 
@@ -144,16 +151,15 @@ export const MergeDatasetModal = ({
                     )}
 
                     {targetMode === 'new' && (
-                        <div className={styles['control']}>
-                            <span>Dataset name</span>
-                            <input
+                        <FormField label="Dataset name">
+                            <TextInput
                                 data-test-id={datasetsTestIds.mergeDatasetNameInput}
                                 type="text"
                                 placeholder="My dataset"
                                 value={newDatasetName}
                                 onChange={e => setNewDatasetName(e.target.value)}
                             />
-                        </div>
+                        </FormField>
                     )}
 
                     {targetMode === 'existing' && availableColumns.length > 0 && (
@@ -161,17 +167,13 @@ export const MergeDatasetModal = ({
                             <span>Merge keys</span>
                             <div className={styles['merge-keys-list']}>
                                 {availableColumns.map(col => (
-                                    <label
+                                    <Checkbox
                                         key={col.id}
                                         className={styles['merge-key-option']}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedMergeKeys.includes(col.key)}
-                                            onChange={() => toggleMergeKey(col.key)}
-                                        />
-                                        {col.displayName}
-                                    </label>
+                                        label={col.displayName}
+                                        checked={selectedMergeKeys.includes(col.key)}
+                                        onChange={() => toggleMergeKey(col.key)}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -198,22 +200,16 @@ export const MergeDatasetModal = ({
                         )}
                     </div>
 
-                    {error && (
-                        <div
-                            role="alert"
-                            className={`${styles['status']} ${styles['error']}`}
-                        >
-                            {error}
-                        </div>
-                    )}
+                    {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
                     <Button
                         data-test-id={datasetsTestIds.mergePreviewButton}
                         disabled={!canPreview || previewState.isLoading}
+                        isLoading={previewState.isLoading}
                         onClick={() => void handlePreview()}
                     >
                         <GitMerge size={18} />
-                        {previewState.isLoading ? 'Analyzing...' : 'Preview'}
+                        Preview
                     </Button>
                 </>
             )}
@@ -275,14 +271,7 @@ export const MergeDatasetModal = ({
                         </div>
                     )}
 
-                    {error && (
-                        <div
-                            role="alert"
-                            className={`${styles['status']} ${styles['error']}`}
-                        >
-                            {error}
-                        </div>
-                    )}
+                    {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
                     <div className={styles['modal-actions']}>
                         <Button variant="danger" onClick={handleBackToSetup}>
@@ -291,9 +280,10 @@ export const MergeDatasetModal = ({
                         <Button
                             data-test-id={datasetsTestIds.mergeConfirmButton}
                             disabled={hasConflicts || commitState.isLoading}
+                            isLoading={commitState.isLoading}
                             onClick={() => void handleConfirm()}
                         >
-                            {commitState.isLoading ? 'Committing...' : 'Confirm'}
+                            Confirm
                         </Button>
                     </div>
                 </>

@@ -32,13 +32,15 @@ const isAuthenticated = async (request: Request): Promise<boolean> => {
     }
 };
 
+const EmptyRoute = () => null;
+
 /**
  *
  * @param store - redux-store, который должен быть использован как параметр в каждом loader'e,
  * чтобы иметь возможность вызывать rtkQuery запросы.
  * @returns
  */
-export const getRoutes = (store: AppStore): RouteObject[] => [
+export const getRoutes = (_store: AppStore): RouteObject[] => [
     {
         element: <Layout />,
         children: [
@@ -84,10 +86,10 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
                     return null;
                 },
                 children: [
-                    { path: '/actions' },
-                    { path: '/charts' },
-                    { path: '/datasets' },
-                    { path: '/dashboards' },
+                    { path: '/actions', element: <EmptyRoute /> },
+                    { path: '/charts', element: <EmptyRoute /> },
+                    { path: '/datasets', element: <EmptyRoute /> },
+                    { path: '/dashboards', element: <EmptyRoute /> },
                 ],
             },
             {

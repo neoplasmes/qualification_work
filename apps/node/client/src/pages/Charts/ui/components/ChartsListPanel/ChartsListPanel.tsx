@@ -8,7 +8,14 @@ import { useListChartsQuery, type Chart } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, IconButton } from '@/shared/ui';
+import {
+    Badge,
+    Button,
+    EmptyState,
+    IconButton,
+    SectionHeader,
+    StatusMessage,
+} from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
 import { filterCharts } from '../../../lib';
@@ -47,21 +54,22 @@ export const ChartsListPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={chartsTestIds.listPanel}>
-            <div data-stack="h" data-align="center" data-justify="between">
-                <div data-stack="v" data-gap="xs">
-                    <h1 className={styles['title']}>Charts</h1>
-                    <p className={styles['muted']}>
-                        {filteredCharts ? `${filteredCharts.length} charts` : 'Loading'}
-                    </p>
-                </div>
-                <IconButton
-                    aria-label="Refresh charts"
-                    disabled={chartsQuery.isFetching}
-                    onClick={() => void chartsQuery.refetch()}
-                >
-                    <RefreshCcw size={18} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                title="Charts"
+                headingLevel={1}
+                description={
+                    filteredCharts ? `${filteredCharts.length} charts` : 'Loading'
+                }
+                actions={
+                    <IconButton
+                        aria-label="Refresh charts"
+                        disabled={chartsQuery.isFetching}
+                        onClick={() => void chartsQuery.refetch()}
+                    >
+                        <RefreshCcw size={18} />
+                    </IconButton>
+                }
+            />
 
             <Button
                 className={styles['full-button']}
@@ -74,12 +82,10 @@ export const ChartsListPanel = () => {
 
             <section className={styles['chart-list']} aria-label="Saved charts">
                 {chartsQuery.isLoading && (
-                    <div className={styles['status']}>Loading charts...</div>
+                    <StatusMessage centered>Loading charts...</StatusMessage>
                 )}
                 {filteredCharts?.length === 0 && (
-                    <div className={styles['empty']}>
-                        Build a chart from a dataset to see it here.
-                    </div>
+                    <EmptyState>Build a chart from a dataset to see it here.</EmptyState>
                 )}
                 {filteredCharts?.map((chart: Chart) => (
                     <button
@@ -98,7 +104,7 @@ export const ChartsListPanel = () => {
                                 <span>{chart.datasetId.slice(0, 8)}</span>
                             </div>
                         </div>
-                        <span className={styles['badge']}>{chart.chartType}</span>
+                        <Badge>{chart.chartType}</Badge>
                     </button>
                 ))}
             </section>

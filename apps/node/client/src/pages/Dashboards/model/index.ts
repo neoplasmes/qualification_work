@@ -24,3 +24,5 @@ export {
     toggleChartFilter,
     toggleDatasetFilter,
 } from './dashboardsPageSlice';
+export type { DashboardsPageState } from './dashboardsPageSlice';
+export { dashboardsPagePersistence } from './dashboardsPagePersistence';

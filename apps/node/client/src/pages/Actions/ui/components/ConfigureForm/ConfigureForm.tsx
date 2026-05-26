@@ -3,7 +3,7 @@ import { useState, type Dispatch, type FormEvent, type SetStateAction } from 're
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button } from '@/shared/ui';
+import { Button, Card, FormField, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { createBlankEffectDraft, createBlankParameterDraft } from '../../../lib';
@@ -69,10 +69,9 @@ export const ConfigureForm = ({
             data-test-id={actionsTestIds.configureForm}
             onSubmit={onSubmit}
         >
-            <div className={styles['card']}>
-                <label className={styles['control']}>
-                    <span>Name</span>
-                    <input
+            <Card className={styles['card']}>
+                <FormField label="Name">
+                    <TextInput
                         data-test-id={actionsTestIds.actionNameInput}
                         value={draft.name}
                         disabled={disabled}
@@ -84,10 +83,10 @@ export const ConfigureForm = ({
                             }))
                         }
                     />
-                </label>
-            </div>
+                </FormField>
+            </Card>
 
-            <div className={styles['card']}>
+            <Card className={styles['card']}>
                 <div className={styles['card-header']}>
                     <div>
                         <h3 className={styles['section-title']}>Parameters</h3>
@@ -121,9 +120,9 @@ export const ConfigureForm = ({
                         onUpdateParameter={onUpdateParameter}
                     />
                 ))}
-            </div>
+            </Card>
 
-            <div className={styles['card']}>
+            <Card className={styles['card']}>
                 <div className={styles['card-header']}>
                     <div>
                         <h3 className={styles['section-title']}>Effects</h3>
@@ -160,7 +159,7 @@ export const ConfigureForm = ({
                         onUpdateMapping={onUpdateMapping}
                     />
                 ))}
-            </div>
+            </Card>
 
             <div className={styles['actions-row']}>
                 <Button

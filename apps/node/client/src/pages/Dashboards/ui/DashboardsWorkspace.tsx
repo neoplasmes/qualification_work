@@ -21,6 +21,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
+import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
 import { getDashboardItemsOrder, moveDashboardItem } from '../lib';
@@ -252,9 +253,7 @@ export const DashboardsWorkspace = () => {
             aria-label="Dashboard details"
         >
             {!dashboard && (
-                <p className={styles['panel-placeholder']}>
-                    Select or create a dashboard.
-                </p>
+                <PanelPlaceholder>Select or create a dashboard.</PanelPlaceholder>
             )}
 
             {dashboard && (
@@ -305,14 +304,7 @@ export const DashboardsWorkspace = () => {
                         onSubmit={handleAddMetric}
                     />
 
-                    {error && (
-                        <div
-                            role="alert"
-                            className={`${styles['status']} ${styles['error']}`}
-                        >
-                            {error}
-                        </div>
-                    )}
+                    {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
                     <DashboardWidgets
                         items={dashboardItems}

@@ -8,7 +8,15 @@ import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { IconButton } from '@/shared/ui';
+import {
+    EmptyState,
+    FilterChip,
+    IconButton,
+    SectionHeader,
+    SegmentedTabs,
+    SelectableList,
+    StatusMessage,
+} from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 import {
@@ -51,76 +59,62 @@ export const DatasetsFilterPanel = () => {
 
     return (
         <div className={styles['filter-section']}>
-            <div data-stack="h" data-align="center" data-justify="between">
-                <span className={styles['eyebrow']}>Filter by</span>
-                <IconButton
-                    data-test-id={datasetsTestIds.clearFilterButton}
-                    aria-label="Clear filter"
-                    style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
-                    onClick={handleClear}
-                >
-                    <X size={16} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                eyebrow="Filter by"
+                actions={
+                    <IconButton
+                        data-test-id={datasetsTestIds.clearFilterButton}
+                        aria-label="Clear filter"
+                        style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
+                        onClick={handleClear}
+                    >
+                        <X size={16} />
+                    </IconButton>
+                }
+            />
 
-            <div className={styles['filter-tabs']}>
-                <button
-                    type="button"
-                    data-test-id={datasetsTestIds.filterTabCharts}
-                    className={`${styles['filter-tab']} ${activeTab === 'charts' ? styles['active'] : ''}`}
-                    onClick={() => dispatch(setDatasetsFilterActiveTab('charts'))}
-                >
-                    Charts
-                    {filterChartIds.length > 0 && (
-                        <span className={styles['filter-tab-count']}>
-                            {filterChartIds.length}
-                        </span>
-                    )}
-                </button>
-                <button
-                    type="button"
-                    data-test-id={datasetsTestIds.filterTabDashboards}
-                    className={`${styles['filter-tab']} ${activeTab === 'dashboards' ? styles['active'] : ''}`}
-                    onClick={() => dispatch(setDatasetsFilterActiveTab('dashboards'))}
-                >
-                    Dashboards
-                    {filterDashboardIds.length > 0 && (
-                        <span className={styles['filter-tab-count']}>
-                            {filterDashboardIds.length}
-                        </span>
-                    )}
-                </button>
-            </div>
+            <SegmentedTabs
+                value={activeTab}
+                options={[
+                    {
+                        value: 'charts',
+                        label: 'Charts',
+                        count: filterChartIds.length,
+                        testId: datasetsTestIds.filterTabCharts,
+                    },
+                    {
+                        value: 'dashboards',
+                        label: 'Dashboards',
+                        count: filterDashboardIds.length,
+                        testId: datasetsTestIds.filterTabDashboards,
+                    },
+                ]}
+                onChange={value => dispatch(setDatasetsFilterActiveTab(value))}
+            />
 
-            <div className={styles['filter-chip-list']}>
+            <SelectableList>
                 {activeTab === 'charts' && (
                     <>
                         {!chartsQuery.data && (
-                            <div className={styles['status']}>Loading...</div>
+                            <StatusMessage centered>Loading...</StatusMessage>
                         )}
                         {chartsQuery.data?.length === 0 && (
-                            <div className={styles['empty']}>No charts yet.</div>
+                            <EmptyState>No charts yet.</EmptyState>
                         )}
                         {chartsQuery.data?.map(chart => (
-                            <button
-                                type="button"
+                            <FilterChip
                                 key={chart.id}
                                 data-test-id={datasetsTestIds.filterChip}
-                                className={`${styles['filter-chip']} ${
-                                    filterChartIds.includes(chart.id)
-                                        ? styles['selected']
-                                        : ''
-                                }`}
+                                selected={filterChartIds.includes(chart.id)}
+                                label={chart.name}
+                                meta={
+                                    <>
+                                        <span>{chart.chartType}</span>
+                                        <span>{formatDate(chart.createdAt)}</span>
+                                    </>
+                                }
                                 onClick={() => dispatch(toggleChartFilter(chart.id))}
-                            >
-                                <div className={styles['filter-chip-name']}>
-                                    {chart.name}
-                                </div>
-                                <div className={styles['filter-chip-meta']}>
-                                    <span>{chart.chartType}</span>
-                                    <span>{formatDate(chart.createdAt)}</span>
-                                </div>
-                            </button>
+                            />
                         ))}
                     </>
                 )}
@@ -128,37 +122,33 @@ export const DatasetsFilterPanel = () => {
                 {activeTab === 'dashboards' && (
                     <>
                         {!dashboardsQuery.data && (
-                            <div className={styles['status']}>Loading...</div>
+                            <StatusMessage centered>Loading...</StatusMessage>
                         )}
                         {dashboardsQuery.data?.length === 0 && (
-                            <div className={styles['empty']}>No dashboards yet.</div>
+                            <EmptyState>No dashboards yet.</EmptyState>
                         )}
                         {dashboardsQuery.data?.map(dashboard => (
-                            <button
-                                type="button"
+                            <FilterChip
                                 key={dashboard.id}
                                 data-test-id={datasetsTestIds.filterChip}
-                                className={`${styles['filter-chip']} ${
-                                    filterDashboardIds.includes(dashboard.id)
-                                        ? styles['selected']
-                                        : ''
-                                }`}
+                                selected={filterDashboardIds.includes(dashboard.id)}
+                                label={dashboard.name}
+                                meta={
+                                    <>
+                                        <span>
+                                            {dashboard.items?.length ?? 0} widgets
+                                        </span>
+                                        <span>{formatDate(dashboard.createdAt)}</span>
+                                    </>
+                                }
                                 onClick={() =>
                                     dispatch(toggleDashboardFilter(dashboard.id))
                                 }
-                            >
-                                <div className={styles['filter-chip-name']}>
-                                    {dashboard.name}
-                                </div>
-                                <div className={styles['filter-chip-meta']}>
-                                    <span>{dashboard.items?.length ?? 0} widgets</span>
-                                    <span>{formatDate(dashboard.createdAt)}</span>
-                                </div>
-                            </button>
+                            />
                         ))}
                     </>
                 )}
-            </div>
+            </SelectableList>
         </div>
     );
 };

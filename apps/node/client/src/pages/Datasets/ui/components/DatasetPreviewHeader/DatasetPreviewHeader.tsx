@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronsRight, Table2 } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 
-import { IconButton } from '@/shared/ui';
+import { IconButton, SectionHeader } from '@/shared/ui';
 
 import { datasetsTestIds, ROWS_PAGE_SIZE } from '../../../const';
 
@@ -31,10 +31,13 @@ export const DatasetPreviewHeader = ({
     onRowsOffsetChange,
 }: DatasetPreviewHeaderProps) => (
     <div className={styles['preview-header']}>
-        <div data-stack="h" data-gap="sm" data-align="center">
-            <Table2 size={20} />
-            <span className={styles['eyebrow']}>Preview</span>
-        </div>
+        <SectionHeader
+            eyebrow={
+                <>
+                    <Table2 size={20} /> Preview
+                </>
+            }
+        />
 
         {hasDataset && (
             <div data-stack="h" data-gap="sm" data-align="center">

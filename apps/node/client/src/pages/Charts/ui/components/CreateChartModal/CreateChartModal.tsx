@@ -1,12 +1,15 @@
-import { X } from 'lucide-react';
-
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
+import {
+    EmptyState,
+    FilterChip,
+    Modal,
+    SelectableList,
+    StatusMessage,
+} from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
-
-import styles from './CreateChartModal.module.scss';
 
 type CreateChartModalProps = {
     datasets: DatasetMetadata[] | undefined;
@@ -19,52 +22,33 @@ export const CreateChartModal = ({
     onSelect,
     onClose,
 }: CreateChartModalProps) => (
-    <div
-        className={styles['modal-backdrop']}
-        data-test-id={chartsTestIds.createChartModal}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Select dataset"
-        onClick={onClose}
+    <Modal
+        title="Select dataset"
+        ariaLabel="Select dataset"
+        testId={chartsTestIds.createChartModal}
+        closeButtonTestId={chartsTestIds.modalCloseButton}
+        onClose={onClose}
     >
-        <div className={styles['modal']} onClick={event => event.stopPropagation()}>
-            <div className={styles['modal-header']}>
-                <span className={styles['modal-title']}>Select dataset</span>
-                <button
-                    type="button"
-                    className={styles['modal-close']}
-                    data-test-id={chartsTestIds.modalCloseButton}
-                    aria-label="Close"
-                    onClick={onClose}
-                >
-                    <X size={20} />
-                </button>
-            </div>
-
-            <div className={styles['modal-list']}>
-                {!datasets && <div className={styles['status']}>Loading...</div>}
-                {datasets?.length === 0 && (
-                    <div className={styles['empty']}>No datasets. Upload one first.</div>
-                )}
-                {datasets?.map(item => (
-                    <button
-                        type="button"
-                        key={item.dataset.id}
-                        className={styles['modal-dataset-item']}
-                        data-test-id={chartsTestIds.modalDatasetItem}
-                        onClick={() => onSelect(item)}
-                    >
-                        <div className={styles['dataset-chip-name']}>
-                            {item.dataset.name}
-                        </div>
-                        <div className={styles['dataset-chip-meta']}>
+        <SelectableList>
+            {!datasets && <StatusMessage centered>Loading...</StatusMessage>}
+            {datasets?.length === 0 && (
+                <EmptyState>No datasets. Upload one first.</EmptyState>
+            )}
+            {datasets?.map(item => (
+                <FilterChip
+                    key={item.dataset.id}
+                    data-test-id={chartsTestIds.modalDatasetItem}
+                    label={item.dataset.name}
+                    meta={
+                        <>
                             <span>{item.totalRows} rows</span>
                             <span>{item.columns.length} columns</span>
                             <span>{formatDate(item.dataset.createdAt)}</span>
-                        </div>
-                    </button>
-                ))}
-            </div>
-        </div>
-    </div>
+                        </>
+                    }
+                    onClick={() => onSelect(item)}
+                />
+            ))}
+        </SelectableList>
+    </Modal>
 );

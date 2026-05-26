@@ -3,7 +3,14 @@ import { X } from 'lucide-react';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { IconButton } from '@/shared/ui';
+import {
+    EmptyState,
+    FilterChip,
+    IconButton,
+    SectionHeader,
+    SelectableList,
+    StatusMessage,
+} from '@/shared/ui';
 
 import styles from './DatasetsFilterPanel.module.scss';
 
@@ -21,38 +28,36 @@ export const DatasetsFilterPanel = ({
     onClear,
 }: DatasetsFilterPanelProps) => (
     <aside className={styles['panel']}>
-        <div data-stack="h" data-align="center" data-justify="between">
-            <span className={styles['eyebrow']}>Filter by dataset</span>
-            <IconButton
-                aria-label="Clear dataset filter"
-                style={{ visibility: selectedIds.length > 0 ? 'visible' : 'hidden' }}
-                onClick={onClear}
-            >
-                <X size={16} />
-            </IconButton>
-        </div>
-
-        <div className={styles['dataset-filter-list']}>
-            {!datasets && <div className={styles['status']}>Loading...</div>}
-            {datasets?.length === 0 && (
-                <div className={styles['empty']}>No datasets yet.</div>
-            )}
-            {datasets?.map(item => (
-                <button
-                    type="button"
-                    key={item.dataset.id}
-                    className={`${styles['dataset-chip']} ${
-                        selectedIds.includes(item.dataset.id) ? styles['selected'] : ''
-                    }`}
-                    onClick={() => onToggle(item.dataset.id)}
+        <SectionHeader
+            eyebrow="Filter by dataset"
+            actions={
+                <IconButton
+                    aria-label="Clear dataset filter"
+                    style={{ visibility: selectedIds.length > 0 ? 'visible' : 'hidden' }}
+                    onClick={onClear}
                 >
-                    <div className={styles['dataset-chip-name']}>{item.dataset.name}</div>
-                    <div className={styles['dataset-chip-meta']}>
-                        <span>{item.totalRows} rows</span>
-                        <span>{formatDate(item.dataset.createdAt)}</span>
-                    </div>
-                </button>
+                    <X size={16} />
+                </IconButton>
+            }
+        />
+
+        <SelectableList>
+            {!datasets && <StatusMessage centered>Loading...</StatusMessage>}
+            {datasets?.length === 0 && <EmptyState>No datasets yet.</EmptyState>}
+            {datasets?.map(item => (
+                <FilterChip
+                    key={item.dataset.id}
+                    selected={selectedIds.includes(item.dataset.id)}
+                    label={item.dataset.name}
+                    meta={
+                        <>
+                            <span>{item.totalRows} rows</span>
+                            <span>{formatDate(item.dataset.createdAt)}</span>
+                        </>
+                    }
+                    onClick={() => onToggle(item.dataset.id)}
+                />
             ))}
-        </div>
+        </SelectableList>
     </aside>
 );

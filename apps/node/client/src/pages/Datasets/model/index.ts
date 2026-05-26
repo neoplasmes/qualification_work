@@ -14,3 +14,5 @@ export {
     toggleChartFilter,
     toggleDashboardFilter,
 } from './datasetsPageSlice';
+export type { DatasetsPageState } from './datasetsPageSlice';
+export { datasetsPagePersistence } from './datasetsPagePersistence';

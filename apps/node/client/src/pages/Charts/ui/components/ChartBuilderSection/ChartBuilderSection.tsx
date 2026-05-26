@@ -3,11 +3,9 @@ import { configToBuilderFields, DatasetChartBuilder } from '@/features/buildChar
 import type { Chart } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button } from '@/shared/ui';
+import { Button, EntityHeader } from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
-
-import styles from './ChartBuilderSection.module.scss';
 
 type CreateChartBuilderSectionProps = {
     orgId: string;
@@ -31,18 +29,18 @@ export const CreateChartBuilderSection = ({
     onChartCreated,
 }: CreateChartBuilderSectionProps) => (
     <>
-        <div className={styles['builder-header']}>
-            <div data-stack="v" data-gap="xs">
-                <span className={styles['eyebrow']}>New chart</span>
-                <h2 className={styles['title']}>{dataset.dataset.name}</h2>
-            </div>
-            <Button
-                data-test-id={chartsTestIds.changeDatasetButton}
-                onClick={onChangeDataset}
-            >
-                Change dataset
-            </Button>
-        </div>
+        <EntityHeader
+            eyebrow="New chart"
+            title={dataset.dataset.name}
+            actions={
+                <Button
+                    data-test-id={chartsTestIds.changeDatasetButton}
+                    onClick={onChangeDataset}
+                >
+                    Change dataset
+                </Button>
+            }
+        />
         <DatasetChartBuilder
             key={dataset.dataset.id}
             orgId={orgId}
@@ -60,15 +58,15 @@ export const EditChartBuilderSection = ({
     onChartUpdated,
 }: EditChartBuilderSectionProps) => (
     <>
-        <div className={styles['builder-header']}>
-            <div data-stack="v" data-gap="xs">
-                <span className={styles['eyebrow']}>Edit chart</span>
-                <h2 className={styles['title']}>{chart.name}</h2>
-            </div>
-            <Button data-test-id={chartsTestIds.cancelEditButton} onClick={onCancel}>
-                Cancel
-            </Button>
-        </div>
+        <EntityHeader
+            eyebrow="Edit chart"
+            title={chart.name}
+            actions={
+                <Button data-test-id={chartsTestIds.cancelEditButton} onClick={onCancel}>
+                    Cancel
+                </Button>
+            }
+        />
         <DatasetChartBuilder
             key={`edit-${chart.id}`}
             orgId={orgId}

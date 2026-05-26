@@ -1,6 +1,7 @@
 export { WorkspaceGrid } from './ui';
 export {
     panelLayoutSlice,
+    panelLayoutPersistence,
     setPanelSizes,
     toggleLeftPanel,
     toggleRightPanel,

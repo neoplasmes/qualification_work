@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import type { Dispatch, SetStateAction } from 'react';
 
-import { Checkbox, IconButton } from '@/shared/ui';
+import { Checkbox, FormField, IconButton, Select, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import type { ActionDraft, ActionParameterDraft } from '../../../model';
@@ -32,9 +32,8 @@ export const ParameterRow = ({
         data-parameter-id={parameter.id}
     >
         <div className={styles['parameter-row']}>
-            <label className={styles['control']}>
-                <span>Label</span>
-                <input
+            <FormField label="Label">
+                <TextInput
                     data-test-id={actionsTestIds.parameterLabelInput}
                     value={parameter.label}
                     disabled={disabled}
@@ -43,10 +42,9 @@ export const ParameterRow = ({
                         onUpdateParameter(parameter.id, { label: event.target.value })
                     }
                 />
-            </label>
-            <label className={styles['control']}>
-                <span>Type</span>
-                <select
+            </FormField>
+            <FormField label="Type">
+                <Select
                     data-test-id={actionsTestIds.parameterTypeSelect}
                     value={parameter.type}
                     disabled={disabled}
@@ -60,8 +58,8 @@ export const ParameterRow = ({
                     <option value="number">Number</option>
                     <option value="date">Date</option>
                     <option value="bool">Bool</option>
-                </select>
-            </label>
+                </Select>
+            </FormField>
             <Checkbox
                 data-test-id={actionsTestIds.parameterRequiredCheckbox}
                 label="Required"
@@ -89,7 +87,7 @@ export const ParameterRow = ({
         </div>
         <div className={styles['key-hint']}>
             <span>key:</span>
-            <input
+            <TextInput
                 data-test-id={actionsTestIds.parameterKeyInput}
                 value={parameter.key}
                 disabled={disabled}

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { SegmentedTabs } from '@/shared/ui';
+
 import { datasetsTestIds } from '../../../const';
 
 import { DatasetsFilterPanel } from '../DatasetsFilterPanel';
@@ -14,24 +16,22 @@ export const DatasetsRightPanel = () => {
 
     return (
         <div className={styles['right-panel']} data-test-id={datasetsTestIds.rightPanel}>
-            <div className={styles['filter-tabs']}>
-                <button
-                    type="button"
-                    data-test-id={datasetsTestIds.propertiesTab}
-                    className={`${styles['filter-tab']} ${activeTab === 'properties' ? styles['active'] : ''}`}
-                    onClick={() => setActiveTab('properties')}
-                >
-                    Properties
-                </button>
-                <button
-                    type="button"
-                    data-test-id={datasetsTestIds.filtersTab}
-                    className={`${styles['filter-tab']} ${activeTab === 'filters' ? styles['active'] : ''}`}
-                    onClick={() => setActiveTab('filters')}
-                >
-                    Filters
-                </button>
-            </div>
+            <SegmentedTabs
+                value={activeTab}
+                options={[
+                    {
+                        value: 'properties',
+                        label: 'Properties',
+                        testId: datasetsTestIds.propertiesTab,
+                    },
+                    {
+                        value: 'filters',
+                        label: 'Filters',
+                        testId: datasetsTestIds.filtersTab,
+                    },
+                ]}
+                onChange={setActiveTab}
+            />
 
             {activeTab === 'properties' ? (
                 <DatasetsPropertiesPanel />

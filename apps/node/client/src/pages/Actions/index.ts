@@ -1,5 +1,7 @@
+export { ActionsListPanel, ActionsPage, ActionsRightPanel, ActionsWorkspace } from './ui';
 export {
     actionsPageInitialState,
+    actionsPagePersistence,
     actionsPageSlice,
     cancelCreateAction,
     clearActionsDatasetFilters,
@@ -25,3 +27,4 @@ export {
     toggleActionsEffectFilter,
     toggleActionsRunStatusFilter,
 } from './model';
+export type { ActionsPageState } from './model';

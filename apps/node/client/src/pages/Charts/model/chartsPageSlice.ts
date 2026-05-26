@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 import type { ChartType } from '@/entities/chart';
 
-type ChartsPageState = {
+export type ChartsPageState = {
     selectedChartId: string | null;
     filterDatasetIds: string[];
     filterDashboardIds: string[];

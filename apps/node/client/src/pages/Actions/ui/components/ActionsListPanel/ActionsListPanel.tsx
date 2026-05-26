@@ -8,7 +8,13 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useListActionRunsQuery, useListActionsQuery } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, IconButton } from '@/shared/ui';
+import {
+    Button,
+    EmptyState,
+    IconButton,
+    SectionHeader,
+    StatusMessage,
+} from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { canMutate } from '../../../lib';
@@ -63,19 +69,20 @@ export const ActionsListPanel = () => {
 
     return (
         <aside className={styles['panel']} data-test-id={actionsTestIds.listPanel}>
-            <div className={styles['header-row']}>
-                <div data-stack="v" data-gap="xs">
-                    <h1 className={styles['title']}>Actions</h1>
-                    <p className={styles['muted']}>{filteredActions.length} actions</p>
-                </div>
-                <IconButton
-                    aria-label="Refresh actions"
-                    disabled={actionsQuery.isFetching}
-                    onClick={() => void actionsQuery.refetch()}
-                >
-                    <RefreshCcw size={18} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                title="Actions"
+                headingLevel={1}
+                description={`${filteredActions.length} actions`}
+                actions={
+                    <IconButton
+                        aria-label="Refresh actions"
+                        disabled={actionsQuery.isFetching}
+                        onClick={() => void actionsQuery.refetch()}
+                    >
+                        <RefreshCcw size={18} />
+                    </IconButton>
+                }
+            />
 
             <Button
                 disabled={!canMutate(org?.role)}
@@ -92,7 +99,7 @@ export const ActionsListPanel = () => {
 
             <section className={styles['action-list']} aria-label="Actions">
                 {actionsQuery.isLoading && (
-                    <div className={styles['status']}>Loading actions...</div>
+                    <StatusMessage centered>Loading actions...</StatusMessage>
                 )}
                 {isCreatingAction && (
                     <button
@@ -110,9 +117,9 @@ export const ActionsListPanel = () => {
                 {!actionsQuery.isLoading &&
                     filteredActions.length === 0 &&
                     !isCreatingAction && (
-                        <div className={styles['empty']}>
+                        <EmptyState>
                             Create an action to automate a small workflow.
-                        </div>
+                        </EmptyState>
                     )}
                 {filteredActions.map(action => (
                     <button

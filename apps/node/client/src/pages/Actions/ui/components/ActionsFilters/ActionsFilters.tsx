@@ -7,7 +7,17 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, IconButton } from '@/shared/ui';
+import {
+    Button,
+    EmptyState,
+    FilterChip,
+    FormField,
+    IconButton,
+    SectionHeader,
+    SegmentedTabs,
+    SelectableList,
+    TextInput,
+} from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { getEffectLabel } from '../../../lib';
@@ -52,51 +62,42 @@ export const ActionsFilters = () => {
 
     return (
         <section className={styles['right-section']} aria-label="Action filters">
-            <div className={styles['header-row']}>
-                <span className={styles['eyebrow']}>Filter by</span>
-                <IconButton
-                    data-test-id={actionsTestIds.clearFiltersButton}
-                    aria-label="Clear filters"
-                    style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
-                    onClick={() => dispatch(clearAllActionsFilters())}
-                >
-                    <X size={16} />
-                </IconButton>
-            </div>
+            <SectionHeader
+                eyebrow="Filter by"
+                actions={
+                    <IconButton
+                        data-test-id={actionsTestIds.clearFiltersButton}
+                        aria-label="Clear filters"
+                        style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
+                        onClick={() => dispatch(clearAllActionsFilters())}
+                    >
+                        <X size={16} />
+                    </IconButton>
+                }
+            />
 
-            <label className={styles['control']}>
-                <span>Search</span>
-                <input
+            <FormField label="Search">
+                <TextInput
                     data-test-id={actionsTestIds.filtersSearchInput}
                     value={searchText}
                     placeholder="Action name"
                     onChange={event => dispatch(setActionsSearchText(event.target.value))}
                 />
-            </label>
+            </FormField>
 
-            <div className={`${styles['tabs']} ${styles['tabs-three']}`}>
-                <FilterTabButton
-                    active={filtersTab === 'datasets'}
-                    count={datasetIds.length}
-                    label="Datasets"
-                    onClick={() => dispatch(setActionsFiltersTab('datasets'))}
-                />
-                <FilterTabButton
-                    active={filtersTab === 'effects'}
-                    count={effectKinds.length}
-                    label="Effects"
-                    onClick={() => dispatch(setActionsFiltersTab('effects'))}
-                />
-                <FilterTabButton
-                    active={filtersTab === 'runs'}
-                    count={runStatuses.length}
-                    label="Runs"
-                    onClick={() => dispatch(setActionsFiltersTab('runs'))}
-                />
-            </div>
+            <SegmentedTabs
+                columns={3}
+                value={filtersTab}
+                options={[
+                    { value: 'datasets', label: 'Datasets', count: datasetIds.length },
+                    { value: 'effects', label: 'Effects', count: effectKinds.length },
+                    { value: 'runs', label: 'Runs', count: runStatuses.length },
+                ]}
+                onChange={value => dispatch(setActionsFiltersTab(value))}
+            />
 
             {filtersTab === 'datasets' && (
-                <div className={styles['filter-list']}>
+                <SelectableList>
                     <Button
                         disabled={datasetIds.length === 0}
                         onClick={() => dispatch(clearActionsDatasetFilters())}
@@ -104,36 +105,30 @@ export const ActionsFilters = () => {
                         Clear datasets
                     </Button>
                     {datasetsQuery.data?.map(item => (
-                        <button
-                            type="button"
+                        <FilterChip
                             data-test-id={actionsTestIds.filterChip}
                             key={item.dataset.id}
-                            className={`${styles['filter-chip']} ${
-                                datasetIds.includes(item.dataset.id)
-                                    ? styles['selected']
-                                    : ''
-                            }`}
+                            selected={datasetIds.includes(item.dataset.id)}
+                            label={item.dataset.name}
+                            meta={
+                                <>
+                                    <span>{item.totalRows} rows</span>
+                                    <span>{formatDate(item.dataset.updatedAt)}</span>
+                                </>
+                            }
                             onClick={() =>
                                 dispatch(toggleActionsDatasetFilter(item.dataset.id))
                             }
-                        >
-                            <div className={styles['filter-chip-name']}>
-                                {item.dataset.name}
-                            </div>
-                            <div className={styles['filter-chip-meta']}>
-                                <span>{item.totalRows} rows</span>
-                                <span>{formatDate(item.dataset.updatedAt)}</span>
-                            </div>
-                        </button>
+                        />
                     ))}
                     {datasetsQuery.data?.length === 0 && (
-                        <div className={styles['empty']}>No datasets yet.</div>
+                        <EmptyState>No datasets yet.</EmptyState>
                     )}
-                </div>
+                </SelectableList>
             )}
 
             {filtersTab === 'effects' && (
-                <div className={styles['filter-list']}>
+                <SelectableList>
                     <Button
                         disabled={effectKinds.length === 0}
                         onClick={() => dispatch(clearActionsEffectFilters())}
@@ -141,28 +136,20 @@ export const ActionsFilters = () => {
                         Clear effects
                     </Button>
                     {EFFECT_KIND_OPTIONS.map(kind => (
-                        <button
-                            type="button"
+                        <FilterChip
                             data-test-id={actionsTestIds.filterChip}
                             key={kind}
-                            className={`${styles['filter-chip']} ${
-                                effectKinds.includes(kind) ? styles['selected'] : ''
-                            }`}
+                            selected={effectKinds.includes(kind)}
+                            label={getEffectLabel(kind)}
+                            meta={<span>{kind}</span>}
                             onClick={() => dispatch(toggleActionsEffectFilter(kind))}
-                        >
-                            <div className={styles['filter-chip-name']}>
-                                {getEffectLabel(kind)}
-                            </div>
-                            <div className={styles['filter-chip-meta']}>
-                                <span>{kind}</span>
-                            </div>
-                        </button>
+                        />
                     ))}
-                </div>
+                </SelectableList>
             )}
 
             {filtersTab === 'runs' && (
-                <div className={styles['filter-list']}>
+                <SelectableList>
                     <Button
                         disabled={runStatuses.length === 0}
                         onClick={() => dispatch(clearActionsRunStatusFilters())}
@@ -170,41 +157,17 @@ export const ActionsFilters = () => {
                         Clear runs
                     </Button>
                     {RUN_STATUS_OPTIONS.map(status => (
-                        <button
-                            type="button"
+                        <FilterChip
                             data-test-id={actionsTestIds.filterChip}
                             key={status}
-                            className={`${styles['filter-chip']} ${
-                                runStatuses.includes(status) ? styles['selected'] : ''
-                            }`}
+                            selected={runStatuses.includes(status)}
+                            label={status}
+                            meta={<span>Run status</span>}
                             onClick={() => dispatch(toggleActionsRunStatusFilter(status))}
-                        >
-                            <div className={styles['filter-chip-name']}>{status}</div>
-                            <div className={styles['filter-chip-meta']}>
-                                <span>Run status</span>
-                            </div>
-                        </button>
+                        />
                     ))}
-                </div>
+                </SelectableList>
             )}
         </section>
     );
 };
-
-type FilterTabButtonProps = {
-    active: boolean;
-    count: number;
-    label: string;
-    onClick: () => void;
-};
-
-const FilterTabButton = ({ active, count, label, onClick }: FilterTabButtonProps) => (
-    <button
-        type="button"
-        className={`${styles['tab']} ${active ? styles['active'] : ''}`}
-        onClick={onClick}
-    >
-        {label}
-        {count > 0 && <span className={styles['tab-count']}>{count}</span>}
-    </button>
-);

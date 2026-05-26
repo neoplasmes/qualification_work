@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-type DatasetsPageState = {
+export type DatasetsPageState = {
     selectedDatasetId: string | null;
     showUpload: boolean;
     filterChartIds: string[];
@@ -52,7 +52,10 @@ export const datasetsPageSlice = createSlice({
         clearDashboardFilter(state) {
             state.filterDashboardIds = [];
         },
-        setDatasetsFilterActiveTab(state, action: PayloadAction<'charts' | 'dashboards'>) {
+        setDatasetsFilterActiveTab(
+            state,
+            action: PayloadAction<'charts' | 'dashboards'>
+        ) {
             state.datasetsFilterActiveTab = action.payload;
         },
     },

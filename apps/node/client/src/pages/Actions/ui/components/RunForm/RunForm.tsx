@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 
 import type { Action } from '@/entities/action';
 
-import { Button } from '@/shared/ui';
+import { Button, Card, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 
@@ -31,7 +31,8 @@ export const RunForm = ({
     }
 
     return (
-        <form
+        <Card
+            as="form"
             className={styles['card']}
             data-test-id={actionsTestIds.runForm}
             onSubmit={onSubmit}
@@ -52,14 +53,13 @@ export const RunForm = ({
             </div>
 
             {action.parameters.length === 0 ? (
-                <div className={styles['status']}>This action has no parameters.</div>
+                <StatusMessage>This action has no parameters.</StatusMessage>
             ) : (
                 <div className={styles['run-grid']}>
                     {action.parameters.map(parameter => (
-                        <label key={parameter.key} className={styles['control']}>
-                            <span>{parameter.label}</span>
+                        <FormField key={parameter.key} label={parameter.label}>
                             {parameter.type === 'bool' ? (
-                                <select
+                                <Select
                                     data-test-id={actionsTestIds.runBoolSelect}
                                     value={runValues[parameter.key] ?? ''}
                                     disabled={disabled}
@@ -73,9 +73,9 @@ export const RunForm = ({
                                     <option value="">Empty</option>
                                     <option value="true">True</option>
                                     <option value="false">False</option>
-                                </select>
+                                </Select>
                             ) : (
-                                <input
+                                <TextInput
                                     data-test-id={actionsTestIds.runInput}
                                     type={
                                         parameter.type === 'number'
@@ -95,16 +95,14 @@ export const RunForm = ({
                                     }
                                 />
                             )}
-                        </label>
+                        </FormField>
                     ))}
                 </div>
             )}
 
             {lastRunMessage && (
-                <div className={`${styles['status']} ${styles['success']}`}>
-                    {lastRunMessage}
-                </div>
+                <StatusMessage tone="success">{lastRunMessage}</StatusMessage>
             )}
-        </form>
+        </Card>
     );
 };

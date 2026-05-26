@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react';
 
 import type { Chart } from '@/entities/chart';
 
-import { Button } from '@/shared/ui';
+import { Button, FormField, Select } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -24,9 +24,8 @@ export const AddChartForm = ({
     onAdd,
 }: AddChartFormProps) => (
     <div className={styles['add-chart']}>
-        <label className={styles['control']}>
-            <span>Add saved chart</span>
-            <select
+        <FormField label="Add saved chart">
+            <Select
                 data-test-id={dashboardsTestIds.addChartSelect}
                 value={value}
                 onChange={event => onChange(event.target.value)}
@@ -36,8 +35,8 @@ export const AddChartForm = ({
                         {chart.name}
                     </option>
                 ))}
-            </select>
-        </label>
+            </Select>
+        </FormField>
         <Button
             data-test-id={dashboardsTestIds.addChartButton}
             disabled={!value || disabled}

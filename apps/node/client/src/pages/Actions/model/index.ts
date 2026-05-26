@@ -28,9 +28,11 @@ export {
 export type {
     ActionsEffectFilter,
     ActionsFilterTab,
+    ActionsPageState,
     ActionsRightPanelTab,
     ActionsWorkspaceTab,
 } from './actionsPageSlice';
+export { actionsPagePersistence } from './actionsPagePersistence';
 export type {
     ActionDraft,
     ActionEffectDraft,

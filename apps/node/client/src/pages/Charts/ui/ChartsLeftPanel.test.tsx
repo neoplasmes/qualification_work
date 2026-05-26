@@ -4,15 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 
-import { chartsTestIds } from '../../../const';
+import { chartsTestIds } from '../const';
 import {
     chartsPageSlice,
     selectSelectedChartId,
     selectShowDatasetPicker,
     toggleDatasetFilter,
-} from '../../../model';
-
-import { ChartsListPanel } from './ChartsListPanel';
+} from '../model';
+import { ChartsLeftPanel } from './ChartsLeftPanel';
 
 vi.mock('@/features/authenticate', () => ({
     useGetMeQuery: () => ({ data: { id: 'user-1' } }),
@@ -82,13 +81,13 @@ const makeStore = (withFilter = false) => {
     return store;
 };
 
-describe('ChartsListPanel', () => {
+describe('ChartsLeftPanel', () => {
     it('selects a chart and opens dataset picker', async () => {
         const user = userEvent.setup();
         const store = makeStore();
         const { container } = render(
             <Provider store={store}>
-                <ChartsListPanel />
+                <ChartsLeftPanel />
             </Provider>
         );
 
@@ -102,7 +101,7 @@ describe('ChartsListPanel', () => {
     it('renders charts filtered by selected dataset ids', () => {
         render(
             <Provider store={makeStore(true)}>
-                <ChartsListPanel />
+                <ChartsLeftPanel />
             </Provider>
         );
 

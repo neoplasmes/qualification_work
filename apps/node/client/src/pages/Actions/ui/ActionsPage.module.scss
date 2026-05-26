@@ -151,7 +151,6 @@
     }
 }
 
-.action-list,
 .stack,
 .history-list,
 .filter-list {
@@ -160,12 +159,6 @@
     align-content: start;
 }
 
-.action-list {
-    overflow: auto;
-    min-height: 160px;
-}
-
-.action-item,
 .filter-chip,
 .card,
 .run-card {
@@ -174,7 +167,6 @@
     background-color: var(--color-surface-container-low);
 }
 
-.action-item,
 .filter-chip {
     cursor: pointer;
     width: 100%;

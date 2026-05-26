@@ -4,9 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { actionsPageSlice } from '../../../model/actionsPageSlice';
-
-import { ActionsListPanel } from './ActionsListPanel';
+import { actionsPageSlice } from '../model/actionsPageSlice';
+import { ActionsLeftPanel } from './ActionsLeftPanel';
 
 let orgRole = 'owner';
 
@@ -59,11 +58,11 @@ const makeStore = () =>
 const renderPanel = () =>
     render(
         <Provider store={makeStore()}>
-            <ActionsListPanel />
+            <ActionsLeftPanel />
         </Provider>
     );
 
-describe('ActionsListPanel', () => {
+describe('ActionsLeftPanel', () => {
     beforeEach(() => {
         orgRole = 'owner';
     });

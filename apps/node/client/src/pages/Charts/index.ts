@@ -1,6 +1,6 @@
 export {
     ChartsPage,
-    ChartsListPanel,
+    ChartsLeftPanel,
     ChartsWorkspace,
     ChartsWorkspaceRightPanel,
     ChartsFilterPanel,

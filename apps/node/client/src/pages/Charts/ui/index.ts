@@ -1,5 +1,5 @@
 export { ChartsFilterPanel } from './components/ChartsFilterPanel';
-export { ChartsListPanel } from './components/ChartsListPanel';
+export { ChartsLeftPanel } from './ChartsLeftPanel';
 export { ChartsPage } from './ChartsPage';
 export { ChartsWorkspace } from './ChartsWorkspace';
 export { ChartsWorkspaceRightPanel } from './ChartsWorkspaceRightPanel';

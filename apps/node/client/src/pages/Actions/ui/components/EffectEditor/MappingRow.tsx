@@ -6,8 +6,8 @@ import { IconButton } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import type {
-    ActionDraft,
     ActionEffectDraft,
+    ActionParameterDraft,
     ActionValueMappingDraft,
 } from '../../../model';
 
@@ -19,7 +19,7 @@ type MappingRowProps = {
     effect: ActionEffectDraft;
     mapping: ActionValueMappingDraft;
     columns: DatasetMetadata['columns'];
-    draft: ActionDraft;
+    parameters: ActionParameterDraft[];
     disabled: boolean;
     onUpdateEffect: (effectId: string, patch: Partial<ActionEffectDraft>) => void;
     onUpdateMapping: (
@@ -33,7 +33,7 @@ export const MappingRow = ({
     effect,
     mapping,
     columns,
-    draft,
+    parameters,
     disabled,
     onUpdateEffect,
     onUpdateMapping,
@@ -94,7 +94,7 @@ export const MappingRow = ({
             {mapping.sourceKind === 'parameter' ? (
                 <ParameterSelect
                     testId={actionsTestIds.mappingParameterSelect}
-                    parameters={draft.parameters}
+                    parameters={parameters}
                     value={mapping.parameterKey}
                     disabled={disabled}
                     onChange={value =>

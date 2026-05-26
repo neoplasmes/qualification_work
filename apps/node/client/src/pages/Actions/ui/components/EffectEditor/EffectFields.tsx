@@ -1,7 +1,7 @@
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { actionsTestIds } from '../../../const';
-import type { ActionDraft, ActionEffectDraft } from '../../../model';
+import type { ActionEffectDraft, ActionParameterDraft } from '../../../model';
 
 import { ColumnSelect, ParameterSelect } from './SelectControls';
 
@@ -9,7 +9,7 @@ import styles from './EffectEditor.module.scss';
 
 type EffectFieldsProps = {
     effect: ActionEffectDraft;
-    draft: ActionDraft;
+    parameters: ActionParameterDraft[];
     columns: DatasetMetadata['columns'];
     datasets: DatasetMetadata[];
     disabled: boolean;
@@ -18,7 +18,7 @@ type EffectFieldsProps = {
 
 export const EffectFields = ({
     effect,
-    draft,
+    parameters,
     columns,
     datasets,
     disabled,
@@ -77,7 +77,7 @@ export const EffectFields = ({
                     <span>Match parameter</span>
                     <ParameterSelect
                         testId={actionsTestIds.effectMatchParameterSelect}
-                        parameters={draft.parameters}
+                        parameters={parameters}
                         value={effect.matchParameterKey}
                         disabled={disabled}
                         onChange={value =>

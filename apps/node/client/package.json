@@ -40,6 +40,7 @@
         "@visx/shape": "^3.12.0",
         "@visx/tooltip": "^3.12.0",
         "@visx/visx": "^3.12.0",
+        "@visx/xychart": "3.12.0",
         "lucide-react": "^1.14.0",
         "motion": "^12.38.0",
         "primitive-server": "workspace:*",

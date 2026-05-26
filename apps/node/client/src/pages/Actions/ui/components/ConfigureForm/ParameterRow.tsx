@@ -9,7 +9,7 @@ import type { ActionDraft, ActionParameterDraft } from '../../../model';
 import styles from './ConfigureForm.module.scss';
 
 type ParameterRowProps = {
-    draft: ActionDraft;
+    parametersCount: number;
     parameter: ActionParameterDraft;
     disabled: boolean;
     onDraftChange: Dispatch<SetStateAction<ActionDraft>>;
@@ -20,7 +20,7 @@ type ParameterRowProps = {
 };
 
 export const ParameterRow = ({
-    draft,
+    parametersCount,
     parameter,
     disabled,
     onDraftChange,
@@ -74,7 +74,7 @@ export const ParameterRow = ({
             <IconButton
                 data-test-id={actionsTestIds.removeParameterButton}
                 aria-label="Remove parameter"
-                disabled={disabled || draft.parameters.length === 1}
+                disabled={disabled || parametersCount === 1}
                 onClick={() =>
                     onDraftChange(current => ({
                         ...current,

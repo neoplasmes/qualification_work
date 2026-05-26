@@ -1,22 +1,85 @@
-import { useLocation } from 'react-router';
+import { lazy } from 'react';
 import { useSelector } from 'react-redux';
-import type { ComponentType } from 'react';
+import { useLocation } from 'react-router';
 
-import { WorkspaceGrid, selectIsLeftCollapsed, selectIsRightCollapsed } from '@/widgets/WorkspaceGrid';
-
-import { ChartsListPanel, ChartsWorkspace, ChartsFilterPanel } from '@/pages/Charts';
-import { DatasetsUploadPanel, DatasetsWorkspace, DatasetsRightPanel } from '@/pages/Datasets';
-import { ActionsListPanel, ActionsRightPanel, ActionsWorkspace } from '@/pages/Actions';
 import {
-    DashboardsListPanel,
-    DashboardsWorkspace,
-    DashboardsFilterPanel,
-} from '@/pages/Dashboards';
+    selectIsLeftCollapsed,
+    selectIsRightCollapsed,
+    WorkspaceGrid,
+} from '@/widgets/WorkspaceGrid';
+
+import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
+
+import styles from './WorkspaceLayout.module.scss';
+
+const ActionsListPanel = lazy(() =>
+    import('@/pages/Actions/ui/components/ActionsListPanel').then(module => ({
+        default: module.ActionsListPanel,
+    }))
+);
+const ActionsWorkspace = lazy(() =>
+    import('@/pages/Actions/ui/ActionsWorkspace').then(module => ({
+        default: module.ActionsWorkspace,
+    }))
+);
+const ActionsRightPanel = lazy(() =>
+    import('@/pages/Actions/ui/components/ActionsRightPanel').then(module => ({
+        default: module.ActionsRightPanel,
+    }))
+);
+
+const ChartsListPanel = lazy(() =>
+    import('@/pages/Charts/ui/components/ChartsListPanel').then(module => ({
+        default: module.ChartsListPanel,
+    }))
+);
+const ChartsWorkspace = lazy(() =>
+    import('@/pages/Charts/ui/ChartsWorkspace').then(module => ({
+        default: module.ChartsWorkspace,
+    }))
+);
+const ChartsFilterPanel = lazy(() =>
+    import('@/pages/Charts/ui/components/ChartsFilterPanel').then(module => ({
+        default: module.ChartsFilterPanel,
+    }))
+);
+
+const DatasetsUploadPanel = lazy(() =>
+    import('@/pages/Datasets/ui/components/DatasetsUploadPanel').then(module => ({
+        default: module.DatasetsUploadPanel,
+    }))
+);
+const DatasetsWorkspace = lazy(() =>
+    import('@/pages/Datasets/ui/DatasetsWorkspace').then(module => ({
+        default: module.DatasetsWorkspace,
+    }))
+);
+const DatasetsRightPanel = lazy(() =>
+    import('@/pages/Datasets/ui/components/DatasetsRightPanel').then(module => ({
+        default: module.DatasetsRightPanel,
+    }))
+);
+
+const DashboardsListPanel = lazy(() =>
+    import('@/pages/Dashboards/ui/components/DashboardsListPanel').then(module => ({
+        default: module.DashboardsListPanel,
+    }))
+);
+const DashboardsWorkspace = lazy(() =>
+    import('@/pages/Dashboards/ui/DashboardsWorkspace').then(module => ({
+        default: module.DashboardsWorkspace,
+    }))
+);
+const DashboardsFilterPanel = lazy(() =>
+    import('@/pages/Dashboards/ui/components/DashboardsFilterPanel').then(module => ({
+        default: module.DashboardsFilterPanel,
+    }))
+);
 
 type WorkspaceSlots = {
-    Left: ComponentType;
-    Center: ComponentType;
-    Right: ComponentType;
+    Left: typeof ActionsListPanel;
+    Center: typeof ActionsWorkspace;
+    Right: typeof ActionsRightPanel;
 };
 
 const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
@@ -42,6 +105,8 @@ const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
     },
 };
 
+const workspaceFallback = <div className={styles['panel-fallback']} />;
+
 export const WorkspaceLayout = () => {
     const { pathname } = useLocation();
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
@@ -49,7 +114,9 @@ export const WorkspaceLayout = () => {
 
     const slots = WORKSPACE_SLOTS[pathname];
 
-    if (!slots) {return null;}
+    if (!slots) {
+        return null;
+    }
 
     const { Left, Center, Right } = slots;
 
@@ -62,13 +129,22 @@ export const WorkspaceLayout = () => {
                 collapseRight={isRightCollapsed}
             >
                 <WorkspaceGrid.Panel initialSize="320px" minSize="240px" maxSize="480px">
-                    <Left />
+                    <ClientOnlyDeffered
+                        fallback={workspaceFallback}
+                        LazyComponent={Left}
+                    />
                 </WorkspaceGrid.Panel>
                 <WorkspaceGrid.Panel initialSize="800px" minSize="480px" maxSize="9999px">
-                    <Center />
+                    <ClientOnlyDeffered
+                        fallback={workspaceFallback}
+                        LazyComponent={Center}
+                    />
                 </WorkspaceGrid.Panel>
                 <WorkspaceGrid.Panel initialSize="320px" minSize="240px" maxSize="480px">
-                    <Right />
+                    <ClientOnlyDeffered
+                        fallback={workspaceFallback}
+                        LazyComponent={Right}
+                    />
                 </WorkspaceGrid.Panel>
             </WorkspaceGrid.Group>
         </WorkspaceGrid>

@@ -5,11 +5,7 @@ import { useDispatch } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
-import {
-    useArchiveActionMutation,
-    useListActionsQuery,
-    type Action,
-} from '@/entities/action';
+import { useArchiveActionMutation, type Action } from '@/entities/action';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
@@ -23,9 +19,13 @@ import styles from '../../ActionsPage.module.scss';
 
 type ActionsPropertiesProps = {
     selectedAction: Action | undefined;
+    refetchActions: () => unknown;
 };
 
-export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) => {
+export const ActionsProperties = ({
+    selectedAction,
+    refetchActions,
+}: ActionsPropertiesProps) => {
     const dispatch = useDispatch();
     const [archiveConfirmationId, setArchiveConfirmationId] = useState<string | null>(
         null
@@ -33,7 +33,6 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
     const [error, setError] = useState('');
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [archiveAction, archiveState] = useArchiveActionMutation();
 
@@ -47,9 +46,15 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
             ),
         [datasetsQuery.data]
     );
-    const affectedDatasets = selectedAction
-        ? Array.from(new Set(selectedAction.effects.map(effect => effect.datasetId)))
-        : [];
+    const affectedDatasets = useMemo(
+        () =>
+            selectedAction
+                ? Array.from(
+                      new Set(selectedAction.effects.map(effect => effect.datasetId))
+                  )
+                : [],
+        [selectedAction]
+    );
 
     const handleArchive = async () => {
         if (!selectedAction || !canMutate(org?.role)) {
@@ -67,7 +72,7 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
             await archiveAction(selectedAction.id).unwrap();
             dispatch(selectAction(null));
             setArchiveConfirmationId(null);
-            await actionsQuery.refetch();
+            await refetchActions();
         } catch (archiveError) {
             setError(getApiErrorMessage(archiveError, 'Unable to archive this action.'));
         }

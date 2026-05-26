@@ -2,31 +2,23 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/auth';
-import { useListDatasetsQuery, type DatasetMetadata } from '@/features/datasets';
+import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
-import { DatasetPreview } from './DatasetPreview';
-import { UploadDatasetModal } from './UploadDatasetModal';
+import { useListDatasetsQuery } from '@/entities/dataset';
 
+import { getSelected } from '@/shared/lib/getSelected';
+
+import { datasetsTestIds } from '../const';
 import {
     selectDataset,
     selectSelectedDatasetId,
     selectShowUpload,
     setShowUpload,
-} from '../model/datasetsPageSlice';
+} from '../model';
+import { DatasetPreview } from './components/DatasetPreview';
+import { UploadDatasetModal } from './components/UploadDatasetModal';
 
-import styles from './DatasetsPage.module.scss';
-
-const getSelectedDataset = (
-    datasets: DatasetMetadata[] | undefined,
-    selectedDatasetId: string | null
-) => {
-    if (!datasets || datasets.length === 0) {
-        return undefined;
-    }
-
-    return datasets.find(item => item.dataset.id === selectedDatasetId) ?? datasets[0];
-};
+import styles from './DatasetsWorkspace.module.scss';
 
 export const DatasetsWorkspace = () => {
     const dispatch = useDispatch();
@@ -39,7 +31,7 @@ export const DatasetsWorkspace = () => {
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
     const selectedDataset = useMemo(
-        () => getSelectedDataset(datasetsQuery.data, selectedDatasetId),
+        () => getSelected(datasetsQuery.data, selectedDatasetId, item => item.dataset.id),
         [datasetsQuery.data, selectedDatasetId]
     );
 
@@ -50,7 +42,10 @@ export const DatasetsWorkspace = () => {
 
     return (
         <>
-            <main className={styles['main-panel']}>
+            <main
+                className={styles['main-panel']}
+                data-test-id={datasetsTestIds.workspace}
+            >
                 <DatasetPreview
                     key={selectedDataset?.dataset.id ?? 'none'}
                     selectedDataset={selectedDataset}

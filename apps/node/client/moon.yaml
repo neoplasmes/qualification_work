@@ -11,14 +11,12 @@ fileGroups:
     - "package.json"
     - "tsconfig.json"
     - "*.config.{js,ts}"
-    - "playwright.config.ts"
   src:
     - "{src,server,vite}/**/*"
     - "!**/*.test.{js,ts,tsx}"
   test:
     - "{src,server}/*.test.{js,ts,tsx}"
     - "test/**/*"
-    - "e2e/**/*"
 
 tasks:
   dev:
@@ -124,19 +122,6 @@ tasks:
       - "@group(src)"
       - "@group(test)"
       - "@group(cfg)"
-
-  test-e2e:
-    command: "pnpm test:e2e"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-      - ".env"
-      - "docker-compose.dev.yaml"
-      - "docker-compose/**/*"
-    options:
-      cache: false
-      outputStyle: "stream"
 
   lint:
     command: "pnpm lint"

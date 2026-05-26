@@ -15,6 +15,7 @@ projects:
   microservice-utils: "packages/node/microservice-utils"
   openresty-discovery: "packages/go/openresty-discovery"
   e2e-backend: "e2e/backend"
+  e2e-frontend: "e2e/frontend"
 
 # moon run command (without :) will run exactly command for default project 
 # and thus using root "moon.yml"

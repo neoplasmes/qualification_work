@@ -1,7 +1,7 @@
 import { LazyMotion } from 'motion/react';
 import { Outlet, useLocation } from 'react-router';
 
-import { NavBar } from '@/widgets/NavBar';
+import { NavBar } from '../NavBar';
 
 const motionFeatures = () =>
     import('../../config/motionFeatures').then(res => res.domMax);

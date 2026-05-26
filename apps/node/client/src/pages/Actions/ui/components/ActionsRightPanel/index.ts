@@ -1,0 +1,1 @@
+export { ActionsRightPanel } from './ActionsRightPanel';

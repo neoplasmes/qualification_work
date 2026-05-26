@@ -1,5 +1,5 @@
 export { DatasetsPage } from './DatasetsPage';
-export { DatasetsUploadPanel } from './DatasetsUploadPanel';
 export { DatasetsWorkspace } from './DatasetsWorkspace';
-export { DatasetsFilterPanel } from './DatasetsFilterPanel';
-export { DatasetsRightPanel } from './DatasetsRightPanel';
+export { DatasetsUploadPanel } from './components/DatasetsUploadPanel';
+export { DatasetsFilterPanel } from './components/DatasetsFilterPanel';
+export { DatasetsRightPanel } from './components/DatasetsRightPanel';

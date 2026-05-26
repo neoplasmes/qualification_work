@@ -1,0 +1,103 @@
+import { X } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
+
+import { Checkbox, IconButton } from '@/shared/ui';
+
+import { actionsTestIds } from '../../../const';
+import type { ActionDraft, ActionParameterDraft } from '../../../model';
+
+import styles from './ConfigureForm.module.scss';
+
+type ParameterRowProps = {
+    draft: ActionDraft;
+    parameter: ActionParameterDraft;
+    disabled: boolean;
+    onDraftChange: Dispatch<SetStateAction<ActionDraft>>;
+    onUpdateParameter: (
+        parameterId: string,
+        patch: Partial<ActionParameterDraft>
+    ) => void;
+};
+
+export const ParameterRow = ({
+    draft,
+    parameter,
+    disabled,
+    onDraftChange,
+    onUpdateParameter,
+}: ParameterRowProps) => (
+    <div
+        className={styles['parameter-entry']}
+        data-test-id={actionsTestIds.parameterRow}
+        data-parameter-id={parameter.id}
+    >
+        <div className={styles['parameter-row']}>
+            <label className={styles['control']}>
+                <span>Label</span>
+                <input
+                    data-test-id={actionsTestIds.parameterLabelInput}
+                    value={parameter.label}
+                    disabled={disabled}
+                    placeholder="Amount"
+                    onChange={event =>
+                        onUpdateParameter(parameter.id, { label: event.target.value })
+                    }
+                />
+            </label>
+            <label className={styles['control']}>
+                <span>Type</span>
+                <select
+                    data-test-id={actionsTestIds.parameterTypeSelect}
+                    value={parameter.type}
+                    disabled={disabled}
+                    onChange={event =>
+                        onUpdateParameter(parameter.id, {
+                            type: event.target.value as ActionParameterDraft['type'],
+                        })
+                    }
+                >
+                    <option value="string">String</option>
+                    <option value="number">Number</option>
+                    <option value="date">Date</option>
+                    <option value="bool">Bool</option>
+                </select>
+            </label>
+            <Checkbox
+                data-test-id={actionsTestIds.parameterRequiredCheckbox}
+                label="Required"
+                checked={parameter.required}
+                disabled={disabled}
+                onChange={event =>
+                    onUpdateParameter(parameter.id, { required: event.target.checked })
+                }
+            />
+            <IconButton
+                data-test-id={actionsTestIds.removeParameterButton}
+                aria-label="Remove parameter"
+                disabled={disabled || draft.parameters.length === 1}
+                onClick={() =>
+                    onDraftChange(current => ({
+                        ...current,
+                        parameters: current.parameters.filter(
+                            item => item.id !== parameter.id
+                        ),
+                    }))
+                }
+            >
+                <X size={16} />
+            </IconButton>
+        </div>
+        <div className={styles['key-hint']}>
+            <span>key:</span>
+            <input
+                data-test-id={actionsTestIds.parameterKeyInput}
+                value={parameter.key}
+                disabled={disabled}
+                placeholder="auto"
+                onChange={event =>
+                    onUpdateParameter(parameter.id, { key: event.target.value })
+                }
+            />
+        </div>
+    </div>
+);

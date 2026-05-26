@@ -1,7 +1,7 @@
 import { ArrowRight, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 
-import { useLoginMutation, useWaitForWorkspace } from '@/features/auth';
+import { useLoginMutation, useWaitForWorkspace } from '@/features/authenticate';
 
 import { getApiErrorMessage } from '@/shared/api';
 

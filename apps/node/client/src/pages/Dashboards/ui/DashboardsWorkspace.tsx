@@ -1,44 +1,50 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { ArrowDown, ArrowUp, Plus, RefreshCcw, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/auth';
-import { useListChartsQuery, type Chart } from '@/features/charts';
+import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     useAddDashboardChartMutation,
     useAddDashboardMetricMutation,
-    useDeleteDashboardMutation,
-    useGetDashboardQuery,
-    useListDashboardsQuery,
     useRemoveDashboardItemMutation,
     useRenameDashboardMutation,
     useReorderDashboardItemsMutation,
-} from '@/features/dashboards';
-import { useListDatasetsQuery } from '@/features/datasets';
+} from '@/features/manageDashboards';
+
+import { useListChartsQuery } from '@/entities/chart';
+import {
+    useDeleteDashboardMutation,
+    useGetDashboardQuery,
+    useListDashboardsQuery,
+} from '@/entities/dashboard';
+import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
-import { Button, IconButton } from '@/shared/ui';
 
-import { DashboardChartCard } from './DashboardChartCard';
-
+import { dashboardsTestIds } from '../const';
+import { getDashboardItemsOrder, moveDashboardItem } from '../lib';
 import {
-    selectDashboard,
-    selectSelectedDashboardId,
-    selectWorkspaceDraftDashboardId,
-    selectDashboardsWorkspaceDraftName,
-    selectWorkspaceMetricName,
-    selectWorkspaceMetricExpression,
-    selectWorkspaceMetricFormat,
+    clearWorkspaceMetricForm,
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
+    selectDashboard,
+    selectDashboardsWorkspaceDraftName,
+    selectSelectedDashboardId,
+    selectWorkspaceDraftDashboardId,
+    selectWorkspaceMetricExpression,
+    selectWorkspaceMetricFormat,
+    selectWorkspaceMetricName,
     setDashboardsWorkspaceDraftName,
-    setWorkspaceMetricName,
     setWorkspaceMetricExpression,
     setWorkspaceMetricFormat,
-    clearWorkspaceMetricForm,
-} from '../model/dashboardsPageSlice';
+    setWorkspaceMetricName,
+} from '../model';
+import { AddChartForm } from './components/AddChartForm';
+import { AddMetricForm } from './components/AddMetricForm';
+import { DashboardNameForm } from './components/DashboardNameForm';
+import { DashboardWidgets } from './components/DashboardWidgets';
+import { WorkspaceHeader } from './components/WorkspaceHeader';
 
 import styles from './DashboardsPage.module.scss';
 
@@ -71,7 +77,7 @@ export const DashboardsWorkspace = () => {
     const dashboardItems = dashboard?.items ?? [];
 
     const chartsById = useMemo(
-        () => new Map((chartsQuery.data ?? []).map((chart: Chart) => [chart.id, chart])),
+        () => new Map((chartsQuery.data ?? []).map(chart => [chart.id, chart])),
         [chartsQuery.data]
     );
 
@@ -89,11 +95,15 @@ export const DashboardsWorkspace = () => {
             return;
         }
 
-        // preserve draft when navigating back to the same dashboard
-        if (dashboard.id === workspaceDraftDashboardId) {return;}
+        if (dashboard.id === workspaceDraftDashboardId) {
+            return;
+        }
 
         dispatch(
-            initDashboardsWorkspaceDraft({ dashboardId: dashboard.id, name: dashboard.name })
+            initDashboardsWorkspaceDraft({
+                dashboardId: dashboard.id,
+                name: dashboard.name,
+            })
         );
         setError('');
         setDeleteConfirmationId(null);
@@ -184,23 +194,15 @@ export const DashboardsWorkspace = () => {
             return;
         }
 
-        const currentIndex = dashboardItems.findIndex(item => item.id === itemId);
-        const nextIndex = currentIndex + direction;
-        if (currentIndex < 0 || nextIndex < 0 || nextIndex >= dashboardItems.length) {
+        const nextItems = moveDashboardItem(dashboardItems, itemId, direction);
+        if (nextItems === dashboardItems) {
             return;
         }
-
-        const nextItems = [...dashboardItems];
-        const [item] = nextItems.splice(currentIndex, 1);
-        nextItems.splice(nextIndex, 0, item);
 
         try {
             await reorderDashboardItems({
                 dashboardId: dashboard.id,
-                order: nextItems.map((nextItem, index) => ({
-                    itemId: nextItem.id,
-                    posY: index,
-                })),
+                order: getDashboardItemsOrder(nextItems),
             }).unwrap();
             await dashboardQuery.refetch();
         } catch (reorderError) {
@@ -244,7 +246,11 @@ export const DashboardsWorkspace = () => {
     };
 
     return (
-        <section className={styles['panel']} aria-label="Dashboard details">
+        <section
+            className={styles['panel']}
+            data-test-id={dashboardsTestIds.workspace}
+            aria-label="Dashboard details"
+        >
             {!dashboard && (
                 <p className={styles['panel-placeholder']}>
                     Select or create a dashboard.
@@ -253,140 +259,51 @@ export const DashboardsWorkspace = () => {
 
             {dashboard && (
                 <>
-                    <div className={styles['detail-header']}>
-                        <div data-stack="v" data-gap="xs">
-                            <span className={styles['eyebrow']}>Dashboard</span>
-                            <h2 className={styles['title']}>{dashboard.name}</h2>
-                            <p className={styles['muted']}>{dashboardItems.length} widgets</p>
-                        </div>
-                        <Button
-                            variant="danger"
-                            disabled={deleteState.isLoading}
-                            onClick={() => void handleDeleteDashboard()}
-                        >
-                            <Trash2 size={18} />
-                            {deleteConfirmationId === dashboard.id
-                                ? 'Confirm delete'
-                                : 'Delete'}
-                        </Button>
-                    </div>
+                    <WorkspaceHeader
+                        dashboard={dashboard}
+                        widgetsCount={dashboardItems.length}
+                        deleteConfirmationId={deleteConfirmationId}
+                        deleteDisabled={deleteState.isLoading}
+                        onDelete={() => void handleDeleteDashboard()}
+                    />
 
-                    <form className={styles['edit-form']} onSubmit={handleRenameDashboard}>
-                        <label className={styles['control']}>
-                            <span>Name</span>
-                            <input
-                                value={draftName}
-                                onChange={event =>
-                                    dispatch(setDashboardsWorkspaceDraftName(event.target.value))
-                                }
-                            />
-                        </label>
-                        <Button
-                            type="submit"
-                            disabled={
-                                renameState.isLoading || draftName.trim() === dashboard.name
-                            }
-                        >
-                            <Save size={18} />
-                            Save name
-                        </Button>
-                        <Button
-                            disabled={dashboardQuery.isFetching}
-                            onClick={() => void dashboardQuery.refetch()}
-                        >
-                            <RefreshCcw size={18} />
-                            Refresh
-                        </Button>
-                    </form>
+                    <DashboardNameForm
+                        value={draftName}
+                        originalName={dashboard.name}
+                        saving={renameState.isLoading}
+                        refreshing={dashboardQuery.isFetching}
+                        onChange={value =>
+                            dispatch(setDashboardsWorkspaceDraftName(value))
+                        }
+                        onRefresh={() => void dashboardQuery.refetch()}
+                        onSubmit={handleRenameDashboard}
+                    />
 
-                    <div className={styles['add-chart']}>
-                        <label className={styles['control']}>
-                            <span>Add saved chart</span>
-                            <select
-                                value={selectedChartId}
-                                onChange={event => setSelectedChartId(event.target.value)}
-                            >
-                                {chartsQuery.data?.map(chart => (
-                                    <option key={chart.id} value={chart.id}>
-                                        {chart.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <Button
-                            disabled={!selectedChartId || addChartState.isLoading}
-                            onClick={() => void handleAddChart()}
-                        >
-                            <Plus size={18} />
-                            Add chart
-                        </Button>
-                    </div>
+                    <AddChartForm
+                        charts={chartsQuery.data}
+                        value={selectedChartId}
+                        disabled={addChartState.isLoading}
+                        onChange={setSelectedChartId}
+                        onAdd={() => void handleAddChart()}
+                    />
 
-                    <form
-                        className={styles['add-chart']}
-                        aria-label="Add metric"
+                    <AddMetricForm
+                        datasets={datasetsQuery.data}
+                        datasetId={selectedMetricDatasetId}
+                        metricName={metricName}
+                        metricExpression={metricExpression}
+                        metricFormat={metricFormat}
+                        disabled={addMetricState.isLoading}
+                        onDatasetChange={setSelectedMetricDatasetId}
+                        onNameChange={value => dispatch(setWorkspaceMetricName(value))}
+                        onExpressionChange={value =>
+                            dispatch(setWorkspaceMetricExpression(value))
+                        }
+                        onFormatChange={value =>
+                            dispatch(setWorkspaceMetricFormat(value))
+                        }
                         onSubmit={handleAddMetric}
-                    >
-                        <label className={styles['control']}>
-                            <span>Metric dataset</span>
-                            <select
-                                value={selectedMetricDatasetId}
-                                onChange={event =>
-                                    setSelectedMetricDatasetId(event.target.value)
-                                }
-                            >
-                                {datasetsQuery.data?.map(item => (
-                                    <option key={item.dataset.id} value={item.dataset.id}>
-                                        {item.dataset.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className={styles['control']}>
-                            <span>Metric name</span>
-                            <input
-                                value={metricName}
-                                placeholder="Average score"
-                                onChange={event =>
-                                    dispatch(setWorkspaceMetricName(event.target.value))
-                                }
-                            />
-                        </label>
-                        <label className={styles['control']}>
-                            <span>Expression</span>
-                            <input
-                                value={metricExpression}
-                                placeholder="avg(score)"
-                                onChange={event =>
-                                    dispatch(setWorkspaceMetricExpression(event.target.value))
-                                }
-                            />
-                        </label>
-                        <label className={styles['control']}>
-                            <span>Format</span>
-                            <select
-                                value={metricFormat}
-                                onChange={event =>
-                                    dispatch(
-                                        setWorkspaceMetricFormat(
-                                            event.target.value as typeof metricFormat
-                                        )
-                                    )
-                                }
-                            >
-                                <option value="number">number</option>
-                                <option value="currency">currency</option>
-                                <option value="percent">percent</option>
-                            </select>
-                        </label>
-                        <Button
-                            type="submit"
-                            disabled={!selectedMetricDatasetId || addMetricState.isLoading}
-                        >
-                            <Plus size={18} />
-                            Add metric
-                        </Button>
-                    </form>
+                    />
 
                     {error && (
                         <div
@@ -397,84 +314,16 @@ export const DashboardsWorkspace = () => {
                         </div>
                     )}
 
-                    <div className={styles['grid']} aria-label="Dashboard widgets">
-                        {dashboardItems.length === 0 && (
-                            <div className={styles['empty']}>
-                                Add a saved chart to this dashboard.
-                            </div>
-                        )}
-                        {/* Backend layout is a vertical stack: items are ordered by posY; posX/width are reserved. */}
-                        {dashboardItems.map((item, index) =>
-                            item.kind === 'chart' ? (
-                                <div key={item.id} className={styles['widget-wrap']}>
-                                    <div className={styles['widget-actions']}>
-                                        <IconButton
-                                            aria-label={`Move ${chartsById.get(item.chartId)?.name ?? item.id} up`}
-                                            disabled={index === 0 || reorderState.isLoading}
-                                            onClick={() => void handleMoveItem(item.id, -1)}
-                                        >
-                                            <ArrowUp size={17} />
-                                        </IconButton>
-                                        <IconButton
-                                            aria-label={`Move ${chartsById.get(item.chartId)?.name ?? item.id} down`}
-                                            disabled={
-                                                index === dashboardItems.length - 1 ||
-                                                reorderState.isLoading
-                                            }
-                                            onClick={() => void handleMoveItem(item.id, 1)}
-                                        >
-                                            <ArrowDown size={17} />
-                                        </IconButton>
-                                    </div>
-                                    <DashboardChartCard
-                                        item={item}
-                                        chart={chartsById.get(item.chartId)}
-                                        removing={removeItemState.isLoading}
-                                        onRemove={handleRemoveItem}
-                                    />
-                                </div>
-                            ) : (
-                                <article key={item.id} className={styles['dashboard-card']}>
-                                    <div className={styles['card-header']}>
-                                        <div data-stack="v" data-gap="xs">
-                                            <h3>{item.name}</h3>
-                                            <p>
-                                                {item.expression} · {item.format}
-                                            </p>
-                                        </div>
-                                        <div data-stack="h" data-gap="xs">
-                                            <IconButton
-                                                aria-label={`Move ${item.name} up`}
-                                                disabled={
-                                                    index === 0 || reorderState.isLoading
-                                                }
-                                                onClick={() => void handleMoveItem(item.id, -1)}
-                                            >
-                                                <ArrowUp size={17} />
-                                            </IconButton>
-                                            <IconButton
-                                                aria-label={`Move ${item.name} down`}
-                                                disabled={
-                                                    index === dashboardItems.length - 1 ||
-                                                    reorderState.isLoading
-                                                }
-                                                onClick={() => void handleMoveItem(item.id, 1)}
-                                            >
-                                                <ArrowDown size={17} />
-                                            </IconButton>
-                                            <IconButton
-                                                aria-label={`Remove ${item.name}`}
-                                                disabled={removeItemState.isLoading}
-                                                onClick={() => void handleRemoveItem(item.id)}
-                                            >
-                                                <X size={17} />
-                                            </IconButton>
-                                        </div>
-                                    </div>
-                                </article>
-                            )
-                        )}
-                    </div>
+                    <DashboardWidgets
+                        items={dashboardItems}
+                        chartsById={chartsById}
+                        reorderLoading={reorderState.isLoading}
+                        removing={removeItemState.isLoading}
+                        onMoveItem={(itemId, direction) =>
+                            void handleMoveItem(itemId, direction)
+                        }
+                        onRemoveItem={itemId => void handleRemoveItem(itemId)}
+                    />
                 </>
             )}
         </section>

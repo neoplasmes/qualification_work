@@ -11,7 +11,7 @@ fileGroups:
 tasks:
   prettier:
     command: "pnpm prettier"
-    inputs: 
+    inputs:
       - "@group(src)"
 
   lint:
@@ -23,7 +23,7 @@ tasks:
     command: "pnpm lint:fix"
     inputs:
       - "@group(src)"
-  
+
   typecheck:
     command: "pnpm typecheck"
     inputs:
@@ -31,7 +31,7 @@ tasks:
 
   test-compose-up:
     script: |
-      DOCKER_BUILDKIT=0 docker compose -f docker-compose/docker-compose.yaml up -d \
+      DOCKER_BUILDKIT=0 docker compose -f ../docker-compose/docker-compose.yaml up -d \
         --renew-anon-volumes \
         --build \
         --wait \
@@ -42,14 +42,14 @@ tasks:
       outputStyle: stream
 
   test-compose-down:
-    command: "docker compose -f docker-compose/docker-compose.yaml down -v"
+    command: "docker compose -f ../docker-compose/docker-compose.yaml down -v"
     toolchain: system
     options:
       cache: false
       outputStyle: stream
 
   compose-logs:
-    command: "docker compose -f docker-compose/docker-compose.yaml logs --tail=200"
+    command: "docker compose -f ../docker-compose/docker-compose.yaml logs --tail=200"
     toolchain: system
     options:
       cache: false
@@ -57,12 +57,12 @@ tasks:
 
   e2e:
     script: |
-      DOCKER_BUILDKIT=0 docker compose -f docker-compose/docker-compose.yaml up -d \
+      DOCKER_BUILDKIT=0 docker compose -f ../docker-compose/docker-compose.yaml up -d \
         --renew-anon-volumes --build --wait --wait-timeout 300
-      export NODE_EXTRA_CA_CERTS="$(pwd)/docker-compose/keys/ca.pem"
+      export NODE_EXTRA_CA_CERTS="$(pwd)/../docker-compose/keys/ca.pem"
       RC=0
       pnpm test || RC=$?
-      docker compose -f docker-compose/docker-compose.yaml down -v
+      docker compose -f ../docker-compose/docker-compose.yaml down -v
       exit $RC
     toolchain: system
     options:

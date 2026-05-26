@@ -1,4 +1,4 @@
-export { ActionsListPanel } from './ActionsListPanel';
+export { ActionsListPanel } from './components/ActionsListPanel';
 export { ActionsPage } from './ActionsPage';
-export { ActionsRightPanel } from './ActionsRightPanel';
+export { ActionsRightPanel } from './components/ActionsRightPanel';
 export { ActionsWorkspace } from './ActionsWorkspace';

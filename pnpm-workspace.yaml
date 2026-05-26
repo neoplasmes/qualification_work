@@ -2,6 +2,7 @@ packages:
   - 'apps/node/*'
   - 'packages/node/*'
   - 'e2e/backend'
+  - 'e2e/frontend'
   - 'generation'
 allowBuilds:
   '@parcel/watcher': true

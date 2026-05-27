@@ -2,8 +2,6 @@ import type { QueryParams } from '../../types';
 
 const EQUALS = 61; // '='
 const AMP = 38; // '&'
-const PERCENT = 37; // '%'
-const PLUS = 43; // '+'
 
 function addParam(result: QueryParams, key: string, value: string): void {
     const existing = result[key];
@@ -15,6 +13,14 @@ function addParam(result: QueryParams, key: string, value: string): void {
     } else {
         result[key] = value;
     }
+}
+
+function decodeQueryComponent(value: string): string {
+    if (!value.includes('%') && !value.includes('+')) {
+        return value;
+    }
+
+    return decodeURIComponent(value.replaceAll('+', ' '));
 }
 
 /**
@@ -41,9 +47,7 @@ export function parseQuery(queryString: string): QueryParams {
     for (let i = 0; i < len; i++) {
         const code = queryString.charCodeAt(i);
 
-        if (code === PERCENT || code === PLUS) {
-            throw new Error('+ and % are not implemented');
-        } else if (code === EQUALS && keyEnd === -1) {
+        if (code === EQUALS && keyEnd === -1) {
             // начинаем читать значение
             keyEnd = i;
             valueStart = i + 1;
@@ -56,9 +60,9 @@ export function parseQuery(queryString: string): QueryParams {
                 valueStart = i;
             }
 
-            const key = queryString.slice(keyStart, keyEnd);
+            const key = decodeQueryComponent(queryString.slice(keyStart, keyEnd));
             if (key.length !== 0) {
-                const value = queryString.slice(valueStart, i);
+                const value = decodeQueryComponent(queryString.slice(valueStart, i));
 
                 addParam(result, key, value);
             }
@@ -77,9 +81,9 @@ export function parseQuery(queryString: string): QueryParams {
         valueStart = len;
     }
 
-    const key = queryString.slice(keyStart, keyEnd);
+    const key = decodeQueryComponent(queryString.slice(keyStart, keyEnd));
     if (key.length !== 0) {
-        const value = queryString.slice(valueStart, len);
+        const value = decodeQueryComponent(queryString.slice(valueStart, len));
 
         addParam(result, key, value);
     }

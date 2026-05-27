@@ -11,6 +11,7 @@ import { getSelected } from '@/shared/lib/getSelected';
 import { datasetsTestIds } from '../const';
 import {
     selectDataset,
+    selectDatasetReloadVersion,
     selectSelectedDatasetId,
     selectShowUpload,
     setShowUpload,
@@ -34,6 +35,9 @@ export const DatasetsWorkspace = () => {
         () => getSelected(datasetsQuery.data, selectedDatasetId, item => item.dataset.id),
         [datasetsQuery.data, selectedDatasetId]
     );
+    const datasetReloadVersion = useSelector(
+        selectDatasetReloadVersion(selectedDataset?.dataset.id ?? null)
+    );
 
     const handleUploadSuccess = async (datasetId: string) => {
         dispatch(selectDataset(datasetId));
@@ -49,7 +53,7 @@ export const DatasetsWorkspace = () => {
                 data-test-id={datasetsTestIds.workspace}
             >
                 <DatasetPreview
-                    key={selectedDataset?.dataset.id ?? 'none'}
+                    key={`${selectedDataset?.dataset.id ?? 'none'}:${datasetReloadVersion}`}
                     selectedDataset={selectedDataset}
                 />
             </main>

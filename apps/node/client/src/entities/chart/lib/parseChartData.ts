@@ -118,10 +118,38 @@ export const parseChartResult = (
         warnings.push(`Chart preview shows the first ${limit} result rows.`);
     }
 
-    const series = [...seriesByName.entries()].map(([name, points]) => ({
+    let series = [...seriesByName.entries()].map(([name, points]) => ({
         name,
         points,
     }));
+
+    // line cant draw a single-point series (renders as a stray dot) - drop it
+    if (kind === 'line') {
+        series = series.filter(item => item.points.length >= 2);
+    }
+
+    // bar must not render zero-height columns - strip them and drop empty series
+    if (kind === 'bar') {
+        series = series
+            .map(item => ({
+                ...item,
+                points: item.points.filter(point => point.value !== 0),
+            }))
+            .filter(item => item.points.length > 0);
+    }
+
+    // labels follow the surviving points (preserves original category order)
+    const usedLabels = new Set<string>();
+    for (const item of series) {
+        for (const point of item.points) {
+            usedLabels.add(point.label);
+        }
+    }
+    const effectiveLabels =
+        kind === 'line' || kind === 'bar'
+            ? labels.filter(label => usedLabels.has(label))
+            : labels;
+
     const points = series.flatMap(item =>
         item.points.map(point => ({
             label: series.length > 1 ? `${point.label} / ${item.name}` : point.label,
@@ -133,7 +161,7 @@ export const parseChartResult = (
         return {
             points,
             series,
-            labels,
+            labels: effectiveLabels,
             labelTimeGranularity: dimensionColumn?.timeGranularity,
             valueFormat: primaryMeasureColumn?.valueFormat,
             warnings,

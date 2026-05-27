@@ -41,7 +41,7 @@ export const MergePreviewStep = ({
                     </div>
                 ) : (
                     <div className={styles['merge-stat']}>
-                        <dt>Duplicates</dt>
+                        <dt>Matched rows</dt>
                         <dd>{previewResult.statistics.totalDuplicateRows}</dd>
                     </div>
                 )}

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { isValidDatasetCellValue, parseDatasetCellValue } from './datasetCellValue';
+import {
+    formatDatasetCellValue,
+    isValidDatasetCellValue,
+    parseDatasetCellValue,
+} from './datasetCellValue';
 
 describe('dataset cell values', () => {
     it('validates and parses typed values', () => {
@@ -17,6 +21,16 @@ describe('dataset cell values', () => {
         expect(parseDatasetCellValue('2026-05-26', 'date')).toBe(
             '2026-05-26T00:00:00.000Z'
         );
+        expect(isValidDatasetCellValue('2026-02-31', 'date')).toBe(false);
+    });
+
+    it('formats dataset date cells as dd.mm.yyyy', () => {
+        expect(formatDatasetCellValue('2026-01-03', 'date')).toBe('03.01.2026');
+        expect(formatDatasetCellValue('2026-01-03T00:00:00.000Z', 'date')).toBe(
+            '03.01.2026'
+        );
+        expect(formatDatasetCellValue('1.2.2025', 'date')).toBe('01.02.2025');
+        expect(formatDatasetCellValue('Alice', 'string')).toBe('Alice');
     });
 
     it('accepts russian dd.mm.yyyy input that the grid shows by default', () => {

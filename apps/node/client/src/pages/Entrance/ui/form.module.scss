@@ -75,6 +75,19 @@ $standard-transition: 0.33s ease-in-out;
         cursor: wait;
         opacity: 0.65;
     }
+
+    // kill chrome/safari yellow autofill background; long transition keeps it
+    // off the surface, text-fill-color overrides the forced black ink
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+        -webkit-text-fill-color: var(--color-on-surface);
+        caret-color: var(--color-on-surface);
+        transition:
+            background-color 9999s ease-in-out 0s,
+            color $standard-transition;
+    }
 }
 
 .submit-btn {

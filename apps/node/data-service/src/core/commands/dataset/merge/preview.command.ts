@@ -216,6 +216,7 @@ export class PreviewMergeCommand implements Executable<
         let existingRowCount = 0;
         let maxExistingOrderIndex = -1;
         let sourceDatasetName: string | null = null;
+        let sharedNonMerge: string[] = [];
 
         if (input.datasetId !== null) {
             const metadata = await this.datasetRepo.getDatasetMetadataByDatasetId(
@@ -312,13 +313,7 @@ export class PreviewMergeCommand implements Executable<
                     'new files contain only merge keys, nothing to merge'
                 );
             }
-            const sharedNonMerge = nonMergeUnion.filter(k => existingByKey.has(k));
-            if (sharedNonMerge.length === 0) {
-                throw new ValidationError(
-                    [],
-                    'new files have no shared columns with the existing dataset besides merge keys'
-                );
-            }
+            sharedNonMerge = nonMergeUnion.filter(k => existingByKey.has(k));
 
             const violation = await this.datasetRepo.findDuplicateByMergeKeys(
                 input.datasetId,
@@ -397,6 +392,10 @@ export class PreviewMergeCommand implements Executable<
                     }
 
                     for (const col of commonColumns) {
+                        if (!(col.key in match.row)) {
+                            continue;
+                        }
+
                         if (!sameValue(data[col.key], match.row[col.key], col.dataType)) {
                             const rowKey: Record<string, unknown> = {};
                             for (const mk of input.mergeKeys) {
@@ -419,6 +418,13 @@ export class PreviewMergeCommand implements Executable<
                 throw new ValidationError(
                     [],
                     `existing dataset is too large for merge (>${this.config.maxExistingRowsForMerge} rows)`
+                );
+            }
+
+            if (sharedNonMerge.length === 0 && duplicateCount === 0) {
+                throw new ValidationError(
+                    [],
+                    'new files have no shared rows or columns with the existing dataset besides merge keys'
                 );
             }
         }

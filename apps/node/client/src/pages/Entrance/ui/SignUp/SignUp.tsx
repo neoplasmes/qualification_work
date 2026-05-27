@@ -51,6 +51,7 @@ export const SignUp = () => {
                 className={styles['form']}
                 data-stack="v"
                 data-flex
+                autoComplete="off"
                 onSubmit={handleSubmit}
             >
                 <div data-stack="v" data-gap="md" data-flex>
@@ -69,7 +70,13 @@ export const SignUp = () => {
                                 name="name"
                                 className={styles['input']}
                                 type="text"
-                                autoComplete="given-name"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                data-1p-ignore
+                                data-lpignore="true"
+                                data-form-type="other"
                                 placeholder="Jane"
                                 required
                                 disabled={isBusy}
@@ -91,7 +98,13 @@ export const SignUp = () => {
                                 name="family"
                                 className={styles['input']}
                                 type="text"
-                                autoComplete="family-name"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                data-1p-ignore
+                                data-lpignore="true"
+                                data-form-type="other"
                                 placeholder="Doe"
                                 required
                                 disabled={isBusy}
@@ -113,7 +126,13 @@ export const SignUp = () => {
                                 name="email"
                                 type="email"
                                 className={styles['input']}
-                                autoComplete="email"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                data-1p-ignore
+                                data-lpignore="true"
+                                data-form-type="other"
                                 placeholder="name@organization.com"
                                 required
                                 disabled={isBusy}
@@ -136,7 +155,13 @@ export const SignUp = () => {
                                 type="password"
                                 className={styles['input']}
                                 placeholder="••••••••"
-                                autoComplete="new-password"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                data-1p-ignore
+                                data-lpignore="true"
+                                data-form-type="other"
                                 minLength={8}
                                 required
                                 disabled={isBusy}

@@ -6,6 +6,10 @@ export type DatasetsPageState = {
     filterChartIds: string[];
     filterDashboardIds: string[];
     datasetsFilterActiveTab: 'charts' | 'dashboards';
+    // per-dataset counter bumped when something external invalidates the preview
+    // (e.g. merge commit). drives the DatasetPreview key so it fully remounts and
+    // refetches rows without resetting on unrelated metadata changes like rename
+    datasetReloadVersions: Record<string, number>;
 };
 
 type StateWithDatasetsPage = { datasetsPage: DatasetsPageState };
@@ -16,6 +20,7 @@ export const datasetsPageInitialState: DatasetsPageState = {
     filterChartIds: [],
     filterDashboardIds: [],
     datasetsFilterActiveTab: 'charts',
+    datasetReloadVersions: {},
 };
 
 export const datasetsPageSlice = createSlice({
@@ -58,6 +63,10 @@ export const datasetsPageSlice = createSlice({
         ) {
             state.datasetsFilterActiveTab = action.payload;
         },
+        bumpDatasetReloadVersion(state, action: PayloadAction<string>) {
+            const id = action.payload;
+            state.datasetReloadVersions[id] = (state.datasetReloadVersions[id] ?? 0) + 1;
+        },
     },
 });
 
@@ -69,6 +78,7 @@ export const {
     clearChartFilter,
     clearDashboardFilter,
     setDatasetsFilterActiveTab,
+    bumpDatasetReloadVersion,
 } = datasetsPageSlice.actions;
 
 export const selectSelectedDatasetId = (state: StateWithDatasetsPage) =>
@@ -81,3 +91,8 @@ export const selectFilterDashboardIds = (state: StateWithDatasetsPage) =>
     state.datasetsPage.filterDashboardIds;
 export const selectDatasetsFilterActiveTab = (state: StateWithDatasetsPage) =>
     state.datasetsPage.datasetsFilterActiveTab;
+export const selectDatasetReloadVersion =
+    (datasetId: string | null) => (state: StateWithDatasetsPage) =>
+        datasetId === null
+            ? 0
+            : (state.datasetsPage.datasetReloadVersions[datasetId] ?? 0);

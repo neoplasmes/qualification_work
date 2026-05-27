@@ -26,6 +26,7 @@ export type MergePreviewResult = {
 export type MergeCommitResult = {
     datasetId: string;
     insertedRows: number;
+    updatedRows: number;
     skippedDuplicates: number;
     copiedRows: number;
 };

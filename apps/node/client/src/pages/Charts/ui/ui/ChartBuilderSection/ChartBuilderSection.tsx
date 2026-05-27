@@ -76,7 +76,12 @@ export const EditChartBuilderSection = ({
         orgId={orgId}
         selectedDataset={dataset}
         editChartId={chart.id}
-        initialFields={configToBuilderFields(chart.config, chart.chartType)}
+        // pass chart.name explicitly: builder state defaults to a per-dataset LS entry
+        // which is shared across charts and would otherwise clobber the saved name on save
+        initialFields={{
+            ...configToBuilderFields(chart.config, chart.chartType),
+            chartName: chart.name,
+        }}
         onChartUpdated={onChartUpdated}
     />
 );

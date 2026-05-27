@@ -9,9 +9,12 @@ vi.mock('./LineChart', () => ({
     ),
 }));
 
+// two points per series; single-point series are filtered out from line charts
 const lineRows = [
     ['2026-03-01T00:00:00.000Z', 'Alice', 12000],
-    ['2026-04-01T00:00:00.000Z', 'Bob', 14000],
+    ['2026-04-01T00:00:00.000Z', 'Alice', 13000],
+    ['2026-03-01T00:00:00.000Z', 'Bob', 14000],
+    ['2026-04-01T00:00:00.000Z', 'Bob', 15000],
 ];
 
 describe('ChartResult line legends', () => {

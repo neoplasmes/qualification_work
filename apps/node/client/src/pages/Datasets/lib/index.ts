@@ -1,4 +1,8 @@
-export { isValidDatasetCellValue, parseDatasetCellValue } from './datasetCellValue';
+export {
+    formatDatasetCellValue,
+    isValidDatasetCellValue,
+    parseDatasetCellValue,
+} from './datasetCellValue';
 export {
     filterDatasets,
     getChartIdsInDashboards,

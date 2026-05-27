@@ -1,9 +1,11 @@
 export {
+    bumpDatasetReloadVersion,
     clearChartFilter,
     clearDashboardFilter,
     datasetsPageInitialState,
     datasetsPageSlice,
     selectDataset,
+    selectDatasetReloadVersion,
     selectDatasetsFilterActiveTab,
     selectFilterChartIds,
     selectFilterDashboardIds,

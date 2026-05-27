@@ -14,7 +14,11 @@ import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
 import { PanelPlaceholder } from '@/shared/ui';
 
-import { selectDataset, selectSelectedDatasetId } from '../../../model';
+import {
+    bumpDatasetReloadVersion,
+    selectDataset,
+    selectSelectedDatasetId,
+} from '../../../model';
 
 import { DatasetDetails } from '../DatasetDetails';
 import { MergeDatasetModal } from '../MergeDatasetModal';
@@ -62,8 +66,9 @@ export const DatasetsPropertiesPanel = () => {
     };
 
     const handleRenameDataset = async (name: string) => {
+        // editor only renders when a dataset is selected; bail loudly if invariant breaks
         if (!selectedDataset) {
-            return;
+            throw new Error('No dataset selected for rename.');
         }
 
         setDatasetError('');
@@ -106,6 +111,9 @@ export const DatasetsPropertiesPanel = () => {
                     onSuccess={async datasetId => {
                         dispatch(selectDataset(datasetId));
                         await datasetsQuery.refetch();
+                        // server doesnt bump dataset.updatedAt on merge, so signal the
+                        // preview explicitly to remount and refetch rows + columns
+                        dispatch(bumpDatasetReloadVersion(datasetId));
                     }}
                     onClose={() => setShowMerge(false)}
                 />

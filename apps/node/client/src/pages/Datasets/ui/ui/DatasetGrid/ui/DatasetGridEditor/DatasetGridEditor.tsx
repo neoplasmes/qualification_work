@@ -12,10 +12,8 @@ import '@glideapps/glide-data-grid/dist/index.css';
 
 import { useCallback, useEffect, useMemo, useRef, type ComponentProps } from 'react';
 
-import { formatChartCell } from '@/entities/chart';
-
 import { GRID_THEME, HEADER_H, ROW_H } from '../../../../../const';
-import { isValidDatasetCellValue } from '../../../../../lib';
+import { formatDatasetCellValue, isValidDatasetCellValue } from '../../../../../lib';
 
 import type { DatasetGridEditorProps } from '../../types';
 import { useColumnWidths } from './useColumnWidths';
@@ -40,32 +38,74 @@ export const DatasetGridEditor = ({
     onVisibleRangeChange,
 }: DatasetGridEditorProps) => {
     const gridRef = useRef<DataEditorRef>(null);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const scrollerRef = useRef<HTMLElement | null>(null);
     const { widths, setColumnWidth } = useColumnWidths(datasetId);
     const draftIndex = insertDraft?.visualIndex ?? null;
     const rowCount = totalRows + (insertDraft ? 1 : 0);
 
-    const reportDraftBounds = useCallback(() => {
+    // read row position straight from the DOM scroller, bypasses glide's
+    // React-state lag where visibleRegion lags one render behind scrollTop
+    const measureDraftBounds = useCallback(() => {
         if (draftIndex === null) {
             onDraftRowBoundsChange(null);
 
             return;
         }
 
-        // any column gives same y/height for the row
-        const bounds = gridRef.current?.getBounds(0, draftIndex);
-        if (!bounds) {
-            onDraftRowBoundsChange(null);
+        const scroller = scrollerRef.current;
+        if (!scroller) {
+            return;
+        }
+
+        const rect = scroller.getBoundingClientRect();
+        const y = rect.top + HEADER_H + draftIndex * ROW_H - scroller.scrollTop;
+        onDraftRowBoundsChange({ y, height: ROW_H });
+    }, [draftIndex, onDraftRowBoundsChange]);
+
+    // locate the inner scroller once it appears
+    useEffect(() => {
+        const wrapper = wrapperRef.current;
+        if (!wrapper) {
+            return;
+        }
+
+        const found = wrapper.querySelector<HTMLElement>('.dvn-scroller');
+        if (found) {
+            scrollerRef.current = found;
 
             return;
         }
 
-        onDraftRowBoundsChange({ y: bounds.y, height: bounds.height });
-    }, [draftIndex, onDraftRowBoundsChange]);
+        const mo = new MutationObserver(() => {
+            const el = wrapper.querySelector<HTMLElement>('.dvn-scroller');
+            if (el) {
+                scrollerRef.current = el;
+                mo.disconnect();
+                measureDraftBounds();
+            }
+        });
+        mo.observe(wrapper, { childList: true, subtree: true });
 
-    // recompute when draft index changes or grid resizes
+        return () => mo.disconnect();
+    }, [measureDraftBounds]);
+
+    // re-measure on draft change, resize, or scroll
     useEffect(() => {
-        reportDraftBounds();
-    }, [reportDraftBounds, gridWidth, gridHeight]);
+        measureDraftBounds();
+    }, [measureDraftBounds, gridWidth, gridHeight]);
+
+    useEffect(() => {
+        const scroller = scrollerRef.current;
+        if (!scroller || draftIndex === null) {
+            return;
+        }
+
+        const onScroll = () => measureDraftBounds();
+        scroller.addEventListener('scroll', onScroll, { passive: true });
+
+        return () => scroller.removeEventListener('scroll', onScroll);
+    }, [draftIndex, measureDraftBounds]);
 
     useEffect(() => {
         if (draftIndex === null) {
@@ -76,10 +116,8 @@ export const DatasetGridEditor = ({
             vAlign: 'end',
         });
 
-        const frame = window.requestAnimationFrame(reportDraftBounds);
-
-        return () => window.cancelAnimationFrame(frame);
-    }, [draftIndex, reportDraftBounds]);
+        measureDraftBounds();
+    }, [draftIndex, measureDraftBounds]);
 
     // jump to last row when parent bumps the signal
     useEffect(() => {
@@ -144,7 +182,7 @@ export const DatasetGridEditor = ({
 
             const rawValue =
                 displayEdits.get(dataRow.id)?.[column.key] ?? dataRow.data[column.key];
-            const display = formatChartCell(rawValue);
+            const display = formatDatasetCellValue(rawValue, column.dataType);
 
             return {
                 kind: GridCellKind.Text,
@@ -209,10 +247,8 @@ export const DatasetGridEditor = ({
             const startRow = range.y;
             const endRow = Math.max(range.y, range.y + range.height - 1);
             onVisibleRangeChange(startRow, endRow);
-
-            reportDraftBounds();
         },
-        [onVisibleRangeChange, reportDraftBounds]
+        [onVisibleRangeChange]
     );
 
     const validateCell = useCallback(
@@ -231,27 +267,29 @@ export const DatasetGridEditor = ({
     );
 
     return (
-        <DataEditor
-            ref={gridRef}
-            theme={GRID_THEME}
-            columns={gridColumns}
-            rows={rowCount}
-            getCellContent={getCellContent}
-            onCellEdited={onCellEdited}
-            validateCell={validateCell}
-            onCellContextMenu={handleCellContextMenu}
-            onColumnResize={handleColumnResize}
-            onVisibleRegionChanged={onVisibleRegionChanged}
-            rowMarkers="number"
-            headerHeight={HEADER_H}
-            rowHeight={ROW_H}
-            width={gridWidth}
-            height={gridHeight}
-            cellActivationBehavior="double-click"
-            overscrollY={insertDraft ? DRAFT_ROW_OVERSCROLL_Y : undefined}
-            smoothScrollX
-            smoothScrollY
-        />
+        <div ref={wrapperRef} style={{ width: gridWidth, height: gridHeight }}>
+            <DataEditor
+                ref={gridRef}
+                theme={GRID_THEME}
+                columns={gridColumns}
+                rows={rowCount}
+                getCellContent={getCellContent}
+                onCellEdited={onCellEdited}
+                validateCell={validateCell}
+                onCellContextMenu={handleCellContextMenu}
+                onColumnResize={handleColumnResize}
+                onVisibleRegionChanged={onVisibleRegionChanged}
+                rowMarkers="number"
+                headerHeight={HEADER_H}
+                rowHeight={ROW_H}
+                width={gridWidth}
+                height={gridHeight}
+                cellActivationBehavior="double-click"
+                overscrollY={insertDraft ? DRAFT_ROW_OVERSCROLL_Y : undefined}
+                smoothScrollX
+                smoothScrollY
+            />
+        </div>
     );
 };
 

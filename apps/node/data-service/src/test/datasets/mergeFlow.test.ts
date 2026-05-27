@@ -204,6 +204,71 @@ describe('merge into existing dataset', () => {
         expect('city' in (diana?.data ?? {})).toBe(false);
     });
 
+    it('merge mode joins new columns into matched rows and appends unmatched rows', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId, 'mergeBase.csv');
+
+        const previewRes = await mergePreview({ orgId, datasetId, mergeKeys: ['id'] }, [
+            { fileName: 'mergeEnrichment.csv' },
+        ]);
+
+        expect(previewRes.status).toBe(200);
+        const preview = (await previewRes.json()) as {
+            sessionId: string;
+            statistics: {
+                totalNewRows: number;
+                totalDuplicateRows: number;
+                newColumns: Array<{ key: string }>;
+            };
+        };
+
+        expect(preview.statistics.totalNewRows).toBe(1);
+        expect(preview.statistics.totalDuplicateRows).toBe(2);
+        expect(preview.statistics.newColumns.map(c => c.key)).toEqual([
+            'segment',
+            'score',
+        ]);
+
+        const commitRes = await mergeCommit(preview.sessionId, orgId);
+        expect(commitRes.status).toBe(200);
+        const commit = (await commitRes.json()) as {
+            insertedRows: number;
+            updatedRows: number;
+            skippedDuplicates: number;
+        };
+
+        expect(commit.insertedRows).toBe(1);
+        expect(commit.updatedRows).toBe(2);
+        expect(commit.skippedDuplicates).toBe(2);
+
+        const rows = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows
+             WHERE dataset_id = $1 ORDER BY row_index`,
+            [datasetId]
+        );
+
+        expect(rows).toHaveLength(4);
+        expect(rows[0].data).toMatchObject({
+            id: '1',
+            name: 'Alice',
+            city: 'Paris',
+            segment: 'VIP',
+            score: 90,
+        });
+        expect(rows[1].data).toMatchObject({
+            id: '2',
+            name: 'Bob',
+            segment: 'Regular',
+            score: 72,
+        });
+        expect(rows[3].data).toMatchObject({
+            id: 4,
+            segment: 'New',
+            score: 81,
+        });
+        expect('name' in rows[3].data).toBe(false);
+    });
+
     it('preview returns 409 on conflicting values for the same merge key', async () => {
         const { orgId } = await createTestUserWithOrg();
         const datasetId = await uploadDataset(orgId, 'mergeBase.csv');

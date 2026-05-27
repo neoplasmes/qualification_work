@@ -64,7 +64,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const gridHeight = Math.max(gridSize.h, HEADER_H + ROW_H);
     const datasetId = selectedDataset?.dataset.id;
 
-    // viewport bounds -> grid-container-relative top (vertical center of the row)
+    // viewport bounds -> grid-container-relative top of the row
     const handleDraftRowBoundsChange = useCallback(
         (bounds: DraftRowBounds | null) => {
             if (!bounds) {
@@ -75,7 +75,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
 
             const containerTop =
                 gridContainerRef.current?.getBoundingClientRect().top ?? 0;
-            setDraftRowTop(bounds.y - containerTop + bounds.height / 2);
+            setDraftRowTop(bounds.y - containerTop);
         },
         [gridContainerRef]
     );
@@ -90,7 +90,8 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         setIsAtBottom(false);
     }, []);
 
-    // reset cache on dataset switch
+    // reset cache only on dataset switch; external reloads (e.g. merge commit)
+    // are handled by remounting via the parent's key, not by reacting to metadata
     useEffect(() => {
         resetCache();
         setInsertDraft(null);

@@ -27,4 +27,50 @@ describe('parseChartResult', () => {
             'Wednesday',
         ]);
     });
+
+    it('drops single-point series for line charts', () => {
+        const result = parseChartResult(
+            {
+                columns: [
+                    { name: 'date', role: 'dim' },
+                    { name: 'who', role: 'series' },
+                    { name: 'm0', role: 'measure' },
+                ],
+                rows: [
+                    ['2026-01-01', 'Alice', 10],
+                    ['2026-02-01', 'Alice', 12],
+                    ['2026-01-01', 'Bob', 99],
+                ],
+            },
+            'line',
+            10
+        );
+
+        expect(result.series.map(s => s.name)).toEqual(['Alice']);
+        expect(result.labels).toEqual(['2026-01-01', '2026-02-01']);
+    });
+
+    it('removes zero-value bars and drops empty series', () => {
+        const result = parseChartResult(
+            {
+                columns: [
+                    { name: 'dim', role: 'dim' },
+                    { name: 'who', role: 'series' },
+                    { name: 'm0', role: 'measure' },
+                ],
+                rows: [
+                    ['A', 'Alice', 10],
+                    ['B', 'Alice', 0],
+                    ['A', 'Bob', 0],
+                    ['B', 'Bob', 0],
+                ],
+            },
+            'bar',
+            10
+        );
+
+        expect(result.series.map(s => s.name)).toEqual(['Alice']);
+        expect(result.series[0].points.map(p => p.value)).toEqual([10]);
+        expect(result.labels).toEqual(['A']);
+    });
 });

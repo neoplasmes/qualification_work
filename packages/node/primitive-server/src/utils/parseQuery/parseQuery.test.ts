@@ -47,11 +47,19 @@ describe('parseQuery', () => {
         expect(parseQuery('&a=1')).toEqual({ a: '1' });
     });
 
-    it('кидает ошибку на процент', () => {
-        expect(() => parseQuery('a=%20')).toThrow();
+    it('декодирует percent-encoded значения', () => {
+        expect(
+            parseQuery(
+                'name=%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B8%20%D0%B7%D0%B8%D0%BC%D0%B0'
+            )
+        ).toEqual({ name: 'Продажи зима' });
     });
 
-    it('кидает ошибку на плюс', () => {
-        expect(() => parseQuery('a=hello+world')).toThrow();
+    it('декодирует плюс как пробел', () => {
+        expect(parseQuery('name=hello+world')).toEqual({ name: 'hello world' });
+    });
+
+    it('декодирует percent-encoded ключи', () => {
+        expect(parseQuery('%D0%B8%D0%BC%D1%8F=value')).toEqual({ имя: 'value' });
     });
 });

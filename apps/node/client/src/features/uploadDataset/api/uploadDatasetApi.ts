@@ -67,7 +67,16 @@ export const uploadDatasetApi = api.injectEndpoints({
                 url: `/data/datasets/merge/${sessionId}/commit?orgId=${encodeURIComponent(orgId)}`,
                 method: 'POST',
             }),
-            invalidatesTags: [{ type: 'Datasets', id: 'LIST' }],
+            // resulting datasetId can be either existing or freshly-created -> invalidate
+            // both metadata and rows so the preview/grid reload right after commit
+            invalidatesTags: result =>
+                result
+                    ? [
+                          { type: 'Datasets', id: 'LIST' },
+                          { type: 'Datasets', id: result.datasetId },
+                          { type: 'DatasetRows', id: result.datasetId },
+                      ]
+                    : [{ type: 'Datasets', id: 'LIST' }],
         }),
         mergeCancel: builder.mutation<void, string>({
             query: sessionId => ({

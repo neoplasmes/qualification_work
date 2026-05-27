@@ -79,7 +79,7 @@ describe('ChartConfigSummary', () => {
         expect(text).toContain('Bar');
         expect(text).toContain('Sum of Выручка');
         expect(text).toContain('per Категория');
-        expect(text).toContain('colored by Дата');
+        expect(text).toContain('separated by Дата');
         expect(text).toContain('top 5');
         expect(text).toContain('rest grouped');
     });

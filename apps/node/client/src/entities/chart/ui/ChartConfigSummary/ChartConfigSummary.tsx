@@ -212,7 +212,7 @@ export const ChartConfigSummary = ({ chartType, config, columns, className }: Pr
                 {renderGrouping(dim.grouping)}
                 {series && series.columnId && (
                     <>
-                        , colored by <Col id={series.columnId} />
+                        , separated by <Col id={series.columnId} />
                         {typeof series.topN === 'number' && (
                             <>
                                 {' '}

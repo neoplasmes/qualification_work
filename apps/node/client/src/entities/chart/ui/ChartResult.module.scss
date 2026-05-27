@@ -12,7 +12,7 @@
 }
 
 .visual-only {
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
 }
 
@@ -26,7 +26,6 @@
     align-items: center;
     justify-content: center;
 
-    height: 100%;
     min-height: 360px;
 
     > * {

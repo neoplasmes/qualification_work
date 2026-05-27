@@ -68,8 +68,10 @@ export const ChartsPropertiesPanel = () => {
     };
 
     const handleRenameChart = async (name: string) => {
+        // editor only renders when a chart is selected; bail loudly if invariant breaks
+        // (silent return would leave the editor showing the new name while server keeps old)
         if (!selectedChart) {
-            return;
+            throw new Error('No chart selected for rename.');
         }
 
         try {

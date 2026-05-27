@@ -10,6 +10,8 @@
   - [Single beefy machine](#single-beefy-machine)
   - [Three-node cluster (1 control-plane + agent, 2 agents)](#three-node-cluster-1-control-plane--agent-2-agents)
   - [Tuning resource limits and replicas](#tuning-resource-limits-and-replicas)
+- [Monorepo layout](#monorepo-layout)
+- [Tech stack](#tech-stack)
 
 node.js version - 24.14.0 (LTS на март 2026)
 
@@ -364,3 +366,76 @@ kubectl get events -n app --field-selector reason=OOMKilling
 ```
 
 If a pod is repeatedly OOMKilled, bump `limits.memory`. If CPU throttling shows up in `kubectl top` (usage stuck at the limit), raise `limits.cpu` or scale replicas.
+
+# Monorepo layout
+
+Two language workspaces sit side by side: Node packages are wired through `pnpm` workspaces + catalogs (`pnpm-workspace.yaml`); Go modules use their own `go.mod` per project. `moon` runs tasks across both.
+
+```
+.
+├── apps/
+│   ├── node/
+│   │   ├── client/         SSR React frontend (Vite + custom Node SSR entrypoint)
+│   │   ├── server/         BFF/API gateway facing the client; auth + dashboards + chart proxying
+│   │   └── data-service/   Domain microservice: datasets, rows, charts, merges, CSV/XLSX ingest
+│   └── go/
+│       └── auth/           JWT issuer + session store; RSA keys, Postgres, Redis (gin)
+├── packages/
+│   ├── node/
+│   │   ├── primitive-server/        Zero-dep HTTP framework used by server + data-service
+│   │   ├── microservice-utils/      Shared utilities: zod parsing, pg helpers, internal JWT verify
+│   │   ├── microservice-config/     Reusable tsconfig/oxlint/prettier/vitest presets
+│   │   ├── redis-cache/             Thin cache layer over node-redis (catalog version)
+│   │   ├── types/                   Cross-service domain types
+│   │   └── eslint-plugin-fsd/       Local oxlint plugin enforcing FSD layer boundaries
+│   └── go/
+│       └── openresty-discovery/     k8s-aware sidecar that rewrites the OpenResty upstream list
+├── e2e/
+│   ├── backend/                     vitest-driven HTTP scenarios against the running stack
+│   ├── frontend/                    Playwright scenarios with per-test docker-compose fixtures
+│   └── docker-compose/              Compose definition + keys + openresty/pgbouncer config used by e2e
+├── infrastructure/                  Postgres schema + PgBouncer config baked into images
+├── k8s/                             Manifests + helmfile for k3s (single-node + multi-node recipes)
+├── deploy/                          Compose-based VPS deploy recipes (currently client)
+├── scripts/                         ghcr.io image push, kustomize-driven migration apply
+└── generation/                      Code-gen utilities (e.g. tests / fixtures)
+```
+
+Service-side architecture is hexagonal: each Node service has `core/` (domain + ports), `adapters/driven/` (Postgres repos, Redis cache, tmp storage), `adapters/driving/` (HTTP handlers via `primitive-server`). The Go auth service follows the same split (`internal/core` + `internal/adapters`).
+
+# Tech stack
+
+**Frontend** (`apps/node/client`)
+- React 19 + React Router 7 with custom Node SSR entrypoint (Vite SSR build, hydration via `entry.client.tsx`)
+- Redux Toolkit + RTK Query for data fetching and tag-based cache invalidation
+- Visx for charts (line/bar/heatmap/pie); `@glideapps/glide-data-grid` for the dataset grid
+- SCSS modules + Stylelint; lucide-react icons; framer/motion for transitions
+- FSD architecture enforced by a local oxlint plugin
+
+**Backend** (`apps/node/server`, `apps/node/data-service`)
+- TypeScript 6 on Node 24 LTS, ESM only
+- `primitive-server` (in-house, zero-dep HTTP framework) instead of Fastify/Express
+- Postgres via `pg` (catalog-pinned) over PgBouncer; Redis via `node-redis`
+- `csv-parse` + `exceljs` for ingestion; streaming merges with on-disk tmp storage
+- `zod` validation; `jose` for internal service-to-service JWTs
+
+**Auth service** (`apps/go/auth`)
+- Go 1.26 + gin; `pgx/v5` for Postgres, `go-redis/v9` for Redis, argon2id passwords
+- RS256 JWT issuance; key loaded from a k8s secret
+
+**Edge / discovery**
+- OpenResty (nginx + Lua) as the cluster ingress gateway
+- `openresty-discovery` Go sidecar watches k8s endpoints and hot-reloads upstreams
+
+**Shared platform**
+- pnpm workspaces with catalog version pinning (`pg`, `redis`, `zod`, build tools)
+- moon as the task runner across Node + Go packages
+- oxlint (TS), Stylelint (SCSS), Prettier; commitlint + lefthook for git hooks
+- vitest for unit/integration; Playwright for browser E2E
+- Conventional Commits enforced by commitlint config
+
+**Build / deploy**
+- tsup for service bundles, Vite for the SSR client
+- Multi-stage Dockerfiles; images published to `ghcr.io`
+- k3s/k3d for orchestration; bitnami helm charts (postgres, redis) driven by helmfile
+- Kustomize overlays for the application manifests; metrics-server preinstalled with k3s

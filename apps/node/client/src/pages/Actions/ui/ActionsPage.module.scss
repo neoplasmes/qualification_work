@@ -1,17 +1,9 @@
-.panel,
 .workspace {
+    container-type: inline-size;
     overflow: auto;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: var(--spacing-md);
 
     min-width: 0;
     min-height: 0;
-}
-
-.workspace {
-    padding: var(--spacing-md);
 }
 
 .eyebrow {
@@ -67,9 +59,6 @@
 
 .empty,
 .placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     min-height: 96px;
 
     font-size: var(--font-size-sm);
@@ -77,19 +66,10 @@
 }
 
 .placeholder {
-    flex: 1;
     min-height: 240px;
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: rgb(255 255 255 / 25%);
-}
-
-.header-row,
-.card-header {
-    display: flex;
-    gap: var(--spacing-sm);
-    align-items: flex-start;
-    justify-content: space-between;
 }
 
 .tab-count,
@@ -154,8 +134,6 @@
 .stack,
 .history-list,
 .filter-list {
-    display: grid;
-    gap: var(--spacing-sm);
     align-content: start;
 }
 
@@ -211,16 +189,4 @@
 
     font-size: var(--font-size-xs);
     color: var(--color-on-surface-variant);
-}
-
-.card,
-.run-card {
-    display: grid;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-}
-
-.right-section {
-    display: grid;
-    gap: var(--spacing-md);
 }

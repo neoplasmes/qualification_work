@@ -4,6 +4,8 @@ export { DeleteRowCommand, type DeleteRowInput } from './deleteRow.command';
 export type { DeleteRowCommandIO } from './deleteRow.command';
 export { InsertRowCommand, type InsertRowInput } from './insertRow.command';
 export type { InsertRowCommandIO } from './insertRow.command';
+export { PatchDatasetCommand, type PatchDatasetPayload } from './patch.command';
+export type { PatchDatasetCommandIO } from './patch.command';
 export {
     CancelMergeCommand,
     type CancelMergeInput,

@@ -179,49 +179,82 @@ describe('DashboardsWorkspace', () => {
         mocks.refetchDashboard.mockResolvedValue(undefined);
     });
 
-    it('renames dashboard from workspace title', async () => {
-        const user = userEvent.setup();
+    it('keeps dashboard title editing out of the central workspace', () => {
         const { container } = renderWorkspace();
-
-        await user.click(getByDataTestId(container, dashboardsTestIds.renameButton));
-
-        const nameInput = getByDataTestId<HTMLInputElement>(
-            container,
-            dashboardsTestIds.renameInput
-        );
-
-        await user.clear(nameInput);
-        await user.type(nameInput, 'Operations');
-        await user.click(screen.getByRole('button', { name: 'Save name' }));
-
-        await waitFor(() => expect(mocks.renameDashboard).toHaveBeenCalledTimes(1));
-        expect(mocks.renameDashboard).toHaveBeenCalledWith({
-            dashboardId: 'dashboard-1',
-            name: 'Operations',
-        });
-    });
-
-    it('does not render duplicate rename form in edit mode', async () => {
-        const user = userEvent.setup();
-        const { container } = renderWorkspace();
-
-        await user.click(getByDataTestId(container, dashboardsTestIds.workspaceEditTab));
 
         expect(
-            container.querySelector(`[data-test-id="${dashboardsTestIds.renameForm}"]`)
+            container.querySelector(`[data-test-id="${dashboardsTestIds.renameButton}"]`)
         ).toBeNull();
     });
 
-    it('adds chart and metric widgets from central controls', async () => {
+    it('renders add widget actions without workspace mode tabs', () => {
+        const { container } = renderWorkspace();
+
+        expect(
+            container.querySelector(
+                `[data-test-id="${dashboardsTestIds.workspaceViewTab}"]`
+            )
+        ).toBeNull();
+        expect(
+            container.querySelector(
+                `[data-test-id="${dashboardsTestIds.workspaceEditTab}"]`
+            )
+        ).toBeNull();
+        expect(
+            getByDataTestId(container, dashboardsTestIds.openAddMetricModalButton)
+        ).toBeInTheDocument();
+        expect(
+            getByDataTestId(container, dashboardsTestIds.openAddChartModalButton)
+        ).toBeInTheDocument();
+    });
+
+    it('keeps manually edited metric name when builder changes', async () => {
         const user = userEvent.setup();
         const { container } = renderWorkspace();
 
-        await user.click(getByDataTestId(container, dashboardsTestIds.workspaceEditTab));
+        await user.click(
+            getByDataTestId(container, dashboardsTestIds.openAddMetricModalButton)
+        );
 
+        const nameInput = getByDataTestId<HTMLInputElement>(
+            container,
+            dashboardsTestIds.metricNameInput
+        );
+
+        await waitFor(() => expect(nameInput).toHaveValue('Average Score'));
+        await user.clear(nameInput);
+        await user.type(nameInput, 'Manual metric');
+        await user.selectOptions(
+            getByDataTestId(container, dashboardsTestIds.metricAggregateSelect),
+            'sum'
+        );
+
+        await waitFor(() => expect(nameInput).toHaveValue('Manual metric'));
+        expect(
+            getByDataTestId(container, dashboardsTestIds.metricExpressionInput)
+        ).toHaveValue('sum(score)');
+    });
+
+    it('adds chart and metric widgets from modals', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace();
+
+        await user.click(
+            getByDataTestId(container, dashboardsTestIds.openAddChartModalButton)
+        );
+        expect(screen.getByRole('dialog', { name: 'Add chart' })).toBeInTheDocument();
         await user.click(getByDataTestId(container, dashboardsTestIds.addChartButton));
-        await user.type(
-            getByDataTestId(container, dashboardsTestIds.metricNameInput),
-            'Average'
+
+        await waitFor(() => expect(mocks.addDashboardChart).toHaveBeenCalledTimes(1));
+
+        await user.click(
+            getByDataTestId(container, dashboardsTestIds.openAddMetricModalButton)
+        );
+        expect(screen.getByRole('dialog', { name: 'Add metric' })).toBeInTheDocument();
+        await waitFor(() =>
+            expect(
+                getByDataTestId(container, dashboardsTestIds.metricNameInput)
+            ).toHaveValue('Average Score')
         );
         await user.selectOptions(
             getByDataTestId(container, dashboardsTestIds.metricFormatSelect),
@@ -229,7 +262,6 @@ describe('DashboardsWorkspace', () => {
         );
         await user.click(getByDataTestId(container, dashboardsTestIds.addMetricButton));
 
-        await waitFor(() => expect(mocks.addDashboardChart).toHaveBeenCalledTimes(1));
         await waitFor(() => expect(mocks.addDashboardMetric).toHaveBeenCalledTimes(1));
         expect(mocks.addDashboardChart).toHaveBeenCalledWith({
             dashboardId: 'dashboard-1',
@@ -239,7 +271,7 @@ describe('DashboardsWorkspace', () => {
         expect(mocks.addDashboardMetric).toHaveBeenCalledWith({
             dashboardId: 'dashboard-1',
             datasetId: 'dataset-1',
-            name: 'Average',
+            name: 'Average Score',
             expression: 'avg(score)',
             format: 'percent',
             height: 4,

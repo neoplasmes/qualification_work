@@ -22,7 +22,7 @@ $spacing-map: (
     --radius-lg: 2rem;
 }
 
-$display-values: block, inline, inline-block, flex, grid, none;
+$display-values: block, inline, inline-block, inline-flex, flex, grid, none;
 
 @each $value in $display-values {
     [data-display='#{$value}'] {
@@ -78,6 +78,14 @@ $display-values: block, inline, inline-block, flex, grid, none;
 
 [data-wrap='nowrap'] {
     flex-wrap: nowrap;
+}
+
+[data-grow] {
+    flex-grow: 1;
+}
+
+[data-flex] {
+    flex: 1;
 }
 
 @each $key, $value in $spacing-map {

@@ -136,7 +136,7 @@ export const WorkspaceLayout = () => {
                         LazyComponent={Left}
                     />
                 </WorkspaceGrid.Panel>
-                <WorkspaceGrid.Panel initialSize="800px" minSize="600px" maxSize="9999px">
+                <WorkspaceGrid.Panel initialSize="800px" minSize="700px" maxSize="9999px">
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Center}

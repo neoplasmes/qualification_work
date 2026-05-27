@@ -1,3 +1,5 @@
+import { formatNumberWithSpaces } from '@/shared/lib/formatNumberWithSpaces';
+
 import type { MeasureValueFormat, TimeGranularity } from '../api';
 
 // matches ISO datetime with timezone: 2024-01-15T10:00:00.000Z or 2024-01-15T10:00:00+03:00
@@ -20,7 +22,9 @@ type FormatChartCellOptions = {
 };
 
 const formatPlainNumber = (value: number, fractionDigits = 2): string =>
-    Number.isInteger(value) ? String(value) : value.toFixed(fractionDigits);
+    formatNumberWithSpaces(
+        Number.isInteger(value) ? String(value) : value.toFixed(fractionDigits)
+    );
 
 const decorateNumber = (value: string, format: MeasureValueFormat = 'number') => {
     if (format === 'rub') {

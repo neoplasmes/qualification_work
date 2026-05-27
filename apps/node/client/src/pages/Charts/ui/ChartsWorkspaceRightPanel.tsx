@@ -8,8 +8,8 @@ import {
     setChartsRightPanelTab,
     type ChartsRightPanelTab,
 } from '../model';
-import { ChartsFilterPanel } from './components/ChartsFilterPanel';
-import { ChartsPropertiesPanel } from './components/ChartsPropertiesPanel';
+import { ChartsFilterPanel } from './ui/ChartsFilterPanel';
+import { ChartsPropertiesPanel } from './ui/ChartsPropertiesPanel';
 
 const CHARTS_WORKSPACE_RIGHT_PANEL_TABS = [
     'properties',

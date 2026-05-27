@@ -1,0 +1,38 @@
+.preview {
+    min-height: 0;
+}
+
+.grid-container {
+    position: relative;
+    min-height: 0;
+}
+
+.floating-actions {
+    position: absolute;
+    right: var(--spacing-md);
+    transform: translateY(-50%);
+    z-index: 15;
+
+    padding: var(--spacing-xs);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    background: var(--color-surface-container-high);
+    box-shadow: 0 18px 40px rgb(0 0 0 / 35%);
+}
+
+.scroll-bottom-anchor {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: 50%;
+    z-index: 16;
+    transform: translateX(-50%);
+}
+
+.scroll-bottom {
+    border: 1px solid var(--color-outline-new);
+    border-radius: 50%;
+
+    background: var(--color-surface-container-high);
+    box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
+}

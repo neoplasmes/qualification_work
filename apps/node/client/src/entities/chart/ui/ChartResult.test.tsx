@@ -77,6 +77,6 @@ describe('ChartResult', () => {
         );
 
         expect(screen.getByRole('cell', { name: '05.2026' })).toBeVisible();
-        expect(screen.getByRole('cell', { name: '1500000 ₽' })).toBeVisible();
+        expect(screen.getByRole('cell', { name: '1 500 000 ₽' })).toBeVisible();
     });
 });

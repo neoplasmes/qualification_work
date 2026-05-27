@@ -1,10 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
-import {
-    getInternalIdentity,
-} from '@qualification-work/microservice-utils/internalAuth';
 import { parseWithZod } from '@qualification-work/microservice-utils';
+import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
 
 import type { PreviewMergeCommand } from '@/core/commands';
 import { ValidationError } from '@/core/errors';
@@ -18,6 +16,8 @@ const previewSchema = z.object({
     orgId: z.uuid(),
     datasetId: z.uuid().nullable(),
     name: z.string().min(1).max(255).nullable(),
+    mode: z.enum(['append', 'merge']).default('merge'),
+    createNew: z.boolean().default(false),
     mergeKeys: z.array(z.string().min(1)),
 });
 
@@ -27,7 +27,7 @@ export type MergePreviewHandlerConfig = {
 
 /**
  * POST /datasets/merge/preview
- * query: orgId, datasetId?, name?, mergeKeys (comma-separated)
+ * query: orgId, datasetId?, name?, mode?, createNew?, mergeKeys (comma-separated)
  * body: multipart with N files
  */
 export function createMergePreviewHandler(
@@ -42,7 +42,8 @@ export function createMergePreviewHandler(
         const identity = getInternalIdentity(request);
 
         const datasetIdRaw =
-            typeof request.query.datasetId === 'string' && request.query.datasetId.length > 0
+            typeof request.query.datasetId === 'string' &&
+            request.query.datasetId.length > 0
                 ? request.query.datasetId
                 : null;
         const nameRaw =
@@ -50,14 +51,28 @@ export function createMergePreviewHandler(
                 ? request.query.name
                 : null;
         const mergeKeysRaw =
-            typeof request.query.mergeKeys === 'string' && request.query.mergeKeys.length > 0
-                ? request.query.mergeKeys.split(',').map(s => s.trim()).filter(Boolean)
+            typeof request.query.mergeKeys === 'string' &&
+            request.query.mergeKeys.length > 0
+                ? request.query.mergeKeys
+                      .split(',')
+                      .map(s => s.trim())
+                      .filter(Boolean)
                 : [];
+        const modeRaw =
+            typeof request.query.mode === 'string' && request.query.mode.length > 0
+                ? request.query.mode
+                : 'merge';
+        const createNewRaw =
+            typeof request.query.createNew === 'string'
+                ? request.query.createNew === 'true'
+                : false;
 
         const input = parseWithZod(previewSchema, {
             orgId: orgIdFromRequest,
             datasetId: datasetIdRaw,
             name: nameRaw,
+            mode: modeRaw,
+            createNew: createNewRaw,
             mergeKeys: mergeKeysRaw,
         });
 
@@ -93,6 +108,8 @@ export function createMergePreviewHandler(
                 userId: identity.userId,
                 datasetId: input.datasetId,
                 name: input.name,
+                mode: input.mode,
+                createNew: input.createNew,
                 mergeKeys: input.mergeKeys,
                 savedFiles: saved,
             });

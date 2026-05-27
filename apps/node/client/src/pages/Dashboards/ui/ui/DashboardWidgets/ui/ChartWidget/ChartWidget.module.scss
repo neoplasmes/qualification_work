@@ -1,0 +1,12 @@
+.chart-widget {
+    min-width: 0;
+}
+
+@container (min-width: 1000px) {
+    .chart-widget {
+        display: flex;
+        align-items: stretch;
+        min-height: 0;
+        height: 100%;
+    }
+}

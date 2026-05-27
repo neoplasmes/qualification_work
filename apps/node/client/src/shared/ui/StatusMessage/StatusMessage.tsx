@@ -17,6 +17,11 @@ export const StatusMessage = ({
 }: StatusMessageProps) => (
     <div
         role={tone === 'error' ? 'alert' : props.role}
+        data-stack={centered ? 'h' : undefined}
+        data-align={centered ? 'center' : undefined}
+        data-justify={centered ? 'center' : undefined}
+        data-px="md"
+        data-py="sm"
         className={[
             styles['status'],
             styles[tone],

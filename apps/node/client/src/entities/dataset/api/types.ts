@@ -35,3 +35,8 @@ export type DatasetRowsPage = {
     offset: number;
     limit: number;
 };
+
+export type PatchDatasetPayload = {
+    datasetId: string;
+    name?: string;
+};

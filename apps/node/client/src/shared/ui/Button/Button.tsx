@@ -40,6 +40,7 @@ type IconButtonProps = {
     tone?: ButtonTone;
     size?: 'sm' | 'md';
     isLoading?: boolean;
+    iconPadding?: IconPadding;
     iconStrokeWidth?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -49,20 +50,23 @@ export const IconButton: FC<IconButtonProps> = ({
     size = 'md',
     isLoading = false,
     className,
+    iconPadding,
     iconStrokeWidth,
     style,
     type = 'button',
     disabled,
     children,
+    'data-icon-p': dataIconPadding,
     ...props
 }) => (
     <button
         // eslint-disable-next-line react/button-has-type
         type={type}
         className={getButtonClassName('icon', tone, size, className)}
+        data-icon-p={iconPadding ?? dataIconPadding}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
-        style={getIconButtonStyle(style, iconStrokeWidth)}
+        style={getIconButtonStyle(style, iconStrokeWidth, iconPadding ?? dataIconPadding)}
         {...props}
     >
         {isLoading ? (
@@ -91,17 +95,28 @@ type IconButtonLinkProps = {
     variant?: 'default' | 'danger';
     tone?: ButtonTone;
     size?: 'sm' | 'md';
+    iconPadding?: IconPadding;
 } & LinkProps;
 
 export const IconButtonLink: FC<IconButtonLinkProps> = ({
     variant,
     tone = variant ?? 'default',
     size = 'md',
+    iconPadding,
     className,
+    style,
+    'data-icon-p': dataIconPadding,
     ...props
-}) => <Link className={getButtonClassName('icon', tone, size, className)} {...props} />;
+}) => (
+    <Link
+        className={getButtonClassName('icon', tone, size, className)}
+        data-icon-p={iconPadding ?? dataIconPadding}
+        style={getIconButtonStyle(style, undefined, iconPadding ?? dataIconPadding)}
+        {...props}
+    />
+);
 
-type ButtonTone = 'default' | 'danger' | 'ghost' | 'plain';
+type ButtonTone = 'default' | 'danger' | 'ghost' | 'plain' | 'transparent' | 'nav';
 
 const getButtonClassName = (
     base: 'button' | 'icon',
@@ -120,14 +135,34 @@ const getButtonClassName = (
 
 const getIconButtonStyle = (
     style: CSSProperties | undefined,
-    iconStrokeWidth: number | undefined
+    iconStrokeWidth: number | undefined,
+    iconPadding: IconPadding | undefined
 ): CSSProperties | undefined => {
-    if (iconStrokeWidth === undefined) {
+    if (iconStrokeWidth === undefined && iconPadding === undefined) {
         return style;
     }
 
+    const iconPaddingValue = getIconPaddingValue(iconPadding);
+
     return {
         ...style,
-        '--icon-stroke-width': iconStrokeWidth,
+        ...(iconStrokeWidth === undefined
+            ? {}
+            : { '--icon-stroke-width': iconStrokeWidth }),
+        ...(iconPaddingValue === undefined
+            ? {}
+            : { '--icon-button-padding': iconPaddingValue }),
     } as CSSProperties;
+};
+
+const getIconPaddingValue = (iconPadding: IconPadding | undefined) => {
+    if (iconPadding === undefined) {
+        return undefined;
+    }
+
+    if (iconPadding === 'none') {
+        return '0';
+    }
+
+    return `var(--spacing-${iconPadding})`;
 };

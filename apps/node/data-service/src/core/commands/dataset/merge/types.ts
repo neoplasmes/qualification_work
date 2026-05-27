@@ -6,6 +6,7 @@ export type MergePreviewStatistics = {
     totalNewRows: number;
     totalDuplicateRows: number;
     existingRowCount: number;
+    copiedRows: number;
     newColumns: Array<{ key: string; dataType: ColumnDataType }>;
     commonColumns: string[];
 };

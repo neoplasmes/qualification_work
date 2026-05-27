@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -7,7 +7,6 @@ import {
     useAddDashboardChartMutation,
     useAddDashboardMetricMutation,
     useRemoveDashboardItemMutation,
-    useRenameDashboardMutation,
     useReorderDashboardItemsMutation,
 } from '@/features/manageDashboards';
 
@@ -17,6 +16,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
+import { useHasOverflow } from '@/shared/lib/useHasOverflow';
 import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
@@ -34,18 +34,21 @@ import {
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
 } from '../model';
-import { AddChartForm } from './components/AddChartForm';
-import { AddMetricForm } from './components/AddMetricForm';
-import { DashboardWidgets } from './components/DashboardWidgets';
-import { DashboardWorkspaceHeading } from './components/DashboardWorkspaceHeading';
+import {
+    AddChartModal,
+    AddMetricModal,
+    DashboardWidgets,
+    DashboardWorkspaceHeading,
+} from './ui';
 
 import styles from './DashboardsPage.module.scss';
 
 export const DashboardsWorkspace = () => {
     const dispatch = useDispatch();
+    const workspaceRef = useRef<HTMLElement>(null);
     const [selectedChartId, setSelectedChartId] = useState('');
     const [selectedMetricDatasetId, setSelectedMetricDatasetId] = useState('');
-    const [isEditing, setIsEditing] = useState(false);
+    const [activeModal, setActiveModal] = useState<'chart' | 'metric' | null>(null);
     const [error, setError] = useState('');
 
     const selectedDashboardId = useSelector(selectSelectedDashboardId);
@@ -73,11 +76,12 @@ export const DashboardsWorkspace = () => {
         [chartsQuery.data]
     );
 
-    const [renameDashboard, renameState] = useRenameDashboardMutation();
     const [addDashboardChart, addChartState] = useAddDashboardChartMutation();
     const [addDashboardMetric, addMetricState] = useAddDashboardMetricMutation();
     const [reorderDashboardItems, reorderState] = useReorderDashboardItemsMutation();
     const [removeDashboardItem, removeItemState] = useRemoveDashboardItemMutation();
+
+    useHasOverflow(workspaceRef);
 
     useEffect(() => {
         if (!dashboard) {
@@ -97,50 +101,37 @@ export const DashboardsWorkspace = () => {
             })
         );
         setError('');
-        setIsEditing(false);
+        setActiveModal(null);
     }, [dashboard?.id]);
 
-    useEffect(() => {
-        setSelectedChartId(chartsQuery.data?.[0]?.id ?? '');
-    }, [chartsQuery.data]);
+    useEffect(
+        () => setSelectedChartId(chartsQuery.data?.[0]?.id ?? ''),
+        [chartsQuery.data]
+    );
 
-    useEffect(() => {
-        setSelectedMetricDatasetId(datasetsQuery.data?.[0]?.dataset.id ?? '');
-    }, [datasetsQuery.data]);
+    useEffect(
+        () => setSelectedMetricDatasetId(datasetsQuery.data?.[0]?.dataset.id ?? ''),
+        [datasetsQuery.data]
+    );
 
     const handleMetricNameChange = useCallback(
-        (value: string) => dispatch(setWorkspaceMetricName(value)),
+        (value: string) => {
+            dispatch(setWorkspaceMetricName(value));
+        },
         [dispatch]
     );
     const handleMetricExpressionChange = useCallback(
-        (value: string) => dispatch(setWorkspaceMetricExpression(value)),
+        (value: string) => {
+            dispatch(setWorkspaceMetricExpression(value));
+        },
         [dispatch]
     );
     const handleMetricFormatChange = useCallback(
-        (value: typeof metricFormat) => dispatch(setWorkspaceMetricFormat(value)),
+        (value: typeof metricFormat) => {
+            dispatch(setWorkspaceMetricFormat(value));
+        },
         [dispatch]
     );
-
-    const handleRenameDashboard = async (name: string) => {
-        if (!dashboard) {
-            return;
-        }
-
-        try {
-            setError('');
-            await renameDashboard({ dashboardId: dashboard.id, name }).unwrap();
-            await dashboardsQuery.refetch();
-            await dashboardQuery.refetch();
-        } catch (renameError) {
-            const message = getApiErrorMessage(
-                renameError,
-                'Unable to rename this dashboard.'
-            );
-            setError(message);
-
-            throw new Error(message);
-        }
-    };
 
     const handleAddChart = async () => {
         if (!dashboard || !selectedChartId) {
@@ -153,6 +144,7 @@ export const DashboardsWorkspace = () => {
                 chartId: selectedChartId,
                 height: 8,
             }).unwrap();
+            setActiveModal(null);
             await dashboardQuery.refetch();
             await dashboardsQuery.refetch();
         } catch (addError) {
@@ -186,6 +178,7 @@ export const DashboardsWorkspace = () => {
             }).unwrap();
             dispatch(clearWorkspaceMetricForm());
             setError('');
+            setActiveModal(null);
             await dashboardQuery.refetch();
             await dashboardsQuery.refetch();
         } catch (addError) {
@@ -232,7 +225,11 @@ export const DashboardsWorkspace = () => {
 
     return (
         <section
+            ref={workspaceRef}
             className={styles['panel']}
+            data-stack="v"
+            data-gap="md"
+            data-flex
             data-test-id={dashboardsTestIds.workspace}
             aria-label="Dashboard details"
         >
@@ -244,52 +241,49 @@ export const DashboardsWorkspace = () => {
                 <>
                     <DashboardWorkspaceHeading
                         name={dashboard.name}
-                        widgetsCount={dashboardItems.length}
-                        editing={isEditing}
-                        renaming={renameState.isLoading}
-                        onRename={handleRenameDashboard}
-                        onEditingChange={setIsEditing}
+                        onAddMetric={() => setActiveModal('metric')}
+                        onAddChart={() => setActiveModal('chart')}
                     />
 
                     {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-                    {!isEditing && (
-                        <DashboardWidgets
-                            items={dashboardItems}
-                            chartsById={chartsById}
-                            reorderLoading={reorderState.isLoading}
-                            removing={removeItemState.isLoading}
-                            onMoveItem={(itemId, direction) =>
-                                void handleMoveItem(itemId, direction)
-                            }
-                            onRemoveItem={itemId => void handleRemoveItem(itemId)}
+                    <DashboardWidgets
+                        items={dashboardItems}
+                        chartsById={chartsById}
+                        reorderLoading={reorderState.isLoading}
+                        removing={removeItemState.isLoading}
+                        onMoveItem={(itemId, direction) =>
+                            void handleMoveItem(itemId, direction)
+                        }
+                        onRemoveItem={itemId => void handleRemoveItem(itemId)}
+                    />
+
+                    {activeModal === 'chart' && (
+                        <AddChartModal
+                            charts={chartsQuery.data}
+                            value={selectedChartId}
+                            disabled={addChartState.isLoading}
+                            onChange={setSelectedChartId}
+                            onAdd={() => void handleAddChart()}
+                            onClose={() => setActiveModal(null)}
                         />
                     )}
 
-                    {isEditing && (
-                        <>
-                            <AddChartForm
-                                charts={chartsQuery.data}
-                                value={selectedChartId}
-                                disabled={addChartState.isLoading}
-                                onChange={setSelectedChartId}
-                                onAdd={() => void handleAddChart()}
-                            />
-
-                            <AddMetricForm
-                                datasets={datasetsQuery.data}
-                                datasetId={selectedMetricDatasetId}
-                                metricName={metricName}
-                                metricExpression={metricExpression}
-                                metricFormat={metricFormat}
-                                disabled={addMetricState.isLoading}
-                                onDatasetChange={setSelectedMetricDatasetId}
-                                onNameChange={handleMetricNameChange}
-                                onExpressionChange={handleMetricExpressionChange}
-                                onFormatChange={handleMetricFormatChange}
-                                onSubmit={handleAddMetric}
-                            />
-                        </>
+                    {activeModal === 'metric' && (
+                        <AddMetricModal
+                            datasets={datasetsQuery.data}
+                            datasetId={selectedMetricDatasetId}
+                            metricName={metricName}
+                            metricExpression={metricExpression}
+                            metricFormat={metricFormat}
+                            disabled={addMetricState.isLoading}
+                            onDatasetChange={setSelectedMetricDatasetId}
+                            onNameChange={handleMetricNameChange}
+                            onExpressionChange={handleMetricExpressionChange}
+                            onFormatChange={handleMetricFormatChange}
+                            onSubmit={handleAddMetric}
+                            onClose={() => setActiveModal(null)}
+                        />
                     )}
                 </>
             )}

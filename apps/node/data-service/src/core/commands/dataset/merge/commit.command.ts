@@ -1,6 +1,10 @@
 import type { ColumnDataType } from '@/core/domain';
 import { ForbiddenError, NotFoundError } from '@/core/errors';
-import type { AppendRowsFn, DatasetRepo, MergeSessionRepo } from '@/core/ports/driven/repos';
+import type {
+    AppendRowsFn,
+    DatasetRepo,
+    MergeSessionRepo,
+} from '@/core/ports/driven/repos';
 import type {
     DatasetFileSourceType,
     ResolveDatasetParser,
@@ -9,7 +13,6 @@ import type {
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { coerceValueByType } from '../helpers';
-
 import { buildTupleKey } from './helpers';
 
 export type CommitMergeInput = {
@@ -21,11 +24,13 @@ export type CommitMergeResult = {
     datasetId: string;
     insertedRows: number;
     skippedDuplicates: number;
+    copiedRows: number;
 };
 
-export class CommitMergeCommand
-    implements Executable<[CommitMergeInput], Promise<CommitMergeResult>>
-{
+export class CommitMergeCommand implements Executable<
+    [CommitMergeInput],
+    Promise<CommitMergeResult>
+> {
     constructor(
         private readonly datasetRepo: DatasetRepo,
         private readonly mergeSessionRepo: MergeSessionRepo,
@@ -47,11 +52,19 @@ export class CommitMergeCommand
             typeByKey.set(c.key, c.dataType);
         }
 
-        // collect existing tuples to skip duplicates when merging into existing dataset
+        const mode = session.mode ?? 'merge';
+        const createNew = session.createNew ?? session.datasetId === null;
+        const sourceDatasetId = session.sourceDatasetId ?? session.datasetId;
+
+        // collect existing tuples to skip duplicates when merging by key
         const existingTuples = new Set<string>();
-        if (session.datasetId !== null && session.mergeKeys.length > 0) {
+        if (
+            mode === 'merge' &&
+            sourceDatasetId !== null &&
+            session.mergeKeys.length > 0
+        ) {
             await this.datasetRepo.streamAllRows(
-                session.datasetId,
+                sourceDatasetId,
                 Number.POSITIVE_INFINITY,
                 ({ data }) => {
                     existingTuples.add(buildTupleKey(data, session.mergeKeys));
@@ -61,7 +74,8 @@ export class CommitMergeCommand
 
         // resolve target dataset id
         let targetDatasetId: string;
-        if (session.datasetId === null) {
+        let copiedRows = 0;
+        if (createNew || sourceDatasetId === null) {
             const sourceType = pickSourceType(session.files.map(f => f.sourceType));
             const created = await this.datasetRepo.createEmptyDataset({
                 orgId: session.orgId,
@@ -75,8 +89,15 @@ export class CommitMergeCommand
                 })),
             });
             targetDatasetId = created.id;
+            if (sourceDatasetId !== null) {
+                const copy = await this.datasetRepo.copyRowsToDataset(
+                    sourceDatasetId,
+                    targetDatasetId
+                );
+                copiedRows = copy.copiedCount;
+            }
         } else {
-            targetDatasetId = session.datasetId;
+            targetDatasetId = sourceDatasetId;
 
             const newColumns = session.unionColumns.filter(c => c.isNew);
             if (newColumns.length > 0) {
@@ -108,14 +129,17 @@ export class CommitMergeCommand
                     }
 
                     const stream = this.tmpStorage.openFile(file.path);
-                    const rowStream = resolved.parser.parseFileDataToJSObjectsStream(
-                        stream
-                    );
+                    const rowStream =
+                        resolved.parser.parseFileDataToJSObjectsStream(stream);
 
                     for await (const raw of rowStream) {
                         const row = raw as Record<string, unknown>;
 
-                        if (session.mergeKeys.length > 0 && existingTuples.size > 0) {
+                        if (
+                            mode === 'merge' &&
+                            session.mergeKeys.length > 0 &&
+                            existingTuples.size > 0
+                        ) {
                             const tuple = buildTupleKey(row, session.mergeKeys);
                             if (existingTuples.has(tuple)) {
                                 skippedDuplicates += 1;
@@ -154,6 +178,7 @@ export class CommitMergeCommand
             datasetId: targetDatasetId,
             insertedRows: insertion.insertedCount,
             skippedDuplicates,
+            copiedRows,
         };
     }
 }
@@ -162,7 +187,9 @@ export type CommitMergeCommandIO = ExecutableIO<CommitMergeCommand>;
 
 function inferMime(filename: string): string {
     const lower = filename.toLowerCase();
-    if (lower.endsWith('.csv')) {return 'text/csv';}
+    if (lower.endsWith('.csv')) {
+        return 'text/csv';
+    }
     if (lower.endsWith('.xlsx')) {
         return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
@@ -171,7 +198,9 @@ function inferMime(filename: string): string {
 }
 
 function pickSourceType(types: DatasetFileSourceType[]): 'csv' | 'xlsx' | 'manual' {
-    if (types.length === 0) {return 'manual';}
+    if (types.length === 0) {
+        return 'manual';
+    }
     const first = types[0];
 
     return types.every(t => t === first) ? first : 'manual';

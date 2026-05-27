@@ -7,6 +7,7 @@ export {
     useLazyGetDatasetMetadataQuery,
     useLazyGetDatasetRowsQuery,
     useListDatasetsQuery,
+    usePatchDatasetMutation,
     useUpdateRowMutation,
 } from './api';
 export type {
@@ -15,4 +16,5 @@ export type {
     DatasetMetadata,
     DatasetRow,
     DatasetRowsPage,
+    PatchDatasetPayload,
 } from './api';

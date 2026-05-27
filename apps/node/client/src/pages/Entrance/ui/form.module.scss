@@ -1,6 +1,4 @@
 .form-container {
-    display: flex;
-    flex-direction: column;
     height: 100%;
 }
 
@@ -9,18 +7,6 @@
     font-family: var(--font-headline);
     font-size: var(--font-size-3xl);
     font-weight: 800;
-}
-
-.form {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-
-    & > div {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-    }
 }
 
 .form-subtitle {

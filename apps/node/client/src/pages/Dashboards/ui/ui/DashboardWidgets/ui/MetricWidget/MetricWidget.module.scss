@@ -1,0 +1,33 @@
+.metric-card {
+    width: 160px;
+    height: 80px;
+    min-width: 160px;
+    min-height: 80px;
+    padding: var(--spacing-xs) 0 var(--spacing-sm) var(--spacing-sm);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+    background-color: var(--color-surface-container-lowest);
+}
+
+.metric-title {
+    overflow: hidden;
+    margin: 0;
+
+    font-size: var(--font-size-xs);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-on-surface-variant);
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.metric-value {
+    overflow-wrap: anywhere;
+    font-family: var(--font-headline);
+    font-size: var(--font-size-lg);
+    font-weight: 800;
+    line-height: 1.05;
+    color: var(--color-on-surface);
+    text-align: center;
+}

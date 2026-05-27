@@ -28,6 +28,8 @@ export const SegmentedTabs = <Value extends string>({
     onChange,
 }: SegmentedTabsProps<Value>) => (
     <div
+        data-display="grid"
+        data-gap="xs"
         className={[styles['tabs'], styles[`cols-${columns}`], className ?? '']
             .filter(Boolean)
             .join(' ')}
@@ -36,6 +38,8 @@ export const SegmentedTabs = <Value extends string>({
             <button
                 type="button"
                 key={option.value}
+                data-px="sm"
+                data-py="xs"
                 data-test-id={option.testId}
                 className={`${styles['tab']} ${option.value === value ? styles['active'] : ''}`}
                 disabled={disabled || option.disabled}

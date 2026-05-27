@@ -31,8 +31,12 @@ export const Modal = ({
     children,
 }: ModalProps) => {
     useEffect(() => {
+        if (!closeOnEscape) {
+            return;
+        }
+
         const handler = (e: KeyboardEvent) => {
-            if (closeOnEscape && e.key === 'Escape') {
+            if (e.key === 'Escape') {
                 onClose();
             }
         };
@@ -43,6 +47,9 @@ export const Modal = ({
 
     return (
         <div
+            data-stack="h"
+            data-align="center"
+            data-justify="center"
             className={styles['backdrop']}
             data-test-id={testId}
             onClick={closeOnBackdrop ? onClose : undefined}
@@ -51,10 +58,13 @@ export const Modal = ({
                 role="dialog"
                 aria-modal="true"
                 aria-label={ariaLabel ?? title}
+                data-stack="v"
+                data-gap="md"
+                data-p="lg"
                 className={`${styles['modal']} ${styles[`size-${size}`]}`}
                 onClick={e => e.stopPropagation()}
             >
-                <div className={styles['header']}>
+                <div data-stack="h" data-align="center" data-justify="between">
                     <span className={styles['title']}>{title}</span>
                     <IconButton
                         size="sm"
@@ -66,8 +76,19 @@ export const Modal = ({
                         <X size={18} />
                     </IconButton>
                 </div>
-                <div className={styles['body']}>{children}</div>
-                {footer && <div className={styles['footer']}>{footer}</div>}
+                <div data-display="grid" data-gap="md">
+                    {children}
+                </div>
+                {footer && (
+                    <div
+                        className={styles['footer']}
+                        data-display="grid"
+                        data-gap="md"
+                        data-pt="md"
+                    >
+                        {footer}
+                    </div>
+                )}
             </div>
         </div>
     );

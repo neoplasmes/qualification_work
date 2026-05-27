@@ -4,6 +4,7 @@ export const datasetsTestIds = {
     datasetListItem: 'datasets-list-item',
     workspace: 'datasets-workspace',
     previewGrid: 'datasets-preview-grid',
+    scrollToBottomButton: 'datasets-scroll-to-bottom-button',
     previousRowsButton: 'datasets-previous-rows-button',
     nextRowsButton: 'datasets-next-rows-button',
     lastPageButton: 'datasets-last-page-button',
@@ -26,4 +27,6 @@ export const datasetsTestIds = {
     mergeFileInput: 'datasets-merge-file-input',
     mergePreviewButton: 'datasets-merge-preview-button',
     mergeConfirmButton: 'datasets-merge-confirm-button',
+    renameButton: 'datasets-rename-button',
+    renameInput: 'datasets-rename-input',
 } as const;

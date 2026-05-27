@@ -13,6 +13,7 @@ export const chartsTestIds = {
     renameButton: 'charts-rename-button',
     renameInput: 'charts-rename-input',
     changeDatasetButton: 'charts-change-dataset-button',
+    cancelCreateButton: 'charts-cancel-create-button',
     deleteButton: 'charts-delete-button',
     cancelEditButton: 'charts-cancel-edit-button',
     createChartModal: 'charts-create-chart-modal',

@@ -15,6 +15,7 @@ export const Banner = () => {
             data-py="lg"
             data-pl="lg"
             data-pr="md"
+            data-flex
             className={styles['banner']}
         >
             <Logo />
@@ -42,12 +43,14 @@ export const Banner = () => {
                     data-stack="h"
                     data-gap="sm-plus"
                     data-pb="md-plus"
+                    data-flex
                     className={styles['chart']}
                     data-align="end"
                 >
                     {chartHeights.map((height, index) => (
                         <m.div
                             key={index}
+                            data-flex
                             className={`${styles['bar']} ${height === 100 ? styles['accent'] : ''}`}
                             initial={{ height: 0 }}
                             animate={{ height: `${height}%` }}

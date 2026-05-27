@@ -21,11 +21,11 @@ const C = {
     onSurface: '#fff',
 } as const;
 
-const GAP = 2;
+const GAP = 4;
 const MIN_CHART_WIDTH = 220;
-const margin = { top: 16, right: 16, bottom: 112, left: 100 };
+const margin = { top: 16, right: 16, bottom: 132, left: 148 };
 // default cell size when not yet computed
-const DEFAULT_CELL_SIZE = 28;
+const DEFAULT_CELL_SIZE = 48;
 const DEFAULT_STEP = DEFAULT_CELL_SIZE + GAP;
 
 export type HeatmapCell = {
@@ -72,9 +72,7 @@ const HeatmapChartInner = ({
 
     const step = cellSize + GAP;
     const gridWidth = xValues.length * step;
-    const available = width - margin.left - margin.right;
-    const effectiveLeft =
-        margin.left + Math.max(0, Math.floor((available - gridWidth) / 2));
+    const effectiveLeft = Math.max(margin.left, Math.floor((width - gridWidth) / 2));
 
     const columnData: ColumnDatum[] = useMemo(
         () =>
@@ -129,7 +127,7 @@ const HeatmapChartInner = ({
                         }
                         tickLabelProps={() => ({
                             fill: C.muted,
-                            fontSize: 11,
+                            fontSize: 14,
                             textAnchor: 'end' as const,
                             dx: '-0.25em',
                             dy: '0.33em',
@@ -147,7 +145,7 @@ const HeatmapChartInner = ({
                         }
                         tickLabelProps={() => ({
                             fill: C.muted,
-                            fontSize: 11,
+                            fontSize: 14,
                             textAnchor: 'end' as const,
                             angle: -45,
                             dx: '-0.25em',
@@ -282,7 +280,7 @@ export const HeatmapChart = ({ data }: HeatmapChartProps) => {
                     xValues.length > 0
                         ? Math.max(
                               6,
-                              Math.min(40, Math.floor(xMax / xValues.length) - GAP)
+                              Math.min(72, Math.floor(xMax / xValues.length) - GAP)
                           )
                         : DEFAULT_CELL_SIZE;
                 const step = cellSize + GAP;

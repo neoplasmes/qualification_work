@@ -313,6 +313,16 @@ export function buildOrderBy(
     return `${target} ${dir}`;
 }
 
+export function buildDimensionOrderBy(
+    dim: ColumnExpr,
+    series: ColumnExpr | null
+): string {
+    return buildSortOrderBy([
+        { expr: dim, prefix: 'dim' },
+        ...(series ? [{ expr: series, prefix: 'series' }] : []),
+    ]);
+}
+
 export function buildSortSelects(expr: ColumnExpr, prefix: string): string[] {
     return expr.sortExpressions.map((sql, index) => `${sql} AS ${prefix}_sort_${index}`);
 }

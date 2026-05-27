@@ -6,6 +6,7 @@ import type {
     DeleteDatasetCommand,
     DeleteRowCommand,
     InsertRowCommand,
+    PatchDatasetCommand,
     PreviewMergeCommand,
     UpdateRowValuesCommand,
     UploadDatasetCommand,
@@ -33,6 +34,7 @@ import {
     createMergePreviewHandler,
     type MergePreviewHandlerConfig,
 } from './mergePreview.handler';
+import { createPatchDatasetHandler } from './patch.handler';
 import { createUpdateRowHandler } from './updateRow.handler';
 import { createUploadDatasetHandler } from './upload.handler';
 
@@ -41,6 +43,7 @@ export type DatasetRouterDeps = {
     getDatasetMetadataHandler: GetDatasetMetadataByDatasetIdQuery;
     getDatasetRowsHandler: GetDatasetRowsQuery;
     uploadDatasetHandler: UploadDatasetCommand;
+    patchDatasetHandler: PatchDatasetCommand;
     deleteDatasetHandler: DeleteDatasetCommand;
     deleteRowHandler: DeleteRowCommand;
     updateRowHandler: UpdateRowValuesCommand;
@@ -69,6 +72,7 @@ export function createDatasetRouter(deps: DatasetRouterDeps): Router<AppState> {
         '/',
         createUploadDatasetHandler(deps.uploadDatasetHandler, deps.multipartParser)
     );
+    router.patch('/:id', createPatchDatasetHandler(deps.patchDatasetHandler));
     router.delete('/:id', createDeleteDatasetHandler(deps.deleteDatasetHandler));
 
     router.post('/:id/rows', createInsertRowHandler(deps.insertRowHandler));

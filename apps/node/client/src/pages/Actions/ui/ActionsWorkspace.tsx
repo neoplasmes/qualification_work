@@ -9,7 +9,7 @@ import { useListActionsQuery } from '@/entities/action';
 import { actionsTestIds } from '../const';
 import { getSelectedAction } from '../lib';
 import { selectIsCreatingAction, selectSelectedActionId } from '../model';
-import { ActionEditor } from './components/ActionEditor';
+import { ActionEditor } from './ui/ActionEditor';
 
 import styles from './ActionsPage.module.scss';
 
@@ -33,10 +33,22 @@ export const ActionsWorkspace = () => {
         return (
             <section
                 className={styles['workspace']}
+                data-stack="v"
+                data-gap="md"
+                data-p="md"
+                data-flex
                 data-test-id={actionsTestIds.workspace}
                 aria-label="Action details"
             >
-                <p className={styles['placeholder']}>Select or create an action.</p>
+                <p
+                    className={styles['placeholder']}
+                    data-stack="h"
+                    data-align="center"
+                    data-justify="center"
+                    data-flex
+                >
+                    Select or create an action.
+                </p>
             </section>
         );
     }

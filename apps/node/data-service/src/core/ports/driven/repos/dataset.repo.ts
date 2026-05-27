@@ -85,6 +85,8 @@ export interface DatasetRepo {
      */
     getDatasetRowsPageById(data: GetDatasetRowsPayload): Promise<DatasetRowsPage | null>;
 
+    updateName(datasetId: string, name: string): Promise<void>;
+
     deleteById(datasetId: string): Promise<void>;
 
     /**
@@ -166,4 +168,15 @@ export interface DatasetRepo {
         datasetId: string,
         forwardRows: (appendRow: AppendRowsFn) => Promise<void>
     ): Promise<{ insertedCount: number }>;
+
+    /**
+     * copies all rows from source dataset to target dataset inside postgres, preserving order
+     *
+     * @param sourceDatasetId
+     * @param targetDatasetId
+     */
+    copyRowsToDataset(
+        sourceDatasetId: string,
+        targetDatasetId: string
+    ): Promise<{ copiedCount: number }>;
 }

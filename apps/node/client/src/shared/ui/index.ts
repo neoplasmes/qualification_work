@@ -18,6 +18,7 @@ export { EntityHeader, SectionHeader } from './SectionHeader';
 export { Separator } from './Separator';
 export { SegmentedTabs, type SegmentedTabOption } from './SegmentedTabs';
 export { StatusMessage } from './StatusMessage';
+export { Switch } from './Switch';
 export { Table, type TableRow } from './Table';
 export { Textarea } from './Textarea';
 export { TextInput } from './TextInput';

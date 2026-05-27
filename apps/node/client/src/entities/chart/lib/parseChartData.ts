@@ -142,10 +142,6 @@ export const parseChartResult = (
 
     const positivePoints = points.filter(point => point.value > 0);
 
-    if (positivePoints.length !== points.length) {
-        warnings.push('Pie chart hides zero and negative values.');
-    }
-
     if (positivePoints.length === 0 && points.length > 0) {
         warnings.push('Pie chart needs at least one positive value.');
     }

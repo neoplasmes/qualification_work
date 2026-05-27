@@ -1,0 +1,388 @@
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
+
+import {
+    useDeleteRowMutation,
+    useInsertRowMutation,
+    useLazyGetDatasetRowsQuery,
+    useUpdateRowMutation,
+    type DatasetColumn,
+    type DatasetMetadata,
+    type DatasetRow,
+} from '@/entities/dataset';
+
+import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
+
+import { HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
+import { getInsertRowData, isInsertRowValid, parseDatasetCellValue } from '../../../lib';
+
+import { DatasetGrid } from '../DatasetGrid';
+import type { DraftRowBounds, InsertRowDraft } from '../DatasetGrid/types';
+import type { DatasetRowContextMenuState } from '../DatasetRowContextMenu';
+import { DatasetPreviewOverlays } from './DatasetPreviewOverlays';
+import { useMeasuredSize } from './useMeasuredSize';
+
+import styles from './DatasetPreview.module.scss';
+
+type DatasetPreviewProps = {
+    selectedDataset: DatasetMetadata | undefined;
+};
+
+export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
+    // sparse chunk cache: key = chunkIdx (rowIndex / ROWS_PAGE_SIZE), value = chunk rows
+    const [loadedChunks, setLoadedChunks] = useState<Map<number, DatasetRow[]>>(
+        () => new Map()
+    );
+    // mirror of loadedChunks for synchronous reads inside async fetch logic
+    const loadedChunksRef = useRef<Map<number, DatasetRow[]>>(new Map());
+    // total rows discovered from the most recent rows response (or dataset metadata)
+    const [knownTotalRows, setKnownTotalRows] = useState<number | null>(null);
+    // dedup in-flight chunk requests across rerenders
+    const inflightChunksRef = useRef<Set<number>>(new Set());
+    // bumped to ask the grid to scroll to the last row
+    const [scrollToBottomSignal, setScrollToBottomSignal] = useState(0);
+    // whether the last row is currently in view
+    const [isAtBottom, setIsAtBottom] = useState(false);
+
+    const [displayEdits, setDisplayEdits] = useState<
+        Map<string, Record<string, unknown>>
+    >(new Map());
+    const pendingEditsRef = useRef<Map<string, Record<string, unknown>>>(new Map());
+    const [insertDraft, setInsertDraft] = useState<InsertRowDraft | null>(null);
+    const [contextMenu, setContextMenu] = useState<DatasetRowContextMenuState | null>(
+        null
+    );
+    const [draftRowTop, setDraftRowTop] = useState<number | null>(null);
+    const { ref: gridContainerRef, size: gridSize } = useMeasuredSize<HTMLDivElement>();
+
+    const [updateRow] = useUpdateRowMutation();
+    const [insertRow, insertState] = useInsertRowMutation();
+    const [deleteRow, deleteState] = useDeleteRowMutation();
+    const [fetchRows] = useLazyGetDatasetRowsQuery();
+
+    const columns = selectedDataset?.columns ?? [];
+    const totalRows = knownTotalRows ?? selectedDataset?.totalRows ?? 0;
+    const gridHeight = Math.max(gridSize.h, HEADER_H + ROW_H);
+    const datasetId = selectedDataset?.dataset.id;
+
+    // viewport bounds -> grid-container-relative top (vertical center of the row)
+    const handleDraftRowBoundsChange = useCallback(
+        (bounds: DraftRowBounds | null) => {
+            if (!bounds) {
+                setDraftRowTop(null);
+
+                return;
+            }
+
+            const containerTop =
+                gridContainerRef.current?.getBoundingClientRect().top ?? 0;
+            setDraftRowTop(bounds.y - containerTop + bounds.height / 2);
+        },
+        [gridContainerRef]
+    );
+
+    const resetCache = useCallback(() => {
+        loadedChunksRef.current = new Map();
+        setLoadedChunks(loadedChunksRef.current);
+        inflightChunksRef.current.clear();
+        setKnownTotalRows(null);
+        setDisplayEdits(new Map());
+        pendingEditsRef.current.clear();
+        setIsAtBottom(false);
+    }, []);
+
+    // reset cache on dataset switch
+    useEffect(() => {
+        resetCache();
+        setInsertDraft(null);
+        setContextMenu(null);
+    }, [datasetId, resetCache]);
+
+    // fetch one chunk; idempotent (skips if cached or in-flight)
+    const requestChunk = useCallback(
+        async (chunkIdx: number) => {
+            if (!datasetId || chunkIdx < 0) {
+                return;
+            }
+
+            if (
+                inflightChunksRef.current.has(chunkIdx) ||
+                loadedChunksRef.current.has(chunkIdx)
+            ) {
+                return;
+            }
+
+            inflightChunksRef.current.add(chunkIdx);
+            try {
+                const res = await fetchRows(
+                    {
+                        datasetId,
+                        offset: chunkIdx * ROWS_PAGE_SIZE,
+                        limit: ROWS_PAGE_SIZE,
+                    },
+                    true
+                ).unwrap();
+
+                const next = new Map(loadedChunksRef.current);
+                next.set(chunkIdx, res.rows);
+                loadedChunksRef.current = next;
+                setLoadedChunks(next);
+                setKnownTotalRows(res.totalRows);
+            } catch {
+                // ignore; user can retry by scrolling
+            } finally {
+                inflightChunksRef.current.delete(chunkIdx);
+            }
+        },
+        [datasetId, fetchRows]
+    );
+
+    // initial chunk on dataset open
+    useEffect(() => {
+        if (!datasetId) {
+            return;
+        }
+
+        void requestChunk(0);
+    }, [datasetId, requestChunk]);
+
+    const getRowAt = useCallback(
+        (absIndex: number): DatasetRow | undefined => {
+            if (absIndex < 0) {
+                return undefined;
+            }
+
+            const chunkIdx = Math.floor(absIndex / ROWS_PAGE_SIZE);
+            const offset = absIndex % ROWS_PAGE_SIZE;
+
+            return loadedChunks.get(chunkIdx)?.[offset];
+        },
+        [loadedChunks]
+    );
+
+    const handleVisibleRangeChange = useCallback(
+        (startRow: number, endRow: number) => {
+            const startChunk = Math.max(0, Math.floor(startRow / ROWS_PAGE_SIZE));
+            const endChunk = Math.max(0, Math.floor(endRow / ROWS_PAGE_SIZE));
+            for (let c = startChunk; c <= endChunk; c++) {
+                void requestChunk(c);
+            }
+
+            const reachedBottom = totalRows > 0 && endRow >= totalRows - 1;
+            setIsAtBottom(prev => (prev === reachedBottom ? prev : reachedBottom));
+        },
+        [requestChunk, totalRows]
+    );
+
+    const handleScrollToBottom = useCallback(async () => {
+        if (totalRows <= 0) {
+            return;
+        }
+
+        const lastChunkIdx = Math.floor((totalRows - 1) / ROWS_PAGE_SIZE);
+        await requestChunk(lastChunkIdx);
+        setScrollToBottomSignal(s => s + 1);
+    }, [requestChunk, totalRows]);
+
+    // flush pending cell edits every 1s
+    useEffect(() => {
+        if (!selectedDataset) {
+            return;
+        }
+
+        const dsId = selectedDataset.dataset.id;
+        const orgId = selectedDataset.dataset.orgId;
+        const id = setInterval(() => {
+            if (insertDraft || contextMenu?.mode === 'delete') {
+                return;
+            }
+
+            if (!pendingEditsRef.current.size) {
+                return;
+            }
+
+            const batch = new Map(pendingEditsRef.current);
+            pendingEditsRef.current.clear();
+            for (const [rowId, values] of batch) {
+                void updateRow({ datasetId: dsId, orgId, rowId, values });
+            }
+        }, 1000);
+
+        return () => clearInterval(id);
+    }, [contextMenu?.mode, insertDraft, selectedDataset, updateRow]);
+
+    const commitCell = useCallback(
+        (rowId: string, col: DatasetColumn, rawValue: string) => {
+            const parsed =
+                rawValue === '' ? null : parseDatasetCellValue(rawValue, col.dataType);
+            const pending = { ...pendingEditsRef.current.get(rowId) };
+            pending[col.key] = parsed;
+            pendingEditsRef.current.set(rowId, pending);
+            setDisplayEdits(prev => {
+                const next = new Map(prev);
+                const row = { ...next.get(rowId) };
+                row[col.key] = parsed;
+                next.set(rowId, row);
+
+                return next;
+            });
+        },
+        []
+    );
+
+    const handleDraftValueChange = useCallback(
+        (value: SetStateAction<Record<string, string>>) => {
+            setInsertDraft(current => {
+                if (!current) {
+                    return current;
+                }
+
+                return {
+                    ...current,
+                    values: typeof value === 'function' ? value(current.values) : value,
+                };
+            });
+        },
+        []
+    );
+
+    const handleRowContextMenu = useCallback(
+        (rowIndex: number, position: { x: number; y: number }) => {
+            if (insertDraft) {
+                return;
+            }
+
+            const row = getRowAt(rowIndex);
+            if (!row) {
+                return;
+            }
+
+            setContextMenu({
+                rowId: row.id,
+                rowIndex,
+                x: position.x,
+                y: position.y,
+                mode: 'actions',
+            });
+        },
+        [getRowAt, insertDraft]
+    );
+
+    const handleInsertBelow = () => {
+        if (!contextMenu) {
+            return;
+        }
+
+        setInsertDraft({
+            afterRowId: contextMenu.rowId,
+            visualIndex: contextMenu.rowIndex + 1,
+            values: {},
+        });
+        setContextMenu(null);
+    };
+
+    const handleInsertConfirm = async () => {
+        if (!selectedDataset || !insertDraft) {
+            return;
+        }
+
+        try {
+            await insertRow({
+                datasetId: selectedDataset.dataset.id,
+                orgId: selectedDataset.dataset.orgId,
+                afterRowId: insertDraft.afterRowId,
+                data: getInsertRowData(columns, insertDraft.values),
+            }).unwrap();
+            setInsertDraft(null);
+            resetCache();
+            void requestChunk(0);
+        } catch {
+            // silent - user can retry
+        }
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!selectedDataset || !contextMenu) {
+            return;
+        }
+
+        try {
+            await deleteRow({
+                datasetId: selectedDataset.dataset.id,
+                orgId: selectedDataset.dataset.orgId,
+                rowId: contextMenu.rowId,
+            }).unwrap();
+            setContextMenu(null);
+            resetCache();
+            void requestChunk(0);
+        } catch {
+            // silent - user can retry
+        }
+    };
+
+    const isNewRowValid = insertDraft
+        ? isInsertRowValid(columns, insertDraft.values)
+        : false;
+
+    // hide jump button when there's no point: empty dataset, fits in one page, or already at the end
+    const showScrollToBottom = totalRows > ROWS_PAGE_SIZE && !isAtBottom && !insertDraft;
+
+    return (
+        <section
+            className={styles['preview']}
+            data-stack="v"
+            data-gap="sm"
+            data-flex
+            aria-label="Dataset preview"
+        >
+            {!selectedDataset && (
+                <PanelPlaceholder>Select a dataset to preview rows.</PanelPlaceholder>
+            )}
+
+            {selectedDataset && totalRows === 0 && loadedChunks.size === 0 && (
+                <StatusMessage>Loading rows...</StatusMessage>
+            )}
+
+            <div ref={gridContainerRef} className={styles['grid-container']} data-flex>
+                {selectedDataset && gridSize.w > 0 && (
+                    <DatasetGrid
+                        datasetId={selectedDataset.dataset.id}
+                        columns={columns}
+                        totalRows={totalRows}
+                        getRowAt={getRowAt}
+                        displayEdits={displayEdits}
+                        insertDraft={insertDraft}
+                        gridWidth={gridSize.w}
+                        gridHeight={gridHeight}
+                        scrollToBottomSignal={scrollToBottomSignal}
+                        onCellCommit={commitCell}
+                        onDraftValueChange={handleDraftValueChange}
+                        onRowContextMenu={handleRowContextMenu}
+                        onDraftRowBoundsChange={handleDraftRowBoundsChange}
+                        onVisibleRangeChange={handleVisibleRangeChange}
+                    />
+                )}
+
+                <DatasetPreviewOverlays
+                    insertDraft={insertDraft}
+                    draftRowTop={draftRowTop}
+                    contextMenu={contextMenu}
+                    insertValid={isNewRowValid}
+                    insertLoading={insertState.isLoading}
+                    deleteLoading={deleteState.isLoading}
+                    showScrollToBottom={showScrollToBottom}
+                    onScrollToBottom={() => void handleScrollToBottom()}
+                    onInsertConfirm={() => void handleInsertConfirm()}
+                    onInsertCancel={() => setInsertDraft(null)}
+                    onInsertBelow={handleInsertBelow}
+                    onAskDelete={() =>
+                        setContextMenu(current =>
+                            current ? { ...current, mode: 'delete' } : current
+                        )
+                    }
+                    onDeleteConfirm={() => void handleDeleteConfirm()}
+                    onMenuCancel={() => setContextMenu(null)}
+                />
+            </div>
+        </section>
+    );
+};

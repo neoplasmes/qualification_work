@@ -27,6 +27,7 @@ export type {
     InsertRowFn,
 } from './dataset.repo';
 export type {
+    MergeMode,
     MergeSession,
     MergeSessionColumn,
     MergeSessionFile,

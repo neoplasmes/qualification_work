@@ -213,24 +213,32 @@ describe('ActionsWorkspace', () => {
         );
     });
 
-    it('renames existing action from workspace title', async () => {
-        const user = userEvent.setup();
+    it('keeps existing action title editing out of the central workspace', () => {
         const { container } = renderWorkspace({ selectedActionId: 'action-1' });
 
-        await user.click(getByDataTestId(container, actionsTestIds.renameButton));
-        const nameInput = getByDataTestId<HTMLInputElement>(
-            container,
-            actionsTestIds.renameInput
-        );
-        await user.clear(nameInput);
-        await user.type(nameInput, 'Post payment');
-        await user.keyboard('{Enter}');
+        expect(
+            container.querySelector(`[data-test-id="${actionsTestIds.renameButton}"]`)
+        ).toBeNull();
+    });
 
-        await waitFor(() => expect(mocks.patchAction).toHaveBeenCalledTimes(1));
-        expect(mocks.patchAction).toHaveBeenCalledWith({
-            actionId: 'action-1',
-            name: 'Post payment',
-        });
+    it('cancels action creation from the workspace header', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace({ isCreatingAction: true });
+
+        expect(
+            getByDataTestId(container, actionsTestIds.configureForm)
+        ).toBeInTheDocument();
+
+        await user.click(getByDataTestId(container, actionsTestIds.cancelCreateButton));
+
+        expect(
+            container.querySelector(
+                `[data-test-id="${actionsTestIds.cancelCreateButton}"]`
+            )
+        ).toBeNull();
+        expect(getByDataTestId(container, actionsTestIds.workspace)).toHaveTextContent(
+            'Receive payment'
+        );
     });
 
     it('runs selected action with coerced input values', async () => {

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildOrderBy, buildSortOrderBy, buildSortSelects, columnExpr } from './lib';
+import {
+    buildDimensionOrderBy,
+    buildOrderBy,
+    buildSortOrderBy,
+    buildSortSelects,
+    columnExpr,
+} from './lib';
 
 describe('columnExpr - Cyrillic column keys', () => {
     it('wraps Cyrillic key in single-quoted JSONB accessor', () => {
@@ -78,5 +84,14 @@ describe('columnExpr - Cyrillic column keys', () => {
         expect(buildSortOrderBy([{ expr: dim, prefix: 'dim' }])).toBe(
             'dim_sort_0 ASC NULLS LAST, dim_sort_1 ASC NULLS LAST'
         );
+    });
+
+    it('builds dimension order for date dimensions', () => {
+        const dim = columnExpr(
+            { id: 'c1', key: 'date', dataType: 'date' as const },
+            undefined
+        );
+
+        expect(buildDimensionOrderBy(dim, null)).toBe('dim_sort_0 ASC NULLS LAST');
     });
 });

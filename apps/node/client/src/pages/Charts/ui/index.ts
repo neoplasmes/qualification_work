@@ -1,4 +1,4 @@
-export { ChartsFilterPanel } from './components/ChartsFilterPanel';
+export { ChartsFilterPanel } from './ui/ChartsFilterPanel';
 export { ChartsLeftPanel } from './ChartsLeftPanel';
 export { ChartsPage } from './ChartsPage';
 export { ChartsWorkspace } from './ChartsWorkspace';

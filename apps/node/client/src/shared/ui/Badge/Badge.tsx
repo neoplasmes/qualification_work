@@ -14,6 +14,9 @@ export const Badge = ({
     ...props
 }: BadgeProps) => (
     <span
+        data-display="inline-flex"
+        data-align="center"
+        data-justify="center"
         className={[styles['badge'], styles[tone], className ?? '']
             .filter(Boolean)
             .join(' ')}

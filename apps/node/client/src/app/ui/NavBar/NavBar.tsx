@@ -26,7 +26,8 @@ import {
     useLogoutMutation,
 } from '@/features/authenticate';
 
-import { FormField, IconButton, IconButtonLink, Logo, Select } from '@/shared/ui';
+import { useHasMounted } from '@/shared/lib/useHasMounted';
+import { FormField, IconButton, Logo, Select } from '@/shared/ui';
 
 import styles from './NavBar.module.scss';
 
@@ -43,6 +44,7 @@ export const NavBar: FC = () => {
     const { pathname } = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const hasMounted = useHasMounted();
 
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
@@ -62,6 +64,9 @@ export const NavBar: FC = () => {
     };
 
     const isWorkspacePage = workspacePaths.has(pathname);
+    const workspaceOrgs = hasMounted ? orgs : [];
+    const workspaceValue = hasMounted ? (activeOrg?.id ?? '') : '';
+    const workspaceDisabled = hasMounted ? orgs.length === 0 : false;
 
     return (
         <header data-stack="h" data-align="center" data-justify="between">
@@ -90,16 +95,28 @@ export const NavBar: FC = () => {
                     ))}
                 </ul>
             </nav>
-            <div className={styles['workspace-controls']}>
-                <FormField label="Workspace" className={styles['workspace-select']}>
+            <div
+                className={styles['workspace-controls']}
+                data-stack="h"
+                data-gap="xs"
+                data-align="center"
+            >
+                <FormField
+                    label="Workspace"
+                    className={styles['workspace-select']}
+                    data-stack="h"
+                    data-align="center"
+                >
                     <Select
                         data-testid="workspace-select"
-                        value={activeOrg?.id ?? ''}
-                        disabled={orgs.length === 0}
+                        value={workspaceValue}
+                        disabled={workspaceDisabled}
                         onChange={event => setActiveOrgId(event.target.value)}
                     >
-                        {orgs.length === 0 && <option value="">No workspace</option>}
-                        {orgs.map(org => (
+                        {workspaceOrgs.length === 0 && (
+                            <option value="">No workspace</option>
+                        )}
+                        {workspaceOrgs.map(org => (
                             <option key={org.id} value={org.id}>
                                 {org.name} ({org.role})
                             </option>
@@ -110,6 +127,8 @@ export const NavBar: FC = () => {
                 {isWorkspacePage && (
                     <>
                         <IconButton
+                            tone="nav"
+                            iconStrokeWidth={2.6}
                             aria-label={
                                 isLeftCollapsed ? 'Show left panel' : 'Hide left panel'
                             }
@@ -119,6 +138,8 @@ export const NavBar: FC = () => {
                             <PanelLeft size={16} />
                         </IconButton>
                         <IconButton
+                            tone="nav"
+                            iconStrokeWidth={2.6}
                             aria-label={
                                 isRightCollapsed ? 'Show right panel' : 'Hide right panel'
                             }
@@ -130,10 +151,17 @@ export const NavBar: FC = () => {
                     </>
                 )}
 
-                <IconButtonLink to="/profile" aria-label="Profile">
-                    <User size={16} />
-                </IconButtonLink>
                 <IconButton
+                    tone="nav"
+                    iconStrokeWidth={2.6}
+                    aria-label="Profile"
+                    onClick={() => navigate('/profile')}
+                >
+                    <User size={16} />
+                </IconButton>
+                <IconButton
+                    tone="nav"
+                    iconStrokeWidth={2.6}
                     aria-label="Sign out"
                     disabled={logoutState.isLoading}
                     onClick={() => void handleLogout()}

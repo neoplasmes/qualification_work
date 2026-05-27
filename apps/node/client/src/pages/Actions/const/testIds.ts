@@ -6,6 +6,7 @@ export const actionsTestIds = {
     renameButton: 'actions-rename-button',
     renameInput: 'actions-rename-input',
     archiveButton: 'actions-archive-button',
+    cancelCreateButton: 'actions-cancel-create-button',
     configureTab: 'actions-configure-tab',
     runTab: 'actions-run-tab',
     configureForm: 'actions-configure-form',

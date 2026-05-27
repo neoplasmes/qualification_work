@@ -1,0 +1,25 @@
+.form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-sm);
+    align-items: end;
+}
+
+.wide {
+    grid-column: 1 / -1;
+}
+
+.submit {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-width: 240px;
+    min-height: 52px;
+    margin-top: var(--spacing-md);
+    padding-inline: var(--spacing-xl);
+}
+
+@media (width <= 900px) {
+    .form {
+        grid-template-columns: 1fr;
+    }
+}

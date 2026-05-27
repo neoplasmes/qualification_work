@@ -47,19 +47,20 @@
 }
 
 .icon {
+    --icon-button-padding: var(--spacing-sm);
+
     cursor: pointer;
 
     display: inline-grid;
     place-items: center;
 
-    width: 36px;
-    height: 36px;
+    padding: var(--icon-button-padding);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
 
     color: var(--color-on-surface);
 
-    background-color: var(--color-surface-container);
+    background-color: transparent;
 
     transition:
         border-color 0.2s ease,
@@ -68,14 +69,14 @@
     &:hover,
     &:focus-visible {
         border-color: var(--color-on-surface);
-        background-color: var(--color-surface-container-high);
+        background-color: transparent;
         outline: none;
     }
 
     &:disabled {
         cursor: not-allowed;
         color: var(--color-outline);
-        background-color: var(--color-surface-container-low);
+        background-color: transparent;
     }
 
     svg {
@@ -84,24 +85,35 @@
 }
 
 .size-sm.icon {
-    width: 32px;
-    height: 32px;
+    --icon-button-padding: var(--spacing-xs);
 }
 
 .size-md.icon {
-    width: 36px;
-    height: 36px;
+    --icon-button-padding: var(--spacing-sm);
 }
 
 .danger {
     border-color: var(--color-error-container);
-    color: var(--color-on-error-container);
-    background-color: rgb(140 0 0 / 14%);
+    color: var(--color-on-surface);
+    background-color: var(--color-error-container);
 
     &:hover,
     &:focus-visible {
-        border-color: var(--color-on-error-container);
-        background-color: rgb(140 0 0 / 24%);
+        border-color: var(--color-on-surface);
+        color: var(--color-on-surface);
+        background-color: var(--color-error-container);
+    }
+}
+
+.icon.danger {
+    color: var(--color-error);
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--color-error);
+        color: var(--color-error);
+        background-color: transparent;
     }
 }
 
@@ -116,9 +128,19 @@
     }
 }
 
+.icon.ghost {
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--color-outline-new);
+        background-color: transparent;
+    }
+}
+
 .plain {
     border-color: transparent;
-    color: rgb(255 255 255 / 54%);
+    color: var(--color-on-surface-muted);
     background-color: transparent;
 
     &:hover,
@@ -129,9 +151,87 @@
     }
 
     &:disabled {
-        color: rgb(255 255 255 / 24%);
+        color: var(--color-on-surface-disabled);
         background-color: transparent;
     }
+}
+
+.transparent {
+    border-color: transparent;
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        border-color: transparent;
+        background-color: transparent;
+    }
+
+    &:disabled {
+        color: var(--color-outline);
+        background-color: transparent;
+    }
+}
+
+.nav {
+    border-color: transparent;
+    color: var(--color-on-surface-variant);
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        border-color: transparent;
+        color: var(--color-on-surface);
+        background-color: transparent;
+    }
+
+    &:disabled {
+        color: var(--color-outline);
+        background-color: transparent;
+    }
+}
+
+[data-icon-p='none'] {
+    --icon-button-padding: 0;
+}
+
+[data-icon-p='xs'] {
+    --icon-button-padding: var(--spacing-xs);
+}
+
+[data-icon-p='sm'] {
+    --icon-button-padding: var(--spacing-sm);
+}
+
+[data-icon-p='sm-plus'] {
+    --icon-button-padding: var(--spacing-sm-plus);
+}
+
+[data-icon-p='md'] {
+    --icon-button-padding: var(--spacing-md);
+}
+
+[data-icon-p='md-plus'] {
+    --icon-button-padding: var(--spacing-md-plus);
+}
+
+[data-icon-p='lg'] {
+    --icon-button-padding: var(--spacing-lg);
+}
+
+[data-icon-p='lg-plus'] {
+    --icon-button-padding: var(--spacing-lg-plus);
+}
+
+[data-icon-p='xl'] {
+    --icon-button-padding: var(--spacing-xl);
+}
+
+[data-icon-p='2xl'] {
+    --icon-button-padding: var(--spacing-2xl);
+}
+
+[data-icon-p='3xl'] {
+    --icon-button-padding: var(--spacing-3xl);
 }
 
 .loader {

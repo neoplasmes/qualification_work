@@ -65,8 +65,19 @@ const dataset = {
     totalRows: 10,
 };
 
+let testDataset = dataset;
+let datasetSequence = 0;
+
 describe('DatasetChartBuilder', () => {
     beforeEach(() => {
+        datasetSequence += 1;
+        const datasetId = `dataset-${datasetSequence}`;
+        testDataset = {
+            ...dataset,
+            dataset: { ...dataset.dataset, id: datasetId },
+            columns: dataset.columns.map(column => ({ ...column, datasetId })),
+        };
+        localStorage.clear();
         previewChart.mockReset();
         createChart.mockReset();
         updateChart.mockReset();
@@ -83,7 +94,7 @@ describe('DatasetChartBuilder', () => {
             <MemoryRouter>
                 <DatasetChartBuilder
                     orgId="org-1"
-                    selectedDataset={dataset}
+                    selectedDataset={testDataset}
                     onChartCreated={onChartCreated}
                 />
             </MemoryRouter>
@@ -99,9 +110,9 @@ describe('DatasetChartBuilder', () => {
         await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
         expect(previewChart).toHaveBeenCalledWith(
             expect.objectContaining({
-                datasetId: 'dataset-1',
+                datasetId: testDataset.dataset.id,
                 chartType: 'heatmap',
-                config: expect.objectContaining({ kind: 'heatmap' }),
+                config: expect.objectContaining({ kind: 'heatmap', limit: 200 }),
             })
         );
 
@@ -118,7 +129,7 @@ describe('DatasetChartBuilder', () => {
         expect(createChart).toHaveBeenCalledWith(
             expect.objectContaining({
                 orgId: 'org-1',
-                datasetId: 'dataset-1',
+                datasetId: testDataset.dataset.id,
                 chartType: 'heatmap',
             })
         );
@@ -130,7 +141,7 @@ describe('DatasetChartBuilder', () => {
 
         render(
             <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={dataset} />
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
             </MemoryRouter>
         );
 
@@ -145,12 +156,79 @@ describe('DatasetChartBuilder', () => {
         expect(screen.getByRole('button', { name: 'Preview' })).toBeInTheDocument();
     });
 
+    it('disables grouping select when only none is available', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
+            </MemoryRouter>
+        );
+
+        const groupBySelect = screen.getByLabelText('Group by');
+
+        expect(groupBySelect).toBeDisabled();
+
+        await user.selectOptions(screen.getByLabelText('X axis'), 'score');
+
+        expect(groupBySelect).toBeEnabled();
+    });
+
+    it('does not expose row limit setting', () => {
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
+            </MemoryRouter>
+        );
+
+        expect(screen.queryByLabelText('Row limit')).not.toBeInTheDocument();
+    });
+
+    it('does not expose sort setting for bar charts', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
+            </MemoryRouter>
+        );
+
+        expect(screen.queryByLabelText('Sort')).not.toBeInTheDocument();
+
+        await user.selectOptions(screen.getByLabelText('Chart type'), 'line');
+
+        expect(screen.getByLabelText('Sort')).toBeInTheDocument();
+    });
+
+    it('orders bar charts by dimension instead of measure', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
+            </MemoryRouter>
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Preview' }));
+
+        await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
+        expect(previewChart).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chartType: 'bar',
+                config: expect.objectContaining({
+                    kind: 'bar',
+                    orderBy: { ref: 'dim', index: 0, dir: 'asc' },
+                }),
+            })
+        );
+    });
+
     it('builds correct heatmap config with between filter', async () => {
         const user = userEvent.setup();
 
         render(
             <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={dataset} />
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
             </MemoryRouter>
         );
 
@@ -161,7 +239,7 @@ describe('DatasetChartBuilder', () => {
         await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
         await user.selectOptions(screen.getByLabelText('Column'), 'score');
         await user.selectOptions(screen.getByLabelText('Value format'), 'rub');
-        await user.selectOptions(screen.getByLabelText('Filter rows'), 'on');
+        await user.click(screen.getByRole('switch', { name: 'Filter rows' }));
         await user.selectOptions(screen.getByLabelText('Filter column'), 'score');
         await user.selectOptions(screen.getByLabelText('Condition'), 'between');
         await user.type(screen.getByLabelText('Value'), '10, 50');
@@ -169,7 +247,7 @@ describe('DatasetChartBuilder', () => {
 
         await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
         expect(previewChart).toHaveBeenCalledWith({
-            datasetId: 'dataset-1',
+            datasetId: testDataset.dataset.id,
             chartType: 'heatmap',
             config: expect.objectContaining({
                 kind: 'heatmap',
@@ -189,7 +267,7 @@ describe('DatasetChartBuilder', () => {
             <MemoryRouter>
                 <DatasetChartBuilder
                     orgId="org-1"
-                    selectedDataset={dataset}
+                    selectedDataset={testDataset}
                     editChartId="chart-1"
                     onChartUpdated={onChartUpdated}
                 />
@@ -198,7 +276,7 @@ describe('DatasetChartBuilder', () => {
 
         await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
         await user.selectOptions(screen.getByLabelText('Column'), 'score');
-        await user.click(screen.getByRole('button', { name: /save without preview/i }));
+        await user.click(screen.getByRole('button', { name: /^save$/i }));
 
         await waitFor(() => expect(updateChart).toHaveBeenCalledTimes(1));
         expect(previewChart).not.toHaveBeenCalled();
@@ -206,11 +284,13 @@ describe('DatasetChartBuilder', () => {
             expect.objectContaining({
                 chartId: 'chart-1',
                 config: expect.objectContaining({
-                    measure: {
-                        aggregate: 'avg',
-                        columnId: 'score',
-                        valueFormat: 'number',
-                    },
+                    measures: [
+                        {
+                            aggregate: 'avg',
+                            columnId: 'score',
+                            valueFormat: 'number',
+                        },
+                    ],
                 }),
             })
         );

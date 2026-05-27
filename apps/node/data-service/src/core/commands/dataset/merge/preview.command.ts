@@ -1,7 +1,13 @@
 import type { ColumnDataType } from '@/core/domain';
-import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/core/errors';
+import {
+    ConflictError,
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
+} from '@/core/errors';
 import type {
     DatasetRepo,
+    MergeMode,
     MergeSession,
     MergeSessionColumn,
     MergeSessionRepo,
@@ -14,7 +20,6 @@ import type {
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { coerceValueByType } from '../helpers';
-
 import { buildTupleKey, parseFileForMerge, type ParsedMergeFile } from './helpers';
 import {
     MAX_REPORTED_CONFLICTS,
@@ -29,6 +34,8 @@ export type PreviewMergeInput = {
     userId: string;
     datasetId: string | null;
     name: string | null;
+    mode: MergeMode;
+    createNew: boolean;
     mergeKeys: string[];
     savedFiles: SavedTmpFile[];
 };
@@ -39,9 +46,10 @@ export type PreviewMergeConfig = {
     maxExistingRowsForMerge: number;
 };
 
-export class PreviewMergeCommand
-    implements Executable<[PreviewMergeInput], Promise<MergePreviewResult>>
-{
+export class PreviewMergeCommand implements Executable<
+    [PreviewMergeInput],
+    Promise<MergePreviewResult>
+> {
     constructor(
         private readonly datasetRepo: DatasetRepo,
         private readonly mergeSessionRepo: MergeSessionRepo,
@@ -55,14 +63,33 @@ export class PreviewMergeCommand
             throw new ValidationError([], 'no files were uploaded');
         }
 
-        if (input.datasetId === null && input.savedFiles.length > 1 && input.mergeKeys.length === 0) {
+        const mode = input.mode ?? 'merge';
+        const createNew = input.createNew || input.datasetId === null;
+
+        if (mode === 'append' && input.datasetId === null) {
+            throw new ValidationError(
+                ['datasetId'],
+                'datasetId is required when appending rows'
+            );
+        }
+
+        if (
+            mode === 'merge' &&
+            input.datasetId === null &&
+            input.savedFiles.length > 1 &&
+            input.mergeKeys.length === 0
+        ) {
             throw new ValidationError(
                 ['mergeKeys'],
                 'mergeKeys are required when uploading multiple files into a new dataset'
             );
         }
 
-        if (input.datasetId !== null && input.mergeKeys.length === 0) {
+        if (
+            mode === 'merge' &&
+            input.datasetId !== null &&
+            input.mergeKeys.length === 0
+        ) {
             throw new ValidationError(
                 ['mergeKeys'],
                 'mergeKeys are required when merging into an existing dataset'
@@ -89,9 +116,11 @@ export class PreviewMergeCommand
                 saved,
                 resolved,
                 this.tmpStorage,
-                input.mergeKeys,
-                this.config.maxMergeRowsInMemory,
-                totalParsedRows
+                mode === 'append' ? [] : input.mergeKeys,
+                mode === 'append'
+                    ? Number.POSITIVE_INFINITY
+                    : this.config.maxMergeRowsInMemory,
+                mode === 'append' ? 0 : totalParsedRows
             );
 
             parsed.push(p);
@@ -147,6 +176,7 @@ export class PreviewMergeCommand
         >();
         let existingRowCount = 0;
         let maxExistingOrderIndex = -1;
+        let sourceDatasetName: string | null = null;
 
         if (input.datasetId !== null) {
             const metadata = await this.datasetRepo.getDatasetMetadataByDatasetId(
@@ -161,6 +191,8 @@ export class PreviewMergeCommand
                 throw new ForbiddenError('dataset belongs to another organization');
             }
 
+            sourceDatasetName = metadata.dataset.name;
+
             for (const c of metadata.columns) {
                 existingByKey.set(c.key, {
                     dataType: c.dataType,
@@ -173,6 +205,55 @@ export class PreviewMergeCommand
             }
 
             existingRowCount = metadata.totalRows;
+
+            if (mode === 'append') {
+                validateAppendColumns(parsed, existingByKey);
+
+                const unionColumns = metadata.columns.map<MergeSessionColumn>(c => ({
+                    key: c.key,
+                    displayName: c.displayName,
+                    dataType: c.dataType,
+                    orderIndex: c.orderIndex,
+                    isNew: false,
+                }));
+                const sessionName = createNew
+                    ? (input.name ?? `${metadata.dataset.name} copy`)
+                    : null;
+
+                await this.mergeSessionRepo.save(
+                    {
+                        sessionId: input.sessionId,
+                        orgId: input.orgId,
+                        userId: input.userId,
+                        mode,
+                        createNew,
+                        sourceDatasetId: input.datasetId,
+                        datasetId: input.datasetId,
+                        name: sessionName,
+                        mergeKeys: [],
+                        files: parsed.map(p => p.file),
+                        unionColumns,
+                        createdAt: new Date().toISOString(),
+                    },
+                    this.config.sessionTtlSeconds
+                );
+
+                return {
+                    sessionId: input.sessionId,
+                    expiresInSeconds: this.config.sessionTtlSeconds,
+                    statistics: {
+                        totalFiles: parsed.length,
+                        totalIncomingRows: totalParsedRows,
+                        totalNewRows: totalParsedRows,
+                        totalDuplicateRows: 0,
+                        existingRowCount,
+                        copiedRows: createNew ? existingRowCount : 0,
+                        newColumns: [],
+                        commonColumns: unionColumns.map(c => c.key),
+                    },
+                    conflicts: [],
+                };
+            }
 
             for (const mk of input.mergeKeys) {
                 if (!existingByKey.has(mk)) {
@@ -316,8 +397,14 @@ export class PreviewMergeCommand
             sessionId: input.sessionId,
             orgId: input.orgId,
             userId: input.userId,
+            mode,
+            createNew,
+            sourceDatasetId: input.datasetId,
             datasetId: input.datasetId,
-            name: input.name,
+            name:
+                createNew && input.name === null && input.datasetId !== null
+                    ? `${sourceDatasetName ?? 'merged dataset'} copy`
+                    : input.name,
             mergeKeys: input.mergeKeys,
             files: parsed.map(p => p.file),
             unionColumns,
@@ -339,6 +426,7 @@ export class PreviewMergeCommand
             totalNewRows: totalParsedRows - duplicateCount,
             totalDuplicateRows: duplicateCount,
             existingRowCount,
+            copiedRows: createNew ? existingRowCount : 0,
             newColumns,
             commonColumns: commonColumnKeys,
         };
@@ -356,12 +444,37 @@ export type PreviewMergeCommandIO = ExecutableIO<PreviewMergeCommand>;
 
 function inferMime(filename: string): string {
     const lower = filename.toLowerCase();
-    if (lower.endsWith('.csv')) {return 'text/csv';}
+    if (lower.endsWith('.csv')) {
+        return 'text/csv';
+    }
     if (lower.endsWith('.xlsx')) {
         return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
 
     return '';
+}
+
+function validateAppendColumns(
+    parsed: ParsedMergeFile[],
+    existingByKey: Map<
+        string,
+        { dataType: ColumnDataType; displayName: string; orderIndex: number }
+    >
+): void {
+    const expected = new Set(existingByKey.keys());
+
+    for (const p of parsed) {
+        const actual = new Set(p.file.columnKeys);
+        const missing = [...expected].filter(key => !actual.has(key));
+        const extra = [...actual].filter(key => !expected.has(key));
+
+        if (missing.length > 0 || extra.length > 0) {
+            throw new ValidationError(
+                [...missing, ...extra],
+                `append file "${p.file.originalName}" must contain exactly the same columns`
+            );
+        }
+    }
 }
 
 function sameValue(oldVal: unknown, newVal: unknown, dataType: ColumnDataType): boolean {
@@ -373,8 +486,12 @@ function sameValue(oldVal: unknown, newVal: unknown, dataType: ColumnDataType): 
         return false;
     }
 
-    if (a === null && b === null) {return true;}
-    if (a === null || b === null) {return false;}
+    if (a === null && b === null) {
+        return true;
+    }
+    if (a === null || b === null) {
+        return false;
+    }
 
     return a === b || String(a) === String(b);
 }

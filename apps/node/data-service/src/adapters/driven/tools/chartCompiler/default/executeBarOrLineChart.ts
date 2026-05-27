@@ -12,6 +12,7 @@ import type {
 import type { ChartCompilationContext } from '@/core/ports/driven/repos';
 
 import {
+    buildDimensionOrderBy,
     buildOrderBy,
     buildSortGroupBy,
     buildSortSelects,
@@ -54,7 +55,10 @@ export async function executeBarOrLineChart(
         ...buildSortGroupBy('dim', dim),
         ...(series ? ['series', ...buildSortGroupBy('series', series)] : []),
     ];
-    const orderSql = buildOrderBy(config.orderBy, dim, series, measureExprs);
+    const orderSql =
+        config.kind === 'bar'
+            ? buildDimensionOrderBy(dim, series)
+            : buildOrderBy(config.orderBy, dim, series, measureExprs);
 
     const sql = `
         SELECT

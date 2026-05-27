@@ -15,8 +15,8 @@ import {
     selectShowUpload,
     setShowUpload,
 } from '../model';
-import { DatasetPreview } from './components/DatasetPreview';
-import { UploadDatasetModal } from './components/UploadDatasetModal';
+import { DatasetPreview } from './ui/DatasetPreview';
+import { UploadDatasetModal } from './ui/UploadDatasetModal';
 
 import styles from './DatasetsWorkspace.module.scss';
 
@@ -44,6 +44,8 @@ export const DatasetsWorkspace = () => {
         <>
             <main
                 className={styles['main-panel']}
+                data-stack="v"
+                data-flex
                 data-test-id={datasetsTestIds.workspace}
             >
                 <DatasetPreview

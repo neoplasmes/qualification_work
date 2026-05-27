@@ -12,6 +12,7 @@ export {
     DeleteDatasetCommand,
     DeleteRowCommand,
     InsertRowCommand,
+    PatchDatasetCommand,
     PreviewMergeCommand,
     UpdateRowValuesCommand,
     UploadDatasetCommand,

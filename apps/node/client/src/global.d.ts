@@ -33,10 +33,18 @@ declare global {
         | 'xl'
         | '2xl'
         | '3xl';
-    type Display = 'block' | 'inline' | 'inline-block' | 'flex' | 'grid' | 'none';
+    type Display =
+        | 'block'
+        | 'inline'
+        | 'inline-block'
+        | 'inline-flex'
+        | 'flex'
+        | 'grid'
+        | 'none';
     type Justify = 'start' | 'center' | 'end' | 'between';
     type Align = 'start' | 'center' | 'end' | 'stretch';
     type Wrap = 'wrap' | 'nowrap';
+    type IconPadding = 'none' | Spacing;
 }
 
 declare module 'react' {
@@ -53,6 +61,9 @@ declare module 'react' {
         'data-justify'?: Justify;
         'data-align'?: Align;
         'data-wrap'?: Wrap;
+        'data-grow'?: boolean | '';
+        'data-flex'?: boolean | '';
         'data-display'?: Display;
+        'data-icon-p'?: IconPadding;
     }
 }

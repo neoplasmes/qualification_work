@@ -23,17 +23,25 @@ export const uploadDatasetApi = api.injectEndpoints({
                 orgId: string;
                 datasetId?: string;
                 name?: string;
+                mode?: 'append' | 'merge';
+                createNew?: boolean;
                 mergeKeys: string[];
                 files: File[];
             }
         >({
-            query: ({ orgId, datasetId, name, mergeKeys, files }) => {
+            query: ({ orgId, datasetId, name, mode, createNew, mergeKeys, files }) => {
                 const params = new URLSearchParams({ orgId });
                 if (datasetId) {
                     params.set('datasetId', datasetId);
                 }
                 if (name) {
                     params.set('name', name);
+                }
+                if (mode) {
+                    params.set('mode', mode);
+                }
+                if (createNew) {
+                    params.set('createNew', 'true');
                 }
                 if (mergeKeys.length > 0) {
                     params.set('mergeKeys', mergeKeys.join(','));

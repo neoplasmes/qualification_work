@@ -1,5 +1,5 @@
-import { FolderKanban, Play, Save } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { PencilLine, Play, Save } from 'lucide-react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 
 import {
     ChartResult,
@@ -11,7 +11,8 @@ import {
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { Button, ButtonLink, Select, StatusMessage, TextInput } from '@/shared/ui';
+import { useHasOverflow } from '@/shared/lib/useHasOverflow';
+import { Button, Select, Separator, StatusMessage, Switch, TextInput } from '@/shared/ui';
 
 import {
     useCreateChartMutation,
@@ -46,6 +47,7 @@ const filterOperations = [
     'not_null',
 ] as const;
 const timeGranularities = ['day', 'week', 'month', 'quarter', 'year'] as const;
+const CHART_ROW_LIMIT = 200;
 
 const CHART_TYPE_LABELS: Record<ChartType, string> = {
     bar: 'Bar',
@@ -242,7 +244,10 @@ const buildChartConfig = ({
     const firstMeasure = buildMeasure(aggregate, measureColumnId, valueFormat);
     const base = {
         limit,
-        orderBy: { ref: 'measure', index: 0, dir: sortDirection },
+        orderBy:
+            chartType === 'bar'
+                ? { ref: 'dim', index: 0, dir: 'asc' }
+                : { ref: 'measure', index: 0, dir: sortDirection },
         ...(filter ? { filters: [filter] } : {}),
     };
 
@@ -329,7 +334,7 @@ export const configToBuilderFields = (
         result.limit = config.limit;
     }
     const orderBy = config.orderBy as { dir?: string } | undefined;
-    if (orderBy?.dir === 'asc' || orderBy?.dir === 'desc') {
+    if (chartType !== 'bar' && (orderBy?.dir === 'asc' || orderBy?.dir === 'desc')) {
         result.sortDirection = orderBy.dir;
     }
 
@@ -553,8 +558,6 @@ export const DatasetChartBuilder = ({
         setSecondValueFormat,
         secondMeasureColumnId,
         setSecondMeasureColumnId,
-        limit,
-        setLimit,
         topN,
         setTopN,
         sortDirection,
@@ -580,6 +583,9 @@ export const DatasetChartBuilder = ({
     const [previewChart, previewState] = usePreviewChartDataMutation();
     const [createChart, createChartState] = useCreateChartMutation();
     const [updateChart, updateChartState] = useUpdateChartMutation();
+    const builderRef = useRef<HTMLElement>(null);
+
+    useHasOverflow(builderRef);
 
     const columns = selectedDataset.columns;
     const numericColumns = useMemo(
@@ -753,7 +759,7 @@ export const DatasetChartBuilder = ({
             secondAggregate,
             secondValueFormat,
             secondMeasureColumnId: activeSecondMeasureColumnId,
-            limit,
+            limit: CHART_ROW_LIMIT,
             topN,
             sortDirection,
             seriesEnabled:
@@ -839,19 +845,25 @@ export const DatasetChartBuilder = ({
 
     if (step === 'preview' && previewData) {
         return (
-            <section className={styles['chart-builder']} aria-label="Chart builder">
-                <div className={styles['section']}>Preview</div>
-                <ChartResult
-                    data={previewData}
-                    kind={previewData.kind}
-                    ariaLabel="Chart preview"
-                    barsLimit={8}
-                    hideTable
-                />
-
+            <section
+                ref={builderRef}
+                className={styles['builder']}
+                data-stack="v"
+                data-gap="md"
+                data-flex
+                aria-label="Chart builder"
+            >
+                <div
+                    className={styles['section']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-align="center"
+                >
+                    Preview
+                </div>
                 <div data-stack="v" data-gap="sm">
                     {!editChartId && (
-                        <label className={styles['control']}>
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
                             <span>Chart name</span>
                             <TextInput
                                 value={chartName}
@@ -861,6 +873,14 @@ export const DatasetChartBuilder = ({
                         </label>
                     )}
 
+                    <ChartResult
+                        data={previewData}
+                        kind={previewData.kind}
+                        ariaLabel="Chart preview"
+                        barsLimit={8}
+                        hideTable
+                    />
+
                     <div data-stack="h" data-gap="sm">
                         <Button
                             type="button"
@@ -869,7 +889,8 @@ export const DatasetChartBuilder = ({
                                 setStep('config');
                             }}
                         >
-                            ← Edit
+                            <PencilLine size={18} />
+                            Edit
                         </Button>
                         <Button
                             type="button"
@@ -880,12 +901,6 @@ export const DatasetChartBuilder = ({
                             <Save size={18} />
                             {editChartId ? 'Save changes' : 'Save chart'}
                         </Button>
-                        {!editChartId && (
-                            <ButtonLink to="/charts">
-                                <FolderKanban size={18} />
-                                Open charts
-                            </ButtonLink>
-                        )}
                     </div>
 
                     {chartError && (
@@ -897,12 +912,31 @@ export const DatasetChartBuilder = ({
     }
 
     return (
-        <section className={styles['chart-builder']} aria-label="Chart builder">
-            <form className={styles['chart-form']} onSubmit={handlePreview}>
-                <div className={styles['section']}>Chart</div>
+        <section
+            ref={builderRef}
+            className={styles['builder']}
+            data-stack="v"
+            data-gap="md"
+            data-flex
+            aria-label="Chart builder"
+        >
+            <form
+                className={styles['chart-form']}
+                data-display="grid"
+                data-gap="sm"
+                onSubmit={handlePreview}
+            >
+                <div
+                    className={styles['section']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-align="center"
+                >
+                    Chart
+                </div>
 
                 {!editChartId && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Chart name</span>
                         <TextInput
                             value={chartName}
@@ -912,7 +946,7 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
-                <label className={styles['control']}>
+                <label className={styles['control']} data-stack="v" data-gap="xs">
                     <span>Chart type</span>
                     <Select
                         value={chartType}
@@ -926,7 +960,7 @@ export const DatasetChartBuilder = ({
                     </Select>
                 </label>
 
-                <label className={styles['control']}>
+                <label className={styles['control']} data-stack="v" data-gap="xs">
                     <span>{chartType === 'pie' ? 'Slice by' : 'X axis'}</span>
                     <Select
                         value={activeDimensionColumnId}
@@ -943,7 +977,7 @@ export const DatasetChartBuilder = ({
                 </label>
 
                 {chartType === 'heatmap' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Y axis</span>
                         <Select
                             value={activeHeatmapYColumnId}
@@ -960,7 +994,7 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
-                <label className={styles['control']}>
+                <label className={styles['control']} data-stack="v" data-gap="xs">
                     <span>Group by</span>
                     <Select
                         value={
@@ -968,6 +1002,7 @@ export const DatasetChartBuilder = ({
                                 ? dimensionGroupingMode
                                 : 'none'
                         }
+                        disabled={dimGroupingModes.length === 1}
                         onChange={event =>
                             setDimensionGroupingMode(event.target.value as GroupingMode)
                         }
@@ -981,7 +1016,7 @@ export const DatasetChartBuilder = ({
                 </label>
 
                 {dimensionGroupingMode === 'time' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Time unit</span>
                         <Select
                             value={dimensionGranularity}
@@ -1001,7 +1036,7 @@ export const DatasetChartBuilder = ({
                 )}
 
                 {dimensionGroupingMode === 'numeric' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Bucket size</span>
                         <TextInput
                             type="number"
@@ -1015,7 +1050,7 @@ export const DatasetChartBuilder = ({
                 )}
 
                 {chartType === 'heatmap' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Group Y by</span>
                         <Select
                             value={
@@ -1023,6 +1058,7 @@ export const DatasetChartBuilder = ({
                                     ? heatmapYGroupingMode
                                     : 'none'
                             }
+                            disabled={heatmapYGroupingModes.length === 1}
                             onChange={event =>
                                 setHeatmapYGroupingMode(
                                     event.target.value as GroupingMode
@@ -1039,7 +1075,7 @@ export const DatasetChartBuilder = ({
                 )}
 
                 {chartType === 'heatmap' && heatmapYGroupingMode === 'time' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Y time unit</span>
                         <Select
                             value={heatmapYGranularity}
@@ -1059,7 +1095,7 @@ export const DatasetChartBuilder = ({
                 )}
 
                 {chartType === 'heatmap' && heatmapYGroupingMode === 'numeric' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Y bucket size</span>
                         <TextInput
                             type="number"
@@ -1072,9 +1108,16 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
-                <div className={styles['section']}>Measure</div>
+                <div
+                    className={styles['section']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-align="center"
+                >
+                    Measure
+                </div>
 
-                <label className={styles['control']}>
+                <label className={styles['control']} data-stack="v" data-gap="xs">
                     <span>Aggregation</span>
                     <Select
                         value={aggregate}
@@ -1089,7 +1132,7 @@ export const DatasetChartBuilder = ({
                 </label>
 
                 {needsColumn(aggregate) && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Column</span>
                         <Select
                             data-testid="primary-measure-select"
@@ -1105,7 +1148,7 @@ export const DatasetChartBuilder = ({
                     </label>
                 )}
 
-                <label className={styles['control']}>
+                <label className={styles['control']} data-stack="v" data-gap="xs">
                     <span>Value format</span>
                     <Select
                         value={valueFormat}
@@ -1122,7 +1165,7 @@ export const DatasetChartBuilder = ({
                 </label>
 
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>2nd measure</span>
                         <Select
                             value={secondMeasureEnabled ? 'on' : 'off'}
@@ -1140,7 +1183,11 @@ export const DatasetChartBuilder = ({
                     chartType !== 'pie' &&
                     chartType !== 'heatmap' && (
                         <>
-                            <label className={styles['control']}>
+                            <label
+                                className={styles['control']}
+                                data-stack="v"
+                                data-gap="xs"
+                            >
                                 <span>2nd aggregation</span>
                                 <Select
                                     value={secondAggregate}
@@ -1157,7 +1204,11 @@ export const DatasetChartBuilder = ({
                                     ))}
                                 </Select>
                             </label>
-                            <label className={styles['control']}>
+                            <label
+                                className={styles['control']}
+                                data-stack="v"
+                                data-gap="xs"
+                            >
                                 <span>2nd value format</span>
                                 <Select
                                     value={secondValueFormat}
@@ -1175,7 +1226,11 @@ export const DatasetChartBuilder = ({
                                 </Select>
                             </label>
                             {needsColumn(secondAggregate) && (
-                                <label className={styles['control']}>
+                                <label
+                                    className={styles['control']}
+                                    data-stack="v"
+                                    data-gap="xs"
+                                >
                                     <span>2nd column</span>
                                     <Select
                                         data-testid="second-measure-select"
@@ -1195,39 +1250,26 @@ export const DatasetChartBuilder = ({
                         </>
                     )}
 
-                <label className={styles['control']}>
-                    <span>Sort</span>
-                    <Select
-                        value={sortDirection}
-                        onChange={event =>
-                            setSortDirection(event.target.value as 'asc' | 'desc')
-                        }
-                    >
-                        {(['desc', 'asc'] as const).map(dir => (
-                            <option key={dir} value={dir}>
-                                {SORT_LABELS[dir]}
-                            </option>
-                        ))}
-                    </Select>
-                </label>
-
-                <label className={styles['control']}>
-                    <span>Row limit</span>
-                    <TextInput
-                        type="number"
-                        min={1}
-                        max={200}
-                        value={limit}
-                        onChange={event =>
-                            setLimit(
-                                Math.max(1, Math.min(200, Number(event.target.value)))
-                            )
-                        }
-                    />
-                </label>
+                {chartType !== 'bar' && chartType !== 'pie' && (
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
+                        <span>Sort</span>
+                        <Select
+                            value={sortDirection}
+                            onChange={event =>
+                                setSortDirection(event.target.value as 'asc' | 'desc')
+                            }
+                        >
+                            {(['desc', 'asc'] as const).map(dir => (
+                                <option key={dir} value={dir}>
+                                    {SORT_LABELS[dir]}
+                                </option>
+                            ))}
+                        </Select>
+                    </label>
+                )}
 
                 {chartType === 'pie' && (
-                    <label className={styles['control']}>
+                    <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Max slices</span>
                         <TextInput
                             type="number"
@@ -1245,9 +1287,16 @@ export const DatasetChartBuilder = ({
 
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
                     <>
-                        <div className={styles['section']}>Series</div>
+                        <div
+                            className={styles['section']}
+                            data-stack="h"
+                            data-gap="sm"
+                            data-align="center"
+                        >
+                            Series
+                        </div>
 
-                        <label className={styles['control']}>
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
                             <span>Color by</span>
                             <Select
                                 value={seriesEnabled ? 'on' : 'off'}
@@ -1264,7 +1313,7 @@ export const DatasetChartBuilder = ({
 
                 {seriesEnabled && chartType !== 'pie' && chartType !== 'heatmap' && (
                     <>
-                        <label className={styles['control']}>
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
                             <span>Color column</span>
                             <Select
                                 value={activeSeriesColumnId}
@@ -1277,7 +1326,7 @@ export const DatasetChartBuilder = ({
                                 ))}
                             </Select>
                         </label>
-                        <label className={styles['control']}>
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
                             <span>Max series</span>
                             <TextInput
                                 type="number"
@@ -1295,7 +1344,11 @@ export const DatasetChartBuilder = ({
                             />
                         </label>
                         {chartType === 'bar' && (
-                            <label className={styles['control']}>
+                            <label
+                                className={styles['control']}
+                                data-stack="v"
+                                data-gap="xs"
+                            >
                                 <span>Group rest</span>
                                 <Select
                                     value={seriesOtherBucket ? 'on' : 'off'}
@@ -1311,22 +1364,23 @@ export const DatasetChartBuilder = ({
                     </>
                 )}
 
-                <div className={styles['section']}>Filter</div>
-
-                <label className={styles['control']}>
-                    <span>Filter rows</span>
-                    <Select
-                        value={filterEnabled ? 'on' : 'off'}
-                        onChange={event => setFilterEnabled(event.target.value === 'on')}
-                    >
-                        <option value="off">Off</option>
-                        <option value="on">On</option>
-                    </Select>
-                </label>
+                <div
+                    className={styles['section']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-align="center"
+                >
+                    <span>Filter</span>
+                    <Switch
+                        aria-label="Filter rows"
+                        checked={filterEnabled}
+                        onChange={event => setFilterEnabled(event.target.checked)}
+                    />
+                </div>
 
                 {filterEnabled && (
                     <>
-                        <label className={styles['control']}>
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
                             <span>Filter column</span>
                             <Select
                                 value={activeFilterColumn?.id ?? ''}
@@ -1340,7 +1394,7 @@ export const DatasetChartBuilder = ({
                             </Select>
                         </label>
 
-                        <label className={styles['control']}>
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
                             <span>Condition</span>
                             <Select
                                 value={filterOperation}
@@ -1359,7 +1413,11 @@ export const DatasetChartBuilder = ({
                         </label>
 
                         {!nullaryFilter && (
-                            <label className={styles['control']}>
+                            <label
+                                className={styles['control']}
+                                data-stack="v"
+                                data-gap="xs"
+                            >
                                 <span>Value</span>
                                 <TextInput
                                     value={filterValue}
@@ -1378,25 +1436,33 @@ export const DatasetChartBuilder = ({
                     </>
                 )}
 
-                <Button
-                    type="submit"
-                    disabled={!canPreview || previewState.isLoading}
-                    isLoading={previewState.isLoading}
+                <Separator className={styles['actions-separator']} />
+                <div
+                    className={styles['actions']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-wrap="wrap"
                 >
-                    <Play size={18} />
-                    Preview
-                </Button>
-                {editChartId && (
                     <Button
-                        type="button"
-                        disabled={!canPreview || isSaving}
-                        isLoading={isSaving}
-                        onClick={() => void handleSaveWithoutPreview()}
+                        type="submit"
+                        disabled={!canPreview || previewState.isLoading}
+                        isLoading={previewState.isLoading}
                     >
-                        <Save size={18} />
-                        Save without preview
+                        <Play size={18} />
+                        Preview
                     </Button>
-                )}
+                    {editChartId && (
+                        <Button
+                            type="button"
+                            disabled={!canPreview || isSaving}
+                            isLoading={isSaving}
+                            onClick={() => void handleSaveWithoutPreview()}
+                        >
+                            <Save size={18} />
+                            Save
+                        </Button>
+                    )}
+                </div>
             </form>
 
             {chartError && <StatusMessage tone="error">{chartError}</StatusMessage>}

@@ -139,6 +139,34 @@ describe('GET /api/charts/:id/data - bar', () => {
         expect(body.rows.map(row => row[0])).toEqual(['Amsterdam', 'Berlin', 'Zurich']);
     });
 
+    it('sorts date dimensions chronologically even when legacy config orders by measure', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadCsvDataset(
+            orgId,
+            ['date,score', '2025-12-18,1', '2025-09-26,3', '2025-09-27,2'].join('\n'),
+            'dates.csv'
+        );
+        const dateId = await getColumnId(datasetId, 'date');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: dateId },
+            measures: [{ columnId: scoreId, aggregate: 'sum' }],
+            orderBy: { ref: 'measure', index: 0, dir: 'desc' },
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<Array<string | number | null>> };
+        expect(body.rows.map(row => row[0])).toEqual([
+            '2025-09-26T00:00:00.000Z',
+            '2025-09-27T00:00:00.000Z',
+            '2025-12-18T00:00:00.000Z',
+        ]);
+    });
+
     it('sorts legacy string weekday dimensions from Monday to Sunday', async () => {
         const { orgId } = await createTestUserWithOrg();
         const datasetId = await uploadWeekdayDataset(orgId);

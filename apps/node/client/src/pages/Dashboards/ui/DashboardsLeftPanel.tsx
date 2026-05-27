@@ -71,7 +71,7 @@ export const DashboardsLeftPanel = () => {
     return (
         <WorkspaceLeftPanel
             title="Dashboards"
-            countLabel={`${filteredDashboards?.length ?? 0} dashboards`}
+            countLabel={`Total: ${filteredDashboards?.length ?? 0} dashboards`}
             testId={dashboardsTestIds.listPanel}
             listLabel="Dashboards"
             loading={dashboardsQuery.isLoading}
@@ -92,9 +92,9 @@ export const DashboardsLeftPanel = () => {
                     key={item.id}
                     selected={selectedDashboardId === item.id}
                     testId={dashboardsTestIds.dashboardListItem}
-                    title={item.name}
-                    meta={[formatDate(item.createdAt)]}
-                    icon={<LayoutDashboard size={18} />}
+                    header={item.name}
+                    details={[formatDate(item.createdAt)]}
+                    iconElement={<LayoutDashboard size={18} />}
                     onClick={() => dispatch(selectDashboard(item.id))}
                 />
             ))}

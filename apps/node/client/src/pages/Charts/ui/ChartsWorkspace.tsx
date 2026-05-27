@@ -6,10 +6,8 @@ import {
     WorkspaceModeTabs,
     type WorkspaceModeTabOption,
 } from '@/widgets/WorkspaceModeTabs';
-import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
-import { usePatchChartMutation } from '@/features/buildChart';
 
 import {
     useLazyGetChartDataQuery,
@@ -21,6 +19,7 @@ import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
+import { useHasOverflow } from '@/shared/lib/useHasOverflow';
 import { PanelPlaceholder } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
@@ -35,9 +34,9 @@ import {
 import {
     CreateChartBuilderSection,
     EditChartBuilderSection,
-} from './components/ChartBuilderSection';
-import { CreateChartModal } from './components/CreateChartModal';
-import { SavedChartDetails } from './components/SavedChartDetails';
+} from './ui/ChartBuilderSection';
+import { CreateChartModal } from './ui/CreateChartModal';
+import { SavedChartDetails } from './ui/SavedChartDetails';
 
 import styles from './ChartsPage.module.scss';
 
@@ -60,6 +59,7 @@ export const ChartsWorkspace = () => {
     const dispatch = useDispatch();
     const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const workspaceRef = useRef<HTMLElement>(null);
     const [chartResult, setChartResult] = useState<{
         chartId: string;
         data: ChartResponse;
@@ -75,7 +75,8 @@ export const ChartsWorkspace = () => {
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [getChartData, chartDataQuery] = useLazyGetChartDataQuery();
-    const [patchChart, patchChartState] = usePatchChartMutation();
+
+    useHasOverflow(workspaceRef);
 
     const selectedChart = useMemo(
         () => getSelected(chartsQuery.data, selectedChartId),
@@ -161,26 +162,6 @@ export const ChartsWorkspace = () => {
         });
     };
 
-    const handleRenameChart = async (name: string) => {
-        if (!selectedChart) {
-            return;
-        }
-
-        try {
-            setError('');
-            await patchChart({ chartId: selectedChart.id, name }).unwrap();
-            await chartsQuery.refetch();
-        } catch (renameError) {
-            const message = getApiErrorMessage(
-                renameError,
-                'Unable to rename this chart.'
-            );
-            setError(message);
-
-            throw new Error(message);
-        }
-    };
-
     const selectedChartResult =
         selectedChart && chartResult?.chartId === selectedChart.id
             ? chartResult.data
@@ -189,7 +170,11 @@ export const ChartsWorkspace = () => {
     return (
         <>
             <section
+                ref={workspaceRef}
                 className={styles['panel']}
+                data-stack="v"
+                data-gap="md"
+                data-flex
                 data-test-id={chartsTestIds.workspace}
                 aria-label="Chart details"
             >
@@ -204,31 +189,19 @@ export const ChartsWorkspace = () => {
                         orgId={org.id}
                         dataset={builderDataset}
                         onChangeDataset={() => dispatch(setShowDatasetPicker(true))}
+                        onCancel={() => dispatch(setBuilderDatasetId(null))}
                         onChartCreated={chartId => void handleChartCreated(chartId)}
                     />
                 )}
 
                 {selectedChart && !builderDataset && (
                     <>
-                        <div data-stack="v" data-gap="sm">
-                            <WorkspaceTitleEditor
-                                eyebrow="Chart"
-                                title={selectedChart.name}
-                                fallbackTitle="Untitled chart"
-                                meta={selectedChart.chartType}
-                                saving={patchChartState.isLoading}
-                                editButtonTestId={chartsTestIds.renameButton}
-                                inputTestId={chartsTestIds.renameInput}
-                                onRename={handleRenameChart}
-                            />
-
-                            <WorkspaceModeTabs
-                                value={isEditing ? 'edit' : 'view'}
-                                options={CHARTS_WORKSPACE_MODE_TABS}
-                                layoutId="charts-workspace-mode"
-                                onChange={mode => setIsEditing(mode === 'edit')}
-                            />
-                        </div>
+                        <WorkspaceModeTabs
+                            value={isEditing ? 'edit' : 'view'}
+                            options={CHARTS_WORKSPACE_MODE_TABS}
+                            layoutId="charts-workspace-mode"
+                            onChange={mode => setIsEditing(mode === 'edit')}
+                        />
 
                         {!isEditing && (
                             <SavedChartDetails

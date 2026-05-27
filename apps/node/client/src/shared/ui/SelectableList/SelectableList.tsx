@@ -12,6 +12,8 @@ export const SelectableList = ({
     ...props
 }: SelectableListProps) => (
     <div
+        data-display="grid"
+        data-gap="xs"
         className={[styles['list'], className ?? ''].filter(Boolean).join(' ')}
         {...props}
     >

@@ -85,7 +85,16 @@ const getFirstColumnByRole = (
     role: ChartResultColumn['role']
 ) => columns.find(column => column.role === role);
 
-const chartFallback = <div className={styles['chart-loading']}>Loading chart...</div>;
+const chartFallback = (
+    <div
+        className={styles['chart-loading']}
+        data-stack="h"
+        data-align="center"
+        data-justify="center"
+    >
+        Loading chart...
+    </div>
+);
 
 export const ChartResult = ({
     data,
@@ -125,6 +134,13 @@ export const ChartResult = ({
             ...heatmapWarnings,
         ]),
     ];
+    const className = [
+        styles['root'],
+        frameless ? styles['frameless'] : '',
+        hideTable ? styles['visual-only'] : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
 
     const renderChart = () => {
         if (activeKind === 'heatmap') {
@@ -193,13 +209,22 @@ export const ChartResult = ({
 
     return (
         <div
-            className={`${styles['root']} ${frameless ? styles['frameless'] : ''}`}
+            className={className}
+            data-stack="v"
+            data-gap="md"
+            data-p={frameless ? undefined : 'md'}
             aria-label={ariaLabel}
         >
             <div className={styles['chart-wrap']}>{renderChart()}</div>
 
             {chartWarnings.map(warning => (
-                <div key={warning} role="status" className={styles['chart-warning']}>
+                <div
+                    key={warning}
+                    role="status"
+                    className={styles['chart-warning']}
+                    data-px="md"
+                    data-py="sm"
+                >
                     {warning}
                 </div>
             ))}
@@ -211,6 +236,8 @@ export const ChartResult = ({
                             key={warning}
                             role="status"
                             className={styles['chart-warning']}
+                            data-px="md"
+                            data-py="sm"
                         >
                             {warning}
                         </div>
@@ -243,7 +270,12 @@ export const ChartResult = ({
                         </table>
                     </div>
 
-                    <div className={styles['summary']}>
+                    <div
+                        className={styles['summary']}
+                        data-stack="h"
+                        data-gap="sm"
+                        data-wrap="wrap"
+                    >
                         <span>{data.rows.length} result rows</span>
                         {data.truncated && <span>Result truncated</span>}
                         {children}

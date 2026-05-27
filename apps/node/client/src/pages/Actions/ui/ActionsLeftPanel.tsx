@@ -65,7 +65,7 @@ export const ActionsLeftPanel = () => {
     return (
         <WorkspaceLeftPanel
             title="Actions"
-            countLabel={`${filteredActions.length} actions`}
+            countLabel={`Total: ${filteredActions.length} actions`}
             testId={actionsTestIds.listPanel}
             listLabel="Actions"
             loading={actionsQuery.isLoading}
@@ -85,8 +85,8 @@ export const ActionsLeftPanel = () => {
             {isCreatingAction ? (
                 <WorkspaceLeftPanelItem
                     selected
-                    title="New action"
-                    meta={['Draft', 'Not saved']}
+                    header="New action"
+                    details={['Draft', 'Not saved']}
                     onClick={() => dispatch(startCreateAction())}
                 />
             ) : null}
@@ -94,13 +94,13 @@ export const ActionsLeftPanel = () => {
                 <WorkspaceLeftPanelItem
                     key={action.id}
                     selected={selectedActionId === action.id && !isCreatingAction}
-                    title={action.name}
-                    meta={[
+                    header={action.name}
+                    details={[
                         `${action.parameters.length} params`,
                         `${action.effects.length} effects`,
                         formatDate(action.updatedAt),
                     ]}
-                    icon={<Workflow size={18} />}
+                    iconElement={<Workflow size={18} />}
                     onClick={() => dispatch(selectAction(action.id))}
                 />
             ))}

@@ -24,17 +24,18 @@ export const SectionHeader = ({
     return (
         <div
             data-stack="v"
+            data-gap="sm"
             data-justify="between"
             className={[styles['header'], className ?? ''].filter(Boolean).join(' ')}
             {...props}
         >
-            <div className={styles['content']}>
+            <div className={styles['content']} data-display="grid" data-gap="xs">
                 {eyebrow && <span className={styles['eyebrow']}>{eyebrow}</span>}
                 {title && <Heading className={styles['title']}>{title}</Heading>}
                 {description && <p className={styles['muted']}>{description}</p>}
             </div>
             {actions && (
-                <div data-stack="v" className={styles['actions']}>
+                <div data-stack="v" data-gap="sm">
                     {actions}
                 </div>
             )}

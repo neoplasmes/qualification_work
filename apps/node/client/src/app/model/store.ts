@@ -33,31 +33,35 @@ import { rootReducer, type RootState } from './rootReducer';
 import { getPersistedInitialState, subscribePersistedSlices } from './storePersistence';
 
 export function createStore(preloadedState?: Partial<RootState>) {
+    const persistedState = {
+        [panelLayoutSlice.name]: getPersistedInitialState<
+            PanelLayoutState,
+            PanelLayoutState
+        >(panelLayoutPersistence),
+        [actionsPageSlice.name]: getPersistedInitialState<
+            ActionsPageState,
+            ReturnType<typeof actionsPagePersistence.pickPersistedState>
+        >(actionsPagePersistence),
+        [chartsPageSlice.name]: getPersistedInitialState<
+            ChartsPageState,
+            ReturnType<typeof chartsPagePersistence.pickPersistedState>
+        >(chartsPagePersistence),
+        [datasetsPageSlice.name]: getPersistedInitialState<
+            DatasetsPageState,
+            ReturnType<typeof datasetsPagePersistence.pickPersistedState>
+        >(datasetsPagePersistence),
+        [dashboardsPageSlice.name]: getPersistedInitialState<
+            DashboardsPageState,
+            ReturnType<typeof dashboardsPagePersistence.pickPersistedState>
+        >(dashboardsPagePersistence),
+    };
+
     const store = configureStore({
         reducer: rootReducer,
         middleware: getDefaultMiddleware => getDefaultMiddleware().concat(api.middleware),
         preloadedState: {
-            [panelLayoutSlice.name]: getPersistedInitialState<
-                PanelLayoutState,
-                PanelLayoutState
-            >(panelLayoutPersistence),
-            [actionsPageSlice.name]: getPersistedInitialState<
-                ActionsPageState,
-                ReturnType<typeof actionsPagePersistence.pickPersistedState>
-            >(actionsPagePersistence),
-            [chartsPageSlice.name]: getPersistedInitialState<
-                ChartsPageState,
-                ReturnType<typeof chartsPagePersistence.pickPersistedState>
-            >(chartsPagePersistence),
-            [datasetsPageSlice.name]: getPersistedInitialState<
-                DatasetsPageState,
-                ReturnType<typeof datasetsPagePersistence.pickPersistedState>
-            >(datasetsPagePersistence),
-            [dashboardsPageSlice.name]: getPersistedInitialState<
-                DashboardsPageState,
-                ReturnType<typeof dashboardsPagePersistence.pickPersistedState>
-            >(dashboardsPagePersistence),
             ...preloadedState,
+            ...persistedState,
         },
     });
 

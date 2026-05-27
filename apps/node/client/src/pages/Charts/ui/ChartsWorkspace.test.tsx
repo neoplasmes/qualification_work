@@ -118,16 +118,6 @@ vi.mock('@/features/buildChart', () => ({
     ),
 }));
 
-const getByDataTestId = <T extends HTMLElement>(
-    container: HTMLElement,
-    testId: string
-) => {
-    const element = container.querySelector<T>(`[data-test-id="${testId}"]`);
-    expect(element).not.toBeNull();
-
-    return element as T;
-};
-
 const renderWorkspace = (preloadedState: Partial<ChartsPageState>) => {
     const store = configureStore({
         reducer: combineReducers({ [chartsPageSlice.name]: chartsPageSlice.reducer }),
@@ -188,24 +178,29 @@ describe('ChartsWorkspace', () => {
         expect(selectSelectedChartId(store.getState())).toBe('chart-new');
     });
 
-    it('renames selected chart from workspace title', async () => {
+    it('cancels chart creation from the builder header', async () => {
         const user = userEvent.setup();
+        const { store } = renderWorkspace({ builderDatasetId: 'dataset-1' });
+
+        expect(screen.getByTestId('chart-builder')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Change dataset' })
+        ).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+        expect(selectBuilderDatasetId(store.getState())).toBeNull();
+        expect(screen.queryByTestId('chart-builder')).not.toBeInTheDocument();
+    });
+
+    it('keeps chart title editing out of the central workspace', () => {
         const { container } = renderWorkspace({ selectedChartId: 'chart-1' });
 
-        await user.click(getByDataTestId(container, chartsTestIds.renameButton));
-
-        const nameInput = getByDataTestId<HTMLInputElement>(
-            container,
-            chartsTestIds.renameInput
-        );
-        await user.clear(nameInput);
-        await user.type(nameInput, 'Operations');
-        await user.keyboard('{Enter}');
-
-        await waitFor(() => expect(mocks.patchChart).toHaveBeenCalledTimes(1));
-        expect(mocks.patchChart).toHaveBeenCalledWith({
-            chartId: 'chart-1',
-            name: 'Operations',
-        });
+        expect(
+            container.querySelector(`[data-test-id="${chartsTestIds.renameButton}"]`)
+        ).toBeNull();
+        expect(
+            screen.queryByRole('heading', { name: 'Revenue' })
+        ).not.toBeInTheDocument();
     });
 });

@@ -55,7 +55,7 @@ export const ChartsLeftPanel = () => {
     return (
         <WorkspaceLeftPanel
             title="Charts"
-            countLabel={filteredCharts ? `${filteredCharts.length} charts` : 'Loading'}
+            countLabel={`Total: ${filteredCharts?.length ?? 0} charts`}
             testId={chartsTestIds.listPanel}
             listLabel="Saved charts"
             loading={chartsQuery.isLoading}
@@ -74,12 +74,12 @@ export const ChartsLeftPanel = () => {
                     key={chart.id}
                     selected={selectedChartId === chart.id}
                     testId={chartsTestIds.chartListItem}
-                    title={chart.name}
-                    meta={[
+                    header={chart.name}
+                    details={[
                         formatDate(chart.createdAt),
                         datasetNameById.get(chart.datasetId) ?? 'Unknown dataset',
                     ]}
-                    badge={<Badge>{chart.chartType}</Badge>}
+                    iconElement={<Badge>{chart.chartType}</Badge>}
                     onClick={() => dispatch(selectChart(chart.id))}
                 />
             ))}

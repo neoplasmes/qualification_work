@@ -73,6 +73,7 @@ export const Entrance = () => {
                             data-stack="v"
                             data-pt="md"
                             data-pb="sm"
+                            data-flex
                             className={styles['carousel-viewport']}
                         >
                             <m.div

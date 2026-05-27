@@ -1,5 +1,5 @@
 // oxlint-disable typescript/no-explicit-any
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * calls the fn with the last parameters before paint stage
@@ -10,19 +10,29 @@ import { useCallback, useRef } from 'react';
  */
 export const useRafThrottle = <T extends (...args: any[]) => void>(callback: T): T => {
     const frame = useRef<number | null>(null);
+    const callbackRef = useRef(callback);
     const lastArgs = useRef<any[]>([]);
 
-    return useCallback(
-        (...args: any[]) => {
-            lastArgs.current = args;
+    callbackRef.current = callback;
 
-            if (frame.current === null) {
-                frame.current = requestAnimationFrame(() => {
-                    frame.current = null;
-                    callback(...lastArgs.current);
-                });
+    useEffect(
+        () => () => {
+            if (frame.current !== null) {
+                cancelAnimationFrame(frame.current);
+                frame.current = null;
             }
         },
-        [callback]
-    ) as T;
+        []
+    );
+
+    return useCallback((...args: any[]) => {
+        lastArgs.current = args;
+
+        if (frame.current === null) {
+            frame.current = requestAnimationFrame(() => {
+                frame.current = null;
+                callbackRef.current(...lastArgs.current);
+            });
+        }
+    }, []) as T;
 };

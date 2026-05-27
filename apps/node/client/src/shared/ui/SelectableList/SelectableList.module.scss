@@ -1,6 +1,4 @@
 .list {
-    overflow: auto;
-    display: grid;
-    gap: var(--spacing-xs);
+    overflow-y: scroll;
     align-content: start;
 }

@@ -22,6 +22,10 @@ export const Dropzone: FC<DropzoneProps> = ({
 
     return (
         <label
+            data-stack="v"
+            data-gap="sm"
+            data-align="start"
+            data-p="md"
             className={styles['dropzone']}
             onDragOver={event => event.preventDefault()}
             onDrop={handleDrop}

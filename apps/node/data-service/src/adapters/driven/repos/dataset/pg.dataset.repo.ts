@@ -392,6 +392,16 @@ export class PgDatasetRepo implements DatasetRepo {
         await this.pool.query('DELETE FROM data.datasets WHERE id = $1', [datasetId]);
     }
 
+    async updateName(datasetId: string, name: string): Promise<void> {
+        await this.pool.query(
+            `UPDATE data.datasets
+            SET name = $2,
+                updated_at = NOW()
+            WHERE id = $1`,
+            [datasetId, name]
+        );
+    }
+
     async updateRowValues(
         datasetId: string,
         rowId: string,
@@ -730,6 +740,60 @@ export class PgDatasetRepo implements DatasetRepo {
             await client.query('COMMIT');
 
             return { insertedCount };
+        } catch (err) {
+            await client.query('ROLLBACK');
+
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    async copyRowsToDataset(
+        sourceDatasetId: string,
+        targetDatasetId: string
+    ): Promise<{ copiedCount: number }> {
+        const client = await this.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+            await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+                targetDatasetId,
+            ]);
+
+            const [{ nextIndex }] = await client
+                .query<{ nextIndex: number }>(
+                    `SELECT COALESCE(MAX(row_index), -1) + 1 AS "nextIndex"
+                    FROM data.dataset_rows
+                    WHERE dataset_id = $1`,
+                    [targetDatasetId]
+                )
+                .then(r => r.rows);
+
+            const [{ copiedCount }] = await client
+                .query<{ copiedCount: string }>(
+                    `WITH source_rows AS (
+                        SELECT
+                            data,
+                            row_number() OVER (ORDER BY row_index) - 1 AS rn
+                        FROM data.dataset_rows
+                        WHERE dataset_id = $1
+                    ),
+                    inserted AS (
+                        INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+                        SELECT $2, $3 + rn, data
+                        FROM source_rows
+                        ORDER BY rn
+                        RETURNING 1
+                    )
+                    SELECT COUNT(*)::text AS "copiedCount" FROM inserted`,
+                    [sourceDatasetId, targetDatasetId, nextIndex]
+                )
+                .then(r => r.rows);
+
+            await client.query('COMMIT');
+
+            return { copiedCount: Number(copiedCount) };
         } catch (err) {
             await client.query('ROLLBACK');
 

@@ -17,9 +17,10 @@ describe('formatChartCell', () => {
     });
 
     it('formats values with measure presets', () => {
-        expect(formatChartCell(1200, { valueFormat: 'rub' })).toBe('1200 ₽');
-        expect(formatChartCell(1200, { valueFormat: 'usd' })).toBe('$1200');
+        expect(formatChartCell(1200, { valueFormat: 'rub' })).toBe('1 200 ₽');
+        expect(formatChartCell(1200, { valueFormat: 'usd' })).toBe('$1 200');
         expect(formatChartCell(12.5, { valueFormat: 'percent' })).toBe('12.50%');
+        expect(formatChartCell(1_000_000_000_000_000)).toBe('1 000 000 000 000 000');
     });
 });
 

@@ -46,9 +46,15 @@ export const SignUp = () => {
             <p className={styles['form-subtitle']}>
                 Create an account to start managing your data.
             </p>
-            <form aria-label="Sign up" className={styles['form']} onSubmit={handleSubmit}>
-                <div data-stack="v" data-gap="md">
-                    <div data-stack="v" data-gap="sm" className={styles['field']}>
+            <form
+                aria-label="Sign up"
+                className={styles['form']}
+                data-stack="v"
+                data-flex
+                onSubmit={handleSubmit}
+            >
+                <div data-stack="v" data-gap="md" data-flex>
+                    <div data-stack="v" data-gap="sm">
                         <label htmlFor="sign-up-name" className={styles['label']}>
                             First Name
                         </label>
@@ -70,7 +76,7 @@ export const SignUp = () => {
                             />
                         </div>
                     </div>
-                    <div data-stack="v" data-gap="sm" className={styles['field']}>
+                    <div data-stack="v" data-gap="sm">
                         <label htmlFor="sign-up-family" className={styles['label']}>
                             Last Name
                         </label>
@@ -92,7 +98,7 @@ export const SignUp = () => {
                             />
                         </div>
                     </div>
-                    <div data-stack="v" data-gap="sm" className={styles['field']}>
+                    <div data-stack="v" data-gap="sm">
                         <label htmlFor="sign-up-email" className={styles['label']}>
                             Email Address
                         </label>
@@ -114,7 +120,7 @@ export const SignUp = () => {
                             />
                         </div>
                     </div>
-                    <div data-stack="v" data-gap="sm" className={styles['field']}>
+                    <div data-stack="v" data-gap="sm">
                         <label htmlFor="sign-up-password" className={styles['label']}>
                             Password
                         </label>

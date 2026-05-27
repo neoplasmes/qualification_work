@@ -48,6 +48,8 @@ export type MergePreviewQuery = {
     orgId: string;
     datasetId?: string;
     name?: string;
+    mode?: 'append' | 'merge';
+    createNew?: boolean;
     mergeKeys?: string[];
 };
 
@@ -56,9 +58,21 @@ export async function mergePreview(
     files: MergeFile[]
 ): Promise<Response> {
     const params = new URLSearchParams({ orgId: query.orgId });
-    if (query.datasetId) {params.set('datasetId', query.datasetId);}
-    if (query.name) {params.set('name', query.name);}
-    if (query.mergeKeys?.length) {params.set('mergeKeys', query.mergeKeys.join(','));}
+    if (query.datasetId) {
+        params.set('datasetId', query.datasetId);
+    }
+    if (query.name) {
+        params.set('name', query.name);
+    }
+    if (query.mode) {
+        params.set('mode', query.mode);
+    }
+    if (query.createNew) {
+        params.set('createNew', 'true');
+    }
+    if (query.mergeKeys?.length) {
+        params.set('mergeKeys', query.mergeKeys.join(','));
+    }
 
     const form = await buildMergeFormData(files);
 

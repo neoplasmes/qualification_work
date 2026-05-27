@@ -39,9 +39,15 @@ export const SignIn = () => {
                 Enter your credentials to access the analytics.
             </p>
 
-            <form aria-label="Sign in" className={styles['form']} onSubmit={handleSubmit}>
-                <div data-stack="v" data-gap="md-plus">
-                    <div data-stack="v" data-gap="sm" className={styles['field']}>
+            <form
+                aria-label="Sign in"
+                className={styles['form']}
+                data-stack="v"
+                data-flex
+                onSubmit={handleSubmit}
+            >
+                <div data-stack="v" data-gap="md-plus" data-flex>
+                    <div data-stack="v" data-gap="sm">
                         <label htmlFor="sign-in-email" className={styles['label']}>
                             Email Address
                         </label>
@@ -64,7 +70,7 @@ export const SignIn = () => {
                             />
                         </div>
                     </div>
-                    <div data-stack="v" data-gap="sm" className={styles['field']}>
+                    <div data-stack="v" data-gap="sm">
                         <div
                             data-stack="h"
                             data-gap="md"

@@ -1,4 +1,4 @@
-export { DashboardsFilterPanel } from './components/DashboardsFilterPanel';
+export { DashboardsFilterPanel } from './ui/DashboardsFilterPanel';
 export { DashboardsLeftPanel } from './DashboardsLeftPanel';
 export { DashboardsPage } from './DashboardsPage';
 export { DashboardsWorkspace } from './DashboardsWorkspace';

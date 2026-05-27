@@ -1,6 +1,7 @@
 import type { ColumnDataType } from '@/core/domain';
-
 import type { DatasetFileSourceType } from '@/core/ports/driven/tools/datasetParser.tool';
+
+export type MergeMode = 'append' | 'merge';
 
 export type MergeSessionFile = {
     fileIndex: number;
@@ -23,9 +24,13 @@ export type MergeSession = {
     sessionId: string;
     orgId: string;
     userId: string;
-    /** null when a brand-new dataset is being created from N files */
+    mode: MergeMode;
+    createNew: boolean;
+    /** selected/source dataset, null only for legacy "new from uploaded files" flow */
+    sourceDatasetId: string | null;
+    /** kept for compatibility with existing session consumers */
     datasetId: string | null;
-    /** name for the new dataset (null when datasetId is present) */
+    /** name for the new dataset when createNew=true */
     name: string | null;
     mergeKeys: string[];
     files: MergeSessionFile[];

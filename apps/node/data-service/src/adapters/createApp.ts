@@ -16,6 +16,7 @@ import {
     ExecuteActionCommand,
     InsertRowCommand,
     PatchActionCommand,
+    PatchDatasetCommand,
     PreviewMergeCommand,
     UpdateActionCommand,
     UpdateChartCommand,
@@ -115,6 +116,7 @@ export function createAppWithCleanup(
         datasetRepo
     );
     const baseDeleteDatasetHandler = new DeleteDatasetCommand(datasetRepo);
+    const basePatchDatasetHandler = new PatchDatasetCommand(datasetRepo);
     const baseUpdateRowHandler = new UpdateRowValuesCommand(datasetRepo);
     const baseInsertRowHandler = new InsertRowCommand(datasetRepo);
     const baseDeleteRowHandler = new DeleteRowCommand(datasetRepo);
@@ -219,6 +221,19 @@ export function createAppWithCleanup(
             await cache.invalidateTags(tags);
         },
     } as DeleteDatasetCommand;
+    const patchDatasetHandler = {
+        execute: async (...args: Parameters<PatchDatasetCommand['execute']>) => {
+            const metadata = await datasetRepo.getDatasetMetadataByDatasetId(args[0]);
+
+            await basePatchDatasetHandler.execute(...args);
+            await cache.invalidateTags(
+                compact([
+                    `dataset:${args[0]}`,
+                    metadata && `org:${metadata.dataset.orgId}:datasets`,
+                ])
+            );
+        },
+    } as PatchDatasetCommand;
     const updateRowHandler = {
         execute: async (...args: Parameters<UpdateRowValuesCommand['execute']>) => {
             const result = await baseUpdateRowHandler.execute(...args);
@@ -481,6 +496,7 @@ export function createAppWithCleanup(
         getDatasetMetadataHandler,
         getDatasetRowsHandler,
         uploadDatasetHandler,
+        patchDatasetHandler,
         deleteDatasetHandler,
         deleteRowHandler,
         updateRowHandler,

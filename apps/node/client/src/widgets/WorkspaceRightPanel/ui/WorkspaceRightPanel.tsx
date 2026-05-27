@@ -47,9 +47,17 @@ export const WorkspaceRightPanel = <T extends WorkspaceRightPanelTabKind>({
     tabTestIds,
     onTabChange,
 }: WorkspaceRightPanelProps<T>) => (
-    <aside className={styles['right-panel']} data-test-id={testId}>
+    <aside
+        className={styles['right-panel']}
+        data-stack="v"
+        data-gap="md"
+        data-flex
+        data-test-id={testId}
+    >
         <div
             className={styles['tabs']}
+            data-display="grid"
+            data-gap="xs"
             role="tablist"
             style={{ '--tabs-count': activeTabs.length } as WorkspaceRightPanelStyle}
         >
@@ -58,7 +66,7 @@ export const WorkspaceRightPanel = <T extends WorkspaceRightPanelTabKind>({
                 const active = activeTab === tab;
 
                 return (
-                    <div key={tab} className={styles['tab-wrapper']}>
+                    <div key={tab} className={styles['tab-wrapper']} data-display="grid">
                         <button
                             type="button"
                             role="tab"
@@ -72,13 +80,15 @@ export const WorkspaceRightPanel = <T extends WorkspaceRightPanelTabKind>({
                             <Icon size={15} />
                             {label}
                         </button>
-                        {active ? (
-                            <m.div
-                                className={styles['active-tab']}
-                                layoutId="workspace-right-panel-active-tab"
-                                transition={{ duration: 0.3 }}
-                            />
-                        ) : null}
+                        <div className={styles['active-tab-slot']}>
+                            {active ? (
+                                <m.div
+                                    className={styles['active-tab']}
+                                    layoutId="workspace-right-panel-active-tab"
+                                    transition={{ duration: 0.3 }}
+                                />
+                            ) : null}
+                        </div>
                     </div>
                 );
             })}

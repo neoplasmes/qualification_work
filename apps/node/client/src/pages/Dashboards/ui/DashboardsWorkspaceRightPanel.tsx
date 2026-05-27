@@ -8,8 +8,8 @@ import {
     setDashboardsRightPanelTab,
     type DashboardsRightPanelTab,
 } from '../model';
-import { DashboardsFilterPanel } from './components/DashboardsFilterPanel';
-import { DashboardsPropertiesPanel } from './components/DashboardsPropertiesPanel';
+import { DashboardsFilterPanel } from './ui/DashboardsFilterPanel';
+import { DashboardsPropertiesPanel } from './ui/DashboardsPropertiesPanel';
 
 const DASHBOARDS_WORKSPACE_RIGHT_PANEL_TABS = [
     'properties',

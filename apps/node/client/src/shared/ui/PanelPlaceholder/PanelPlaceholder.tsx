@@ -12,6 +12,10 @@ export const PanelPlaceholder = ({
     ...props
 }: PanelPlaceholderProps) => (
     <p
+        data-stack="h"
+        data-align="center"
+        data-justify="center"
+        data-flex
         className={[styles['placeholder'], className ?? ''].filter(Boolean).join(' ')}
         {...props}
     >

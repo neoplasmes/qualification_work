@@ -9,7 +9,6 @@ import type {
 } from '@/core/ports/driven/tools';
 
 import { inferDatasetTypes } from '../../helpers';
-
 import { buildTupleKey } from './buildTupleKey';
 
 const PREVIEW_ROWS_FOR_INFER = 10;
@@ -42,9 +41,9 @@ export async function parseFileForMerge(
     alreadyLoadedRows: number
 ): Promise<ParsedMergeFile> {
     const stream = storage.openFile(saved.path);
-    const rowStream = (resolved.parser as DatasetParserTool).parseFileDataToJSObjectsStream(
-        stream
-    );
+    const rowStream = (
+        resolved.parser as DatasetParserTool
+    ).parseFileDataToJSObjectsStream(stream);
 
     const previewRows: Array<Record<string, unknown>> = [];
     const rowsByTuple = new Map<string, Record<string, unknown>>();
@@ -86,7 +85,10 @@ export async function parseFileForMerge(
 
         rowCount += 1;
 
-        if (alreadyLoadedRows + rowCount > maxRowsAllowed) {
+        if (
+            Number.isFinite(maxRowsAllowed) &&
+            alreadyLoadedRows + rowCount > maxRowsAllowed
+        ) {
             throw new ValidationError(
                 [],
                 `too many rows to merge in memory, limit is ${maxRowsAllowed}`

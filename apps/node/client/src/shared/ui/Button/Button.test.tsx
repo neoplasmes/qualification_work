@@ -26,4 +26,20 @@ describe('Button', () => {
 
         expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled();
     });
+
+    it('passes icon padding through data attribute', () => {
+        render(
+            <IconButton iconPadding="none" aria-label="Close">
+                X
+            </IconButton>
+        );
+
+        expect(screen.getByRole('button', { name: 'Close' })).toHaveAttribute(
+            'data-icon-p',
+            'none'
+        );
+        expect(screen.getByRole('button', { name: 'Close' })).toHaveStyle({
+            '--icon-button-padding': '0',
+        });
+    });
 });

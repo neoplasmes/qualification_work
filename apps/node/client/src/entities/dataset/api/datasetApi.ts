@@ -1,6 +1,11 @@
 import { api } from '@/shared/api';
 
-import type { DatasetMetadata, DatasetRow, DatasetRowsPage } from './types';
+import type {
+    DatasetMetadata,
+    DatasetRow,
+    DatasetRowsPage,
+    PatchDatasetPayload,
+} from './types';
 
 export const datasetApi = api.injectEndpoints({
     endpoints: builder => ({
@@ -33,6 +38,18 @@ export const datasetApi = api.injectEndpoints({
                 { type: 'Datasets', id: 'LIST' },
                 { type: 'Datasets', id: datasetId },
                 { type: 'DatasetRows', id: datasetId },
+            ],
+        }),
+        patchDataset: builder.mutation<void, PatchDatasetPayload>({
+            query: ({ datasetId, ...body }) => ({
+                url: `/data/datasets/${datasetId}`,
+                method: 'PATCH',
+                body,
+                responseHandler: 'text',
+            }),
+            invalidatesTags: (_result, _error, arg) => [
+                { type: 'Datasets', id: 'LIST' },
+                { type: 'Datasets', id: arg.datasetId },
             ],
         }),
         getDatasetRows: builder.query<
@@ -109,5 +126,6 @@ export const {
     useLazyGetDatasetMetadataQuery,
     useLazyGetDatasetRowsQuery,
     useListDatasetsQuery,
+    usePatchDatasetMutation,
     useUpdateRowMutation,
 } = datasetApi;

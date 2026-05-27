@@ -2,7 +2,6 @@
     position: relative;
 
     overflow: hidden;
-    flex: 1;
 
     // border-radius: var(--radius-md) 0 0 var(--radius-md);
 
@@ -58,10 +57,7 @@
 }
 
 .chart {
-    flex: 1;
-
     .bar {
-        flex: 1;
         border-radius: 4px;
         background-color: var(--color-surface-container);
 

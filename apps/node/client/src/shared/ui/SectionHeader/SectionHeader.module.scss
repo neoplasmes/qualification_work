@@ -1,15 +1,5 @@
-.header {
-    gap: var(--spacing-sm);
-}
-
 .content {
-    display: grid;
-    gap: var(--spacing-xs);
     min-width: 0;
-}
-
-.actions {
-    gap: var(--spacing-sm);
 }
 
 .eyebrow {

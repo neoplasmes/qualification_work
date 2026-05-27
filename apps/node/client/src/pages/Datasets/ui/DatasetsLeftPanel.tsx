@@ -64,7 +64,7 @@ export const DatasetsLeftPanel = () => {
     return (
         <WorkspaceLeftPanel
             title="Datasets"
-            countLabel={`${filteredDatasets?.length ?? 0} datasets`}
+            countLabel={`Total: ${filteredDatasets?.length ?? 0} datasets`}
             testId={datasetsTestIds.uploadPanel}
             listLabel="Datasets"
             loading={datasetsQuery.isLoading}
@@ -83,9 +83,9 @@ export const DatasetsLeftPanel = () => {
                     key={item.dataset.id}
                     selected={selectedDataset?.dataset.id === item.dataset.id}
                     testId={datasetsTestIds.datasetListItem}
-                    title={item.dataset.name}
-                    meta={[formatDate(item.dataset.createdAt)]}
-                    badge={<Badge>{item.dataset.sourceType}</Badge>}
+                    header={item.dataset.name}
+                    details={[formatDate(item.dataset.createdAt)]}
+                    iconElement={<Badge>{item.dataset.sourceType}</Badge>}
                     multilineTitle
                     onClick={() => dispatch(selectDataset(item.dataset.id))}
                 />

@@ -1,0 +1,76 @@
+.root {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+
+    input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        clip-path: inset(50%);
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    &:has(input:disabled) {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.track {
+    position: relative;
+    box-sizing: border-box;
+
+    width: 34px;
+    height: 18px;
+    border: 1px solid var(--color-on-surface);
+    border-radius: 999px;
+
+    background-color: var(--color-surface-container-lowest);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+
+    transition:
+        border-color 180ms ease,
+        background-color 220ms ease,
+        box-shadow 220ms ease;
+}
+
+.thumb {
+    // vertical center stays put regardless of track height; only X moves on toggle
+    position: absolute;
+    top: 50%;
+    left: 2px;
+
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+
+    background-color: var(--color-on-surface);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 35%);
+    transform: translateY(-50%);
+
+    transition:
+        transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+        background-color 180ms ease,
+        box-shadow 220ms ease;
+}
+
+.root input:checked + .track {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    box-shadow:
+        inset 0 0 0 1px rgb(255 255 255 / 10%),
+        0 0 18px rgb(var(--color-secondary-rgb) / 38%);
+}
+
+.root input:checked + .track .thumb {
+    transform: translate(16px, -50%);
+    background-color: var(--color-on-surface);
+}
+
+.root input:focus-visible + .track {
+    outline: 2px solid var(--color-on-surface);
+    outline-offset: 3px;
+}

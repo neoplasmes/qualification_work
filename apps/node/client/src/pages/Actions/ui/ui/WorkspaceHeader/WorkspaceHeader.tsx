@@ -1,4 +1,4 @@
-import { Trash2, X } from 'lucide-react';
+import { Save, Trash2, X } from 'lucide-react';
 
 import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
 
@@ -13,6 +13,9 @@ type WorkspaceHeaderProps = {
     archiveConfirmationId: string | null;
     archiveDisabled: boolean;
     editable: boolean;
+    saveDisabled: boolean;
+    saveFormId: string | undefined;
+    saving: boolean;
     renaming: boolean;
     onRename: (name: string) => Promise<void> | void;
     onCancelCreate: () => void;
@@ -26,6 +29,9 @@ export const WorkspaceHeader = ({
     archiveConfirmationId,
     archiveDisabled,
     editable,
+    saveDisabled,
+    saveFormId,
+    saving,
     renaming,
     onRename,
     onCancelCreate,
@@ -42,29 +48,45 @@ export const WorkspaceHeader = ({
             inputTestId={actionsTestIds.renameInput}
             onRename={onRename}
         />
-        {isCreatingAction ? (
-            <Button
-                data-test-id={actionsTestIds.cancelCreateButton}
-                onClick={onCancelCreate}
-            >
-                <X size={18} />
-                Cancel
-            </Button>
-        ) : (
-            <Button
-                variant="danger"
-                data-test-id={actionsTestIds.archiveButton}
-                disabled={archiveDisabled}
-                title={
-                    editable ? undefined : 'Only owners and editors can archive actions.'
-                }
-                onClick={onArchive}
-            >
-                <Trash2 size={18} />
-                {archiveConfirmationId === selectedActionId
-                    ? 'Confirm archive'
-                    : 'Archive'}
-            </Button>
-        )}
+        <div data-stack="h" data-gap="sm" data-align="center">
+            {saveFormId && (
+                <Button
+                    type="submit"
+                    form={saveFormId}
+                    data-test-id={actionsTestIds.saveButton}
+                    disabled={saveDisabled}
+                    isLoading={saving}
+                >
+                    <Save size={18} />
+                    Save
+                </Button>
+            )}
+            {isCreatingAction ? (
+                <Button
+                    data-test-id={actionsTestIds.cancelCreateButton}
+                    onClick={onCancelCreate}
+                >
+                    <X size={18} />
+                    Cancel
+                </Button>
+            ) : (
+                <Button
+                    variant="danger"
+                    data-test-id={actionsTestIds.archiveButton}
+                    disabled={archiveDisabled}
+                    title={
+                        editable
+                            ? undefined
+                            : 'Only owners and editors can archive actions.'
+                    }
+                    onClick={onArchive}
+                >
+                    <Trash2 size={18} />
+                    {archiveConfirmationId === selectedActionId
+                        ? 'Confirm archive'
+                        : 'Archive'}
+                </Button>
+            )}
+        </div>
     </div>
 );

@@ -1,4 +1,4 @@
-import { Plus, Save } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState, type Dispatch, type FormEvent, type SetStateAction } from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
@@ -23,7 +23,7 @@ type ConfigureFormProps = {
     draft: ActionDraft;
     datasets: DatasetMetadata[];
     disabled: boolean;
-    saving: boolean;
+    formId: string;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onDraftChange: Dispatch<SetStateAction<ActionDraft>>;
     onUpdateParameter: (
@@ -42,7 +42,7 @@ export const ConfigureForm = ({
     draft,
     datasets,
     disabled,
-    saving,
+    formId,
     onSubmit,
     onDraftChange,
     onUpdateParameter,
@@ -65,6 +65,7 @@ export const ConfigureForm = ({
 
     return (
         <form
+            id={formId}
             className={styles['stack']}
             data-display="grid"
             data-gap="sm"
@@ -165,17 +166,6 @@ export const ConfigureForm = ({
                     />
                 ))}
             </Card>
-
-            <div className={styles['actions-row']}>
-                <Button
-                    type="submit"
-                    data-test-id={actionsTestIds.saveButton}
-                    disabled={disabled || saving}
-                >
-                    <Save size={18} />
-                    Save action
-                </Button>
-            </div>
         </form>
     );
 };

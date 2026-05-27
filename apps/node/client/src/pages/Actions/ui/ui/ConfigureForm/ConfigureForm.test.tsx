@@ -111,7 +111,7 @@ const TestConfigureForm = () => {
             draft={draft}
             datasets={[dataset]}
             disabled={false}
-            saving={false}
+            formId="test-configure-form"
             onSubmit={event => event.preventDefault()}
             onDraftChange={setDraft}
             onUpdateParameter={updateParameter}

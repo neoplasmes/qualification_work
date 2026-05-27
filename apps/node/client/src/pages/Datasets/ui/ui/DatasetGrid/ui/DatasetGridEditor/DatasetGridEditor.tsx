@@ -21,6 +21,7 @@ import type { DatasetGridEditorProps } from '../../types';
 import { useColumnWidths } from './useColumnWidths';
 
 const DEFAULT_COL_WIDTH = 150;
+const DRAFT_ROW_OVERSCROLL_Y = 128;
 
 export const DatasetGridEditor = ({
     datasetId,
@@ -65,6 +66,20 @@ export const DatasetGridEditor = ({
     useEffect(() => {
         reportDraftBounds();
     }, [reportDraftBounds, gridWidth, gridHeight]);
+
+    useEffect(() => {
+        if (draftIndex === null) {
+            return;
+        }
+
+        gridRef.current?.scrollTo(0, draftIndex, 'vertical', 0, DRAFT_ROW_OVERSCROLL_Y, {
+            vAlign: 'end',
+        });
+
+        const frame = window.requestAnimationFrame(reportDraftBounds);
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [draftIndex, reportDraftBounds]);
 
     // jump to last row when parent bumps the signal
     useEffect(() => {
@@ -233,6 +248,7 @@ export const DatasetGridEditor = ({
             width={gridWidth}
             height={gridHeight}
             cellActivationBehavior="double-click"
+            overscrollY={insertDraft ? DRAFT_ROW_OVERSCROLL_Y : undefined}
             smoothScrollX
             smoothScrollY
         />

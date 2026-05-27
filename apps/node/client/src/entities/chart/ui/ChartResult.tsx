@@ -39,7 +39,7 @@ const colDisplayName = (col: ChartResultData['columns'][number]): string => {
     }
 
     if (col.role === 'series') {
-        return 'Series';
+        return 'Breakdown';
     }
 
     if (col.role === 'measure') {
@@ -269,18 +269,20 @@ export const ChartResult = ({
                             </tbody>
                         </table>
                     </div>
-
-                    <div
-                        className={styles['summary']}
-                        data-stack="h"
-                        data-gap="sm"
-                        data-wrap="wrap"
-                    >
-                        <span>{data.rows.length} result rows</span>
-                        {data.truncated && <span>Result truncated</span>}
-                        {children}
-                    </div>
                 </>
+            )}
+
+            {(children || (!hideTable && (data.rows.length > 0 || data.truncated))) && (
+                <div
+                    className={styles['summary']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-wrap="wrap"
+                >
+                    {!hideTable && <span>{data.rows.length} result rows</span>}
+                    {!hideTable && data.truncated && <span>Result truncated</span>}
+                    {children}
+                </div>
             )}
         </div>
     );

@@ -1,0 +1,17 @@
+.summary {
+    margin: 0;
+
+    font-size: var(--font-size-sm);
+    line-height: 1.45;
+    color: var(--color-on-surface-variant);
+}
+
+.col {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.val {
+    font-weight: 600;
+    color: var(--color-secondary);
+}

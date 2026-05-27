@@ -38,7 +38,7 @@ export const ParameterRow = ({
             data-gap="sm"
             data-align="end"
         >
-            <FormField label="Label">
+            <FormField className={styles['parameter-label']} label="Label">
                 <TextInput
                     data-test-id={actionsTestIds.parameterLabelInput}
                     value={parameter.label}
@@ -49,7 +49,7 @@ export const ParameterRow = ({
                     }
                 />
             </FormField>
-            <FormField label="Type">
+            <FormField className={styles['parameter-type']} label="Type">
                 <Select
                     data-test-id={actionsTestIds.parameterTypeSelect}
                     value={parameter.type}
@@ -87,6 +87,7 @@ export const ParameterRow = ({
                 />
             </div>
             <IconButton
+                className={styles['parameter-remove']}
                 data-test-id={actionsTestIds.removeParameterButton}
                 aria-label="Remove parameter"
                 disabled={disabled || parametersCount === 1}

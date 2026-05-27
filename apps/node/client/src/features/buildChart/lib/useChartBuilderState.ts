@@ -28,7 +28,6 @@ export type ChartBuilderFields = {
     secondMeasureColumnId: string;
     limit: number;
     topN: number;
-    sortDirection: 'asc' | 'desc';
     seriesEnabled: boolean;
     seriesColumnId: string;
     seriesTopN: number;
@@ -59,7 +58,6 @@ const defaultFields = ((): ChartBuilderFields => ({
     secondMeasureColumnId: '',
     limit: CHART_RESULT_LIMIT,
     topN: 12,
-    sortDirection: 'desc',
     seriesEnabled: false,
     seriesColumnId: '',
     seriesTopN: 8,
@@ -105,7 +103,6 @@ type Setters = {
     setSecondMeasureColumnId(v: string): void;
     setLimit(v: number): void;
     setTopN(v: number): void;
-    setSortDirection(v: 'asc' | 'desc'): void;
     setSeriesEnabled(v: boolean): void;
     setSeriesColumnId(v: string): void;
     setSeriesTopN(v: number): void;
@@ -218,10 +215,6 @@ export const useChartBuilderState = (
         ),
         setLimit: useCallback((v: number) => patch({ limit: v }), [patch]),
         setTopN: useCallback((v: number) => patch({ topN: v }), [patch]),
-        setSortDirection: useCallback(
-            (v: 'asc' | 'desc') => patch({ sortDirection: v }),
-            [patch]
-        ),
         setSeriesEnabled: useCallback(
             (v: boolean) => patch({ seriesEnabled: v }),
             [patch]

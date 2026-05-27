@@ -1,10 +1,10 @@
 import { curveMonotoneX } from '@visx/curve';
 import { ParentSize } from '@visx/responsive';
 import {
+    AreaSeries,
     Axis,
     buildChartTheme,
     GlyphSeries,
-    LineSeries,
     Tooltip,
     XYChart,
 } from '@visx/xychart';
@@ -64,6 +64,10 @@ const getValues = (series: ChartSeries[]) =>
 const getSeriesColor = (seriesIndex: number) =>
     SERIES_COLORS[seriesIndex % SERIES_COLORS.length];
 
+const gradientId = (seriesName: string, seriesIndex: number) =>
+    // colon + spaces are illegal in svg ids; index keeps it unique
+    `line-area-grad-${seriesIndex}-${seriesName.replace(/[^a-z0-9_-]/gi, '_')}`;
+
 const LineChartInner = ({
     series,
     labels,
@@ -114,19 +118,42 @@ const LineChartInner = ({
                         dy: rotateLabels ? '0.25em' : '0.33em',
                     })}
                 />
+                <defs>
+                    {series.map((seriesItem, seriesIndex) => {
+                        const color = getSeriesColor(seriesIndex);
+
+                        return (
+                            <linearGradient
+                                key={seriesItem.name}
+                                id={gradientId(seriesItem.name, seriesIndex)}
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop offset="0" stopColor={color} stopOpacity={0.42} />
+                                <stop offset="1" stopColor={color} stopOpacity={0.02} />
+                            </linearGradient>
+                        );
+                    })}
+                </defs>
                 {series.map((seriesItem, seriesIndex) => {
                     const color = getSeriesColor(seriesIndex);
 
                     return (
                         <g key={seriesItem.name}>
-                            <LineSeries
+                            <AreaSeries
                                 dataKey={seriesItem.name}
                                 data={seriesItem.points}
                                 xAccessor={point => point.label}
                                 yAccessor={point => point.value}
-                                strokeWidth={2}
+                                fill={`url(#${gradientId(seriesItem.name, seriesIndex)})`}
                                 curve={curveMonotoneX}
-                                colorAccessor={() => color}
+                                renderLine
+                                lineProps={{
+                                    stroke: color,
+                                    strokeWidth: 2,
+                                }}
                             />
                             <GlyphSeries
                                 dataKey={`${seriesItem.name}:glyphs`}
@@ -151,8 +178,21 @@ const LineChartInner = ({
                     );
                 })}
                 <Tooltip<LineTooltipDatum>
+                    showVerticalCrosshair
                     showDatumGlyph
                     snapTooltipToDatumX
+                    snapTooltipToDatumY
+                    verticalCrosshairStyle={{
+                        stroke: C.muted,
+                        strokeDasharray: '3 3',
+                        strokeWidth: 1,
+                    }}
+                    glyphStyle={{
+                        fill: C.onSurface,
+                        stroke: C.surfaceHigh,
+                        strokeWidth: 2,
+                        radius: 5,
+                    }}
                     style={chartTheme.htmlLabel}
                     renderTooltip={({ tooltipData }) => {
                         const nearest = tooltipData?.nearestDatum;

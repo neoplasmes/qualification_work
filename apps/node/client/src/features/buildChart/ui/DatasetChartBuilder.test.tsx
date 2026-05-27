@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type * as ChartEntity from '@/entities/chart';
+
 import { DatasetChartBuilder } from './DatasetChartBuilder';
 
 const previewChart = vi.fn();
@@ -23,9 +25,15 @@ vi.mock('../api', () => ({
     useUpdateChartMutation: () => [updateChart, { isLoading: false }],
 }));
 
-vi.mock('@/entities/chart', () => ({
-    ChartResult: () => <div data-testid="chart-result" />,
-}));
+vi.mock('@/entities/chart', async importOriginal => {
+    const actual = await importOriginal<typeof ChartEntity>();
+
+    return {
+        ...actual,
+        ChartResult: () => <div data-testid="chart-result" />,
+        ChartConfigSummary: () => <p data-testid="chart-summary" />,
+    };
+});
 
 const dataset = {
     dataset: {
@@ -184,7 +192,7 @@ describe('DatasetChartBuilder', () => {
         expect(screen.queryByLabelText('Row limit')).not.toBeInTheDocument();
     });
 
-    it('does not expose sort setting for bar charts', async () => {
+    it('does not expose sort setting for bar or line charts', async () => {
         const user = userEvent.setup();
 
         render(
@@ -197,7 +205,7 @@ describe('DatasetChartBuilder', () => {
 
         await user.selectOptions(screen.getByLabelText('Chart type'), 'line');
 
-        expect(screen.getByLabelText('Sort')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Sort')).not.toBeInTheDocument();
     });
 
     it('orders bar charts by dimension instead of measure', async () => {
@@ -217,6 +225,30 @@ describe('DatasetChartBuilder', () => {
                 chartType: 'bar',
                 config: expect.objectContaining({
                     kind: 'bar',
+                    orderBy: { ref: 'dim', index: 0, dir: 'asc' },
+                }),
+            })
+        );
+    });
+
+    it('orders line charts by dimension instead of measure', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
+            </MemoryRouter>
+        );
+
+        await user.selectOptions(screen.getByLabelText('Chart type'), 'line');
+        await user.click(screen.getByRole('button', { name: 'Preview' }));
+
+        await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
+        expect(previewChart).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chartType: 'line',
+                config: expect.objectContaining({
+                    kind: 'line',
                     orderBy: { ref: 'dim', index: 0, dir: 'asc' },
                 }),
             })

@@ -42,6 +42,10 @@
         color: var(--color-on-background);
         outline: none;
     }
+
+    svg {
+        flex: 0 0 auto;
+    }
 }
 
 .active-tab {

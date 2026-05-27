@@ -59,17 +59,6 @@ export const ActionsFilters = () => {
 
     return (
         <section data-display="grid" data-gap="md" aria-label="Action filters">
-            <div data-stack="h" data-align="center" data-justify="end">
-                <IconButton
-                    data-test-id={actionsTestIds.clearFiltersButton}
-                    aria-label="Clear filters"
-                    style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
-                    onClick={() => dispatch(clearAllActionsFilters())}
-                >
-                    <X size={16} />
-                </IconButton>
-            </div>
-
             <FormField label="Search">
                 <TextInput
                     data-test-id={actionsTestIds.filtersSearchInput}
@@ -79,16 +68,41 @@ export const ActionsFilters = () => {
                 />
             </FormField>
 
-            <SegmentedTabs
-                columns={3}
-                value={filtersTab}
-                options={[
-                    { value: 'datasets', label: 'Datasets', count: datasetIds.length },
-                    { value: 'effects', label: 'Effects', count: effectKinds.length },
-                    { value: 'runs', label: 'Runs', count: runStatuses.length },
-                ]}
-                onChange={value => dispatch(setActionsFiltersTab(value))}
-            />
+            <div data-stack="h" data-gap="xs" data-align="center">
+                <div data-flex>
+                    <SegmentedTabs
+                        columns={3}
+                        value={filtersTab}
+                        options={[
+                            {
+                                value: 'datasets',
+                                label: 'Datasets',
+                                count: datasetIds.length,
+                            },
+                            {
+                                value: 'effects',
+                                label: 'Effects',
+                                count: effectKinds.length,
+                            },
+                            {
+                                value: 'runs',
+                                label: 'Runs',
+                                count: runStatuses.length,
+                            },
+                        ]}
+                        onChange={value => dispatch(setActionsFiltersTab(value))}
+                    />
+                </div>
+                {hasActiveFilter && (
+                    <IconButton
+                        data-test-id={actionsTestIds.clearFiltersButton}
+                        aria-label="Clear filters"
+                        onClick={() => dispatch(clearAllActionsFilters())}
+                    >
+                        <X size={16} />
+                    </IconButton>
+                )}
+            </div>
 
             {filtersTab === 'datasets' && (
                 <SelectableList>

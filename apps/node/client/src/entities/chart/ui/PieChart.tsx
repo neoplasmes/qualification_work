@@ -28,6 +28,19 @@ const PIE_COLORS = [
 const CHART_HEIGHT = 360;
 const MIN_CHART_WIDTH = 180;
 
+// big slice gets a label in the slice itself; small slice gets a leader line outside
+const INLINE_PCT_THRESHOLD = 7;
+// outer label geometry (relative to outerRadius)
+const OUTER_LINE_GAP = 6;
+const OUTER_BEND_GAP = 22;
+const OUTER_H_LEN = 14;
+const OUTER_TEXT_PAD = 4;
+// room reserved around the pie when at least one outer label will be drawn
+const OUTER_RESERVE_W = 140;
+const OUTER_RESERVE_H = 36;
+// minimum padding when only inline labels are rendered
+const INLINE_RESERVE = 16;
+
 type PieChartInnerProps = {
     data: ChartDataPoint[];
     width: number;
@@ -45,7 +58,16 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
     } = useTooltip<ChartDataPoint & { pct: string }>();
 
     const total = data.reduce((sum, d) => sum + d.value, 0);
-    const outerRadius = Math.min(width, height) / 2 - 16;
+    // only pay the radius penalty when at least one slice will need an outer label
+    const hasSmallSlices = data.some(
+        d => total > 0 && (d.value / total) * 100 < INLINE_PCT_THRESHOLD
+    );
+    const reserveW = hasSmallSlices ? OUTER_RESERVE_W : INLINE_RESERVE;
+    const reserveH = hasSmallSlices ? OUTER_RESERVE_H : INLINE_RESERVE;
+    const outerRadius = Math.max(
+        50,
+        Math.min(width / 2 - reserveW, height / 2 - reserveH)
+    );
     const innerRadius = outerRadius * 0.5;
     const cx = width / 2;
     const cy = height / 2;
@@ -73,30 +95,51 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
                         padAngle={0.02}
                     >
                         {({ arcs, path }) =>
-                            arcs.map(arc => (
-                                <path
-                                    key={arc.data.label}
-                                    d={path(arc) ?? ''}
-                                    fill={colorScale(arc.data.label)}
-                                    onMouseMove={event => {
-                                        const point = localPoint(event);
-                                        const pct =
-                                            total > 0
-                                                ? (
-                                                      (arc.data.value / total) *
-                                                      100
-                                                  ).toFixed(1)
-                                                : '0.0';
-                                        showTooltip({
-                                            tooltipData: { ...arc.data, pct },
-                                            tooltipLeft: point?.x,
-                                            tooltipTop: point?.y,
-                                        });
-                                    }}
-                                    onMouseLeave={hideTooltip}
-                                    style={{ cursor: 'pointer' }}
-                                />
-                            ))
+                            arcs.map(arc => {
+                                const pct =
+                                    total > 0 ? (arc.data.value / total) * 100 : 0;
+                                const pctText = pct.toFixed(pct < 1 ? 1 : 0);
+                                const midAngle = (arc.startAngle + arc.endAngle) / 2;
+                                const isInline = pct >= INLINE_PCT_THRESHOLD;
+                                const fill = colorScale(arc.data.label);
+
+                                // shared interaction handlers so both inline and outer
+                                // labels keep the hover behaviour of the slice itself
+                                const handleMove = (
+                                    event: React.MouseEvent<SVGElement>
+                                ) => {
+                                    const point = localPoint(event);
+                                    showTooltip({
+                                        tooltipData: { ...arc.data, pct: pctText },
+                                        tooltipLeft: point?.x,
+                                        tooltipTop: point?.y,
+                                    });
+                                };
+
+                                return (
+                                    <g key={arc.data.label}>
+                                        <path
+                                            d={path(arc) ?? ''}
+                                            fill={fill}
+                                            onMouseMove={handleMove}
+                                            onMouseLeave={hideTooltip}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        {isInline
+                                            ? renderInlineLabel(
+                                                  path.centroid(arc),
+                                                  arc.data.label,
+                                                  pctText
+                                              )
+                                            : renderOuterLabel(
+                                                  midAngle,
+                                                  outerRadius,
+                                                  arc.data.label,
+                                                  pctText
+                                              )}
+                                    </g>
+                                );
+                            })
                         }
                     </Pie>
                 </Group>
@@ -126,6 +169,78 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
                 </TooltipWithBounds>
             )}
         </div>
+    );
+};
+
+const renderInlineLabel = (
+    centroid: [number, number],
+    label: string,
+    pctText: string
+) => {
+    const [lx, ly] = centroid;
+
+    return (
+        <text
+            x={lx}
+            y={ly}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill={C.onSurface}
+            fontSize={11}
+            fontWeight={600}
+            pointerEvents="none"
+            // outline gives readability on lighter slice colors
+            style={{
+                paintOrder: 'stroke',
+                stroke: 'rgba(0, 0, 0, 0.55)',
+                strokeWidth: 3,
+                strokeLinejoin: 'round',
+            }}
+        >
+            {label} {pctText}%
+        </text>
+    );
+};
+
+const renderOuterLabel = (
+    midAngle: number,
+    outerRadius: number,
+    label: string,
+    pctText: string
+) => {
+    // arc midpoint just outside the slice -> bend point -> horizontal tip
+    const sin = Math.sin(midAngle);
+    const cos = -Math.cos(midAngle);
+    const sx = sin * (outerRadius + OUTER_LINE_GAP);
+    const sy = cos * (outerRadius + OUTER_LINE_GAP);
+    const bx = sin * (outerRadius + OUTER_BEND_GAP);
+    const by = cos * (outerRadius + OUTER_BEND_GAP);
+    const onRight = midAngle < Math.PI;
+    const tipX = bx + (onRight ? OUTER_H_LEN : -OUTER_H_LEN);
+    const tipY = by;
+    const textX = tipX + (onRight ? OUTER_TEXT_PAD : -OUTER_TEXT_PAD);
+
+    return (
+        <>
+            <polyline
+                points={`${sx},${sy} ${bx},${by} ${tipX},${tipY}`}
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.4)"
+                strokeWidth={1}
+                pointerEvents="none"
+            />
+            <text
+                x={textX}
+                y={tipY}
+                textAnchor={onRight ? 'start' : 'end'}
+                dominantBaseline="middle"
+                fill="rgba(255, 255, 255, 0.85)"
+                fontSize={11}
+                pointerEvents="none"
+            >
+                {label} {pctText}%
+            </text>
+        </>
     );
 };
 

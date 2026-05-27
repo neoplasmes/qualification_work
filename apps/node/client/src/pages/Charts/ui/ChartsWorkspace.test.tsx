@@ -80,6 +80,7 @@ vi.mock('@/entities/chart', () => ({
     ChartResult: ({ data }: { data: ChartResponse }) => (
         <div data-testid="chart-result">{data.rows.length} rows</div>
     ),
+    ChartConfigSummary: () => <p data-testid="chart-summary" />,
     useListChartsQuery: () => ({
         data: [chart],
         isLoading: false,

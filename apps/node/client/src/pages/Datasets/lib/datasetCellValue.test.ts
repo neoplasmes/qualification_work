@@ -19,6 +19,22 @@ describe('dataset cell values', () => {
         );
     });
 
+    it('accepts russian dd.mm.yyyy input that the grid shows by default', () => {
+        expect(isValidDatasetCellValue('31.12.2026', 'date')).toBe(true);
+        expect(parseDatasetCellValue('31.12.2026', 'date')).toBe(
+            '2026-12-31T00:00:00.000Z'
+        );
+
+        // single-digit day/month
+        expect(isValidDatasetCellValue('1.2.2025', 'date')).toBe(true);
+        expect(parseDatasetCellValue('1.2.2025', 'date')).toBe(
+            '2025-02-01T00:00:00.000Z'
+        );
+
+        // calendar-invalid rolls over silently in Date - we must reject
+        expect(isValidDatasetCellValue('31.02.2025', 'date')).toBe(false);
+    });
+
     it('validates and trims day_of_week values', () => {
         expect(isValidDatasetCellValue(' Monday ', 'day_of_week')).toBe(true);
         expect(isValidDatasetCellValue('пн.', 'day_of_week')).toBe(true);

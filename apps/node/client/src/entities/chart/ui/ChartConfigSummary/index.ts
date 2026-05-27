@@ -1,2 +1,1 @@
 export { ChartConfigSummary } from './ChartConfigSummary';
-export { ChartResult } from './ChartResult';

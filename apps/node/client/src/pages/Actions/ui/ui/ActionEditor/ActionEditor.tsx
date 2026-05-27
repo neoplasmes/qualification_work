@@ -48,6 +48,8 @@ type ActionEditorProps = {
     refetchActions: () => unknown;
 };
 
+const CONFIGURE_FORM_ID = 'actions-configure-form';
+
 export const ActionEditor = ({
     selectedAction,
     isCreatingAction,
@@ -238,6 +240,13 @@ export const ActionEditor = ({
                 archiveConfirmationId={archiveConfirmationId}
                 archiveDisabled={!editable || archiveState.isLoading}
                 editable={editable && isCreatingAction}
+                saveDisabled={!editable || saving}
+                saveFormId={
+                    workspaceTab === 'configure' && editable
+                        ? CONFIGURE_FORM_ID
+                        : undefined
+                }
+                saving={saving}
                 renaming={patchState.isLoading}
                 onRename={handleRename}
                 onCancelCreate={() => dispatch(cancelCreateAction())}
@@ -263,7 +272,7 @@ export const ActionEditor = ({
                     draft={draft}
                     datasets={datasetsQuery.data ?? []}
                     disabled={!editable || saving}
-                    saving={saving}
+                    formId={CONFIGURE_FORM_ID}
                     onSubmit={handleSave}
                     onDraftChange={setDraft}
                     onUpdateParameter={updateParameter}

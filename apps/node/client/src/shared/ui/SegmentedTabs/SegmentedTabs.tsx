@@ -1,5 +1,3 @@
-import { Badge } from '../Badge';
-
 import styles from './SegmentedTabs.module.scss';
 
 export type SegmentedTabOption<Value extends string> = {
@@ -47,7 +45,7 @@ export const SegmentedTabs = <Value extends string>({
                 onClick={() => onChange(option.value)}
             >
                 {option.label}
-                {!!option.count && <Badge tone="primary">{option.count}</Badge>}
+                {!!option.count && <span className={styles['count-dot']} />}
             </button>
         ))}
     </div>

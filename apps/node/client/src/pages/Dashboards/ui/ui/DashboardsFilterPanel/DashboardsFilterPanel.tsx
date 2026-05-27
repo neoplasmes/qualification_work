@@ -62,35 +62,37 @@ export const DashboardsFilterPanel = () => {
             data-flex
             data-test-id={dashboardsTestIds.filterPanel}
         >
-            <div data-stack="h" data-align="center" data-justify="end">
-                <IconButton
-                    data-test-id={dashboardsTestIds.clearFilterButton}
-                    aria-label="Clear filter"
-                    style={{ visibility: hasActiveFilter ? 'visible' : 'hidden' }}
-                    onClick={handleClear}
-                >
-                    <X size={16} />
-                </IconButton>
+            <div data-stack="h" data-gap="xs" data-align="center">
+                <div data-flex>
+                    <SegmentedTabs
+                        value={activeTab}
+                        options={[
+                            {
+                                value: 'charts',
+                                label: 'Charts',
+                                count: filterChartIds.length,
+                                testId: dashboardsTestIds.filterTabCharts,
+                            },
+                            {
+                                value: 'datasets',
+                                label: 'Datasets',
+                                count: filterDatasetIds.length,
+                                testId: dashboardsTestIds.filterTabDatasets,
+                            },
+                        ]}
+                        onChange={value => dispatch(setDashboardsFilterActiveTab(value))}
+                    />
+                </div>
+                {hasActiveFilter && (
+                    <IconButton
+                        data-test-id={dashboardsTestIds.clearFilterButton}
+                        aria-label="Clear filter"
+                        onClick={handleClear}
+                    >
+                        <X size={16} />
+                    </IconButton>
+                )}
             </div>
-
-            <SegmentedTabs
-                value={activeTab}
-                options={[
-                    {
-                        value: 'charts',
-                        label: 'Charts',
-                        count: filterChartIds.length,
-                        testId: dashboardsTestIds.filterTabCharts,
-                    },
-                    {
-                        value: 'datasets',
-                        label: 'Datasets',
-                        count: filterDatasetIds.length,
-                        testId: dashboardsTestIds.filterTabDatasets,
-                    },
-                ]}
-                onChange={value => dispatch(setDashboardsFilterActiveTab(value))}
-            />
 
             <SelectableList>
                 {activeTab === 'charts' && (

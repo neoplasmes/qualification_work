@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { SegmentedTabs } from './SegmentedTabs';
 
 describe('SegmentedTabs', () => {
-    it('renders active option, count and calls onChange', async () => {
+    it('renders active option, active marker and calls onChange', async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
 
@@ -24,6 +24,7 @@ describe('SegmentedTabs', () => {
             'aria-pressed',
             'true'
         );
+        expect(screen.queryByText('2')).not.toBeInTheDocument();
 
         await user.click(screen.getByRole('button', { name: 'Two' }));
 

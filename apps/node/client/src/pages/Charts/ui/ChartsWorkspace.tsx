@@ -205,6 +205,8 @@ export const ChartsWorkspace = () => {
 
                         {!isEditing && (
                             <SavedChartDetails
+                                chart={selectedChart}
+                                columns={editDataset?.columns ?? []}
                                 chartResult={selectedChartResult}
                                 error={error}
                                 isLoadingData={chartDataQuery.isFetching}

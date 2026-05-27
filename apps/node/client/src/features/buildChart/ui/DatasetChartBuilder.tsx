@@ -2,7 +2,12 @@ import { PencilLine, Play, Save } from 'lucide-react';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
 
 import {
+    AGGREGATE_LABELS,
+    ChartConfigSummary,
     ChartResult,
+    FILTER_OP_LABELS,
+    GRANULARITY_LABELS,
+    VALUE_FORMAT_LABELS,
     type ChartResponse,
     type ChartType,
     type FilterClause,
@@ -56,54 +61,10 @@ const CHART_TYPE_LABELS: Record<ChartType, string> = {
     heatmap: 'Heatmap',
 };
 
-const AGGREGATE_LABELS: Record<Aggregate, string> = {
-    count: 'Count',
-    sum: 'Sum',
-    avg: 'Average',
-    min: 'Min',
-    max: 'Max',
-    count_distinct: 'Count unique',
-};
-
-const VALUE_FORMAT_LABELS: Record<MeasureValueFormat, string> = {
-    number: 'Number',
-    rub: 'Ruble',
-    usd: 'Dollar',
-    percent: 'Percent',
-};
-
 const GROUPING_LABELS: Record<GroupingMode, string> = {
     none: 'None',
     time: 'By time',
     numeric: 'By range',
-};
-
-const GRANULARITY_LABELS: Record<TimeGranularity, string> = {
-    hour: 'Hour',
-    day: 'Day',
-    week: 'Week',
-    month: 'Month',
-    quarter: 'Quarter',
-    year: 'Year',
-};
-
-const FILTER_OP_LABELS: Record<FilterOperation, string> = {
-    eq: '= equals',
-    neq: '≠ not equals',
-    gt: '> greater',
-    gte: '≥ greater or equal',
-    lt: '< less',
-    lte: '≤ less or equal',
-    in: 'in list',
-    nin: 'not in list',
-    between: 'between',
-    is_null: 'is empty',
-    not_null: 'is not empty',
-};
-
-const SORT_LABELS: Record<'asc' | 'desc', string> = {
-    desc: 'Highest first',
-    asc: 'Lowest first',
 };
 
 type GroupingMode = 'none' | 'time' | 'numeric';
@@ -211,7 +172,6 @@ type BuildChartConfigInput = {
     secondMeasureColumnId: string;
     limit: number;
     topN: number;
-    sortDirection: 'asc' | 'desc';
     seriesEnabled: boolean;
     seriesColumnId: string;
     seriesTopN: number;
@@ -234,7 +194,6 @@ const buildChartConfig = ({
     secondMeasureColumnId,
     limit,
     topN,
-    sortDirection,
     seriesEnabled,
     seriesColumnId,
     seriesTopN,
@@ -244,10 +203,6 @@ const buildChartConfig = ({
     const firstMeasure = buildMeasure(aggregate, measureColumnId, valueFormat);
     const base = {
         limit,
-        orderBy:
-            chartType === 'bar'
-                ? { ref: 'dim', index: 0, dir: 'asc' }
-                : { ref: 'measure', index: 0, dir: sortDirection },
         ...(filter ? { filters: [filter] } : {}),
     };
 
@@ -293,6 +248,7 @@ const buildChartConfig = ({
     return {
         ...base,
         kind: chartType,
+        orderBy: { ref: 'dim', index: 0, dir: 'asc' },
         dimension: {
             columnId: dimensionColumnId,
             ...(dimensionGrouping ? { grouping: dimensionGrouping } : {}),
@@ -333,11 +289,6 @@ export const configToBuilderFields = (
     if (typeof config.limit === 'number') {
         result.limit = config.limit;
     }
-    const orderBy = config.orderBy as { dir?: string } | undefined;
-    if (chartType !== 'bar' && (orderBy?.dir === 'asc' || orderBy?.dir === 'desc')) {
-        result.sortDirection = orderBy.dir;
-    }
-
     const filters = config.filters as
         | Array<{ columnId: string; op: FilterOperation; value?: unknown }>
         | undefined;
@@ -560,8 +511,6 @@ export const DatasetChartBuilder = ({
         setSecondMeasureColumnId,
         topN,
         setTopN,
-        sortDirection,
-        setSortDirection,
         seriesEnabled,
         setSeriesEnabled,
         seriesColumnId,
@@ -761,7 +710,6 @@ export const DatasetChartBuilder = ({
             secondMeasureColumnId: activeSecondMeasureColumnId,
             limit: CHART_ROW_LIMIT,
             topN,
-            sortDirection,
             seriesEnabled:
                 seriesEnabled && chartType !== 'pie' && chartType !== 'heatmap',
             seriesColumnId: activeSeriesColumnId,
@@ -880,6 +828,14 @@ export const DatasetChartBuilder = ({
                         barsLimit={8}
                         hideTable
                     />
+
+                    {savedConfig && (
+                        <ChartConfigSummary
+                            chartType={chartType}
+                            config={savedConfig}
+                            columns={columns}
+                        />
+                    )}
 
                     <div data-stack="h" data-gap="sm">
                         <Button
@@ -1250,24 +1206,6 @@ export const DatasetChartBuilder = ({
                         </>
                     )}
 
-                {chartType !== 'bar' && chartType !== 'pie' && (
-                    <label className={styles['control']} data-stack="v" data-gap="xs">
-                        <span>Sort</span>
-                        <Select
-                            value={sortDirection}
-                            onChange={event =>
-                                setSortDirection(event.target.value as 'asc' | 'desc')
-                            }
-                        >
-                            {(['desc', 'asc'] as const).map(dir => (
-                                <option key={dir} value={dir}>
-                                    {SORT_LABELS[dir]}
-                                </option>
-                            ))}
-                        </Select>
-                    </label>
-                )}
-
                 {chartType === 'pie' && (
                     <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Max slices</span>
@@ -1286,35 +1224,25 @@ export const DatasetChartBuilder = ({
                 )}
 
                 {chartType !== 'pie' && chartType !== 'heatmap' && (
-                    <>
-                        <div
-                            className={styles['section']}
-                            data-stack="h"
-                            data-gap="sm"
-                            data-align="center"
-                        >
-                            Series
-                        </div>
-
-                        <label className={styles['control']} data-stack="v" data-gap="xs">
-                            <span>Color by</span>
-                            <Select
-                                value={seriesEnabled ? 'on' : 'off'}
-                                onChange={event =>
-                                    setSeriesEnabled(event.target.value === 'on')
-                                }
-                            >
-                                <option value="off">Off</option>
-                                <option value="on">On</option>
-                            </Select>
-                        </label>
-                    </>
+                    <div
+                        className={styles['section']}
+                        data-stack="h"
+                        data-gap="sm"
+                        data-align="center"
+                    >
+                        <span>Breakdown</span>
+                        <Switch
+                            aria-label="Enable breakdown"
+                            checked={seriesEnabled}
+                            onChange={event => setSeriesEnabled(event.target.checked)}
+                        />
+                    </div>
                 )}
 
                 {seriesEnabled && chartType !== 'pie' && chartType !== 'heatmap' && (
                     <>
                         <label className={styles['control']} data-stack="v" data-gap="xs">
-                            <span>Color column</span>
+                            <span>Split by</span>
                             <Select
                                 value={activeSeriesColumnId}
                                 onChange={event => setSeriesColumnId(event.target.value)}
@@ -1327,7 +1255,7 @@ export const DatasetChartBuilder = ({
                             </Select>
                         </label>
                         <label className={styles['control']} data-stack="v" data-gap="xs">
-                            <span>Max series</span>
+                            <span>Max categories</span>
                             <TextInput
                                 type="number"
                                 min={1}
@@ -1349,7 +1277,7 @@ export const DatasetChartBuilder = ({
                                 data-stack="v"
                                 data-gap="xs"
                             >
-                                <span>Group rest</span>
+                                <span>Group others</span>
                                 <Select
                                     value={seriesOtherBucket ? 'on' : 'off'}
                                     onChange={event =>

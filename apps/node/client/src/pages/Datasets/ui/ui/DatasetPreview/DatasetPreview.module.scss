@@ -35,4 +35,10 @@
 
     background: var(--color-surface-container-high);
     box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
+
+    &.scroll-bottom:hover,
+    &.scroll-bottom:focus-visible {
+        border-color: var(--color-on-surface);
+        background: var(--color-surface-container-high);
+    }
 }

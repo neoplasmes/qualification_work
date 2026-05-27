@@ -1,6 +1,13 @@
-export type { ChartKind } from './lib';
-export { formatChartCell } from './lib';
-export { ChartResult } from './ui';
+export type { Aggregate, ChartKind } from './lib';
+export {
+    AGGREGATE_LABELS,
+    FILTER_OP_LABELS,
+    FILTER_OP_SHORT,
+    GRANULARITY_LABELS,
+    VALUE_FORMAT_LABELS,
+    formatChartCell,
+} from './lib';
+export { ChartConfigSummary, ChartResult } from './ui';
 export {
     useDeleteChartMutation,
     useGetChartDataQuery,

@@ -1,11 +1,12 @@
-import { Eye, PencilLine, type LucideIcon } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
 import { m } from 'motion/react';
 
 import styles from './WorkspaceModeTabs.module.scss';
 
 export type WorkspaceModeTabOption<Value extends string> = {
     value: Value;
-    label: 'View' | 'Edit';
+    label: string;
+    icon?: LucideIcon;
     testId?: string;
     disabled?: boolean;
 };
@@ -14,23 +15,28 @@ type WorkspaceModeTabsProps<Value extends string> = {
     value: Value;
     options: readonly WorkspaceModeTabOption<Value>[];
     layoutId: string;
+    /** equal-width grid layout when set */
+    columns?: 2 | 3 | 4;
     onChange: (value: Value) => void;
-};
-
-const TAB_ICONS: Record<WorkspaceModeTabOption<string>['label'], LucideIcon> = {
-    View: Eye,
-    Edit: PencilLine,
 };
 
 export const WorkspaceModeTabs = <Value extends string>({
     value,
     options,
     layoutId,
+    columns,
     onChange,
 }: WorkspaceModeTabsProps<Value>) => (
-    <div className={styles['tabs']} data-stack="h" data-gap="xs" role="tablist">
+    <div
+        className={[styles['tabs'], columns ? styles[`cols-${columns}`] : '']
+            .filter(Boolean)
+            .join(' ')}
+        data-stack={columns ? undefined : 'h'}
+        data-gap="xs"
+        role="tablist"
+    >
         {options.map(option => {
-            const Icon = TAB_ICONS[option.label];
+            const Icon = option.icon;
             const active = option.value === value;
 
             return (
@@ -44,7 +50,7 @@ export const WorkspaceModeTabs = <Value extends string>({
                     className={`${styles['tab']} ${active ? styles['active'] : ''}`}
                     onClick={() => onChange(option.value)}
                 >
-                    <Icon size={15} />
+                    {Icon && <Icon size={15} />}
                     {option.label}
                     {active && (
                         <m.div

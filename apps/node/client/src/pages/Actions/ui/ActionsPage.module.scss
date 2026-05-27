@@ -137,6 +137,46 @@
     align-content: start;
 }
 
+.history-list,
+.run-card,
+.run-card-content,
+.run-card-main {
+    min-width: 0;
+}
+
+.run-card {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.run-card-content {
+    > .run-status-dot {
+        flex: 0 0 auto;
+    }
+}
+
+.run-card-main {
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.run-status-dot {
+    width: 12px;
+    height: 12px;
+    margin-top: 7px;
+    border-radius: 50%;
+}
+
+.run-status-success {
+    background-color: rgb(79 190 125);
+    box-shadow: 0 0 0 4px rgb(79 190 125 / 16%);
+}
+
+.run-status-failed {
+    background-color: var(--color-error);
+    box-shadow: 0 0 0 4px rgb(140 0 0 / 18%);
+}
+
 .filter-chip,
 .card,
 .run-card {
@@ -189,4 +229,15 @@
 
     font-size: var(--font-size-xs);
     color: var(--color-on-surface-variant);
+}
+
+.run-card .meta {
+    min-width: 0;
+
+    span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }

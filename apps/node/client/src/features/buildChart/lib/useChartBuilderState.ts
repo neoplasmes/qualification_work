@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { ChartType, FilterOperation } from '@/entities/chart';
+import {
+    DEFAULT_CHART_COLOR,
+    type ChartType,
+    type FilterOperation,
+} from '@/entities/chart';
 
 import type { Aggregate, MeasureValueFormat, TimeGranularity } from '../api';
 
@@ -10,6 +14,7 @@ const CHART_RESULT_LIMIT = 24;
 
 export type ChartBuilderFields = {
     chartName: string;
+    chartColor: string;
     chartType: ChartType;
     dimensionColumnId: string;
     dimensionGroupingMode: GroupingMode;
@@ -40,6 +45,7 @@ export type ChartBuilderFields = {
 
 const defaultFields = ((): ChartBuilderFields => ({
     chartName: '',
+    chartColor: DEFAULT_CHART_COLOR,
     chartType: 'bar',
     dimensionColumnId: '',
     dimensionGroupingMode: 'none',
@@ -85,6 +91,7 @@ const loadFields = (datasetId: string): ChartBuilderFields => {
 
 type Setters = {
     setChartName(v: string): void;
+    setChartColor(v: string): void;
     setChartType(v: ChartType): void;
     setDimensionColumnId(v: string): void;
     setDimensionGroupingMode(v: GroupingMode): void;
@@ -158,6 +165,7 @@ export const useChartBuilderState = (
     return {
         ...fields,
         setChartName: useCallback((v: string) => patch({ chartName: v }), [patch]),
+        setChartColor: useCallback((v: string) => patch({ chartColor: v }), [patch]),
         setChartType: useCallback((v: ChartType) => patch({ chartType: v }), [patch]),
         setDimensionColumnId: useCallback(
             (v: string) => patch({ dimensionColumnId: v }),

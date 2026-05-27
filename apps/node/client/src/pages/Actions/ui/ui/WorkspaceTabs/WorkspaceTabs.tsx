@@ -1,3 +1,5 @@
+import { Eye, PencilLine } from 'lucide-react';
+
 import {
     WorkspaceModeTabs,
     type WorkspaceModeTabOption,
@@ -10,11 +12,13 @@ const ACTIONS_WORKSPACE_MODE_TABS = [
     {
         value: 'run',
         label: 'View',
+        icon: Eye,
         testId: actionsTestIds.workspaceViewTab,
     },
     {
         value: 'configure',
         label: 'Edit',
+        icon: PencilLine,
         testId: actionsTestIds.workspaceEditTab,
     },
 ] as const satisfies readonly WorkspaceModeTabOption<ActionsWorkspaceTab>[];
@@ -23,12 +27,14 @@ const ACTIONS_WORKSPACE_MODE_TABS_WITH_DISABLED_RUN = [
     {
         value: 'run',
         label: 'View',
+        icon: Eye,
         testId: actionsTestIds.workspaceViewTab,
         disabled: true,
     },
     {
         value: 'configure',
         label: 'Edit',
+        icon: PencilLine,
         testId: actionsTestIds.workspaceEditTab,
     },
 ] as const satisfies readonly WorkspaceModeTabOption<ActionsWorkspaceTab>[];

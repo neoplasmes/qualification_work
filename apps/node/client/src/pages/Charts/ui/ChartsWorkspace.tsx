@@ -1,4 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
+import { Eye, PencilLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -46,11 +47,13 @@ const CHARTS_WORKSPACE_MODE_TABS = [
     {
         value: 'view',
         label: 'View',
+        icon: Eye,
         testId: chartsTestIds.workspaceViewTab,
     },
     {
         value: 'edit',
         label: 'Edit',
+        icon: PencilLine,
         testId: chartsTestIds.workspaceEditTab,
     },
 ] as const satisfies readonly WorkspaceModeTabOption<WorkspaceMode>[];

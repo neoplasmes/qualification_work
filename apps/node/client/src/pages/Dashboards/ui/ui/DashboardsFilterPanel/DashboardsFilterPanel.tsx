@@ -83,15 +83,14 @@ export const DashboardsFilterPanel = () => {
                         onChange={value => dispatch(setDashboardsFilterActiveTab(value))}
                     />
                 </div>
-                {hasActiveFilter && (
-                    <IconButton
-                        data-test-id={dashboardsTestIds.clearFilterButton}
-                        aria-label="Clear filter"
-                        onClick={handleClear}
-                    >
-                        <X size={16} />
-                    </IconButton>
-                )}
+                <IconButton
+                    data-test-id={dashboardsTestIds.clearFilterButton}
+                    aria-label="Clear filter"
+                    disabled={!hasActiveFilter}
+                    onClick={handleClear}
+                >
+                    <X size={16} />
+                </IconButton>
             </div>
 
             <SelectableList>

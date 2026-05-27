@@ -3,6 +3,7 @@ import { lazy, type ReactNode } from 'react';
 import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
 
 import type { ChartResultColumn } from '../api';
+import { BAR_CHART_ROWS_LIMIT } from '../const';
 import type { ChartKind } from '../lib/chartKind';
 import { formatChartCell } from '../lib/formatChartCell';
 import {
@@ -10,7 +11,7 @@ import {
     type ChartDataPoint,
     type ChartSeries,
 } from '../lib/parseChartData';
-import type { HeatmapCell } from './HeatmapChart';
+import type { HeatmapCell } from './HeatmapChart.types';
 
 import styles from './ChartResult.module.scss';
 
@@ -62,6 +63,7 @@ type ChartResultProps = {
     barsLimit?: number;
     hideTable?: boolean;
     frameless?: boolean;
+    color?: string;
     children?: ReactNode;
 };
 
@@ -70,14 +72,21 @@ type CartesianChartProps = {
     labels: string[];
     labelTimeGranularity?: ChartResultColumn['timeGranularity'];
     valueFormat?: ChartResultColumn['valueFormat'];
+    color?: string;
+};
+
+type LineChartProps = CartesianChartProps & {
+    showLegend?: boolean;
 };
 
 type PieChartProps = {
     data: ChartDataPoint[];
+    color?: string;
 };
 
 type HeatmapChartProps = {
     data: HeatmapCell[];
+    color?: string;
 };
 
 const getFirstColumnByRole = (
@@ -100,16 +109,18 @@ export const ChartResult = ({
     data,
     ariaLabel,
     kind,
-    barsLimit = 10,
+    barsLimit = BAR_CHART_ROWS_LIMIT,
     hideTable = false,
     frameless = false,
     children,
+    color,
 }: ChartResultProps) => {
     const activeKind = kind ?? 'bar';
     const chart = parseChartResult(data, activeKind, barsLimit);
     const xColumn = data.columns[0];
     const yColumn = data.columns[1];
     const measureColumn = getFirstColumnByRole(data.columns, 'measure');
+    const hasBreakdown = Boolean(getFirstColumnByRole(data.columns, 'series'));
     const heatmapRows = data.rows.filter(
         row => typeof row[2] === 'number' && Number.isFinite(row[2])
     );
@@ -156,7 +167,7 @@ export const ChartResult = ({
                 <ClientOnlyDeffered<HeatmapChartProps>
                     fallback={chartFallback}
                     LazyComponent={LazyHeatmapChart}
-                    componentProps={{ data: heatmapCells }}
+                    componentProps={{ data: heatmapCells, color }}
                 />
             );
         }
@@ -172,7 +183,7 @@ export const ChartResult = ({
         switch (activeKind) {
             case 'line':
                 return (
-                    <ClientOnlyDeffered<CartesianChartProps>
+                    <ClientOnlyDeffered<LineChartProps>
                         fallback={chartFallback}
                         LazyComponent={LazyLineChart}
                         componentProps={{
@@ -180,6 +191,8 @@ export const ChartResult = ({
                             labels: chart.labels,
                             labelTimeGranularity: chart.labelTimeGranularity,
                             valueFormat: chart.valueFormat,
+                            color,
+                            showLegend: hasBreakdown,
                         }}
                     />
                 );
@@ -188,7 +201,7 @@ export const ChartResult = ({
                     <ClientOnlyDeffered<PieChartProps>
                         fallback={chartFallback}
                         LazyComponent={LazyPieChart}
-                        componentProps={{ data: chart.points }}
+                        componentProps={{ data: chart.points, color }}
                     />
                 );
             default:
@@ -201,6 +214,7 @@ export const ChartResult = ({
                             labels: chart.labels,
                             labelTimeGranularity: chart.labelTimeGranularity,
                             valueFormat: chart.valueFormat,
+                            color,
                         }}
                     />
                 );

@@ -77,15 +77,14 @@ export const DatasetsFilterPanel = () => {
                         onChange={value => dispatch(setDatasetsFilterActiveTab(value))}
                     />
                 </div>
-                {hasActiveFilter && (
-                    <IconButton
-                        data-test-id={datasetsTestIds.clearFilterButton}
-                        aria-label="Clear filter"
-                        onClick={handleClear}
-                    >
-                        <X size={16} />
-                    </IconButton>
-                )}
+                <IconButton
+                    data-test-id={datasetsTestIds.clearFilterButton}
+                    aria-label="Clear filter"
+                    disabled={!hasActiveFilter}
+                    onClick={handleClear}
+                >
+                    <X size={16} />
+                </IconButton>
             </div>
 
             <SelectableList>

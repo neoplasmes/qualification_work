@@ -103,6 +103,12 @@ export type ChartType = 'bar' | 'line' | 'pie' | 'heatmap';
 
 export type BaseChartConfig = {
     /**
+     * Visual-only chart style. It does not affect SQL compilation.
+     */
+    style?: {
+        color?: string;
+    };
+    /**
      * WHERE filter clause
      */
     filters?: FilterClause[];

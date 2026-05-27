@@ -36,14 +36,18 @@ const metricAggregates = new Set(['sum', 'avg', 'min', 'max', 'count', 'count_di
 
 export class PgDashboardRepo implements DashboardRepo {
     private readonly findByIdSql: string;
+    private readonly listByOrgSql: string;
     private readonly addChartItemSql: string;
     private readonly addMetricItemSql: string;
+    private readonly updateMetricItemSql: string;
     private readonly reorderItemsSql: string;
 
     constructor(private readonly pool: Pool) {
         this.findByIdSql = loadScript(join(scriptsDir, 'findById.sql'));
+        this.listByOrgSql = loadScript(join(scriptsDir, 'listByOrg.sql'));
         this.addChartItemSql = loadScript(join(scriptsDir, 'addChartItem.sql'));
         this.addMetricItemSql = loadScript(join(scriptsDir, 'addMetricItem.sql'));
+        this.updateMetricItemSql = loadScript(join(scriptsDir, 'updateMetricItem.sql'));
         this.reorderItemsSql = loadScript(join(scriptsDir, 'reorderItems.sql'));
     }
 
@@ -99,25 +103,12 @@ export class PgDashboardRepo implements DashboardRepo {
         return this.toDashboard(rows[0]);
     }
 
-    async listByOrg(
-        orgId: string,
-        userOrgIds: string[]
-    ): Promise<Omit<Dashboard, 'items'>[]> {
-        const { rows } = await this.pool.query<DashboardHead>(
-            `SELECT id, org_id, name, created_at, updated_at
-			FROM dashboards.dashboards
-			WHERE org_id = $1 AND org_id = ANY($2::uuid[])
-			ORDER BY created_at DESC`,
-            [orgId, userOrgIds]
-        );
+    async listByOrg(orgId: string, userOrgIds: string[]): Promise<Dashboard[]> {
+        const { rows } = await this.pool.query<
+            DashboardHead & { items: Dashboard['items'] }
+        >(this.listByOrgSql, [orgId, userOrgIds]);
 
-        return rows.map(row => ({
-            id: row.id,
-            orgId: row.org_id,
-            name: row.name,
-            createdAt: row.created_at.toISOString(),
-            updatedAt: row.updated_at.toISOString(),
-        }));
+        return rows.map(row => this.toDashboardSummary(row));
     }
 
     async addChartItem(
@@ -180,6 +171,33 @@ export class PgDashboardRepo implements DashboardRepo {
             }
 
             return { itemId: rows[0].id, posY: rows[0].pos_y };
+        } catch (error) {
+            if (isForeignKeyViolation(error)) {
+                throw new NotFoundError(`Dataset ${metric.datasetId} not found`);
+            }
+
+            throw error;
+        }
+    }
+
+    async updateMetricItem(
+        dashboardId: string,
+        itemId: string,
+        metric: DashboardMetricSpec,
+        userOrgIds: string[]
+    ): Promise<boolean> {
+        try {
+            const { rowCount } = await this.pool.query(this.updateMetricItemSql, [
+                dashboardId,
+                itemId,
+                userOrgIds,
+                metric.datasetId,
+                metric.name,
+                metric.expression,
+                metric.format,
+            ]);
+
+            return Boolean(rowCount);
         } catch (error) {
             if (isForeignKeyViolation(error)) {
                 throw new NotFoundError(`Dataset ${metric.datasetId} not found`);
@@ -254,6 +272,19 @@ export class PgDashboardRepo implements DashboardRepo {
             createdAt: row.created_at.toISOString(),
             updatedAt: row.updated_at.toISOString(),
             items,
+        };
+    }
+
+    private toDashboardSummary(
+        row: DashboardHead & { items: Dashboard['items'] }
+    ): Dashboard {
+        return {
+            id: row.id,
+            orgId: row.org_id,
+            name: row.name,
+            createdAt: row.created_at.toISOString(),
+            updatedAt: row.updated_at.toISOString(),
+            items: row.items,
         };
     }
 
@@ -341,17 +372,19 @@ export class PgDashboardRepo implements DashboardRepo {
     }
 
     private metricSql(aggregate: string, hasColumn: boolean): string | null {
+        const valueExpr = hasColumn ? `NULLIF(data->>$2, '')` : null;
+
         if (aggregate === 'count') {
-            return `SELECT count(*)::numeric AS value
+            const countExpr = valueExpr ? `count(${valueExpr})` : 'count(*)';
+
+            return `SELECT ${countExpr}::numeric AS value
             FROM data.dataset_rows
             WHERE dataset_id = $1`;
         }
 
-        if (!hasColumn) {
+        if (!valueExpr) {
             return null;
         }
-
-        const valueExpr = `NULLIF(data->>$2, '')`;
 
         const sqlByAggregate: Record<string, string> = {
             sum: `sum(${valueExpr}::numeric)`,

@@ -5,6 +5,7 @@ export {
     useReorderDashboardItemsMutation,
     useRemoveDashboardItemMutation,
     useRenameDashboardMutation,
+    useUpdateDashboardMetricMutation,
 } from './api';
 export type {
     AddDashboardChartPayload,
@@ -15,4 +16,5 @@ export type {
     RemoveDashboardItemPayload,
     RenameDashboardPayload,
     ReorderDashboardItemsPayload,
+    UpdateDashboardMetricPayload,
 } from './api';

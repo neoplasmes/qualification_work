@@ -1,4 +1,12 @@
 export type { ChartKind } from './chartKind';
+export {
+    buildChartPalette,
+    DEFAULT_CHART_COLOR,
+    getChartColorFromConfig,
+    isChartColor,
+    mixChartColors,
+    normalizeChartColor,
+} from './chartColor';
 export { formatAxisNumber, formatChartCell } from './formatChartCell';
 export {
     AGGREGATE_LABELS,

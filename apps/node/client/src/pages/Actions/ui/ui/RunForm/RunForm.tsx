@@ -6,6 +6,7 @@ import type { Action } from '@/entities/action';
 import { Button, Card, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
+import { getRunValuePlaceholder, isRunValueInputAllowed } from '../../../lib';
 
 import styles from './RunForm.module.scss';
 
@@ -16,6 +17,17 @@ type RunFormProps = {
     lastRunMessage: string;
     onRunValueChange: (key: string, value: string) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+};
+
+const getRunInputMode = (type: Action['parameters'][number]['type']) => {
+    if (type === 'number') {
+        return 'decimal';
+    }
+    if (type === 'date') {
+        return 'numeric';
+    }
+
+    return undefined;
 };
 
 export const RunForm = ({
@@ -90,22 +102,23 @@ export const RunForm = ({
                             ) : (
                                 <TextInput
                                     data-test-id={actionsTestIds.runInput}
-                                    type={
-                                        parameter.type === 'number'
-                                            ? 'number'
-                                            : parameter.type === 'date'
-                                              ? 'date'
-                                              : 'text'
-                                    }
+                                    type="text"
+                                    inputMode={getRunInputMode(parameter.type)}
+                                    placeholder={getRunValuePlaceholder(parameter.type)}
                                     value={runValues[parameter.key] ?? ''}
                                     disabled={disabled}
                                     required={parameter.required}
-                                    onChange={event =>
-                                        onRunValueChange(
-                                            parameter.key,
-                                            event.target.value
-                                        )
-                                    }
+                                    onChange={event => {
+                                        const nextValue = event.target.value;
+                                        if (
+                                            isRunValueInputAllowed(
+                                                parameter.type,
+                                                nextValue
+                                            )
+                                        ) {
+                                            onRunValueChange(parameter.key, nextValue);
+                                        }
+                                    }}
                                 />
                             )}
                         </FormField>

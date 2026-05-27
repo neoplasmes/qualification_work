@@ -5,6 +5,7 @@ import { scaleOrdinal } from '@visx/scale';
 import { Pie } from '@visx/shape';
 import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
 
+import { buildChartPalette, DEFAULT_CHART_COLOR } from '../lib';
 import { formatChartCell } from '../lib/formatChartCell';
 import type { ChartDataPoint } from '../lib/parseChartData';
 
@@ -15,7 +16,7 @@ const C = {
 } as const;
 
 const PIE_COLORS = [
-    '#872557',
+    DEFAULT_CHART_COLOR,
     '#b03070',
     '#c85080',
     '#5a1a3a',
@@ -43,11 +44,17 @@ const INLINE_RESERVE = 16;
 
 type PieChartInnerProps = {
     data: ChartDataPoint[];
+    color?: string;
     width: number;
     height: number;
 };
 
-const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
+const PieChartInner = ({
+    data,
+    color = DEFAULT_CHART_COLOR,
+    width,
+    height,
+}: PieChartInnerProps) => {
     const {
         showTooltip,
         hideTooltip,
@@ -74,7 +81,7 @@ const PieChartInner = ({ data, width, height }: PieChartInnerProps) => {
 
     const colorScale = scaleOrdinal<string, string>({
         domain: data.map(d => d.label),
-        range: PIE_COLORS,
+        range: buildChartPalette(color, Math.max(data.length, PIE_COLORS.length)),
     });
 
     return (
@@ -246,13 +253,19 @@ const renderOuterLabel = (
 
 type PieChartProps = {
     data: ChartDataPoint[];
+    color?: string;
 };
 
-export const PieChart = ({ data }: PieChartProps) => (
+export const PieChart = ({ data, color = DEFAULT_CHART_COLOR }: PieChartProps) => (
     <ParentSize style={{ height: CHART_HEIGHT }}>
         {({ width }) =>
             width >= MIN_CHART_WIDTH ? (
-                <PieChartInner data={data} width={width} height={CHART_HEIGHT} />
+                <PieChartInner
+                    data={data}
+                    color={color}
+                    width={width}
+                    height={CHART_HEIGHT}
+                />
             ) : width > 0 ? (
                 <div style={{ height: CHART_HEIGHT }} />
             ) : null

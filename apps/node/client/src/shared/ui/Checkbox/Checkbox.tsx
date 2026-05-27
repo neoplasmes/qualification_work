@@ -7,6 +7,7 @@ type CheckboxProps = {
     description?: string;
     error?: string;
     className?: string;
+    inline?: boolean;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>;
 
 export const Checkbox = ({
@@ -14,6 +15,7 @@ export const Checkbox = ({
     description,
     error,
     className,
+    inline,
     ...props
 }: CheckboxProps) => (
     <label
@@ -22,7 +24,11 @@ export const Checkbox = ({
             .join(' ')}
     >
         <input type="checkbox" {...props} />
-        <span className={styles['content']}>
+        <span
+            className={[styles['content'], inline ? styles['content-inline'] : '']
+                .filter(Boolean)
+                .join(' ')}
+        >
             <span>{label}</span>
             {description && <span className={styles['description']}>{description}</span>}
             {error && <span className={styles['error-text']}>{error}</span>}

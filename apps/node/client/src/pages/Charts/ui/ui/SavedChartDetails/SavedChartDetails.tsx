@@ -1,6 +1,8 @@
 import {
+    BAR_CHART_ROWS_LIMIT,
     ChartConfigSummary,
     ChartResult,
+    getChartColorFromConfig,
     type Chart,
     type ChartResponse,
 } from '@/entities/chart';
@@ -34,6 +36,8 @@ export const SavedChartDetails = ({
                 data={chartResult}
                 kind={chartResult.kind}
                 ariaLabel="Saved chart result"
+                color={getChartColorFromConfig(chart.config)}
+                barsLimit={BAR_CHART_ROWS_LIMIT}
                 hideTable
             >
                 <div data-stack="v" data-gap="xs">

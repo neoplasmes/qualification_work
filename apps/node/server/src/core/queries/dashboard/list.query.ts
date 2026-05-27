@@ -8,14 +8,11 @@ import { getReadableOrgIds } from '@/shared/checkOrgMembership';
 
 export class ListDashboardsQuery implements Executable<
     [string, OrgMembership[]],
-    Promise<Omit<Dashboard, 'items'>[]>
+    Promise<Dashboard[]>
 > {
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
-    async execute(
-        orgId: string,
-        orgs: OrgMembership[]
-    ): Promise<Omit<Dashboard, 'items'>[]> {
+    async execute(orgId: string, orgs: OrgMembership[]): Promise<Dashboard[]> {
         return this.dashboardRepo.listByOrg(orgId, getReadableOrgIds(orgs));
     }
 }

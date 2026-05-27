@@ -19,6 +19,7 @@ type DashboardWidgetsProps = {
     removing: boolean;
     onMoveItem: (itemId: string, direction: -1 | 1) => void;
     onRemoveItem: (itemId: string) => void;
+    onEditMetric: (item: Extract<DashboardItem, { kind: 'metric' }>) => void;
 };
 
 export const DashboardWidgets = ({
@@ -28,6 +29,7 @@ export const DashboardWidgets = ({
     removing,
     onMoveItem,
     onRemoveItem,
+    onEditMetric,
 }: DashboardWidgetsProps) => {
     const { metricItems, chartItems } = useMemo(
         () => splitDashboardItems(items),
@@ -66,6 +68,7 @@ export const DashboardWidgets = ({
                                 item={item}
                                 removing={removing}
                                 onRemoveItem={onRemoveItem}
+                                onEditItem={onEditMetric}
                             />
                         ))}
                     </div>

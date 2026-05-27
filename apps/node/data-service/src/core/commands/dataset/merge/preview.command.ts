@@ -66,13 +66,6 @@ export class PreviewMergeCommand implements Executable<
         const mode = input.mode ?? 'merge';
         const createNew = input.createNew || input.datasetId === null;
 
-        if (mode === 'append' && input.datasetId === null) {
-            throw new ValidationError(
-                ['datasetId'],
-                'datasetId is required when appending rows'
-            );
-        }
-
         if (
             mode === 'merge' &&
             input.datasetId === null &&
@@ -125,6 +118,52 @@ export class PreviewMergeCommand implements Executable<
 
             parsed.push(p);
             totalParsedRows += p.file.rowCount;
+        }
+
+        if (mode === 'append' && input.datasetId === null) {
+            const baseFile = parsed[0];
+            if (!baseFile) {
+                throw new ValidationError([], 'no files were uploaded');
+            }
+
+            const unionColumns = validateInitialAppendColumns(parsed);
+
+            await this.mergeSessionRepo.save(
+                {
+                    sessionId: input.sessionId,
+                    orgId: input.orgId,
+                    userId: input.userId,
+                    mode,
+                    createNew: true,
+                    sourceDatasetId: null,
+                    datasetId: null,
+                    name: input.name ?? getDatasetName(baseFile.file.originalName),
+                    mergeKeys: [],
+                    files: parsed.map(p => p.file),
+                    unionColumns,
+                    createdAt: new Date().toISOString(),
+                },
+                this.config.sessionTtlSeconds
+            );
+
+            return {
+                sessionId: input.sessionId,
+                expiresInSeconds: this.config.sessionTtlSeconds,
+                statistics: {
+                    totalFiles: parsed.length,
+                    totalIncomingRows: totalParsedRows,
+                    totalNewRows: totalParsedRows,
+                    totalDuplicateRows: 0,
+                    existingRowCount: 0,
+                    copiedRows: 0,
+                    newColumns: unionColumns.map(c => ({
+                        key: c.key,
+                        dataType: c.dataType,
+                    })),
+                    commonColumns: unionColumns.map(c => c.key),
+                },
+                conflicts: [],
+            };
         }
 
         // step 2: ensure every mergeKey is present in every file
@@ -475,6 +514,56 @@ function validateAppendColumns(
             );
         }
     }
+}
+
+function validateInitialAppendColumns(parsed: ParsedMergeFile[]): MergeSessionColumn[] {
+    const first = parsed[0];
+    if (!first) {
+        throw new ValidationError([], 'no files were uploaded');
+    }
+
+    const expectedTypes = new Map(
+        first.inferredColumns.map(col => [col.key, col.dataType])
+    );
+    const expectedKeys = new Set(expectedTypes.keys());
+
+    for (const p of parsed) {
+        const actualTypes = new Map(
+            p.inferredColumns.map(col => [col.key, col.dataType])
+        );
+        const actualKeys = new Set(actualTypes.keys());
+        const missing = [...expectedKeys].filter(key => !actualKeys.has(key));
+        const extra = [...actualKeys].filter(key => !expectedKeys.has(key));
+
+        if (missing.length > 0 || extra.length > 0) {
+            throw new ValidationError(
+                [...missing, ...extra],
+                `append file "${p.file.originalName}" must contain exactly the same columns`
+            );
+        }
+
+        for (const [key, expectedType] of expectedTypes) {
+            const actualType = actualTypes.get(key);
+            if (actualType !== expectedType) {
+                throw new ValidationError(
+                    [key],
+                    `append file "${p.file.originalName}" column "${key}" must have type "${expectedType}"`
+                );
+            }
+        }
+    }
+
+    return first.inferredColumns.map((col, index) => ({
+        key: col.key,
+        displayName: col.key,
+        dataType: col.dataType,
+        orderIndex: index,
+        isNew: true,
+    }));
+}
+
+function getDatasetName(filename: string): string {
+    return filename.replace(/\.[^/.]+$/, '');
 }
 
 function sameValue(oldVal: unknown, newVal: unknown, dataType: ColumnDataType): boolean {

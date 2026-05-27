@@ -22,6 +22,7 @@ import {
     createBlankActionDraft,
     draftToActionPayload,
     getDefaultRunValues,
+    validateRunValues,
 } from '../../../lib';
 import {
     cancelCreateAction,
@@ -191,6 +192,16 @@ export const ActionEditor = ({
             try {
                 setError('');
                 setLastRunMessage('');
+                const validationError = validateRunValues(
+                    selectedAction.parameters,
+                    runValues
+                );
+                if (validationError) {
+                    setError(validationError);
+
+                    return;
+                }
+
                 const parameters = coerceRunValues(selectedAction.parameters, runValues);
                 const result = await executeAction({
                     actionId: selectedAction.id,

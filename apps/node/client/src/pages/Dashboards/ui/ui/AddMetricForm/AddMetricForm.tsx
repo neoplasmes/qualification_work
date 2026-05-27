@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { DashboardMetricItem } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button, FormField, Select, TextInput } from '@/shared/ui';
+import { Button, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -27,7 +27,9 @@ type AddMetricFormProps = {
     metricName: string;
     metricExpression: string;
     metricFormat: DashboardMetricItem['format'];
+    error?: string;
     disabled: boolean;
+    editing?: boolean;
     onDatasetChange: (value: string) => void;
     onNameChange: (value: string) => void;
     onExpressionChange: (value: string) => void;
@@ -41,7 +43,9 @@ export const AddMetricForm = ({
     metricName,
     metricExpression,
     metricFormat,
+    error,
     disabled,
+    editing,
     onDatasetChange,
     onNameChange,
     onExpressionChange,
@@ -96,7 +100,7 @@ export const AddMetricForm = ({
         <form
             className={styles['form']}
             data-test-id={dashboardsTestIds.addMetricForm}
-            aria-label="Add metric"
+            aria-label={editing ? 'Edit metric' : 'Add metric'}
             onSubmit={onSubmit}
         >
             <DashboardFormSection>Metrics</DashboardFormSection>
@@ -206,6 +210,12 @@ export const AddMetricForm = ({
                         onChange={event => onExpressionChange(event.target.value)}
                     />
                 </FormField>
+            )}
+
+            {error && (
+                <StatusMessage tone="error" className={styles['error']}>
+                    {error}
+                </StatusMessage>
             )}
 
             <Button

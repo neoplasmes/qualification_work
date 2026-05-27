@@ -18,6 +18,7 @@
         flex-shrink: 0;
         cursor: pointer;
         accent-color: var(--color-primary);
+        color-scheme: dark;
     }
 
     &:has(input:disabled) {
@@ -29,6 +30,13 @@
 .content {
     display: grid;
     gap: 2px;
+}
+
+.content-inline {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-sm);
+    align-items: center;
 }
 
 .description {

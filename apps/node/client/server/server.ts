@@ -1,6 +1,8 @@
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { pathToFileURL } from 'node:url';
 import { Application } from 'primitive-server';
 
@@ -8,6 +10,7 @@ import type { StreamSSRFn } from '../src/entry.server';
 import { serveStatic } from './serveStatic';
 
 const isDev = process.env.NODE_ENV !== 'production';
+const isPreview = process.env.PREVIEW === 'true';
 
 if (isDev && !process.env.NODE_ENV) {
     process.env.NODE_ENV = 'development';
@@ -83,6 +86,34 @@ if (isDev) {
     });
 } else {
     //* Production instance
+    if (isPreview) {
+        server.onRequest(async ctx => {
+            const { request, response } = ctx;
+            if (!request.pathname.startsWith('/api/')) {return;}
+            await new Promise<void>((resolve, reject) => {
+                const proxyReq = http.request(
+                    {
+                        hostname: 'localhost',
+                        port: 8080,
+                        path: request.URL,
+                        method: request.method,
+                        headers: request.headers,
+                    },
+                    proxyRes => {
+                        response.statusCode = proxyRes.statusCode ?? 502;
+                        for (const [key, val] of Object.entries(proxyRes.headers)) {
+                            if (val !== undefined)
+                                {response.setHeader(key, val as string | string[]);}
+                        }
+                        pipeline(proxyRes, response).then(resolve).catch(reject);
+                    }
+                );
+                proxyReq.on('error', reject);
+                request.pipe(proxyReq);
+            });
+        });
+    }
+
     const assetsDir = path.join(distDir, 'client');
     const serverBundlePath = path.join(distDir, 'server', 'entry.server.js');
 
@@ -104,6 +135,10 @@ if (isDev) {
         typeof streamSSR === 'function',
         'FATAL ERROR DURING STREAMSSR FUNCTION IMPORT'
     );
+
+    server.onReady(() => {
+        console.log(`\nSSR server running at http://localhost:${port}\n`);
+    });
 
     server.get('*', async ctx => {
         const { request, response } = ctx;

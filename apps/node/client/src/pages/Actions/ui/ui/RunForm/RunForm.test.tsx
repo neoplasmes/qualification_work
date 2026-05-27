@@ -59,8 +59,14 @@ describe('RunForm', () => {
             );
         };
         const { container } = render(<TestRunForm />);
+        const amountInput = getByDataTestId<HTMLInputElement>(
+            container,
+            actionsTestIds.runInput
+        );
 
-        await user.type(getByDataTestId(container, actionsTestIds.runInput), '15');
+        expect(amountInput).toHaveAttribute('placeholder', 'number');
+
+        await user.type(amountInput, '15');
         await user.selectOptions(
             getByDataTestId(container, actionsTestIds.runBoolSelect),
             'false'
@@ -71,5 +77,38 @@ describe('RunForm', () => {
         expect(onRunValueChange).toHaveBeenCalledWith('amount', '15');
         expect(onRunValueChange).toHaveBeenCalledWith('paid', 'false');
         expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects text in numeric run inputs', async () => {
+        const user = userEvent.setup();
+        const onRunValueChange = vi.fn();
+        const TestRunForm = () => {
+            const [runValues, setRunValues] = useState({ amount: '', paid: '' });
+
+            return (
+                <RunForm
+                    action={action}
+                    runValues={runValues}
+                    disabled={false}
+                    lastRunMessage=""
+                    onRunValueChange={(key, value) => {
+                        onRunValueChange(key, value);
+                        setRunValues(current => ({ ...current, [key]: value }));
+                    }}
+                    onSubmit={vi.fn()}
+                />
+            );
+        };
+        const { container } = render(<TestRunForm />);
+        const amountInput = getByDataTestId<HTMLInputElement>(
+            container,
+            actionsTestIds.runInput
+        );
+
+        await user.type(amountInput, 'abc1x');
+
+        expect(amountInput).toHaveValue('1');
+        expect(onRunValueChange).toHaveBeenCalledTimes(1);
+        expect(onRunValueChange).toHaveBeenCalledWith('amount', '1');
     });
 });

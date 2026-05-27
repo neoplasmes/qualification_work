@@ -116,6 +116,45 @@ describe('GET /api/dashboards/:id', () => {
         });
     });
 
+    it('returns calculated count metric value for a column', async () => {
+        const dashboardId = await createDashboard(orgId);
+
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index)
+            VALUES
+                ($1, 'sku', 'SKU', 'string', 0)`,
+            [datasetId]
+        );
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES
+                ($1, 0, '{"sku": "A"}'::jsonb),
+                ($1, 1, '{"sku": ""}'::jsonb),
+                ($1, 2, '{"other": "B"}'::jsonb)`,
+            [datasetId]
+        );
+        await api(`/api/dashboards/${dashboardId}/items`, {
+            method: 'POST',
+            body: JSON.stringify({
+                kind: 'metric',
+                datasetId,
+                name: 'SKU count',
+                expression: 'count(sku)',
+                format: 'number',
+            }),
+        });
+
+        const res = await api(`/api/dashboards/${dashboardId}`);
+        const body = (await res.json()) as Dashboard;
+        const metric = body.items.find(item => item.kind === 'metric');
+
+        expect(metric).toMatchObject({
+            kind: 'metric',
+            value: 1,
+        });
+    });
+
     it('404 for non-existent id', async () => {
         const res = await api(`/api/dashboards/${randomUUID()}`);
         expect(res.status).toBe(404);

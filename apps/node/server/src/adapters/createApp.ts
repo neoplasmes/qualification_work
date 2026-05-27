@@ -1,8 +1,8 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
-import { createRedisCache } from '@qualification-work/redis-cache';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import { createRedisCache } from '@qualification-work/redis-cache';
 
 import {
     AddDashboardItemCommand,
@@ -13,6 +13,7 @@ import {
     DeleteOrgCommand,
     RenameDashboardCommand,
     ReorderDashboardCommand,
+    UpdateDashboardItemCommand,
 } from '@/core/commands';
 import { BaseError, ValidationError } from '@/core/errors';
 import { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
@@ -106,6 +107,7 @@ export function createApp(
     const baseRenameDashboard = new RenameDashboardCommand(dashboardRepo);
     const baseAddDashboardItem = new AddDashboardItemCommand(dashboardRepo);
     const baseDeleteDashboardItem = new DeleteDashboardItemCommand(dashboardRepo);
+    const baseUpdateDashboardItem = new UpdateDashboardItemCommand(dashboardRepo);
     const baseReorderDashboard = new ReorderDashboardCommand(dashboardRepo);
 
     const baseGetDashboard = new GetDashboardQuery(dashboardRepo);
@@ -185,6 +187,22 @@ export function createApp(
             );
         },
     } as DeleteDashboardItemCommand;
+    const updateDashboardItem = {
+        execute: async (...args: Parameters<UpdateDashboardItemCommand['execute']>) => {
+            await baseUpdateDashboardItem.execute(...args);
+            const dashboard = await dashboardRepo.findById(
+                args[0],
+                getReadableOrgIds(args[3])
+            );
+
+            await cache.invalidateTags(
+                compact([
+                    `dashboard:${args[0]}`,
+                    dashboard && `org:${dashboard.orgId}:dashboards`,
+                ])
+            );
+        },
+    } as UpdateDashboardItemCommand;
     const reorderDashboard = {
         execute: async (...args: Parameters<ReorderDashboardCommand['execute']>) => {
             const dashboard = await dashboardRepo.findById(
@@ -227,6 +245,7 @@ export function createApp(
         renameDashboard,
         addDashboardItem,
         deleteDashboardItem,
+        updateDashboardItem,
         reorderDashboard,
         getDashboard,
         listDashboards,

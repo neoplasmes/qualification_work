@@ -122,7 +122,7 @@ describe('MergeDatasetModal', () => {
 
         expect(screen.queryByText('Merge keys')).not.toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: 'Merge by key' }));
+        await user.click(screen.getByRole('tab', { name: 'Merge by key' }));
         await user.click(screen.getByLabelText('ID'));
         await user.upload(
             queryByDataTestId(

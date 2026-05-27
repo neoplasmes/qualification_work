@@ -122,4 +122,12 @@ $display-values: block, inline, inline-block, inline-flex, flex, grid, none;
         padding-top: var(--spacing-#{$key});
         padding-bottom: var(--spacing-#{$key});
     }
+
+    [data-icon-p='#{$key}'] {
+        --icon-button-padding: var(--spacing-#{$key});
+    }
+}
+
+[data-icon-p='none'] {
+    --icon-button-padding: 0;
 }

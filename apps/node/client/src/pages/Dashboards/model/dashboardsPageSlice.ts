@@ -104,6 +104,18 @@ export const dashboardsPageSlice = createSlice({
             state.workspaceMetricExpression = '';
             state.workspaceMetricFormat = 'number';
         },
+        setWorkspaceMetricForm(
+            state,
+            action: PayloadAction<{
+                name: string;
+                expression: string;
+                format: 'currency' | 'percent' | 'number';
+            }>
+        ) {
+            state.workspaceMetricName = action.payload.name;
+            state.workspaceMetricExpression = action.payload.expression;
+            state.workspaceMetricFormat = action.payload.format;
+        },
     },
 });
 
@@ -122,6 +134,7 @@ export const {
     setWorkspaceMetricExpression,
     setWorkspaceMetricFormat,
     clearWorkspaceMetricForm,
+    setWorkspaceMetricForm,
 } = dashboardsPageSlice.actions;
 
 export const selectSelectedDashboardId = (state: StateWithDashboardsPage) =>

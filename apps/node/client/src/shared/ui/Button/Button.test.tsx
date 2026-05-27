@@ -38,8 +38,8 @@ describe('Button', () => {
             'data-icon-p',
             'none'
         );
-        expect(screen.getByRole('button', { name: 'Close' })).toHaveStyle({
-            '--icon-button-padding': '0',
-        });
+        expect(screen.getByRole('button', { name: 'Close' })).not.toHaveAttribute(
+            'style'
+        );
     });
 });

@@ -21,6 +21,7 @@ export {
     selectDashboardsRightPanelTab,
     setDashboardsWorkspaceDraftName,
     setWorkspaceMetricExpression,
+    setWorkspaceMetricForm,
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
     toggleChartFilter,

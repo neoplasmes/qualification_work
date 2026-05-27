@@ -9,8 +9,10 @@ import { useMemo } from 'react';
 
 import { compareCategoryLabels } from '@/shared/lib/dayOfWeek';
 
-import type { ChartResultColumn, MeasureValueFormat, TimeGranularity } from '../api';
+import type { ChartResultColumn } from '../api';
+import { DEFAULT_CHART_COLOR, mixChartColors } from '../lib';
 import { formatChartCell } from '../lib/formatChartCell';
+import type { HeatmapCell } from './HeatmapChart.types';
 
 const C = {
     cellLow: '#162030',
@@ -24,20 +26,8 @@ const C = {
 const GAP = 4;
 const MIN_CHART_WIDTH = 220;
 const margin = { top: 16, right: 16, bottom: 132, left: 148 };
-// default cell size when not yet computed
 const DEFAULT_CELL_SIZE = 48;
 const DEFAULT_STEP = DEFAULT_CELL_SIZE + GAP;
-
-export type HeatmapCell = {
-    x: string;
-    y: string;
-    value: number;
-    xType?: ChartResultColumn['type'];
-    yType?: ChartResultColumn['type'];
-    xTimeGranularity?: TimeGranularity;
-    yTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
-};
 
 type ColumnDatum = { x: string; bins: BinDatum[] };
 type BinDatum = { y: string; count: number };
@@ -50,6 +40,7 @@ type HeatmapChartInnerProps = {
     width: number;
     height: number;
     cellSize: number;
+    color: string;
 };
 
 const HeatmapChartInner = ({
@@ -60,6 +51,7 @@ const HeatmapChartInner = ({
     width,
     height,
     cellSize,
+    color,
 }: HeatmapChartInnerProps) => {
     const {
         showTooltip,
@@ -92,11 +84,13 @@ const HeatmapChartInner = ({
     const maxValue = values.length ? Math.max(...values, 1) : 1;
 
     const colorScale = scaleLinear<string>({
-        range: [C.cellLow, C.cellHigh],
+        range: [
+            mixChartColors(color, C.cellLow, 0.72),
+            mixChartColors(color, C.cellHigh, 0.16),
+        ],
         domain: [minValue, maxValue],
     });
 
-    // tick positions centered on each cell
     const xAxisScale = scalePoint<string>({
         range: [cellSize / 2, xValues.length * step - step / 2],
         domain: xValues,
@@ -237,6 +231,7 @@ const HeatmapChartInner = ({
 
 type HeatmapChartProps = {
     data: HeatmapCell[];
+    color?: string;
 };
 
 const uniqueValues = (values: string[]) => [...new Set(values)];
@@ -252,7 +247,10 @@ const sortHeatmapLabels = (
     return [...values].sort(compareCategoryLabels);
 };
 
-export const HeatmapChart = ({ data }: HeatmapChartProps) => {
+export const HeatmapChart = ({
+    data,
+    color = DEFAULT_CHART_COLOR,
+}: HeatmapChartProps) => {
     const xType = data[0]?.xType;
     const yType = data[0]?.yType;
     const xValues = useMemo(
@@ -295,6 +293,7 @@ export const HeatmapChart = ({ data }: HeatmapChartProps) => {
                         width={width}
                         height={dynamicHeight}
                         cellSize={cellSize}
+                        color={color}
                     />
                 );
             }}

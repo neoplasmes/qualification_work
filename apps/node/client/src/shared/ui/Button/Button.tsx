@@ -66,7 +66,7 @@ export const IconButton: FC<IconButtonProps> = ({
         data-icon-p={iconPadding ?? dataIconPadding}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
-        style={getIconButtonStyle(style, iconStrokeWidth, iconPadding ?? dataIconPadding)}
+        style={getIconButtonStyle(style, iconStrokeWidth)}
         {...props}
     >
         {isLoading ? (
@@ -111,7 +111,7 @@ export const IconButtonLink: FC<IconButtonLinkProps> = ({
     <Link
         className={getButtonClassName('icon', tone, size, className)}
         data-icon-p={iconPadding ?? dataIconPadding}
-        style={getIconButtonStyle(style, undefined, iconPadding ?? dataIconPadding)}
+        style={getIconButtonStyle(style, undefined)}
         {...props}
     />
 );
@@ -135,34 +135,14 @@ const getButtonClassName = (
 
 const getIconButtonStyle = (
     style: CSSProperties | undefined,
-    iconStrokeWidth: number | undefined,
-    iconPadding: IconPadding | undefined
+    iconStrokeWidth: number | undefined
 ): CSSProperties | undefined => {
-    if (iconStrokeWidth === undefined && iconPadding === undefined) {
+    if (iconStrokeWidth === undefined) {
         return style;
     }
 
-    const iconPaddingValue = getIconPaddingValue(iconPadding);
-
     return {
         ...style,
-        ...(iconStrokeWidth === undefined
-            ? {}
-            : { '--icon-stroke-width': iconStrokeWidth }),
-        ...(iconPaddingValue === undefined
-            ? {}
-            : { '--icon-button-padding': iconPaddingValue }),
+        '--icon-stroke-width': iconStrokeWidth,
     } as CSSProperties;
-};
-
-const getIconPaddingValue = (iconPadding: IconPadding | undefined) => {
-    if (iconPadding === undefined) {
-        return undefined;
-    }
-
-    if (iconPadding === 'none') {
-        return '0';
-    }
-
-    return `var(--spacing-${iconPadding})`;
 };

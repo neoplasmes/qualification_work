@@ -1,6 +1,4 @@
 .content {
-    overflow-y: auto;
-    max-height: min(62vh, 640px);
     padding-right: var(--spacing-xs);
 }
 
@@ -27,8 +25,6 @@
 }
 
 .merge-key-option {
-    position: relative;
-
     gap: var(--spacing-sm);
     min-height: 52px;
     padding: var(--spacing-sm) var(--spacing-md);
@@ -40,27 +36,6 @@
     transition:
         border-color 0.2s ease,
         background-color 0.2s ease;
-
-    &::before {
-        content: '';
-
-        width: 18px;
-        height: 18px;
-        flex: 0 0 auto;
-        border: 1px solid var(--color-outline);
-        border-radius: 4px;
-
-        background-color: var(--color-surface-container);
-    }
-
-    input {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-        white-space: nowrap;
-    }
 
     span {
         font-size: var(--font-size-sm);
@@ -75,24 +50,6 @@
     &:has(input:checked) {
         border-color: var(--color-on-surface);
         background-color: var(--color-surface-container);
-
-        &::before {
-            border-color: var(--color-on-surface);
-            background:
-                linear-gradient(
-                    135deg,
-                    transparent 0 42%,
-                    var(--color-on-surface) 42% 58%,
-                    transparent 58%
-                ),
-                linear-gradient(
-                    45deg,
-                    transparent 0 46%,
-                    var(--color-on-surface) 46% 62%,
-                    transparent 62%
-                ),
-                var(--color-primary);
-        }
 
         span {
             color: var(--color-on-surface);
@@ -112,7 +69,7 @@
 
     min-height: 96px;
     padding: var(--spacing-md);
-    border: 1px dashed var(--color-outline-new);
+    border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-sm);
 
     color: var(--color-on-surface);

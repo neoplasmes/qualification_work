@@ -118,7 +118,7 @@ export const NavBar: FC = () => {
                         )}
                         {workspaceOrgs.map(org => (
                             <option key={org.id} value={org.id}>
-                                {org.name} ({org.role})
+                                {org.name}
                             </option>
                         ))}
                     </Select>

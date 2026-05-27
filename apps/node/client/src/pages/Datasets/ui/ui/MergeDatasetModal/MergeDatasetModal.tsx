@@ -2,6 +2,11 @@ import { GitMerge, Upload } from 'lucide-react';
 import { useState } from 'react';
 
 import {
+    WorkspaceModeTabs,
+    type WorkspaceModeTabOption,
+} from '@/widgets/WorkspaceModeTabs';
+
+import {
     useMergeCancelMutation,
     useMergeCommitMutation,
     useMergePreviewMutation,
@@ -16,7 +21,6 @@ import {
     Checkbox,
     FormField,
     Modal,
-    SegmentedTabs,
     StatusMessage,
     TextInput,
 } from '@/shared/ui';
@@ -36,6 +40,11 @@ type MergeDatasetModalProps = {
 
 type Step = 'setup' | 'preview';
 type ImportMode = 'append' | 'merge';
+
+const IMPORT_MODE_TABS = [
+    { value: 'append', label: 'Append rows' },
+    { value: 'merge', label: 'Merge by key' },
+] as const satisfies readonly WorkspaceModeTabOption<ImportMode>[];
 
 export const MergeDatasetModal = ({
     org,
@@ -127,19 +136,17 @@ export const MergeDatasetModal = ({
     };
 
     return (
-        <Modal title="Merge data" size="lg" onClose={handleClose}>
+        <Modal title="Merge data" size="md" height={560} onClose={handleClose}>
             {step === 'setup' && (
                 <div className={styles['content']} data-stack="v" data-gap="md">
                     {selectedDataset && (
                         <div data-stack="v" data-gap="xs">
                             <span className={styles['section-title']}>Mode</span>
-                            <SegmentedTabs
+                            <WorkspaceModeTabs
                                 value={mode}
                                 columns={2}
-                                options={[
-                                    { value: 'append', label: 'Append rows' },
-                                    { value: 'merge', label: 'Merge by key' },
-                                ]}
+                                options={IMPORT_MODE_TABS}
+                                layoutId="merge-dataset-mode"
                                 onChange={setMode}
                             />
                         </div>
@@ -148,6 +155,7 @@ export const MergeDatasetModal = ({
                     <Checkbox
                         label="Create new dataset"
                         description="Copy current rows first, then apply imported rows."
+                        inline
                         checked={createNew}
                         onChange={event => setCreateNew(event.currentTarget.checked)}
                     />

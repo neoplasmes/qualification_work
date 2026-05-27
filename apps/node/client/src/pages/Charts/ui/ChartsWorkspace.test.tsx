@@ -77,10 +77,12 @@ vi.mock('@/features/authenticate', () => ({
 }));
 
 vi.mock('@/entities/chart', () => ({
+    BAR_CHART_ROWS_LIMIT: 12,
     ChartResult: ({ data }: { data: ChartResponse }) => (
         <div data-testid="chart-result">{data.rows.length} rows</div>
     ),
     ChartConfigSummary: () => <p data-testid="chart-summary" />,
+    getChartColorFromConfig: () => '#8a6cff',
     useListChartsQuery: () => ({
         data: [chart],
         isLoading: false,

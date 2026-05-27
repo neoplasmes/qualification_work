@@ -1,11 +1,10 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     useAddDashboardChartMutation,
-    useAddDashboardMetricMutation,
     useRemoveDashboardItemMutation,
     useReorderDashboardItemsMutation,
 } from '@/features/manageDashboards';
@@ -22,18 +21,12 @@ import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 import { dashboardsTestIds } from '../const';
 import { getDashboardItemsOrder, moveDashboardItem } from '../lib';
 import {
-    clearWorkspaceMetricForm,
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
     selectSelectedDashboardId,
     selectWorkspaceDraftDashboardId,
-    selectWorkspaceMetricExpression,
-    selectWorkspaceMetricFormat,
-    selectWorkspaceMetricName,
-    setWorkspaceMetricExpression,
-    setWorkspaceMetricFormat,
-    setWorkspaceMetricName,
 } from '../model';
+import { useDashboardMetricModal } from './lib';
 import {
     AddChartModal,
     AddMetricModal,
@@ -47,15 +40,11 @@ export const DashboardsWorkspace = () => {
     const dispatch = useDispatch();
     const workspaceRef = useRef<HTMLElement>(null);
     const [selectedChartId, setSelectedChartId] = useState('');
-    const [selectedMetricDatasetId, setSelectedMetricDatasetId] = useState('');
     const [activeModal, setActiveModal] = useState<'chart' | 'metric' | null>(null);
     const [error, setError] = useState('');
 
     const selectedDashboardId = useSelector(selectSelectedDashboardId);
     const workspaceDraftDashboardId = useSelector(selectWorkspaceDraftDashboardId);
-    const metricName = useSelector(selectWorkspaceMetricName);
-    const metricExpression = useSelector(selectWorkspaceMetricExpression);
-    const metricFormat = useSelector(selectWorkspaceMetricFormat);
 
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
@@ -77,15 +66,21 @@ export const DashboardsWorkspace = () => {
     );
 
     const [addDashboardChart, addChartState] = useAddDashboardChartMutation();
-    const [addDashboardMetric, addMetricState] = useAddDashboardMetricMutation();
     const [reorderDashboardItems, reorderState] = useReorderDashboardItemsMutation();
     const [removeDashboardItem, removeItemState] = useRemoveDashboardItemMutation();
+    const metricModal = useDashboardMetricModal({
+        dashboard,
+        datasets: datasetsQuery.data,
+        refetchDashboard: dashboardQuery.refetch,
+        refetchDashboards: dashboardsQuery.refetch,
+    });
 
     useHasOverflow(workspaceRef);
 
     useEffect(() => {
         if (!dashboard) {
             dispatch(resetDashboardsWorkspaceDraft());
+            metricModal.close();
 
             return;
         }
@@ -101,36 +96,13 @@ export const DashboardsWorkspace = () => {
             })
         );
         setError('');
+        metricModal.close();
         setActiveModal(null);
     }, [dashboard?.id]);
 
     useEffect(
         () => setSelectedChartId(chartsQuery.data?.[0]?.id ?? ''),
         [chartsQuery.data]
-    );
-
-    useEffect(
-        () => setSelectedMetricDatasetId(datasetsQuery.data?.[0]?.dataset.id ?? ''),
-        [datasetsQuery.data]
-    );
-
-    const handleMetricNameChange = useCallback(
-        (value: string) => {
-            dispatch(setWorkspaceMetricName(value));
-        },
-        [dispatch]
-    );
-    const handleMetricExpressionChange = useCallback(
-        (value: string) => {
-            dispatch(setWorkspaceMetricExpression(value));
-        },
-        [dispatch]
-    );
-    const handleMetricFormatChange = useCallback(
-        (value: typeof metricFormat) => {
-            dispatch(setWorkspaceMetricFormat(value));
-        },
-        [dispatch]
     );
 
     const handleAddChart = async () => {
@@ -149,40 +121,6 @@ export const DashboardsWorkspace = () => {
             await dashboardsQuery.refetch();
         } catch (addError) {
             setError(getApiErrorMessage(addError, 'Unable to add this chart.'));
-        }
-    };
-
-    const handleAddMetric = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        if (!dashboard || !selectedMetricDatasetId) {
-            return;
-        }
-
-        const name = metricName.trim();
-        const expression = metricExpression.trim();
-        if (!name || !expression) {
-            setError('Metric name and expression are required.');
-
-            return;
-        }
-
-        try {
-            await addDashboardMetric({
-                dashboardId: dashboard.id,
-                datasetId: selectedMetricDatasetId,
-                name,
-                expression,
-                format: metricFormat,
-                height: 4,
-            }).unwrap();
-            dispatch(clearWorkspaceMetricForm());
-            setError('');
-            setActiveModal(null);
-            await dashboardQuery.refetch();
-            await dashboardsQuery.refetch();
-        } catch (addError) {
-            setError(getApiErrorMessage(addError, 'Unable to add this metric.'));
         }
     };
 
@@ -241,7 +179,10 @@ export const DashboardsWorkspace = () => {
                 <>
                     <DashboardWorkspaceHeading
                         name={dashboard.name}
-                        onAddMetric={() => setActiveModal('metric')}
+                        onAddMetric={() => {
+                            metricModal.openAdd();
+                            setActiveModal('metric');
+                        }}
                         onAddChart={() => setActiveModal('chart')}
                     />
 
@@ -256,6 +197,10 @@ export const DashboardsWorkspace = () => {
                             void handleMoveItem(itemId, direction)
                         }
                         onRemoveItem={itemId => void handleRemoveItem(itemId)}
+                        onEditMetric={item => {
+                            metricModal.openEdit(item);
+                            setActiveModal('metric');
+                        }}
                     />
 
                     {activeModal === 'chart' && (
@@ -272,17 +217,28 @@ export const DashboardsWorkspace = () => {
                     {activeModal === 'metric' && (
                         <AddMetricModal
                             datasets={datasetsQuery.data}
-                            datasetId={selectedMetricDatasetId}
-                            metricName={metricName}
-                            metricExpression={metricExpression}
-                            metricFormat={metricFormat}
-                            disabled={addMetricState.isLoading}
-                            onDatasetChange={setSelectedMetricDatasetId}
-                            onNameChange={handleMetricNameChange}
-                            onExpressionChange={handleMetricExpressionChange}
-                            onFormatChange={handleMetricFormatChange}
-                            onSubmit={handleAddMetric}
-                            onClose={() => setActiveModal(null)}
+                            datasetId={metricModal.datasetId}
+                            metricName={metricModal.name}
+                            metricExpression={metricModal.expression}
+                            metricFormat={metricModal.format}
+                            error={metricModal.error}
+                            disabled={metricModal.disabled}
+                            editing={metricModal.editing}
+                            onDatasetChange={metricModal.setDatasetId}
+                            onNameChange={metricModal.setName}
+                            onExpressionChange={metricModal.setExpression}
+                            onFormatChange={metricModal.setFormat}
+                            onSubmit={event => {
+                                void metricModal.submit(event).then(saved => {
+                                    if (saved) {
+                                        setActiveModal(null);
+                                    }
+                                });
+                            }}
+                            onClose={() => {
+                                metricModal.close();
+                                setActiveModal(null);
+                            }}
                         />
                     )}
                 </>

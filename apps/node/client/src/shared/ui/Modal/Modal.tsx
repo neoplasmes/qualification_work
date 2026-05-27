@@ -12,6 +12,8 @@ type ModalProps = {
     testId?: string;
     footer?: ReactNode;
     size?: 'sm' | 'md' | 'lg';
+    /** fixed modal height in px; content area scrolls within */
+    height?: number;
     closeOnBackdrop?: boolean;
     closeOnEscape?: boolean;
     onClose: () => void;
@@ -25,6 +27,7 @@ export const Modal = ({
     testId,
     footer,
     size = 'md',
+    height,
     closeOnBackdrop = true,
     closeOnEscape = true,
     onClose,
@@ -62,6 +65,7 @@ export const Modal = ({
                 data-gap="md"
                 data-p="lg"
                 className={`${styles['modal']} ${styles[`size-${size}`]}`}
+                style={height !== undefined ? { height: `${height}px` } : undefined}
                 onClick={e => e.stopPropagation()}
             >
                 <div data-stack="h" data-align="center" data-justify="between">
@@ -76,7 +80,11 @@ export const Modal = ({
                         <X size={18} />
                     </IconButton>
                 </div>
-                <div data-display="grid" data-gap="md">
+                <div
+                    data-display="grid"
+                    data-gap="md"
+                    className={height !== undefined ? styles['body-scroll'] : undefined}
+                >
                     {children}
                 </div>
                 {footer && (

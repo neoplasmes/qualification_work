@@ -55,7 +55,10 @@
     }
 
     select {
-        width: clamp(128px, 18vw, 240px);
+        field-sizing: content;
+
+        width: auto;
+        max-width: min(26vw, 320px);
         height: 36px;
         padding: 0 var(--spacing-sm);
         border: 1px solid transparent;

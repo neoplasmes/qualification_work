@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
     deleteDashboard: vi.fn(),
     addDashboardChart: vi.fn(),
     addDashboardMetric: vi.fn(),
+    updateDashboardMetric: vi.fn(),
     reorderDashboardItems: vi.fn(),
     removeDashboardItem: vi.fn(),
     refetchDashboards: vi.fn(),
@@ -120,6 +121,10 @@ vi.mock('@/features/manageDashboards', () => ({
     useRenameDashboardMutation: () => [mocks.renameDashboard, { isLoading: false }],
     useAddDashboardChartMutation: () => [mocks.addDashboardChart, { isLoading: false }],
     useAddDashboardMetricMutation: () => [mocks.addDashboardMetric, { isLoading: false }],
+    useUpdateDashboardMetricMutation: () => [
+        mocks.updateDashboardMetric,
+        { isLoading: false },
+    ],
     useReorderDashboardItemsMutation: () => [
         mocks.reorderDashboardItems,
         { isLoading: false },
@@ -166,6 +171,7 @@ const renderWorkspace = () => {
 describe('DashboardsWorkspace', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        dashboard.items = [];
         mocks.renameDashboard.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
@@ -174,6 +180,9 @@ describe('DashboardsWorkspace', () => {
         });
         mocks.addDashboardMetric.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue({ itemId: 'item-2', posY: 1 }),
+        });
+        mocks.updateDashboardMetric.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue(undefined),
         });
         mocks.refetchDashboards.mockResolvedValue(undefined);
         mocks.refetchDashboard.mockResolvedValue(undefined);
@@ -276,5 +285,26 @@ describe('DashboardsWorkspace', () => {
             format: 'percent',
             height: 4,
         });
+    });
+
+    it('shows add metric errors inside the modal', async () => {
+        const user = userEvent.setup();
+        mocks.addDashboardMetric.mockReturnValueOnce({
+            unwrap: vi.fn().mockRejectedValue({
+                data: { error: 'bind message supplies 2 parameters' },
+            }),
+        });
+        const { container } = renderWorkspace();
+
+        await user.click(
+            getByDataTestId(container, dashboardsTestIds.openAddMetricModalButton)
+        );
+        await user.click(getByDataTestId(container, dashboardsTestIds.addMetricButton));
+
+        const alert = await screen.findByRole('alert');
+        const dialog = screen.getByRole('dialog', { name: 'Add metric' });
+
+        expect(alert).toHaveTextContent('bind message supplies 2 parameters');
+        expect(dialog).toContainElement(alert);
     });
 });

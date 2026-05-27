@@ -16,5 +16,11 @@ export type {
 export { DeleteDashboardItemCommand } from './item.delete.command';
 export type { DeleteDashboardItemCommandIO } from './item.delete.command';
 
+export { UpdateDashboardItemCommand } from './item.update.command';
+export type {
+    UpdateDashboardItemCommandIO,
+    UpdateDashboardItemInput,
+} from './item.update.command';
+
 export { ReorderDashboardCommand } from './reorder.command';
 export type { ReorderDashboardCommandIO } from './reorder.command';

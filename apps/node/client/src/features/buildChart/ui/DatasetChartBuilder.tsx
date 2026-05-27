@@ -6,7 +6,9 @@ import {
     ChartConfigSummary,
     ChartResult,
     FILTER_OP_LABELS,
+    getChartColorFromConfig,
     GRANULARITY_LABELS,
+    normalizeChartColor,
     VALUE_FORMAT_LABELS,
     type ChartResponse,
     type ChartType,
@@ -32,6 +34,7 @@ import {
     useChartBuilderState,
     type ChartBuilderFields,
 } from '../lib/useChartBuilderState';
+import { ColorPickerControl } from './components';
 
 import styles from './DatasetChartBuilder.module.scss';
 
@@ -159,6 +162,7 @@ const buildFilter = (
 
 type BuildChartConfigInput = {
     chartType: ChartType;
+    chartColor: string;
     dimensionColumnId: string;
     dimensionGrouping: AxisGrouping | undefined;
     heatmapYColumnId: string;
@@ -181,6 +185,7 @@ type BuildChartConfigInput = {
 
 const buildChartConfig = ({
     chartType,
+    chartColor,
     dimensionColumnId,
     dimensionGrouping,
     heatmapYColumnId,
@@ -203,6 +208,7 @@ const buildChartConfig = ({
     const firstMeasure = buildMeasure(aggregate, measureColumnId, valueFormat);
     const base = {
         limit,
+        style: { color: normalizeChartColor(chartColor) },
         ...(filter ? { filters: [filter] } : {}),
     };
 
@@ -285,6 +291,8 @@ export const configToBuilderFields = (
     chartType: ChartType
 ): Partial<ChartBuilderFields> => {
     const result: Partial<ChartBuilderFields> = { chartType };
+
+    result.chartColor = getChartColorFromConfig(config);
 
     if (typeof config.limit === 'number') {
         result.limit = config.limit;
@@ -477,6 +485,8 @@ export const DatasetChartBuilder = ({
     const {
         chartName,
         setChartName,
+        chartColor,
+        setChartColor,
         chartType,
         setChartType,
         dimensionColumnId,
@@ -688,6 +698,7 @@ export const DatasetChartBuilder = ({
 
         return buildChartConfig({
             chartType,
+            chartColor,
             dimensionColumnId: activeDimensionColumnId,
             dimensionGrouping: buildGrouping(
                 effectiveDimGroupingMode,
@@ -825,6 +836,7 @@ export const DatasetChartBuilder = ({
                         data={previewData}
                         kind={previewData.kind}
                         ariaLabel="Chart preview"
+                        color={chartColor}
                         barsLimit={8}
                         hideTable
                     />
@@ -916,6 +928,8 @@ export const DatasetChartBuilder = ({
                     </Select>
                 </label>
 
+                <ColorPickerControl value={chartColor} onChange={setChartColor} />
+
                 <label className={styles['control']} data-stack="v" data-gap="xs">
                     <span>{chartType === 'pie' ? 'Slice by' : 'X axis'}</span>
                     <Select
@@ -951,7 +965,7 @@ export const DatasetChartBuilder = ({
                 )}
 
                 <label className={styles['control']} data-stack="v" data-gap="xs">
-                    <span>Group by</span>
+                    <span>{chartType === 'heatmap' ? 'Group X by' : 'Group by'}</span>
                     <Select
                         value={
                             dimGroupingModes.includes(dimensionGroupingMode)

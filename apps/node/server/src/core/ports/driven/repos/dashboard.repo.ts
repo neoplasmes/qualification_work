@@ -61,7 +61,7 @@ export interface DashboardRepo {
      * @param userOrgIds
      * @returns
      */
-    listByOrg(orgId: string, userOrgIds: string[]): Promise<Omit<Dashboard, 'items'>[]>;
+    listByOrg(orgId: string, userOrgIds: string[]): Promise<Dashboard[]>;
 
     /**
      * adds a chart to dashboards
@@ -96,6 +96,23 @@ export interface DashboardRepo {
         height: number | undefined,
         userOrgIds: string[]
     ): Promise<{ itemId: string; posY: number } | null>;
+
+    /**
+     * updates an existing metric item on a specific dashboard
+     *
+     * @param dashboardId
+     * @param itemId
+     * @param metric
+     * @param userOrgIds
+     * @returns true if the metric was updated, false if not found
+     * or user has no rights to modify this dashboard
+     */
+    updateMetricItem(
+        dashboardId: string,
+        itemId: string,
+        metric: DashboardMetricSpec,
+        userOrgIds: string[]
+    ): Promise<boolean>;
 
     /**
      * removes an item from a specific dashboard

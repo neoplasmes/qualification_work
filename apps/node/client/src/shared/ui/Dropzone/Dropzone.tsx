@@ -5,19 +5,34 @@ import styles from './Dropzone.module.scss';
 type DropzoneProps = {
     accept: string;
     'aria-label': string;
-    onFile: (file: File | undefined) => void;
+    multiple?: boolean;
+    onFile?: (file: File | undefined) => void;
+    onFiles?: (files: File[]) => void;
     children: ReactNode;
 };
 
 export const Dropzone: FC<DropzoneProps> = ({
     accept,
     'aria-label': ariaLabel,
+    multiple = false,
     onFile,
+    onFiles,
     children,
 }) => {
+    const handleFiles = (fileList: FileList | null | undefined) => {
+        const files = Array.from(fileList ?? []);
+        if (onFiles) {
+            onFiles(files);
+
+            return;
+        }
+
+        onFile?.(files[0]);
+    };
+
     const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
         event.preventDefault();
-        onFile(event.dataTransfer.files[0]);
+        handleFiles(event.dataTransfer.files);
     };
 
     return (
@@ -35,8 +50,12 @@ export const Dropzone: FC<DropzoneProps> = ({
                 className={styles['file-input']}
                 type="file"
                 accept={accept}
+                multiple={multiple}
                 aria-label={ariaLabel}
-                onChange={event => onFile(event.currentTarget.files?.[0])}
+                onChange={event => {
+                    handleFiles(event.currentTarget.files);
+                    event.currentTarget.value = '';
+                }}
             />
         </label>
     );

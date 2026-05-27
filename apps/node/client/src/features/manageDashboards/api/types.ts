@@ -29,6 +29,15 @@ export type AddDashboardItemResponse = {
     posY: number;
 };
 
+export type UpdateDashboardMetricPayload = {
+    dashboardId: string;
+    itemId: string;
+    datasetId: string;
+    name: string;
+    expression: string;
+    format: DashboardMetricItem['format'];
+};
+
 export type RenameDashboardPayload = {
     dashboardId: string;
     name: string;

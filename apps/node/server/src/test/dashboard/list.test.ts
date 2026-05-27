@@ -3,18 +3,26 @@ import { delay } from 'es-toolkit';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
+import type { Dashboard } from '@qualification-work/types';
 
 import { api, apiAs, resetTestIdentity, startServer, stopServer, truncate } from '../lib';
-import { bootFixture, createDashboard, dashboardIdentity, silenceErrors } from './lib';
+import {
+    addChartItem,
+    bootFixture,
+    createDashboard,
+    dashboardIdentity,
+    silenceErrors,
+} from './lib';
 
 let userId: string;
 let orgId: string;
+let chartId: string;
 
 beforeAll(startServer);
 afterAll(stopServer);
 
 beforeEach(async () => {
-    ({ userId, orgId } = await bootFixture());
+    ({ userId, orgId, chartId } = await bootFixture());
     silenceErrors();
 });
 
@@ -40,6 +48,19 @@ describe('GET /api/dashboards', () => {
         const body = (await res.json()) as Array<{ id: string }>;
 
         expect(body.map(d => d.id)).toEqual([secondId, firstId]);
+    });
+
+    it('returns dashboard items for list filters', async () => {
+        const dashboardId = await createDashboard(orgId, 'with item');
+        await addChartItem(dashboardId, chartId);
+
+        const res = await api(`/api/dashboards?orgId=${orgId}`);
+        const body = (await res.json()) as Dashboard[];
+
+        expect(body[0]).toMatchObject({
+            id: dashboardId,
+            items: [{ kind: 'chart', chartId }],
+        });
     });
 
     it('returns [] when orgId is not in membership (SQL filter)', async () => {

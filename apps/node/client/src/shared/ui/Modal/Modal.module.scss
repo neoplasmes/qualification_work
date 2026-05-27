@@ -35,6 +35,12 @@
     font-weight: 800;
 }
 
+.body-scroll {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
 .footer {
     justify-content: end;
     border-top: 1px solid var(--color-outline-new);

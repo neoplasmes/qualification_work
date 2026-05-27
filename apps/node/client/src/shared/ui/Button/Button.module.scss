@@ -190,50 +190,6 @@
     }
 }
 
-[data-icon-p='none'] {
-    --icon-button-padding: 0;
-}
-
-[data-icon-p='xs'] {
-    --icon-button-padding: var(--spacing-xs);
-}
-
-[data-icon-p='sm'] {
-    --icon-button-padding: var(--spacing-sm);
-}
-
-[data-icon-p='sm-plus'] {
-    --icon-button-padding: var(--spacing-sm-plus);
-}
-
-[data-icon-p='md'] {
-    --icon-button-padding: var(--spacing-md);
-}
-
-[data-icon-p='md-plus'] {
-    --icon-button-padding: var(--spacing-md-plus);
-}
-
-[data-icon-p='lg'] {
-    --icon-button-padding: var(--spacing-lg);
-}
-
-[data-icon-p='lg-plus'] {
-    --icon-button-padding: var(--spacing-lg-plus);
-}
-
-[data-icon-p='xl'] {
-    --icon-button-padding: var(--spacing-xl);
-}
-
-[data-icon-p='2xl'] {
-    --icon-button-padding: var(--spacing-2xl);
-}
-
-[data-icon-p='3xl'] {
-    --icon-button-padding: var(--spacing-3xl);
-}
-
 .loader {
     flex: 0 0 auto;
     animation: spin 0.9s linear infinite;

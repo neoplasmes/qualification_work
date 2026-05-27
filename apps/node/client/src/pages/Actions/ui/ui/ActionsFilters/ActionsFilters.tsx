@@ -51,11 +51,12 @@ export const ActionsFilters = () => {
     const datasetIds = useSelector(selectActionsFilterDatasetIds);
     const effectKinds = useSelector(selectActionsFilterEffectKinds);
     const runStatuses = useSelector(selectActionsFilterRunStatuses);
-    const hasActiveFilter =
+    const hasActiveFilter = Boolean(
         searchText.trim() ||
         datasetIds.length > 0 ||
         effectKinds.length > 0 ||
-        runStatuses.length > 0;
+        runStatuses.length > 0
+    );
 
     return (
         <section data-display="grid" data-gap="md" aria-label="Action filters">
@@ -93,15 +94,14 @@ export const ActionsFilters = () => {
                         onChange={value => dispatch(setActionsFiltersTab(value))}
                     />
                 </div>
-                {hasActiveFilter && (
-                    <IconButton
-                        data-test-id={actionsTestIds.clearFiltersButton}
-                        aria-label="Clear filters"
-                        onClick={() => dispatch(clearAllActionsFilters())}
-                    >
-                        <X size={16} />
-                    </IconButton>
-                )}
+                <IconButton
+                    data-test-id={actionsTestIds.clearFiltersButton}
+                    aria-label="Clear filters"
+                    disabled={!hasActiveFilter}
+                    onClick={() => dispatch(clearAllActionsFilters())}
+                >
+                    <X size={16} />
+                </IconButton>
             </div>
 
             {filtersTab === 'datasets' && (

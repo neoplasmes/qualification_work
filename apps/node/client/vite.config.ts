@@ -9,9 +9,7 @@ const hmr =
     process.env.VITE_HMR_PROTOCOL || hmrClientPort || process.env.VITE_HMR_PATH
         ? {
               protocol: process.env.VITE_HMR_PROTOCOL as 'ws' | 'wss' | undefined,
-              clientPort: Number.isFinite(hmrClientPort)
-                  ? hmrClientPort
-                  : undefined,
+              clientPort: Number.isFinite(hmrClientPort) ? hmrClientPort : undefined,
               path: process.env.VITE_HMR_PATH || undefined,
           }
         : undefined;
@@ -39,6 +37,10 @@ export default defineConfig(({ command }) => ({
                     ? '[name]__[local]--[hash:base64:5]'
                     : '[hash:base64:8]',
         },
+    },
+
+    preview: {
+        port: 3000,
     },
 
     build: {

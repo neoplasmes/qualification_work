@@ -2,44 +2,35 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
-import { useListActionRunsQuery, type Action } from '@/entities/action';
+import { useListActionRunsQuery } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Badge, EmptyState, StatusMessage } from '@/shared/ui';
+import { EmptyState, StatusMessage } from '@/shared/ui';
 
 import { summarizeRun } from '../../../lib';
 
 import styles from '../../ActionsPage.module.scss';
 
 type ActionsHistoryProps = {
-    selectedAction: Action | undefined;
     actionNamesById: Map<string, string>;
 };
 
-export const ActionsHistory = ({
-    selectedAction,
-    actionNamesById,
-}: ActionsHistoryProps) => {
+export const ActionsHistory = ({ actionNamesById }: ActionsHistoryProps) => {
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const runsQuery = useListActionRunsQuery(
         org
-            ? selectedAction
-                ? {
-                      kind: 'action',
-                      orgId: org.id,
-                      actionId: selectedAction.id,
-                      limit: 50,
-                  }
-                : { kind: 'org', orgId: org.id, limit: 50 }
+            ? {
+                  kind: 'org',
+                  orgId: org.id,
+                  limit: 50,
+              }
             : skipToken
     );
 
     return (
         <section data-display="grid" data-gap="md" aria-label="Action history">
-            <span className={styles['eyebrow']}>
-                {selectedAction ? 'Action runs' : 'Recent runs'}
-            </span>
+            <span className={styles['eyebrow']}>Action runs</span>
 
             <div data-display="grid" data-gap="sm" className={styles['history-list']}>
                 {runsQuery.isLoading && (
@@ -55,12 +46,13 @@ export const ActionsHistory = ({
                         data-p="md"
                     >
                         <div
+                            className={styles['run-card-content']}
                             data-stack="h"
                             data-gap="sm"
                             data-align="start"
                             data-justify="between"
                         >
-                            <div>
+                            <div className={styles['run-card-main']}>
                                 <div className={styles['action-name']}>
                                     {actionNamesById.get(run.actionId) ??
                                         'Archived action'}
@@ -70,9 +62,11 @@ export const ActionsHistory = ({
                                     <span>{summarizeRun(run)}</span>
                                 </div>
                             </div>
-                            <Badge tone={run.status === 'success' ? 'success' : 'danger'}>
-                                {run.status}
-                            </Badge>
+                            <span
+                                className={`${styles['run-status-dot']} ${styles[`run-status-${run.status}`]}`}
+                                aria-label={`Run ${run.status}`}
+                                title={run.status}
+                            />
                         </div>
                     </article>
                 ))}

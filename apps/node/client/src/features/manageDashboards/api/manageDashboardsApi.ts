@@ -9,6 +9,7 @@ import type {
     RemoveDashboardItemPayload,
     RenameDashboardPayload,
     ReorderDashboardItemsPayload,
+    UpdateDashboardMetricPayload,
 } from './types';
 
 export const manageDashboardsApi = api.injectEndpoints({
@@ -47,6 +48,7 @@ export const manageDashboardsApi = api.injectEndpoints({
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Dashboards', id: arg.dashboardId },
+                { type: 'Dashboards', id: 'LIST' },
             ],
         }),
         addDashboardMetric: builder.mutation<
@@ -60,6 +62,19 @@ export const manageDashboardsApi = api.injectEndpoints({
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Dashboards', id: arg.dashboardId },
+                { type: 'Dashboards', id: 'LIST' },
+            ],
+        }),
+        updateDashboardMetric: builder.mutation<void, UpdateDashboardMetricPayload>({
+            query: ({ dashboardId, itemId, datasetId, name, expression, format }) => ({
+                url: `/dashboards/${dashboardId}/items/${itemId}`,
+                method: 'PATCH',
+                body: { kind: 'metric', datasetId, name, expression, format },
+                responseHandler: 'text',
+            }),
+            invalidatesTags: (_result, _error, arg) => [
+                { type: 'Dashboards', id: arg.dashboardId },
+                { type: 'Dashboards', id: 'LIST' },
             ],
         }),
         reorderDashboardItems: builder.mutation<void, ReorderDashboardItemsPayload>({
@@ -71,6 +86,7 @@ export const manageDashboardsApi = api.injectEndpoints({
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Dashboards', id: arg.dashboardId },
+                { type: 'Dashboards', id: 'LIST' },
             ],
         }),
         removeDashboardItem: builder.mutation<void, RemoveDashboardItemPayload>({
@@ -81,6 +97,7 @@ export const manageDashboardsApi = api.injectEndpoints({
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Dashboards', id: arg.dashboardId },
+                { type: 'Dashboards', id: 'LIST' },
             ],
         }),
     }),
@@ -93,4 +110,5 @@ export const {
     useReorderDashboardItemsMutation,
     useRemoveDashboardItemMutation,
     useRenameDashboardMutation,
+    useUpdateDashboardMetricMutation,
 } = manageDashboardsApi;

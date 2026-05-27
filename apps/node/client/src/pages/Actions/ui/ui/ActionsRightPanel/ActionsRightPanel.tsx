@@ -67,10 +67,7 @@ export const ActionsRightPanel = () => {
             onTabChange={tab => dispatch(setActionsRightPanelTab(tab))}
         >
             {activeTab === 'history' && (
-                <ActionsHistory
-                    selectedAction={selectedAction}
-                    actionNamesById={actionNamesById}
-                />
+                <ActionsHistory actionNamesById={actionNamesById} />
             )}
             {activeTab === 'properties' && (
                 <ActionsProperties

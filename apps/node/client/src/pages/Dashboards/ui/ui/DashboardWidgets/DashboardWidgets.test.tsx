@@ -16,7 +16,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/entities/chart', () => ({
+    BAR_CHART_ROWS_LIMIT: 12,
     ChartResult: () => <div data-testid="chart-result" />,
+    getChartColorFromConfig: () => '#8a6cff',
     useGetChartDataQuery: (chartId: string) => mocks.getChartData(chartId),
 }));
 
@@ -74,6 +76,7 @@ describe('DashboardWidgets', () => {
         const user = userEvent.setup();
         const onMoveItem = vi.fn();
         const onRemoveItem = vi.fn();
+        const onEditMetric = vi.fn();
 
         const { container } = render(
             <DashboardWidgets
@@ -88,24 +91,30 @@ describe('DashboardWidgets', () => {
                 removing={false}
                 onMoveItem={onMoveItem}
                 onRemoveItem={onRemoveItem}
+                onEditMetric={onEditMetric}
             />
         );
 
         expect(getAllByDataTestId(container, dashboardsTestIds.chartWidget)).toHaveLength(
             2
         );
-        expect(
-            getAllByDataTestId(container, dashboardsTestIds.metricWidget)
-        ).toHaveLength(1);
+        const metricWidgets = getAllByDataTestId(
+            container,
+            dashboardsTestIds.metricWidget
+        );
+        expect(metricWidgets).toHaveLength(1);
+        expect(metricWidgets[0]).toHaveAttribute('title', 'Average score');
         expect(screen.getByText(/42\s?%/)).toBeInTheDocument();
         expect(screen.queryByLabelText('Move Average score up')).not.toBeInTheDocument();
 
         await user.click(screen.getByLabelText('Move Revenue down'));
         await user.click(screen.getByLabelText('Move Costs up'));
+        await user.click(screen.getByLabelText('Edit Average score'));
         await user.click(screen.getByLabelText('Remove Average score'));
 
         expect(onMoveItem).toHaveBeenNthCalledWith(1, 'item-chart', 1);
         expect(onMoveItem).toHaveBeenNthCalledWith(2, 'item-chart-2', -1);
+        expect(onEditMetric).toHaveBeenCalledWith(items[1]);
         expect(onRemoveItem).toHaveBeenCalledWith('item-metric');
     });
 
@@ -124,6 +133,7 @@ describe('DashboardWidgets', () => {
                 removing={false}
                 onMoveItem={vi.fn()}
                 onRemoveItem={vi.fn()}
+                onEditMetric={vi.fn()}
             />
         );
 

@@ -15,7 +15,10 @@ type AddMetricModalProps = {
     metricName: string;
     metricExpression: string;
     metricFormat: DashboardMetricItem['format'];
+    error?: string;
     disabled: boolean;
+    /** when true, modal title and submit label reflect editing flow */
+    editing?: boolean;
     onDatasetChange: (value: string) => void;
     onNameChange: (value: string) => void;
     onExpressionChange: (value: string) => void;
@@ -30,7 +33,9 @@ export const AddMetricModal = ({
     metricName,
     metricExpression,
     metricFormat,
+    error,
     disabled,
+    editing,
     onDatasetChange,
     onNameChange,
     onExpressionChange,
@@ -39,7 +44,7 @@ export const AddMetricModal = ({
     onClose,
 }: AddMetricModalProps) => (
     <Modal
-        title="Add metric"
+        title={editing ? 'Edit metric' : 'Add metric'}
         testId={dashboardsTestIds.addMetricModal}
         size="md"
         onClose={onClose}
@@ -50,7 +55,9 @@ export const AddMetricModal = ({
             metricName={metricName}
             metricExpression={metricExpression}
             metricFormat={metricFormat}
+            error={error}
             disabled={disabled}
+            editing={editing}
             onDatasetChange={onDatasetChange}
             onNameChange={onNameChange}
             onExpressionChange={onExpressionChange}

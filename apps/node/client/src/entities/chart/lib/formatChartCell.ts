@@ -137,3 +137,30 @@ export const formatAxisNumber = (
 
     return decorateNumber(formatted, valueFormat);
 };
+
+export const formatCompactChartNumber = (
+    value: number,
+    valueFormat: MeasureValueFormat = 'number'
+): string => {
+    const abs = Math.abs(value);
+    const unit =
+        abs >= 1_000_000_000
+            ? { divisor: 1_000_000_000, suffix: 'b' }
+            : abs >= 1_000_000
+              ? { divisor: 1_000_000, suffix: 'm' }
+              : abs >= 1_000
+                ? { divisor: 1_000, suffix: 'k' }
+                : null;
+
+    if (!unit) {
+        return decorateNumber(formatPlainNumber(value, 1), valueFormat);
+    }
+
+    const compact = value / unit.divisor;
+    const rounded =
+        Math.abs(compact) >= 10 || Number.isInteger(compact)
+            ? Math.round(compact).toString()
+            : compact.toFixed(1).replace(/\.0$/, '');
+
+    return decorateNumber(`${rounded}${unit.suffix}`, valueFormat);
+};

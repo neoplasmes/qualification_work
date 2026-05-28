@@ -1,13 +1,8 @@
 import { ArrowDown, ArrowUp, X } from 'lucide-react';
 
-import {
-    BAR_CHART_ROWS_LIMIT,
-    ChartResult,
-    getChartColorFromConfig,
-    useGetChartDataQuery,
-    type Chart,
-} from '@/entities/chart';
+import { ChartCard, useGetChartDataQuery, type Chart } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
+import type { DatasetColumn } from '@/entities/dataset';
 
 import { Card, IconButton, StatusMessage } from '@/shared/ui';
 
@@ -16,6 +11,7 @@ import styles from './DashboardChartCard.module.scss';
 type DashboardChartCardProps = {
     item: DashboardChartItem;
     chart: Chart | undefined;
+    columns: DatasetColumn[];
     index: number;
     itemsCount: number;
     reorderLoading: boolean;
@@ -28,6 +24,7 @@ type DashboardChartCardProps = {
 export const DashboardChartCard = ({
     item,
     chart,
+    columns,
     index,
     itemsCount,
     reorderLoading,
@@ -90,14 +87,11 @@ export const DashboardChartCard = ({
             )}
 
             {chartDataQuery.data && (
-                <ChartResult
+                <ChartCard
+                    chart={chart}
+                    columns={columns}
                     data={chartDataQuery.data}
-                    kind={chartDataQuery.data.kind}
                     ariaLabel={`${chart?.name ?? item.chartId} dashboard chart`}
-                    color={chart ? getChartColorFromConfig(chart.config) : undefined}
-                    barsLimit={BAR_CHART_ROWS_LIMIT}
-                    hideTable
-                    frameless
                 />
             )}
         </Card>

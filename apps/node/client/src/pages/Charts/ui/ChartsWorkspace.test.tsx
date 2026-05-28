@@ -78,6 +78,9 @@ vi.mock('@/features/authenticate', () => ({
 
 vi.mock('@/entities/chart', () => ({
     BAR_CHART_ROWS_LIMIT: 12,
+    ChartCard: ({ data }: { data: ChartResponse }) => (
+        <div data-testid="chart-result">{data.rows.length} rows</div>
+    ),
     ChartResult: ({ data }: { data: ChartResponse }) => (
         <div data-testid="chart-result">{data.rows.length} rows</div>
     ),

@@ -1,14 +1,6 @@
-import {
-    BAR_CHART_ROWS_LIMIT,
-    ChartConfigSummary,
-    ChartResult,
-    getChartColorFromConfig,
-    type Chart,
-    type ChartResponse,
-} from '@/entities/chart';
+import { ChartCard, type Chart, type ChartResponse } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
 
-import { formatDate } from '@/shared/lib/formatDate';
 import { StatusMessage } from '@/shared/ui';
 
 type SavedChartDetailsProps = {
@@ -32,23 +24,12 @@ export const SavedChartDetails = ({
         {isLoadingData && <StatusMessage>Loading chart data...</StatusMessage>}
 
         {chartResult && (
-            <ChartResult
+            <ChartCard
+                chart={chart}
+                columns={columns}
                 data={chartResult}
-                kind={chartResult.kind}
                 ariaLabel="Saved chart result"
-                color={getChartColorFromConfig(chart.config)}
-                barsLimit={BAR_CHART_ROWS_LIMIT}
-                hideTable
-            >
-                <div data-stack="v" data-gap="xs">
-                    <ChartConfigSummary
-                        chartType={chart.chartType}
-                        config={chart.config}
-                        columns={columns}
-                    />
-                    <span>Aggregated at {formatDate(chartResult.aggregatedAt)}</span>
-                </div>
-            </ChartResult>
+            />
         )}
     </>
 );

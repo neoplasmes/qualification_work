@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Chart } from '@/entities/chart';
+import type { Chart, ChartResponse } from '@/entities/chart';
 import type { DashboardItem } from '@/entities/dashboard';
 
 import { dashboardsTestIds } from '../../../const';
@@ -17,6 +17,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/entities/chart', () => ({
     BAR_CHART_ROWS_LIMIT: 12,
+    ChartCard: ({ data }: { data: ChartResponse }) => (
+        <div data-testid="chart-result">Aggregated at {data.aggregatedAt}</div>
+    ),
     ChartResult: () => <div data-testid="chart-result" />,
     getChartColorFromConfig: () => '#8a6cff',
     useGetChartDataQuery: (chartId: string) => mocks.getChartData(chartId),
@@ -87,6 +90,7 @@ describe('DashboardWidgets', () => {
                         [secondChart.id, secondChart],
                     ])
                 }
+                datasetColumnsById={new Map()}
                 reorderLoading={false}
                 removing={false}
                 onMoveItem={onMoveItem}
@@ -120,7 +124,13 @@ describe('DashboardWidgets', () => {
 
     it('auto-loads chart data for chart widgets on mount', () => {
         mocks.getChartData.mockReturnValue({
-            data: { rows: [] },
+            data: {
+                kind: 'bar',
+                columns: [],
+                rows: [],
+                truncated: false,
+                aggregatedAt: '2026-05-28T13:37:00.000Z',
+            },
             isLoading: false,
             isFetching: false,
         });
@@ -129,6 +139,7 @@ describe('DashboardWidgets', () => {
             <DashboardWidgets
                 items={[items[0]]}
                 chartsById={new Map([[chart.id, chart]])}
+                datasetColumnsById={new Map()}
                 reorderLoading={false}
                 removing={false}
                 onMoveItem={vi.fn()}
@@ -138,5 +149,8 @@ describe('DashboardWidgets', () => {
         );
 
         expect(mocks.getChartData).toHaveBeenCalledWith('chart-1');
+        expect(screen.getByTestId('chart-result')).toHaveTextContent(
+            'Aggregated at 2026-05-28T13:37:00.000Z'
+        );
     });
 });

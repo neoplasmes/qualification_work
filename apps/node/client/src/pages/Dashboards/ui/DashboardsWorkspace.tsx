@@ -64,6 +64,16 @@ export const DashboardsWorkspace = () => {
         () => new Map((chartsQuery.data ?? []).map(chart => [chart.id, chart])),
         [chartsQuery.data]
     );
+    const datasetColumnsById = useMemo(
+        () =>
+            new Map(
+                (datasetsQuery.data ?? []).map(dataset => [
+                    dataset.dataset.id,
+                    dataset.columns,
+                ])
+            ),
+        [datasetsQuery.data]
+    );
 
     const [addDashboardChart, addChartState] = useAddDashboardChartMutation();
     const [reorderDashboardItems, reorderState] = useReorderDashboardItemsMutation();
@@ -191,6 +201,7 @@ export const DashboardsWorkspace = () => {
                     <DashboardWidgets
                         items={dashboardItems}
                         chartsById={chartsById}
+                        datasetColumnsById={datasetColumnsById}
                         reorderLoading={reorderState.isLoading}
                         removing={removeItemState.isLoading}
                         onMoveItem={(itemId, direction) =>

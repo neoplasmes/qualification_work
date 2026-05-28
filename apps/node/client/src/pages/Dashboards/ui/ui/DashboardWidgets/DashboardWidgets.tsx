@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import type { Chart } from '@/entities/chart';
 import type { DashboardItem } from '@/entities/dashboard';
+import type { DatasetColumn } from '@/entities/dataset';
 
 import { EmptyState } from '@/shared/ui';
 
@@ -15,6 +16,7 @@ import styles from './DashboardWidgets.module.scss';
 type DashboardWidgetsProps = {
     items: DashboardItem[];
     chartsById: Map<string, Chart>;
+    datasetColumnsById: Map<string, DatasetColumn[]>;
     reorderLoading: boolean;
     removing: boolean;
     onMoveItem: (itemId: string, direction: -1 | 1) => void;
@@ -25,6 +27,7 @@ type DashboardWidgetsProps = {
 export const DashboardWidgets = ({
     items,
     chartsById,
+    datasetColumnsById,
     reorderLoading,
     removing,
     onMoveItem,
@@ -77,19 +80,26 @@ export const DashboardWidgets = ({
 
             {chartItems.length > 0 && (
                 <div className={styles['charts']} data-display="grid" data-gap="md">
-                    {chartItems.map((item, index) => (
-                        <ChartWidget
-                            key={item.id}
-                            item={item}
-                            index={index}
-                            itemsCount={chartItems.length}
-                            chart={chartsById.get(item.chartId)}
-                            reorderLoading={reorderLoading}
-                            removing={removing}
-                            onMoveItem={onMoveItem}
-                            onRemoveItem={onRemoveItem}
-                        />
-                    ))}
+                    {chartItems.map((item, index) => {
+                        const chart = chartsById.get(item.chartId);
+
+                        return (
+                            <ChartWidget
+                                key={item.id}
+                                item={item}
+                                index={index}
+                                itemsCount={chartItems.length}
+                                chart={chart}
+                                columns={
+                                    datasetColumnsById.get(chart?.datasetId ?? '') ?? []
+                                }
+                                reorderLoading={reorderLoading}
+                                removing={removing}
+                                onMoveItem={onMoveItem}
+                                onRemoveItem={onRemoveItem}
+                            />
+                        );
+                    })}
                 </div>
             )}
         </div>

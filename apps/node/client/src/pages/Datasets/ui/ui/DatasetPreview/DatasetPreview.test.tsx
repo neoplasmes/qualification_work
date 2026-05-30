@@ -26,6 +26,7 @@ const columns = vi.hoisted(
                 displayName: 'Amount',
                 dataType: 'number',
                 orderIndex: 0,
+                isAnalyzable: true,
             },
             {
                 id: 'column-2',
@@ -34,6 +35,7 @@ const columns = vi.hoisted(
                 displayName: 'Name',
                 dataType: 'string',
                 orderIndex: 1,
+                isAnalyzable: true,
             },
         ] satisfies DatasetColumn[]
 );

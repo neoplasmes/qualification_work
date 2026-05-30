@@ -7,7 +7,10 @@ export {
     useListChartsQuery,
 } from './chartApi';
 export type {
+    Aggregate,
+    AxisGrouping,
     Chart,
+    ChartConfig,
     ChartResponse,
     ChartResultColumn,
     ChartType,
@@ -16,4 +19,4 @@ export type {
     GetChartDataPayload,
     MeasureValueFormat,
     TimeGranularity,
-} from './types';
+} from '@qualification-work/types';

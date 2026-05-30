@@ -33,6 +33,7 @@ const selectedDataset = {
             displayName: 'ID',
             dataType: 'number' as const,
             orderIndex: 0,
+            isAnalyzable: true,
         },
         {
             id: 'c-name',
@@ -41,6 +42,7 @@ const selectedDataset = {
             displayName: 'Name',
             dataType: 'string' as const,
             orderIndex: 1,
+            isAnalyzable: true,
         },
     ],
     totalRows: 2,

@@ -130,3 +130,8 @@ In the scope of this architecture standart, there will often be a situations, wh
 1. Multiple database queries inside one function that can be expressed in a single statement
 2. Files with more than ~250 lines.
 3. Writing long inline SQL scripts - they have to live in separate `.sql` file. In separate file, by the way, it is very comfortable to debug the script during the development right inside VS Code if you have a proper extension (e.g. __ms-ossdata.vscode-pgsql__ for postgresql).
+
+### General naming convention
+
+1. Reusable local utility code must live in `lib` folders or files. Do not use
+   `helpers` as a folder or file name in backend packages.

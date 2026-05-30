@@ -1,9 +1,9 @@
 import type { Pool } from 'pg';
 
+import { ConflictError } from '@qualification-work/microservice-utils';
 import { isUniqueViolation } from '@qualification-work/microservice-utils/pg';
+import type { OrgDB as Org } from '@qualification-work/types';
 
-import type { Org } from '@/core/domain';
-import { ConflictError } from '@/core/errors';
 import type { OrgRepo } from '@/core/ports/driven/repos';
 
 /**

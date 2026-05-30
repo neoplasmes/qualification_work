@@ -118,7 +118,7 @@ export const ChartsPropertiesPanel = () => {
             />
 
             <Button
-                variant="danger"
+                tone="danger"
                 disabled={deleteChartState.isLoading}
                 onClick={() => void handleDelete()}
             >

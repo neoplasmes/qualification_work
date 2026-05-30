@@ -4,8 +4,8 @@ import type { CreateOrgCommand, DeleteOrgCommand } from '@/core/commands';
 
 import type { AppState } from '@/shared/appState';
 
-import { createCreateOrgHandler } from './create.handler';
-import { createDeleteOrgHandler } from './delete.handler';
+import { createDeleteOrgHandler } from './delete';
+import { createCreateOrgHandler } from './post';
 
 export function createOrgsRouter(
     createOrg: CreateOrgCommand,

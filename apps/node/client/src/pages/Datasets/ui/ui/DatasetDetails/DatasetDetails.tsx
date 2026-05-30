@@ -74,7 +74,7 @@ export const DatasetDetails = ({
         />
 
         <div className={styles['delete-actions']}>
-            <Button variant="danger" disabled={deleting} onClick={onDelete}>
+            <Button tone="danger" disabled={deleting} onClick={onDelete}>
                 <Trash2 size={18} />
                 {deleteConfirmationId === selectedDataset.dataset.id
                     ? 'Confirm delete'

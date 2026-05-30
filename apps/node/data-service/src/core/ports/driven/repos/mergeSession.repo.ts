@@ -1,7 +1,10 @@
-import type { ColumnDataType } from '@/core/domain';
-import type { DatasetFileSourceType } from '@/core/ports/driven/tools/datasetParser.tool';
+import type {
+    ColumnDataType,
+    DatasetFileSourceType,
+    MergeMode,
+} from '@qualification-work/types';
 
-export type MergeMode = 'append' | 'merge';
+export type { MergeMode };
 
 export type MergeSessionFile = {
     fileIndex: number;

@@ -12,6 +12,7 @@ const columns: DatasetColumn[] = [
         displayName: 'Amount',
         dataType: 'number',
         orderIndex: 0,
+        isAnalyzable: true,
     },
     {
         id: 'column-2',
@@ -20,6 +21,7 @@ const columns: DatasetColumn[] = [
         displayName: 'Paid',
         dataType: 'bool',
         orderIndex: 1,
+        isAnalyzable: true,
     },
 ];
 

@@ -5,8 +5,8 @@ export {
     useUploadDatasetMutation,
 } from './uploadDatasetApi';
 export type {
-    MergeCommitResult,
+    CommitMergeResult,
     MergeConflict,
     MergePreviewResult,
     MergePreviewStatistics,
-} from './types';
+} from '@qualification-work/types';

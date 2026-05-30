@@ -1,6 +1,6 @@
+import type { ChartType, FilterClause, FilterOperation } from '@qualification-work/types';
 import { Fragment, type ReactNode } from 'react';
 
-import type { ChartType, FilterClause, FilterOperation } from '../../api/types';
 import {
     AGGREGATE_LABELS,
     FILTER_OP_SHORT,

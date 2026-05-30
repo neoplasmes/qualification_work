@@ -1,20 +1,11 @@
-import type { ChartConfig, ChartType } from '@qualification-work/types';
+import type {
+    ChartDB as Chart,
+    ColumnDataType,
+    CreateChartPayload,
+    UpdateChartPayload,
+} from '@qualification-work/types';
 
-import type { Chart, ColumnDataType } from '@/core/domain';
-
-export type CreateChartPayload = {
-    orgId: string;
-    datasetId: string;
-    name: string;
-    chartType: ChartType;
-    config: ChartConfig;
-};
-
-export type UpdateChartPayload = {
-    name?: string;
-    chartType?: ChartType;
-    config?: ChartConfig;
-};
+export type { CreateChartPayload, UpdateChartPayload };
 
 // Used by the compiler: contains dataset_id, data_version (for future cache keys), and column metadata.
 export type ChartCompilationContext = {

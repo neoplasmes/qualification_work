@@ -23,6 +23,7 @@ export {
 } from './api';
 export type {
     Chart,
+    ChartConfig,
     ChartResponse,
     ChartResultColumn,
     ChartType,

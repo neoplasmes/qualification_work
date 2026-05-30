@@ -71,7 +71,7 @@ export const WorkspaceHeader = ({
                 </Button>
             ) : (
                 <Button
-                    variant="danger"
+                    tone="danger"
                     data-test-id={actionsTestIds.archiveButton}
                     disabled={archiveDisabled}
                     title={

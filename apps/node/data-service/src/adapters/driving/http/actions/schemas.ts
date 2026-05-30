@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { actionParameterTypes } from '@qualification-work/types';
+
 const valueSourceSchema = z.discriminatedUnion('kind', [
     z.object({
         kind: z.literal('parameter'),
@@ -16,7 +18,7 @@ const valuesSchema = z.record(z.string().min(1).max(255), valueSourceSchema);
 const parameterSchema = z.object({
     key: z.string().min(1).max(255),
     label: z.string().min(1).max(255),
-    type: z.enum(['string', 'number', 'date', 'bool', 'day_of_week']),
+    type: z.enum(actionParameterTypes),
     required: z.boolean().optional(),
     defaultValue: z.unknown().optional(),
 });

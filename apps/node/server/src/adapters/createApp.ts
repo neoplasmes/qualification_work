@@ -1,6 +1,7 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
+import { BaseError, ValidationError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
 import { createRedisCache } from '@qualification-work/redis-cache';
 
@@ -15,7 +16,6 @@ import {
     ReorderDashboardCommand,
     UpdateDashboardItemCommand,
 } from '@/core/commands';
-import { BaseError, ValidationError } from '@/core/errors';
 import { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
 
 import { PgDashboardRepo, PgOrgRepo } from '@/adapters/driven/repos';

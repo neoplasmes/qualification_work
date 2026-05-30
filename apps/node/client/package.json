@@ -10,6 +10,7 @@
         "build:server": "tsup && cp server/renderError.html dist/ && vite build --ssr src/entry.server.tsx --outDir dist/server",
         "build": "pnpm build:server && pnpm build:client",
         "preview": "pnpm build && PREVIEW=true node --env-file=.env dist/server.js",
+        "prettier": "prettier --write . --ignore-path ../../../.prettierignore",
         "typecheck": "tsc --noEmit",
         "start": "NODE_ENV=production node --env-file=.env dist/server.js",
         "test": "vitest run",

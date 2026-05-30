@@ -1,8 +1,12 @@
 import type { Pool } from 'pg';
 
-import type { ChartConfig, ChartType } from '@qualification-work/types';
+import type {
+    ChartDB as Chart,
+    ChartConfig,
+    ChartType,
+    ColumnDataType,
+} from '@qualification-work/types';
 
-import type { Chart, ColumnDataType } from '@/core/domain';
 import type {
     ChartCompilationContext,
     ChartRepo,

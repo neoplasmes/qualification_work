@@ -12,5 +12,6 @@ export default defineConfig({
     noExternal: [
         /^@qualification-work\/microservice-utils/,
         /^@qualification-work\/redis-cache/,
+        /^@qualification-work\/types/,
     ],
 });

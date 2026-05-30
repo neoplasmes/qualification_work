@@ -29,7 +29,7 @@ export const NewRowActions = ({
         <IconButton
             data-test-id={datasetsTestIds.cancelInsertButton}
             aria-label="Cancel insert"
-            variant="danger"
+            tone="danger"
             onClick={onCancel}
         >
             <X size={16} />

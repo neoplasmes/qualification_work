@@ -11,6 +11,7 @@ const columns = [
         displayName: 'Категория',
         dataType: 'string',
         orderIndex: 0,
+        isAnalyzable: true,
     },
     {
         id: 'col-rev',
@@ -19,6 +20,7 @@ const columns = [
         displayName: 'Выручка',
         dataType: 'number',
         orderIndex: 1,
+        isAnalyzable: true,
     },
     {
         id: 'col-date',
@@ -27,6 +29,7 @@ const columns = [
         displayName: 'Дата',
         dataType: 'date',
         orderIndex: 2,
+        isAnalyzable: true,
     },
 ] as const;
 

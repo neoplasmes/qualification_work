@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { parseWithZod } from '@qualification-work/microservice-utils';
 import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
+import { metricFormats } from '@qualification-work/types';
 
 import type { AddDashboardItemCommand } from '@/core/commands';
 
@@ -20,7 +21,7 @@ const addItemSchema = z.discriminatedUnion('kind', [
         datasetId: z.uuid(),
         name: z.string().trim().min(1).max(255),
         expression: z.string().trim().min(1),
-        format: z.enum(['currency', 'percent', 'number']),
+        format: z.enum(metricFormats),
         height: heightSchema,
     }),
 ]);

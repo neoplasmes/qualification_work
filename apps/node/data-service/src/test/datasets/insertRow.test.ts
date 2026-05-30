@@ -8,7 +8,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { uploadDataset } from './helpers';
+import { uploadDataset } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

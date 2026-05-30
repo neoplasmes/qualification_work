@@ -1,11 +1,11 @@
 import type {
-    Action,
+    ActionDB as Action,
     ActionEffect,
     ActionParameter,
-    ActionRun,
+    ActionRunDB as ActionRun,
     ActionRunChange,
     DatasetColumn,
-} from '@/core/domain';
+} from '@qualification-work/types';
 
 export type CreateActionPayload = {
     orgId: string;

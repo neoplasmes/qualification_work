@@ -1,4 +1,5 @@
-import { ForbiddenError } from '@/core/errors';
+import { ForbiddenError } from '@qualification-work/microservice-utils';
+
 import type { MergeSessionRepo } from '@/core/ports/driven/repos';
 import type { TmpFileStorageTool } from '@/core/ports/driven/tools';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
@@ -8,9 +9,7 @@ export type CancelMergeInput = {
     orgId: string;
 };
 
-export class CancelMergeCommand
-    implements Executable<[CancelMergeInput], Promise<void>>
-{
+export class CancelMergeCommand implements Executable<[CancelMergeInput], Promise<void>> {
     constructor(
         private readonly mergeSessionRepo: MergeSessionRepo,
         private readonly tmpStorage: TmpFileStorageTool

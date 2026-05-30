@@ -1,9 +1,10 @@
+import { NotFoundError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { ActionRunDB as ActionRun } from '@qualification-work/types';
 
-import type { ActionRun } from '@/core/domain';
-import { NotFoundError } from '@/core/errors';
 import type { ActionRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
 export type ListActionRunsInput =
@@ -23,9 +24,10 @@ export type ListActionRunsInput =
           orgs: OrgMembership[];
       };
 
-export class ListActionRunsQuery
-    implements Executable<[ListActionRunsInput], Promise<ActionRun[]>>
-{
+export class ListActionRunsQuery implements Executable<
+    [ListActionRunsInput],
+    Promise<ActionRun[]>
+> {
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(input: ListActionRunsInput): Promise<ActionRun[]> {

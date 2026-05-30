@@ -1,6 +1,6 @@
-import { api } from '@/shared/api';
+import type { CommitMergeResult, MergePreviewResult } from '@qualification-work/types';
 
-import type { MergeCommitResult, MergePreviewResult } from './types';
+import { api } from '@/shared/api';
 
 export const uploadDatasetApi = api.injectEndpoints({
     endpoints: builder => ({
@@ -60,7 +60,7 @@ export const uploadDatasetApi = api.injectEndpoints({
             },
         }),
         mergeCommit: builder.mutation<
-            MergeCommitResult,
+            CommitMergeResult,
             { sessionId: string; orgId: string }
         >({
             query: ({ sessionId, orgId }) => ({

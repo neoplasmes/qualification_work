@@ -1,46 +1,34 @@
-import type { DashboardMetricItem } from '@/entities/dashboard';
+import type {
+    AddDashboardChartPayload as AddDashboardChartBodyPayload,
+    AddDashboardItemResponse,
+    AddDashboardMetricPayload as AddDashboardMetricBodyPayload,
+    CreateDashboardPayload,
+    CreateDashboardResponse,
+    RenameDashboardPayload as RenameDashboardBodyPayload,
+    ReorderDashboardItemsPayload as ReorderDashboardItemsBodyPayload,
+    UpdateDashboardMetricPayload as UpdateDashboardMetricBodyPayload,
+} from '@qualification-work/types';
 
-export type CreateDashboardPayload = {
-    orgId: string;
-    name: string;
-};
+export type { AddDashboardItemResponse, CreateDashboardPayload, CreateDashboardResponse };
 
-export type CreateDashboardResponse = {
-    id: string;
-};
-
-export type AddDashboardChartPayload = {
+export type AddDashboardChartPayload = Omit<AddDashboardChartBodyPayload, 'kind'> & {
     dashboardId: string;
-    chartId: string;
-    height?: number;
 };
 
-export type AddDashboardMetricPayload = {
+export type AddDashboardMetricPayload = Omit<AddDashboardMetricBodyPayload, 'kind'> & {
     dashboardId: string;
-    datasetId: string;
-    name: string;
-    expression: string;
-    format: DashboardMetricItem['format'];
-    height?: number;
 };
 
-export type AddDashboardItemResponse = {
-    itemId: string;
-    posY: number;
-};
-
-export type UpdateDashboardMetricPayload = {
+export type UpdateDashboardMetricPayload = Omit<
+    UpdateDashboardMetricBodyPayload,
+    'kind'
+> & {
     dashboardId: string;
     itemId: string;
-    datasetId: string;
-    name: string;
-    expression: string;
-    format: DashboardMetricItem['format'];
 };
 
-export type RenameDashboardPayload = {
+export type RenameDashboardPayload = RenameDashboardBodyPayload & {
     dashboardId: string;
-    name: string;
 };
 
 export type RemoveDashboardItemPayload = {
@@ -48,7 +36,6 @@ export type RemoveDashboardItemPayload = {
     itemId: string;
 };
 
-export type ReorderDashboardItemsPayload = {
+export type ReorderDashboardItemsPayload = ReorderDashboardItemsBodyPayload & {
     dashboardId: string;
-    order: Array<{ itemId: string; posY: number }>;
 };

@@ -1,7 +1,7 @@
+import { NotFoundError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
 import type { Dashboard } from '@qualification-work/types';
 
-import { NotFoundError } from '@/core/errors';
 import type { DashboardRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 

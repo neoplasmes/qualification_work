@@ -1,6 +1,6 @@
-import { api } from '@/shared/api';
+import type { CreateOrgPayload, CreateOrgResponse } from '@qualification-work/types';
 
-import type { CreateOrgPayload, CreateOrgResponse } from './types';
+import { api } from '@/shared/api';
 
 export const orgsApi = api.injectEndpoints({
     endpoints: builder => ({

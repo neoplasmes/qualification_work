@@ -52,6 +52,7 @@ const dataset = {
             displayName: 'city',
             dataType: 'string' as const,
             orderIndex: 0,
+            isAnalyzable: true,
         },
         {
             id: 'country',
@@ -60,6 +61,7 @@ const dataset = {
             displayName: 'country',
             dataType: 'string' as const,
             orderIndex: 1,
+            isAnalyzable: true,
         },
         {
             id: 'score',
@@ -68,6 +70,7 @@ const dataset = {
             displayName: 'score',
             dataType: 'number' as const,
             orderIndex: 2,
+            isAnalyzable: true,
         },
     ],
     totalRows: 10,

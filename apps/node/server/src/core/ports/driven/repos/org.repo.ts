@@ -1,4 +1,4 @@
-import type { Org } from '@/core/domain';
+import type { OrgDB as Org } from '@qualification-work/types';
 
 /**
  * Organization management at the data level

@@ -1,4 +1,5 @@
-import { NotFoundError } from '@/core/errors';
+import { NotFoundError } from '@qualification-work/microservice-utils';
+
 import type { OrgRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 

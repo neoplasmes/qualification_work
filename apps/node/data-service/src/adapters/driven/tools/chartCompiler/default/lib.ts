@@ -21,7 +21,7 @@ export type ColumnExpr = {
     timeGranularity?: TimeGranularity;
 };
 
-// —————————————————————————————————— helpers ——————————————————————————————————————
+// —————————————————————————————————— lib ——————————————————————————————————————
 
 /**
  * @param columnsById

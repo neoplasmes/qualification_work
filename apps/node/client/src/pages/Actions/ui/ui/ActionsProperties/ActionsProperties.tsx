@@ -167,7 +167,7 @@ export const ActionsProperties = ({
             </Card>
 
             <Button
-                variant="danger"
+                tone="danger"
                 disabled={!canMutate(org?.role) || archiveState.isLoading}
                 title={
                     canMutate(org?.role)

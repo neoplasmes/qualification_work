@@ -9,4 +9,4 @@ export type {
     DashboardItem,
     DashboardItemLayout,
     DashboardMetricItem,
-} from './types';
+} from '@qualification-work/types';

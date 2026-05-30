@@ -1,7 +1,12 @@
 import type { Pool, PoolClient } from 'pg';
 
-import type { Action, ActionRun, DatasetColumn } from '@/core/domain';
-import { ConflictError, NotFoundError } from '@/core/errors';
+import { ConflictError, NotFoundError } from '@qualification-work/microservice-utils';
+import type {
+    ActionDB as Action,
+    ActionRunDB as ActionRun,
+    DatasetColumn,
+} from '@qualification-work/types';
+
 import type {
     ActionRepo,
     CreateActionPayload,

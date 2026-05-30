@@ -7,7 +7,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { mergeCommit, mergePreview } from './helpers';
+import { mergeCommit, mergePreview } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

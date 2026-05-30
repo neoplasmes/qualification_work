@@ -1,40 +1,26 @@
-import type { ChartType, FilterClause } from '@/entities/chart';
+import type {
+    Aggregate,
+    AxisGrouping,
+    CreateChartPayload,
+    CreateChartResponse,
+    MeasureValueFormat,
+    PreviewChartPayload,
+    TimeGranularity,
+    UpdateChartPayload as UpdateChartBodyPayload,
+} from '@qualification-work/types';
 
-export type Aggregate = 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct';
-
-export type TimeGranularity = 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
-
-export type MeasureValueFormat = 'number' | 'rub' | 'usd' | 'percent';
-
-export type AxisGrouping =
-    | { kind: 'time'; granularity: TimeGranularity }
-    | { kind: 'numeric'; step: number }
-    | null;
-
-export type CreateChartPayload = {
-    orgId: string;
-    datasetId: string;
-    name: string;
-    chartType: ChartType;
-    config: Record<string, unknown>;
+export type {
+    Aggregate,
+    AxisGrouping,
+    CreateChartPayload,
+    CreateChartResponse,
+    MeasureValueFormat,
+    PreviewChartPayload,
+    TimeGranularity,
 };
 
-export type CreateChartResponse = {
-    id: string;
-};
-
-export type UpdateChartPayload = {
+export type UpdateChartPayload = UpdateChartBodyPayload & {
     chartId: string;
-    name?: string;
-    chartType?: ChartType;
-    config?: Record<string, unknown>;
 };
 
 export type PatchChartPayload = UpdateChartPayload;
-
-export type PreviewChartPayload = {
-    datasetId: string;
-    chartType: ChartType;
-    config: Record<string, unknown>;
-    filterOverrides?: FilterClause[];
-};

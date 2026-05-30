@@ -1,18 +1,24 @@
+import {
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
+} from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
 
 import { validateActionDefinition } from '@/core/domain/action';
-import { ForbiddenError, NotFoundError, ValidationError } from '@/core/errors';
 import type {
     ActionRepo,
     PatchActionPayload,
     UpdateActionPayload,
 } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkWritableOrgMembership } from '@/shared/checkOrgMembership';
 
-export class PatchActionCommand
-    implements Executable<[string, PatchActionPayload, OrgMembership[]], Promise<void>>
-{
+export class PatchActionCommand implements Executable<
+    [string, PatchActionPayload, OrgMembership[]],
+    Promise<void>
+> {
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(
@@ -34,7 +40,9 @@ export class PatchActionCommand
         const next: UpdateActionPayload = {
             name: payload.name ?? action.name,
             description:
-                payload.description === undefined ? action.description : payload.description,
+                payload.description === undefined
+                    ? action.description
+                    : payload.description,
             parameters: payload.parameters ?? action.parameters,
             effects: payload.effects ?? action.effects,
         };
@@ -51,7 +59,9 @@ export class PatchActionCommand
     ): Promise<void> {
         const datasetIds = [...new Set(payload.effects.map(effect => effect.datasetId))];
         const contexts = await this.actionRepo.getDatasetContexts(datasetIds);
-        const contextsById = new Map(contexts.map(context => [context.datasetId, context]));
+        const contextsById = new Map(
+            contexts.map(context => [context.datasetId, context])
+        );
 
         for (const datasetId of datasetIds) {
             const context = contextsById.get(datasetId);
@@ -60,7 +70,9 @@ export class PatchActionCommand
             }
 
             if (context.orgId !== orgId) {
-                throw new ForbiddenError(`Dataset ${datasetId} belongs to another organization`);
+                throw new ForbiddenError(
+                    `Dataset ${datasetId} belongs to another organization`
+                );
             }
         }
     }

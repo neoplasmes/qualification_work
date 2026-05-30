@@ -1,6 +1,6 @@
-import { api } from '@/shared/api';
+import type { Action, ActionRun, ListActionRunsPayload } from '@qualification-work/types';
 
-import type { Action, ActionRun, ListActionRunsPayload } from './types';
+import { api } from '@/shared/api';
 
 const getRunsQuery = (payload: ListActionRunsPayload) => {
     const params = new URLSearchParams({

@@ -10,6 +10,7 @@ import {
     GRANULARITY_LABELS,
     normalizeChartColor,
     VALUE_FORMAT_LABELS,
+    type ChartConfig,
     type ChartResponse,
     type ChartType,
     type FilterClause,
@@ -208,7 +209,7 @@ const buildChartConfig = ({
     seriesTopN,
     seriesOtherBucket,
     filter,
-}: BuildChartConfigInput) => {
+}: BuildChartConfigInput): ChartConfig => {
     const firstMeasure = buildMeasure(aggregate, measureColumnId, valueFormat);
     const base = {
         limit,
@@ -484,7 +485,7 @@ export const DatasetChartBuilder = ({
     const [step, setStep] = useState<'config' | 'preview'>('config');
     const [chartError, setChartError] = useState('');
     const [previewData, setPreviewData] = useState<ChartResponse | null>(null);
-    const [savedConfig, setSavedConfig] = useState<Record<string, unknown> | null>(null);
+    const [savedConfig, setSavedConfig] = useState<ChartConfig | null>(null);
 
     const {
         chartName,
@@ -792,7 +793,7 @@ export const DatasetChartBuilder = ({
         }
     };
 
-    const saveChartConfig = async (config: Record<string, unknown>) => {
+    const saveChartConfig = async (config: ChartConfig) => {
         const fallbackName = `${selectedDataset.dataset.name} ${chartType}`;
         const name = chartName.trim() || fallbackName;
 

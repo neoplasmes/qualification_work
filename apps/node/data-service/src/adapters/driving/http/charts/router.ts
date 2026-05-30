@@ -14,14 +14,15 @@ import type {
 
 import type { AppState } from '@/shared/appState';
 
-import { createCreateChartHandler } from './create.handler';
-import { createDeleteChartHandler } from './delete.handler';
-import { createGetChartByIdHandler } from './getById.handler';
-import { createGetChartsByOrgIdHandler } from './getByOrgId.handler';
-import { createGetChartDataHandler } from './getData.handler';
-import { createPatchChartHandler } from './patch.handler';
-import { createPreviewChartDataHandler } from './preview.handler';
-import { createUpdateChartHandler } from './update.handler';
+import { createDeleteChartHandler } from './delete';
+import {
+    createGetChartByIdHandler,
+    createGetChartDataHandler,
+    createGetChartsByOrgIdHandler,
+} from './get';
+import { createPatchChartHandler } from './patch';
+import { createCreateChartHandler, createPreviewChartDataHandler } from './post';
+import { createUpdateChartHandler } from './put';
 
 export function createChartsRouter(
     createChartHandler: CreateChartCommand,

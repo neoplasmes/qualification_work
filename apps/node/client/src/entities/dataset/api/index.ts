@@ -19,4 +19,4 @@ export type {
     DatasetRowsPage,
     PatchDatasetColumnPayload,
     PatchDatasetPayload,
-} from './types';
+} from '@qualification-work/types';

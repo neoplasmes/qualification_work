@@ -1,9 +1,8 @@
+import { ForbiddenError } from '@qualification-work/microservice-utils';
 import type {
     OrgMembership,
     OrgRole,
 } from '@qualification-work/microservice-utils/internalAuth';
-
-import { ForbiddenError } from '@/core/errors';
 
 const writableRoles: OrgRole[] = ['owner', 'editor'];
 

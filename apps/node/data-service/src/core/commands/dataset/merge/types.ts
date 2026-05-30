@@ -1,4 +1,4 @@
-import type { ColumnDataType } from '@/core/domain';
+import type { ColumnDataType } from '@qualification-work/types';
 
 export type MergePreviewStatistics = {
     totalFiles: number;

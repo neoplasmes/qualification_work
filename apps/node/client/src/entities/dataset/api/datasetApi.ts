@@ -1,12 +1,23 @@
-import { api } from '@/shared/api';
-
 import type {
+    DatasetColumn,
     DatasetMetadata,
     DatasetRow,
     DatasetRowsPage,
     PatchDatasetColumnPayload,
     PatchDatasetPayload,
-} from './types';
+} from '@qualification-work/types';
+
+import { api } from '@/shared/api';
+
+type PatchDatasetMutationPayload = {
+    datasetId: string;
+} & PatchDatasetPayload;
+
+type PatchDatasetColumnMutationPayload = {
+    datasetId: string;
+    columnId: string;
+    orgId: string;
+} & PatchDatasetColumnPayload;
 
 export const datasetApi = api.injectEndpoints({
     endpoints: builder => ({
@@ -41,7 +52,7 @@ export const datasetApi = api.injectEndpoints({
                 { type: 'DatasetRows', id: datasetId },
             ],
         }),
-        patchDataset: builder.mutation<void, PatchDatasetPayload>({
+        patchDataset: builder.mutation<void, PatchDatasetMutationPayload>({
             query: ({ datasetId, ...body }) => ({
                 url: `/data/datasets/${datasetId}`,
                 method: 'PATCH',
@@ -54,8 +65,8 @@ export const datasetApi = api.injectEndpoints({
             ],
         }),
         patchDatasetColumn: builder.mutation<
-            DatasetMetadata['columns'][number],
-            PatchDatasetColumnPayload
+            DatasetColumn,
+            PatchDatasetColumnMutationPayload
         >({
             query: ({ datasetId, columnId, orgId, isAnalyzable }) => ({
                 url: `/data/datasets/${datasetId}/columns/${columnId}?orgId=${encodeURIComponent(orgId)}`,

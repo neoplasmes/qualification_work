@@ -1,37 +1,18 @@
-import type { Dataset, DatasetColumn, DatasetRow } from '@/core/domain';
-
-export type DatasetColumnInput = Omit<
+import type {
+    CreateDatasetPayload,
     DatasetColumn,
-    'id' | 'datasetId' | 'isAnalyzable'
-> &
-    Partial<Pick<DatasetColumn, 'isAnalyzable'>>;
+    DatasetColumnInput,
+    DatasetMetadataDB,
+    DatasetRow,
+    DatasetRowsPageResponse,
+    GetDatasetRowsPayload,
+} from '@qualification-work/types';
 
-export type CreateDatasetPayload = {
-    orgId: string;
-    name: string;
-    // TODO: create enum or smth and reuse across the codebase. This is not the only place where source types are used
-    sourceType: 'csv' | 'xlsx' | 'manual';
-    columns: DatasetColumnInput[];
-};
+export type { CreateDatasetPayload, DatasetColumnInput, GetDatasetRowsPayload };
 
-export type DatasetMetadata = {
-    dataset: Dataset;
-    columns: DatasetColumn[];
-    totalRows: number;
-};
+export type DatasetMetadata = DatasetMetadataDB;
 
-export type GetDatasetRowsPayload = {
-    datasetId: string;
-    offset: number;
-    limit: number;
-};
-
-export type DatasetRowsPage = {
-    rows: DatasetRow[];
-    totalRows: number;
-    offset: number;
-    limit: number;
-};
+export type DatasetRowsPage = DatasetRowsPageResponse;
 
 // callback signature used by streaming inserts. shared with bulk append flow
 export type InsertRowFn = (

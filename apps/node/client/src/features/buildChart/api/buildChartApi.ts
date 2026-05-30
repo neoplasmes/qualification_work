@@ -1,4 +1,4 @@
-import type { ChartResponse } from '@/entities/chart';
+import type { ChartResponse } from '@qualification-work/types';
 
 import { api } from '@/shared/api';
 

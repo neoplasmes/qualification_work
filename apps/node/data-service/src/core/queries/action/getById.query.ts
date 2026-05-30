@@ -1,14 +1,16 @@
+import { NotFoundError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { ActionDB as Action } from '@qualification-work/types';
 
-import type { Action } from '@/core/domain';
-import { NotFoundError } from '@/core/errors';
 import type { ActionRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetActionByIdQuery
-    implements Executable<[string, OrgMembership[]], Promise<Action>>
-{
+export class GetActionByIdQuery implements Executable<
+    [string, OrgMembership[]],
+    Promise<Action>
+> {
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(actionId: string, orgs: OrgMembership[]): Promise<Action> {

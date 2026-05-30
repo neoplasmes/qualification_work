@@ -62,6 +62,7 @@ const dataset = vi.hoisted(
                     displayName: 'Status',
                     dataType: 'string',
                     orderIndex: 0,
+                    isAnalyzable: true,
                 },
             ],
             totalRows: 4,

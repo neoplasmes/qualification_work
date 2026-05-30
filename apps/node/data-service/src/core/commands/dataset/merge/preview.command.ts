@@ -1,10 +1,11 @@
-import type { ColumnDataType } from '@/core/domain';
 import {
     ConflictError,
     ForbiddenError,
     NotFoundError,
     ValidationError,
-} from '@/core/errors';
+} from '@qualification-work/microservice-utils';
+import type { ColumnDataType } from '@qualification-work/types';
+
 import type {
     DatasetRepo,
     MergeMode,
@@ -19,8 +20,8 @@ import type {
 } from '@/core/ports/driven/tools';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
-import { coerceValueByType } from '../helpers';
-import { buildTupleKey, parseFileForMerge, type ParsedMergeFile } from './helpers';
+import { coerceValueByType } from '../lib';
+import { buildTupleKey, parseFileForMerge, type ParsedMergeFile } from './lib';
 import {
     MAX_REPORTED_CONFLICTS,
     type MergeConflict,

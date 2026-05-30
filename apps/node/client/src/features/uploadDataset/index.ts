@@ -5,7 +5,7 @@ export {
     useUploadDatasetMutation,
 } from './api';
 export type {
-    MergeCommitResult,
+    CommitMergeResult,
     MergeConflict,
     MergePreviewResult,
     MergePreviewStatistics,

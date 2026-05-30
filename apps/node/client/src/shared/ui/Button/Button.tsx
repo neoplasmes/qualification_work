@@ -1,19 +1,29 @@
 import { Loader2 } from 'lucide-react';
-import type { ButtonHTMLAttributes, CSSProperties, FC } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, FC, ReactNode } from 'react';
 import { Link, type LinkProps } from 'react-router';
 
 import styles from './Button.module.scss';
 
-type ButtonProps = {
-    variant?: 'default' | 'danger';
+type ButtonTone = 'default' | 'danger' | 'ghost' | 'plain' | 'transparent' | 'nav';
+type ButtonSize = 'sm' | 'md';
+
+type BaseButtonProps = {
     tone?: ButtonTone;
-    size?: 'sm' | 'md';
+    size?: ButtonSize;
+};
+
+type BaseIconProps = {
+    iconPadding?: IconPadding;
+};
+
+const loader: ReactNode = <Loader2 className={styles['loader']} size={16} aria-hidden />;
+
+type ButtonProps = BaseButtonProps & {
     isLoading?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const Button: FC<ButtonProps> = ({
-    variant,
-    tone = variant ?? 'default',
+    tone = 'default',
     size = 'md',
     isLoading = false,
     className,
@@ -30,23 +40,19 @@ export const Button: FC<ButtonProps> = ({
         aria-busy={isLoading || undefined}
         {...props}
     >
-        {isLoading && <Loader2 className={styles['loader']} size={16} aria-hidden />}
+        {isLoading && loader}
         {children}
     </button>
 );
 
-type IconButtonProps = {
-    variant?: 'default' | 'danger';
-    tone?: ButtonTone;
-    size?: 'sm' | 'md';
-    isLoading?: boolean;
-    iconPadding?: IconPadding;
-    iconStrokeWidth?: number;
-} & ButtonHTMLAttributes<HTMLButtonElement>;
+type IconButtonProps = BaseButtonProps &
+    BaseIconProps & {
+        isLoading?: boolean;
+        iconStrokeWidth?: number;
+    } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const IconButton: FC<IconButtonProps> = ({
-    variant,
-    tone = variant ?? 'default',
+    tone = 'default',
     size = 'md',
     isLoading = false,
     className,
@@ -56,82 +62,63 @@ export const IconButton: FC<IconButtonProps> = ({
     type = 'button',
     disabled,
     children,
-    'data-icon-p': dataIconPadding,
     ...props
 }) => (
     <button
         // eslint-disable-next-line react/button-has-type
         type={type}
         className={getButtonClassName('icon', tone, size, className)}
-        data-icon-p={iconPadding ?? dataIconPadding}
+        data-icon-p={iconPadding}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
         style={getIconButtonStyle(style, iconStrokeWidth)}
         {...props}
     >
-        {isLoading ? (
-            <Loader2 className={styles['loader']} size={16} aria-hidden />
-        ) : (
-            children
-        )}
+        {isLoading ? loader : children}
     </button>
 );
 
-type ButtonLinkProps = {
-    variant?: 'default' | 'danger';
-    tone?: ButtonTone;
-    size?: 'sm' | 'md';
-} & LinkProps;
+type ButtonLinkProps = BaseButtonProps & LinkProps;
 
 export const ButtonLink: FC<ButtonLinkProps> = ({
-    variant,
-    tone = variant ?? 'default',
+    tone = 'default',
     size = 'md',
     className,
     ...props
 }) => <Link className={getButtonClassName('button', tone, size, className)} {...props} />;
 
-type IconButtonLinkProps = {
-    variant?: 'default' | 'danger';
-    tone?: ButtonTone;
-    size?: 'sm' | 'md';
-    iconPadding?: IconPadding;
-} & LinkProps;
+type IconButtonLinkProps = BaseButtonProps & BaseIconProps & LinkProps;
 
 export const IconButtonLink: FC<IconButtonLinkProps> = ({
-    variant,
-    tone = variant ?? 'default',
+    tone = 'default',
     size = 'md',
     iconPadding,
     className,
-    style,
-    'data-icon-p': dataIconPadding,
     ...props
 }) => (
     <Link
         className={getButtonClassName('icon', tone, size, className)}
-        data-icon-p={iconPadding ?? dataIconPadding}
-        style={getIconButtonStyle(style, undefined)}
+        data-icon-p={iconPadding}
         {...props}
     />
 );
 
-type ButtonTone = 'default' | 'danger' | 'ghost' | 'plain' | 'transparent' | 'nav';
-
 const getButtonClassName = (
     base: 'button' | 'icon',
     tone: ButtonTone,
-    size: 'sm' | 'md',
+    size: ButtonSize,
     className?: string
-) =>
-    [
-        styles[base],
-        styles[`size-${size}`],
-        tone !== 'default' ? styles[tone] : '',
-        className ?? '',
-    ]
-        .filter(Boolean)
-        .join(' ');
+) => {
+    let result = `${styles[base]} ${styles[`size-${size}`]}`;
+    if (tone !== 'default') {
+        result += ` ${styles[tone]}`;
+    }
+    if (className) {
+        result += ` ${className}`;
+    }
+
+    return result;
+};
 
 const getIconButtonStyle = (
     style: CSSProperties | undefined,

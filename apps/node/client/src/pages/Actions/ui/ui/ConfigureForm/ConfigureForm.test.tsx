@@ -33,6 +33,7 @@ const dataset: DatasetMetadata = {
             displayName: 'Status',
             dataType: 'string',
             orderIndex: 0,
+            isAnalyzable: true,
         },
     ],
     totalRows: 3,

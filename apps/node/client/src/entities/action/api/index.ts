@@ -13,4 +13,4 @@ export type {
     ActionRunChange,
     ActionRunStatus,
     ListActionRunsPayload,
-} from './types';
+} from '@qualification-work/types';

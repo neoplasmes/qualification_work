@@ -1,7 +1,11 @@
-import type { FilterOperation, MeasureValueFormat, TimeGranularity } from '../api/types';
+import type {
+    Aggregate,
+    FilterOperation,
+    MeasureValueFormat,
+    TimeGranularity,
+} from '@qualification-work/types';
 
-// kept in sync with features/buildChart/api/types.ts
-export type Aggregate = 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct';
+export type { Aggregate };
 
 export const AGGREGATE_LABELS: Record<Aggregate, string> = {
     count: 'Count',

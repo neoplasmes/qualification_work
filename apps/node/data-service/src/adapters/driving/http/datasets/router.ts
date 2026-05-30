@@ -23,22 +23,28 @@ import type { MultipartParserTool } from '@/adapters/driven/tools/_multipartPars
 
 import type { AppState } from '@/shared/appState';
 
-import { createDeleteDatasetHandler } from './delete.handler';
-import { createDeleteRowHandler } from './deleteRow.handler';
-import { createGetDatasetMetadataByDatasetIdHandler } from './getByDatasetId.handler';
-import { createGetDatasetsMetadataByOrgIdHandler } from './getByOrgId.handler';
-import { createGetDatasetRowsHandler } from './getRows.handler';
-import { createInsertRowHandler } from './insertRow.handler';
-import { createMergeCancelHandler } from './mergeCancel.handler';
-import { createMergeCommitHandler } from './mergeCommit.handler';
 import {
+    createDeleteDatasetHandler,
+    createDeleteRowHandler,
+    createMergeCancelHandler,
+} from './delete';
+import {
+    createGetDatasetMetadataByDatasetIdHandler,
+    createGetDatasetRowsHandler,
+    createGetDatasetsMetadataByOrgIdHandler,
+} from './get';
+import {
+    createPatchDatasetHandler,
+    createUpdateColumnAnalysisHandler,
+    createUpdateRowHandler,
+} from './patch';
+import {
+    createInsertRowHandler,
+    createMergeCommitHandler,
     createMergePreviewHandler,
+    createUploadDatasetHandler,
     type MergePreviewHandlerConfig,
-} from './mergePreview.handler';
-import { createPatchDatasetHandler } from './patch.handler';
-import { createUpdateColumnAnalysisHandler } from './updateColumnAnalysis.handler';
-import { createUpdateRowHandler } from './updateRow.handler';
-import { createUploadDatasetHandler } from './upload.handler';
+} from './post';
 
 export type DatasetRouterDeps = {
     getDatasetsMetadataByOrgIdHandler: GetDatasetsMetadataByOrgIdQuery;

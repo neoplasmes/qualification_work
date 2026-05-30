@@ -1,13 +1,13 @@
+import { ValidationError } from '@qualification-work/microservice-utils';
 import type {
     ActionEffect,
     ActionParameter,
     ActionValueSource,
     ColumnDataType,
     DatasetColumn,
-} from '@/core/domain';
-import { ValidationError } from '@/core/errors';
+} from '@qualification-work/types';
 
-import { coerceValueByType } from '@/core/commands/dataset/helpers';
+import { coerceValueByType } from '@/core/commands/dataset/lib';
 
 export function validateActionDefinition(
     parameters: ActionParameter[],
@@ -17,7 +17,10 @@ export function validateActionDefinition(
 
     for (const parameter of parameters) {
         if (parameterKeys.has(parameter.key)) {
-            throw new ValidationError(['parameters'], `duplicate parameter "${parameter.key}"`);
+            throw new ValidationError(
+                ['parameters'],
+                `duplicate parameter "${parameter.key}"`
+            );
         }
 
         parameterKeys.add(parameter.key);

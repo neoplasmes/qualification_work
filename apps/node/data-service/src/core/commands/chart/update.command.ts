@@ -1,5 +1,6 @@
+import { NotFoundError } from '@qualification-work/microservice-utils';
+
 import { assertChartConfigUsesAnalyzableColumns } from '@/core/domain/chart';
-import { NotFoundError } from '@/core/errors';
 import type { ChartRepo, UpdateChartPayload } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 

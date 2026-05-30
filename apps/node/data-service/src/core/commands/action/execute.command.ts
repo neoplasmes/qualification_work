@@ -1,4 +1,6 @@
+import { ForbiddenError, NotFoundError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { ActionEffect, ActionRunDB as ActionRun } from '@qualification-work/types';
 
 import {
     assertEffectColumnsExist,
@@ -6,14 +8,13 @@ import {
     resolveActionValue,
     resolveAndCoerceEffectValues,
 } from '@/core/domain/action';
-import type { ActionEffect, ActionRun } from '@/core/domain';
-import { ForbiddenError, NotFoundError } from '@/core/errors';
 import type {
     ActionRepo,
     DatasetActionContext,
     ResolvedActionExecutionEffect,
 } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkWritableOrgMembership } from '@/shared/checkOrgMembership';
 
 export type ExecuteActionInput = {
@@ -23,9 +24,10 @@ export type ExecuteActionInput = {
     parameters: Record<string, unknown>;
 };
 
-export class ExecuteActionCommand
-    implements Executable<[ExecuteActionInput], Promise<ActionRun>>
-{
+export class ExecuteActionCommand implements Executable<
+    [ExecuteActionInput],
+    Promise<ActionRun>
+> {
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(input: ExecuteActionInput): Promise<ActionRun> {
@@ -39,9 +41,16 @@ export class ExecuteActionCommand
         let parametersForRun = input.parameters;
 
         try {
-            const parameters = coerceActionParameters(action.parameters, input.parameters);
+            const parameters = coerceActionParameters(
+                action.parameters,
+                input.parameters
+            );
             parametersForRun = parameters;
-            const effects = await this.resolveEffects(action.orgId, action.effects, parameters);
+            const effects = await this.resolveEffects(
+                action.orgId,
+                action.effects,
+                parameters
+            );
 
             return await this.actionRepo.executeAction({
                 actionId: action.id,
@@ -137,7 +146,9 @@ export class ExecuteActionCommand
         }
 
         if (context.orgId !== orgId) {
-            throw new ForbiddenError(`Dataset ${datasetId} belongs to another organization`);
+            throw new ForbiddenError(
+                `Dataset ${datasetId} belongs to another organization`
+            );
         }
     }
 }

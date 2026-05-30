@@ -1,7 +1,7 @@
 # Run only from the workspace root
 
 ARG NODE_VERSION=24.14.0-alpine3.23
-ARG PNPM_VERSION=10.33.0
+ARG PNPM_VERSION=11.1.2
 
 FROM node:${NODE_VERSION} AS base
 

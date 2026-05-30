@@ -118,7 +118,7 @@ export const DashboardsPropertiesPanel = () => {
             />
 
             <Button
-                variant="danger"
+                tone="danger"
                 disabled={deleteDashboardState.isLoading}
                 onClick={() => void handleDelete()}
             >

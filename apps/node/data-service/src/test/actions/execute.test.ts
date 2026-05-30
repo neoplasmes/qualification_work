@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
+import { uploadDataset } from '../datasets/lib';
 import {
     api,
     createTestUserWithOrg,
@@ -9,8 +10,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { uploadDataset } from '../datasets/helpers';
-import { buildInsertAction, buildUpdateAction, createAction, setIdentity } from './helpers';
+import { buildInsertAction, buildUpdateAction, createAction, setIdentity } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

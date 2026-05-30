@@ -2,13 +2,13 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Pool } from 'pg';
 
+import { NotFoundError, ValidationError } from '@qualification-work/microservice-utils';
 import {
     isForeignKeyViolation,
     loadScript,
 } from '@qualification-work/microservice-utils/pg';
 import type { Dashboard, DashboardMetricItem } from '@qualification-work/types';
 
-import { NotFoundError, ValidationError } from '@/core/errors';
 import type { DashboardMetricSpec, DashboardRepo } from '@/core/ports/driven/repos';
 
 const stackX = 0;

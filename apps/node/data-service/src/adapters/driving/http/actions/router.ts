@@ -15,17 +15,16 @@ import type {
 
 import type { AppState } from '@/shared/appState';
 
-import { createArchiveActionHandler } from './archive.handler';
-import { createCreateActionHandler } from './create.handler';
-import { createExecuteActionHandler } from './execute.handler';
-import { createGetActionByIdHandler } from './getById.handler';
-import { createGetActionsByOrgIdHandler } from './getByOrgId.handler';
+import { createArchiveActionHandler } from './delete';
 import {
+    createGetActionByIdHandler,
+    createGetActionsByOrgIdHandler,
     createListActionRunsHandler,
     createListOrgActionRunsHandler,
-} from './listRuns.handler';
-import { createPatchActionHandler } from './patch.handler';
-import { createUpdateActionHandler } from './update.handler';
+} from './get';
+import { createPatchActionHandler } from './patch';
+import { createCreateActionHandler, createExecuteActionHandler } from './post';
+import { createUpdateActionHandler } from './put';
 
 export type ActionsRouterDeps = {
     createActionHandler: CreateActionCommand;

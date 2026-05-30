@@ -3,7 +3,8 @@ import { mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { Readable } from 'node:stream';
 
-import { ValidationError } from '@/core/errors';
+import { ValidationError } from '@qualification-work/microservice-utils';
+
 import type {
     SavedTmpFile,
     TmpFileStorageTool,
@@ -31,7 +32,10 @@ export class DiskTmpFileStorageTool implements TmpFileStorageTool {
         await this.ensureSessionDir(sessionId);
 
         const safeName = originalName.replace(/[^\w.-]/g, '_');
-        const filePath = path.join(this.sessionDir(sessionId), `${fileIndex}-${safeName}`);
+        const filePath = path.join(
+            this.sessionDir(sessionId),
+            `${fileIndex}-${safeName}`
+        );
         const out = createWriteStream(filePath);
 
         let size = 0;
@@ -46,7 +50,9 @@ export class DiskTmpFileStorageTool implements TmpFileStorageTool {
                     input.removeListener('data', onData);
                     out.destroy();
                     input.resume();
-                    reject(new ValidationError([], `file "${originalName}" exceeds limit`));
+                    reject(
+                        new ValidationError([], `file "${originalName}" exceeds limit`)
+                    );
                 }
             };
 

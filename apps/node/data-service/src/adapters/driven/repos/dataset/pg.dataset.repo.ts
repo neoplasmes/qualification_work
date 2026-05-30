@@ -1,6 +1,11 @@
 import type { Pool } from 'pg';
 
-import type { Dataset, DatasetColumn, DatasetRow } from '@/core/domain';
+import type {
+    DatasetDB as Dataset,
+    DatasetColumn,
+    DatasetRow,
+} from '@qualification-work/types';
+
 import type {
     AppendRowsFn,
     CreateDatasetPayload,

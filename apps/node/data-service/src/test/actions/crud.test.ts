@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
+import { uploadDataset } from '../datasets/lib';
 import {
     api,
     createTestUser,
@@ -9,8 +10,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { uploadDataset } from '../datasets/helpers';
-import { addUserRole, buildInsertAction, createAction, setIdentity } from './helpers';
+import { addUserRole, buildInsertAction, createAction, setIdentity } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);
@@ -61,7 +61,9 @@ describe('actions CRUD', () => {
         expect(patchRes.status).toBe(204);
 
         const patchedRes = await api(`/api/actions/${actionId}`);
-        expect((await patchedRes.json()) as { name: string; description: string }).toMatchObject({
+        expect(
+            (await patchedRes.json()) as { name: string; description: string }
+        ).toMatchObject({
             name: 'Register customer v2',
             description: 'Patched description',
         });

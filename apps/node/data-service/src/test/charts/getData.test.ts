@@ -8,7 +8,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { createChart, encodeFilters, getColumnId, uploadDataset } from './helpers';
+import { createChart, encodeFilters, getColumnId, uploadDataset } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

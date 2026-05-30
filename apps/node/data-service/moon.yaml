@@ -34,6 +34,16 @@ tasks:
       cache: false
       persistent: true
       outputStyle: "stream"
+
+  build:
+    command: "pnpm build"
+    deps:
+      - "^:build"
+    inputs:
+      - "@group(src)"
+      - "@group(cfg)"
+    outputs:
+      - "dist"
   
   lint:
     command: "pnpm lint"

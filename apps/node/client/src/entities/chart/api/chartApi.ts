@@ -1,6 +1,10 @@
-import { api } from '@/shared/api';
+import type {
+    Chart,
+    ChartResponse,
+    GetChartDataPayload,
+} from '@qualification-work/types';
 
-import type { Chart, ChartResponse, GetChartDataPayload } from './types';
+import { api } from '@/shared/api';
 
 const encodeFilterOverrides = (filters: GetChartDataPayload['filterOverrides']) => {
     if (!filters || filters.length === 0) {

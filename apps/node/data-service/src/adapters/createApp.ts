@@ -1,6 +1,7 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
+import { BaseError, ValidationError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
 import { createRedisCache, type RedisCache } from '@qualification-work/redis-cache';
 
@@ -24,7 +25,6 @@ import {
     UpdateRowValuesCommand,
     UploadDatasetCommand,
 } from '@/core/commands';
-import { BaseError, ValidationError } from '@/core/errors';
 import {
     GetActionByIdQuery,
     GetActionsByOrgIdQuery,

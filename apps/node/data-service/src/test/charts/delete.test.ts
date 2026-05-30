@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { api, createTestUserWithOrg, startServer, stopServer, truncate } from '../setup';
-import { createChart, uploadDataset } from './helpers';
+import { createChart, uploadDataset } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

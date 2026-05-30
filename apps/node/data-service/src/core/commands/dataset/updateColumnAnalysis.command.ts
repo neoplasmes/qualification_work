@@ -1,5 +1,6 @@
-import type { DatasetColumn } from '@/core/domain';
-import { ForbiddenError, NotFoundError } from '@/core/errors';
+import { ForbiddenError, NotFoundError } from '@qualification-work/microservice-utils';
+import type { DatasetColumn } from '@qualification-work/types';
+
 import type { DatasetRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 

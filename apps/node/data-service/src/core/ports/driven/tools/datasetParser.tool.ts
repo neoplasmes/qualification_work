@@ -1,6 +1,8 @@
 import type { Readable } from 'node:stream';
 
-export type DatasetFileSourceType = 'csv' | 'xlsx';
+import type { DatasetFileSourceType } from '@qualification-work/types';
+
+export type { DatasetFileSourceType };
 
 export type ResolvedDatasetParser = {
     parser: DatasetParserTool;

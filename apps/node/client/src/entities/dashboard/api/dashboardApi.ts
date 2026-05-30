@@ -1,6 +1,6 @@
-import { api } from '@/shared/api';
+import type { Dashboard } from '@qualification-work/types';
 
-import type { Dashboard } from './types';
+import { api } from '@/shared/api';
 
 export const dashboardApi = api.injectEndpoints({
     endpoints: builder => ({

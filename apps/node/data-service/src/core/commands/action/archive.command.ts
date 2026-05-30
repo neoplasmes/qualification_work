@@ -1,13 +1,15 @@
+import { NotFoundError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
 
-import { NotFoundError } from '@/core/errors';
 import type { ActionRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkWritableOrgMembership } from '@/shared/checkOrgMembership';
 
-export class ArchiveActionCommand
-    implements Executable<[string, OrgMembership[]], Promise<void>>
-{
+export class ArchiveActionCommand implements Executable<
+    [string, OrgMembership[]],
+    Promise<void>
+> {
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(actionId: string, orgs: OrgMembership[]): Promise<void> {

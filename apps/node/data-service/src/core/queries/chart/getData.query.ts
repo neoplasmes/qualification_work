@@ -1,10 +1,11 @@
+import { NotFoundError } from '@qualification-work/microservice-utils';
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
 import type { ChartResponse, FilterClause } from '@qualification-work/types';
 
-import { NotFoundError } from '@/core/errors';
 import type { ChartRepo } from '@/core/ports/driven/repos';
 import type { ChartCompilerTool, CompileOverrides } from '@/core/ports/driven/tools';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
 export type GetChartDataInput = {

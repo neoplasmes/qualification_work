@@ -1,21 +1,16 @@
-import type { ActionEffect, ActionParameter } from '@/entities/action';
+import type {
+    ActionDefinitionPayload,
+    CreateActionPayload,
+    UpdateActionPayload as UpdateActionBodyPayload,
+} from '@qualification-work/types';
 
-export type ActionDefinitionPayload = {
-    name: string;
-    description?: string | null;
-    parameters: ActionParameter[];
-    effects: ActionEffect[];
-};
-
-export type CreateActionPayload = ActionDefinitionPayload & {
-    orgId: string;
-};
+export type { ActionDefinitionPayload, CreateActionPayload };
 
 export type PatchActionPayload = Partial<ActionDefinitionPayload> & {
     actionId: string;
 };
 
-export type UpdateActionPayload = ActionDefinitionPayload & {
+export type UpdateActionPayload = UpdateActionBodyPayload & {
     actionId: string;
 };
 

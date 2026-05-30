@@ -8,7 +8,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { getColumnId, uploadDataset } from './helpers';
+import { getColumnId, uploadDataset } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);

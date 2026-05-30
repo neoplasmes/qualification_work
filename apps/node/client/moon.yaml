@@ -105,6 +105,15 @@ tasks:
       persistent: true
       outputStyle: "stream"
 
+  fmt:
+    command: "pnpm prettier"
+    inputs:
+      - "@group(src)"
+      - "@group(test)"
+      - "@group(cfg)"
+    options:
+      cache: false
+
   typecheck:
     command: "pnpm typecheck"
     deps:
@@ -127,12 +136,14 @@ tasks:
     command: "pnpm lint"
     inputs:
       - "@group(src)"
+      - "@group(test)"
       - "@group(cfg)"
 
   lint-fix:
     command: "pnpm lint:fix"
     inputs:
       - "@group(src)"
+      - "@group(test)"
       - "@group(cfg)"
     options:
       cache: false

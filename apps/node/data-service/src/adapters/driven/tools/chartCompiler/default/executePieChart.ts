@@ -16,6 +16,7 @@ import {
     coerce,
     columnExpr,
     getColumn,
+    measureColumnKey,
     measureExpr,
     numberOrNull,
     type ColumnMeta,
@@ -31,8 +32,12 @@ export async function executePieChart(
 ): Promise<ChartResponse> {
     const params: unknown[] = [];
     const slice = columnExpr(getColumn(columnsById, config.slice.columnId), null);
-    const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId);
     const m = measureExpr(config.measure, columnsById, 'm0');
+    const measureKey = measureColumnKey(config.measure, columnsById);
+    const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId, [
+        slice.columnKey,
+        ...(measureKey ? [measureKey] : []),
+    ]);
     const sliceSortSelects = buildSortSelects(slice, 'slice');
     const sliceSortColumns = buildSortGroupBy('slice', slice);
     const sliceSortOrder = buildSortOrderBy([{ expr: slice, prefix: 'slice' }]);

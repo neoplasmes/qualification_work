@@ -30,4 +30,13 @@ describe('insert row helpers', () => {
         expect(isInsertRowValid(columns, values)).toBe(true);
         expect(getInsertRowData(columns, values)).toEqual({ amount: 10, paid: false });
     });
+
+    it('allows partially filled rows and rejects fully empty drafts', () => {
+        expect(isInsertRowValid(columns, { amount: '10', paid: '' })).toBe(true);
+        expect(getInsertRowData(columns, { amount: '10', paid: '' })).toEqual({
+            amount: 10,
+        });
+
+        expect(isInsertRowValid(columns, { amount: '', paid: '' })).toBe(false);
+    });
 });

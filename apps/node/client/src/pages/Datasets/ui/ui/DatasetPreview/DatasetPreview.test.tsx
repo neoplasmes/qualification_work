@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
     updateRow: vi.fn(),
     insertRow: vi.fn(),
     deleteRow: vi.fn(),
+    patchColumn: vi.fn(),
 }));
 
 const columns = vi.hoisted(
@@ -78,6 +79,7 @@ vi.mock('@/entities/dataset', () => ({
     useUpdateRowMutation: () => [mocks.updateRow],
     useInsertRowMutation: () => [mocks.insertRow, { isLoading: false }],
     useDeleteRowMutation: () => [mocks.deleteRow, { isLoading: false }],
+    usePatchDatasetColumnMutation: () => [mocks.patchColumn, { isLoading: false }],
 }));
 
 vi.mock('../DatasetGrid', () => ({
@@ -87,6 +89,7 @@ vi.mock('../DatasetGrid', () => ({
         onCellCommit,
         onDraftValueChange,
         onRowContextMenu,
+        onColumnContextMenu,
         onDraftRowBoundsChange,
     }: DatasetGridProps) => {
         // emulate the real grid reporting draft row bounds
@@ -111,6 +114,12 @@ vi.mock('../DatasetGrid', () => ({
                     onClick={() => onRowContextMenu(0, { x: 12, y: 24 })}
                 >
                     Open row menu
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onColumnContextMenu(columns[0], { x: 20, y: 36 })}
+                >
+                    Open column menu
                 </button>
                 {insertDraft && (
                     <button
@@ -154,6 +163,9 @@ describe('DatasetPreview', () => {
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
         mocks.deleteRow.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue(undefined),
+        });
+        mocks.patchColumn.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
     });
@@ -227,6 +239,22 @@ describe('DatasetPreview', () => {
             datasetId: 'dataset-1',
             orgId: 'org-1',
             rowId: 'row-1',
+        });
+    });
+
+    it('opens the column context menu and toggles analysis inclusion', async () => {
+        render(<DatasetPreview selectedDataset={selectedDataset} />);
+
+        await flushPromises();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Open column menu' }));
+        fireEvent.click(screen.getByLabelText('Include in analysis'));
+
+        expect(mocks.patchColumn).toHaveBeenCalledWith({
+            datasetId: 'dataset-1',
+            columnId: 'column-1',
+            orgId: 'org-1',
+            isAnalyzable: false,
         });
     });
 });

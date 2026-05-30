@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS data.dataset_columns (
     data_type               data.column_data_type NOT NULL,
 
     order_index             INTEGER NOT NULL,
+    is_analyzable           BOOLEAN NOT NULL DEFAULT TRUE,
 
     UNIQUE (dataset_id, key)
 );

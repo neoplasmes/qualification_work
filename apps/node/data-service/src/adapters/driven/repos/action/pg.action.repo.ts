@@ -125,10 +125,9 @@ export class PgActionRepo implements ActionRepo {
     ): Promise<Action | null> {
         const archivedPredicate = opts.includeArchived ? '' : ' AND archived_at IS NULL';
         const [row] = await this.pool
-            .query<ActionRow>(
-                `${SELECT_ACTION} WHERE id = $1${archivedPredicate}`,
-                [actionId]
-            )
+            .query<ActionRow>(`${SELECT_ACTION} WHERE id = $1${archivedPredicate}`, [
+                actionId,
+            ])
             .then(result => result.rows);
 
         return row ?? null;
@@ -197,7 +196,8 @@ export class PgActionRepo implements ActionRepo {
                     key,
                     display_name  AS "displayName",
                     data_type     AS "dataType",
-                    order_index   AS "orderIndex"
+                    order_index   AS "orderIndex",
+                    is_analyzable AS "isAnalyzable"
                  FROM data.dataset_columns
                  WHERE dataset_id = ANY($1::uuid[])
                  ORDER BY dataset_id, order_index`,
@@ -229,7 +229,9 @@ export class PgActionRepo implements ActionRepo {
 
             for (const effect of data.effects) {
                 if (effect.kind === 'insertRow') {
-                    changes.push(await this.insertRow(client, effect.datasetId, effect.values));
+                    changes.push(
+                        await this.insertRow(client, effect.datasetId, effect.values)
+                    );
 
                     continue;
                 }

@@ -41,6 +41,35 @@ describe('PATCH /api/datasets/:id/rows/:rowId', () => {
         expect(body.data.city).toBe(row.data.city);
     });
 
+    it('removes a jsonb key when a cell is cleared', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
+
+        const [row] = await dbQuery<{ id: string }>(
+            `SELECT id FROM data.dataset_rows
+             WHERE dataset_id = $1 ORDER BY row_index LIMIT 1`,
+            [datasetId]
+        );
+
+        const res = await api(
+            `/api/datasets/${datasetId}/rows/${row.id}?orgId=${orgId}`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify({ values: { name: '' } }),
+            }
+        );
+
+        expect(res.status).toBe(200);
+        const body = (await res.json()) as { data: Record<string, unknown> };
+        expect('name' in body.data).toBe(false);
+
+        const [stored] = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows WHERE id = $1`,
+            [row.id]
+        );
+        expect('name' in stored.data).toBe(false);
+    });
+
     it('rejects unknown column key', async () => {
         const { orgId } = await createTestUserWithOrg();
         const datasetId = await uploadDataset(orgId);

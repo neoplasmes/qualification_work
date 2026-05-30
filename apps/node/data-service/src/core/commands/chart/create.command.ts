@@ -1,5 +1,7 @@
 import type { ChartConfig, ChartType } from '@qualification-work/types';
 
+import { assertChartConfigUsesAnalyzableColumns } from '@/core/domain/chart';
+import { ForbiddenError, NotFoundError } from '@/core/errors';
 import type { ChartRepo, CreateChartPayload } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
@@ -10,6 +12,17 @@ export class CreateChartCommand implements Executable<
     constructor(private readonly chartRepo: ChartRepo) {}
 
     async execute(payload: CreateChartPayload) {
+        const datasetCtx = await this.chartRepo.getDatasetContext(payload.datasetId);
+        if (!datasetCtx) {
+            throw new NotFoundError('Dataset not found');
+        }
+
+        if (datasetCtx.orgId !== payload.orgId) {
+            throw new ForbiddenError('Dataset belongs to another organization');
+        }
+
+        assertChartConfigUsesAnalyzableColumns(payload.config, datasetCtx.columns);
+
         return this.chartRepo.create(payload);
     }
 }

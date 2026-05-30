@@ -8,7 +8,7 @@ import {
 } from '@qualification-work/microservice-utils/pg';
 import type { Dashboard, DashboardMetricItem } from '@qualification-work/types';
 
-import { NotFoundError } from '@/core/errors';
+import { NotFoundError, ValidationError } from '@/core/errors';
 import type { DashboardMetricSpec, DashboardRepo } from '@/core/ports/driven/repos';
 
 const stackX = 0;
@@ -29,6 +29,7 @@ type DatasetColumnRow = {
     key: string;
     display_name: string;
     data_type: string;
+    is_analyzable: boolean;
 };
 
 const metricExpressionPattern = /^([a-z_]+)\((.*)\)$/i;
@@ -151,6 +152,8 @@ export class PgDashboardRepo implements DashboardRepo {
         userOrgIds: string[]
     ): Promise<{ itemId: string; posY: number } | null> {
         try {
+            await this.assertMetricExpressionUsesAnalyzableColumn(metric);
+
             const { rows } = await this.pool.query<{
                 id: string;
                 pos_y: number;
@@ -187,6 +190,8 @@ export class PgDashboardRepo implements DashboardRepo {
         userOrgIds: string[]
     ): Promise<boolean> {
         try {
+            await this.assertMetricExpressionUsesAnalyzableColumn(metric);
+
             const { rowCount } = await this.pool.query(this.updateMetricItemSql, [
                 dashboardId,
                 itemId,
@@ -361,7 +366,7 @@ export class PgDashboardRepo implements DashboardRepo {
         columnName: string
     ): Promise<DatasetColumnRow | null> {
         const { rows } = await this.pool.query<DatasetColumnRow>(
-            `SELECT key, display_name, data_type
+            `SELECT key, display_name, data_type, is_analyzable
             FROM data.dataset_columns
             WHERE dataset_id = $1 AND (key = $2 OR display_name = $2)
             LIMIT 1`,
@@ -369,6 +374,23 @@ export class PgDashboardRepo implements DashboardRepo {
         );
 
         return rows[0] ?? null;
+    }
+
+    private async assertMetricExpressionUsesAnalyzableColumn(
+        metric: DashboardMetricSpec
+    ): Promise<void> {
+        const parsed = this.parseMetricExpression(metric.expression);
+        if (!parsed?.columnName) {
+            return;
+        }
+
+        const column = await this.findMetricColumn(metric.datasetId, parsed.columnName);
+        if (column && !column.is_analyzable) {
+            throw new ValidationError(
+                [column.key],
+                `Column "${column.display_name}" is not included in analysis`
+            );
+        }
     }
 
     private metricSql(aggregate: string, hasColumn: boolean): string | null {

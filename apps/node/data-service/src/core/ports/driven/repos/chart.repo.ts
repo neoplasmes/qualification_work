@@ -25,6 +25,7 @@ export type ChartCompilationContext = {
         id: string;
         key: string;
         dataType: ColumnDataType;
+        isAnalyzable: boolean;
     }>;
 };
 
@@ -32,7 +33,12 @@ export type DatasetContext = {
     datasetId: string;
     orgId: string;
     dataVersion: number;
-    columns: Array<{ id: string; key: string; dataType: ColumnDataType }>;
+    columns: Array<{
+        id: string;
+        key: string;
+        dataType: ColumnDataType;
+        isAnalyzable: boolean;
+    }>;
 };
 
 export interface ChartRepo {

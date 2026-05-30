@@ -16,6 +16,7 @@ import {
     coerce,
     columnExpr,
     getColumn,
+    measureColumnKey,
     measureExpr,
     numberOrNull,
     type ColumnMeta,
@@ -32,8 +33,13 @@ export async function executeHeatmapChart(
     const params: unknown[] = [];
     const x = columnExpr(getColumn(columnsById, config.x.columnId), config.x.grouping);
     const y = columnExpr(getColumn(columnsById, config.y.columnId), config.y.grouping);
-    const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId);
     const m = measureExpr(config.measure, columnsById, 'm0');
+    const measureKey = measureColumnKey(config.measure, columnsById);
+    const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId, [
+        x.columnKey,
+        y.columnKey,
+        ...(measureKey ? [measureKey] : []),
+    ]);
     const xSortSelects = buildSortSelects(x, 'x');
     const ySortSelects = buildSortSelects(y, 'y');
     const groupCols = [

@@ -8,6 +8,16 @@ import {
     columnExpr,
 } from './lib';
 
+const col = <T extends 'number' | 'string' | 'date' | 'bool' | 'day_of_week'>(
+    key: string,
+    dataType: T
+) => ({
+    id: 'c1',
+    key,
+    dataType,
+    isAnalyzable: true,
+});
+
 describe('columnExpr - Cyrillic column keys', () => {
     it('wraps Cyrillic key in single-quoted JSONB accessor', () => {
         const col = {
@@ -15,6 +25,7 @@ describe('columnExpr - Cyrillic column keys', () => {
             key: 'Город',
             dataType: 'string' as const,
             displayName: 'Город',
+            isAnalyzable: true,
         };
         const result = columnExpr(col, undefined);
 
@@ -29,6 +40,7 @@ describe('columnExpr - Cyrillic column keys', () => {
             key: "О'брат",
             dataType: 'string' as const,
             displayName: "О'брат",
+            isAnalyzable: true,
         };
         const result = columnExpr(col, undefined);
 
@@ -41,6 +53,7 @@ describe('columnExpr - Cyrillic column keys', () => {
             key: 'Дата',
             dataType: 'date' as const,
             displayName: 'Дата',
+            isAnalyzable: true,
         };
         const result = columnExpr(col, { kind: 'time', granularity: 'month' });
 
@@ -50,8 +63,7 @@ describe('columnExpr - Cyrillic column keys', () => {
     });
 
     it('builds weekday sort expressions for day_of_week columns', () => {
-        const col = { id: 'c1', key: 'День', dataType: 'day_of_week' as const };
-        const result = columnExpr(col, undefined);
+        const result = columnExpr(col('День', 'day_of_week'), undefined);
 
         expect(result.resultType).toBe('day_of_week');
         expect(result.hasCategorySort).toBe(true);
@@ -60,10 +72,7 @@ describe('columnExpr - Cyrillic column keys', () => {
     });
 
     it('uses category order before measure order for string dimensions', () => {
-        const dim = columnExpr(
-            { id: 'c1', key: 'weekday', dataType: 'string' as const },
-            undefined
-        );
+        const dim = columnExpr(col('weekday', 'string'), undefined);
         const result = buildOrderBy(
             { ref: 'measure', index: 0, dir: 'desc' },
             dim,
@@ -75,10 +84,7 @@ describe('columnExpr - Cyrillic column keys', () => {
     });
 
     it('builds stable sort selects and order clauses', () => {
-        const dim = columnExpr(
-            { id: 'c1', key: 'city', dataType: 'string' as const },
-            undefined
-        );
+        const dim = columnExpr(col('city', 'string'), undefined);
 
         expect(buildSortSelects(dim, 'dim')).toHaveLength(2);
         expect(buildSortOrderBy([{ expr: dim, prefix: 'dim' }])).toBe(
@@ -87,10 +93,7 @@ describe('columnExpr - Cyrillic column keys', () => {
     });
 
     it('builds dimension order for date dimensions', () => {
-        const dim = columnExpr(
-            { id: 'c1', key: 'date', dataType: 'date' as const },
-            undefined
-        );
+        const dim = columnExpr(col('date', 'date'), undefined);
 
         expect(buildDimensionOrderBy(dim, null)).toBe('dim_sort_0 ASC NULLS LAST');
     });

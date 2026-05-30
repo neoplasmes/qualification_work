@@ -3,7 +3,15 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import type { Dashboard } from '@qualification-work/types';
 
-import { api, apiAs, resetTestIdentity, startServer, stopServer, truncate } from '../lib';
+import {
+    api,
+    apiAs,
+    dbQuery,
+    resetTestIdentity,
+    startServer,
+    stopServer,
+    truncate,
+} from '../lib';
 import { bootFixture, createDashboard, dashboardIdentity, silenceErrors } from './lib';
 
 let userId: string;
@@ -137,6 +145,69 @@ describe('POST /api/dashboards/:id/items', () => {
             }),
         });
         expect(res.status).toBe(400);
+    });
+
+    it('400 when metric expression uses a disabled analysis column', async () => {
+        const dashboardId = await createDashboard(orgId);
+
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index, is_analyzable)
+             VALUES
+                ($1, 'amount', 'Amount', 'number', 0, false)`,
+            [datasetId]
+        );
+
+        const res = await api(`/api/dashboards/${dashboardId}/items`, {
+            method: 'POST',
+            body: JSON.stringify({
+                kind: 'metric',
+                datasetId,
+                name: 'Revenue',
+                expression: 'sum(amount)',
+                format: 'currency',
+            }),
+        });
+
+        expect(res.status).toBe(400);
+    });
+
+    it('400 when a metric update switches to a disabled analysis column', async () => {
+        const dashboardId = await createDashboard(orgId);
+
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index, is_analyzable)
+             VALUES
+                ($1, 'amount', 'Amount', 'number', 0, true),
+                ($1, 'disabled_amount', 'Disabled Amount', 'number', 1, false)`,
+            [datasetId]
+        );
+
+        const create = await api(`/api/dashboards/${dashboardId}/items`, {
+            method: 'POST',
+            body: JSON.stringify({
+                kind: 'metric',
+                datasetId,
+                name: 'Revenue',
+                expression: 'sum(amount)',
+                format: 'currency',
+            }),
+        });
+        const { itemId } = (await create.json()) as { itemId: string };
+
+        const update = await api(`/api/dashboards/${dashboardId}/items/${itemId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                kind: 'metric',
+                datasetId,
+                name: 'Revenue',
+                expression: 'sum(disabled_amount)',
+                format: 'currency',
+            }),
+        });
+
+        expect(update.status).toBe(400);
     });
 
     it('server ignores posX/width from body', async () => {

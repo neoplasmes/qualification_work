@@ -198,6 +198,92 @@ describe('GET /api/charts/:id/data - bar', () => {
             'Sunday',
         ]);
     });
+
+    it('skips rows missing required dimension or measure cells only', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadCsvDataset(
+            orgId,
+            [
+                'city,score,comment',
+                'Paris,10,ok',
+                'Paris,,missing measure',
+                ',20,missing city',
+                'Berlin,5,',
+            ].join('\n'),
+            'sparse-required.csv'
+        );
+        const cityId = await getColumnId(datasetId, 'city');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: cityId },
+            measures: [{ columnId: scoreId, aggregate: 'sum' }],
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<[string, number]> };
+        expect(body.rows).toEqual([
+            ['Berlin', 5],
+            ['Paris', 10],
+        ]);
+    });
+
+    it('skips a multi-measure row when any selected measure cell is empty', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadCsvDataset(
+            orgId,
+            ['city,revenue,cost', 'Paris,10,3', 'Paris,4,', 'Berlin,8,2'].join('\n'),
+            'multi-measure-required.csv'
+        );
+        const cityId = await getColumnId(datasetId, 'city');
+        const revenueId = await getColumnId(datasetId, 'revenue');
+        const costId = await getColumnId(datasetId, 'cost');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: cityId },
+            measures: [
+                { columnId: revenueId, aggregate: 'sum' },
+                { columnId: costId, aggregate: 'sum' },
+            ],
+        });
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<[string, number, number]> };
+        expect(body.rows).toEqual([
+            ['Berlin', 8, 2],
+            ['Paris', 10, 3],
+        ]);
+    });
+
+    it('continues to evaluate saved charts after a referenced column is disabled', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
+        const cityId = await getColumnId(datasetId, 'city');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: cityId },
+            measures: [{ columnId: scoreId, aggregate: 'sum' }],
+        });
+
+        await dbQuery(
+            `UPDATE data.dataset_columns SET is_analyzable = false WHERE id = $1`,
+            [scoreId]
+        );
+
+        const res = await api(`/api/charts/${chartId}/data`);
+        expect(res.status).toBe(200);
+
+        const body = (await res.json()) as { rows: Array<unknown> };
+        expect(body.rows.length).toBeGreaterThan(0);
+    });
 });
 
 describe('GET /api/charts/:id/data - pie', () => {

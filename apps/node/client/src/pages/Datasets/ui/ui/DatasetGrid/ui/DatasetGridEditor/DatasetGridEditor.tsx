@@ -34,6 +34,7 @@ export const DatasetGridEditor = ({
     onCellCommit,
     onDraftValueChange,
     onRowContextMenu,
+    onColumnContextMenu,
     onDraftRowBoundsChange,
     onVisibleRangeChange,
 }: DatasetGridEditorProps) => {
@@ -242,6 +243,28 @@ export const DatasetGridEditor = ({
         [draftIndex, onRowContextMenu, getRowAt]
     );
 
+    const handleHeaderContextMenu = useCallback(
+        (
+            columnIndex: number,
+            event: Parameters<
+                NonNullable<ComponentProps<typeof DataEditor>['onHeaderContextMenu']>
+            >[1]
+        ) => {
+            event.preventDefault();
+
+            const column = columns[columnIndex];
+            if (!column) {
+                return;
+            }
+
+            onColumnContextMenu(column, {
+                x: event.bounds.x,
+                y: event.bounds.y + event.bounds.height,
+            });
+        },
+        [columns, onColumnContextMenu]
+    );
+
     const onVisibleRegionChanged = useCallback(
         (range: Rectangle) => {
             const startRow = range.y;
@@ -277,6 +300,7 @@ export const DatasetGridEditor = ({
                 onCellEdited={onCellEdited}
                 validateCell={validateCell}
                 onCellContextMenu={handleCellContextMenu}
+                onHeaderContextMenu={handleHeaderContextMenu}
                 onColumnResize={handleColumnResize}
                 onVisibleRegionChanged={onVisibleRegionChanged}
                 rowMarkers="number"

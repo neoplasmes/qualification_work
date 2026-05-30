@@ -4,6 +4,7 @@ export { Card } from './Card';
 export { Checkbox } from './Checkbox';
 export { ClientOnlyDeffered } from './ClientOnlyDeffered';
 export type { ClientOnlyDefferedProps } from './ClientOnlyDeffered/ui/ClientOnlyDeffered';
+export { ContextMenu } from './ContextMenu';
 export { Dropzone } from './Dropzone';
 export { EmptyState } from './EmptyState';
 export { FilterChip } from './FilterChip';

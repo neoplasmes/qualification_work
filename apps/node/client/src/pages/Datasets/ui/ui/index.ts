@@ -1,4 +1,5 @@
 export { DatasetDetails } from './DatasetDetails';
+export { DatasetColumnContextMenu } from './DatasetColumnContextMenu';
 export { DatasetPreview } from './DatasetPreview';
 export { DatasetsFilterPanel } from './DatasetsFilterPanel';
 export { DatasetsPropertiesPanel } from './DatasetsPropertiesPanel';

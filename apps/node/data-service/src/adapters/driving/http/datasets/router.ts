@@ -8,6 +8,7 @@ import type {
     InsertRowCommand,
     PatchDatasetCommand,
     PreviewMergeCommand,
+    UpdateColumnAnalysisCommand,
     UpdateRowValuesCommand,
     UploadDatasetCommand,
 } from '@/core/commands';
@@ -35,6 +36,7 @@ import {
     type MergePreviewHandlerConfig,
 } from './mergePreview.handler';
 import { createPatchDatasetHandler } from './patch.handler';
+import { createUpdateColumnAnalysisHandler } from './updateColumnAnalysis.handler';
 import { createUpdateRowHandler } from './updateRow.handler';
 import { createUploadDatasetHandler } from './upload.handler';
 
@@ -44,6 +46,7 @@ export type DatasetRouterDeps = {
     getDatasetRowsHandler: GetDatasetRowsQuery;
     uploadDatasetHandler: UploadDatasetCommand;
     patchDatasetHandler: PatchDatasetCommand;
+    updateColumnAnalysisHandler: UpdateColumnAnalysisCommand;
     deleteDatasetHandler: DeleteDatasetCommand;
     deleteRowHandler: DeleteRowCommand;
     updateRowHandler: UpdateRowValuesCommand;
@@ -73,6 +76,10 @@ export function createDatasetRouter(deps: DatasetRouterDeps): Router<AppState> {
         createUploadDatasetHandler(deps.uploadDatasetHandler, deps.multipartParser)
     );
     router.patch('/:id', createPatchDatasetHandler(deps.patchDatasetHandler));
+    router.patch(
+        '/:id/columns/:columnId',
+        createUpdateColumnAnalysisHandler(deps.updateColumnAnalysisHandler)
+    );
     router.delete('/:id', createDeleteDatasetHandler(deps.deleteDatasetHandler));
 
     router.post('/:id/rows', createInsertRowHandler(deps.insertRowHandler));

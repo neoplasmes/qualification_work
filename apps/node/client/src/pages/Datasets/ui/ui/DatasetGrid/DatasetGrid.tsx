@@ -28,6 +28,7 @@ export const DatasetGrid = ({
     onCellCommit,
     onDraftValueChange,
     onRowContextMenu,
+    onColumnContextMenu,
     onDraftRowBoundsChange,
     onVisibleRangeChange,
 }: DatasetGridProps) => {
@@ -68,6 +69,7 @@ export const DatasetGrid = ({
                             onCellCommit,
                             onDraftValueChange,
                             onRowContextMenu,
+                            onColumnContextMenu,
                             onDraftRowBoundsChange,
                             onVisibleRangeChange,
                         }}

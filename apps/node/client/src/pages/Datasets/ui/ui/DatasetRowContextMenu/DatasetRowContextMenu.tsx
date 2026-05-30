@@ -1,7 +1,6 @@
 import { Plus, Trash2, X } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { Button, IconButton } from '@/shared/ui';
+import { Button, ContextMenu, IconButton } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 
@@ -34,61 +33,13 @@ export const DatasetRowContextMenu = ({
     onConfirmDelete,
     onCancel,
 }: DatasetRowContextMenuProps) => {
-    const menuRef = useRef<HTMLDivElement>(null);
-    const [position, setPosition] = useState({ left: state.x, top: state.y });
-
-    useLayoutEffect(() => {
-        const menu = menuRef.current;
-        if (!menu) {
-            return;
-        }
-
-        const margin = 8;
-        const rect = menu.getBoundingClientRect();
-        const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
-        const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
-        const preferredTop =
-            state.y + rect.height + margin > window.innerHeight
-                ? state.y - rect.height - margin
-                : state.y;
-
-        setPosition({
-            left: Math.min(Math.max(state.x, margin), maxLeft),
-            top: Math.min(Math.max(preferredTop, margin), maxTop),
-        });
-    }, [state.mode, state.x, state.y]);
-
-    useEffect(() => {
-        const handlePointerDown = (event: PointerEvent) => {
-            if (!menuRef.current?.contains(event.target as Node)) {
-                onCancel();
-            }
-        };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                onCancel();
-            }
-        };
-        const handleScroll = () => onCancel();
-
-        document.addEventListener('pointerdown', handlePointerDown, true);
-        document.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('scroll', handleScroll, true);
-
-        return () => {
-            document.removeEventListener('pointerdown', handlePointerDown, true);
-            document.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('scroll', handleScroll, true);
-        };
-    }, [onCancel]);
-
     return (
-        <div
-            ref={menuRef}
+        <ContextMenu
+            x={state.x}
+            y={state.y}
             className={styles['menu']}
-            style={{ left: position.left, top: position.top }}
             data-test-id={datasetsTestIds.rowContextMenu}
-            role="menu"
+            onCancel={onCancel}
         >
             {state.mode === 'actions' ? (
                 <>
@@ -138,6 +89,6 @@ export const DatasetRowContextMenu = ({
                     </div>
                 </div>
             )}
-        </div>
+        </ContextMenu>
     );
 };

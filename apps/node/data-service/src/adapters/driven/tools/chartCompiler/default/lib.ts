@@ -192,9 +192,14 @@ export function buildWhere(
     filters: FilterClause[],
     columnsById: Map<string, ColumnMeta>,
     params: unknown[],
-    datasetId: string
+    datasetId: string,
+    requiredColumnKeys: string[] = []
 ): string {
     const parts: string[] = [`dataset_id = $${pushParam(params, datasetId)}`];
+
+    for (const key of new Set(requiredColumnKeys)) {
+        parts.push(`NULLIF(data->>${sqlString(key)}, '') IS NOT NULL`);
+    }
 
     for (const f of filters) {
         const col = getColumn(columnsById, f.columnId);
@@ -246,6 +251,21 @@ export function buildWhere(
     }
 
     return parts.join(' AND ');
+}
+
+export function measureColumnKey(
+    m: Measure,
+    columnsById: Map<string, ColumnMeta>
+): string | null {
+    if (m.aggregate === 'count') {
+        return null;
+    }
+
+    if (!m.columnId) {
+        throw new Error(`Measure with aggregate=${m.aggregate} requires columnId`);
+    }
+
+    return getColumn(columnsById, m.columnId).key;
 }
 
 const castedSql: Record<string, (k: string) => string> = {

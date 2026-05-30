@@ -13,7 +13,7 @@ COPY apps/go/auth/internal ./internal
 
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o ./bin/auth ./cmd/auth
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12:nonroot AS runner
 
 LABEL org.opencontainers.image.source=https://github.com/neoplasmes/qualification_work
 
@@ -23,4 +23,15 @@ ENV AUTH_PORT=3002
 EXPOSE 3002
 
 USER nonroot
+ENTRYPOINT ["/auth"]
+
+FROM alpine:3.23 AS runner-dev
+
+RUN apk add --no-cache wget
+
+COPY --from=builder /src/bin/auth /auth
+
+ENV AUTH_PORT=3002
+EXPOSE 3002
+
 ENTRYPOINT ["/auth"]

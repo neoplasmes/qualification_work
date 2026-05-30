@@ -34,7 +34,11 @@ import {
     useChartBuilderState,
     type ChartBuilderFields,
 } from '../lib/useChartBuilderState';
-import { ColorPickerControl } from './components';
+import { AnalysisColumnOptions, ColorPickerControl } from './components';
+import {
+    getActiveAnalysisColumnId,
+    isAnalysisColumnEnabled,
+} from './components/AnalysisColumnOptions/lib';
 
 import styles from './DatasetChartBuilder.module.scss';
 
@@ -547,40 +551,55 @@ export const DatasetChartBuilder = ({
     useHasOverflow(builderRef);
 
     const columns = selectedDataset.columns;
+    const allowDisabledAnalysisColumn = Boolean(editChartId);
     const numericColumns = useMemo(
         () => columns.filter(column => column.dataType === 'number'),
         [columns]
     );
 
-    const activeDimensionColumnId = columns.some(c => c.id === dimensionColumnId)
-        ? dimensionColumnId
-        : (columns[0]?.id ?? '');
+    const activeDimensionColumnId = getActiveAnalysisColumnId(
+        columns,
+        dimensionColumnId,
+        allowDisabledAnalysisColumn
+    );
     const activeDimensionColumn = columns.find(c => c.id === activeDimensionColumnId);
 
-    const activeHeatmapYColumnId = columns.some(c => c.id === heatmapYColumnId)
-        ? heatmapYColumnId
-        : (columns[1]?.id ?? columns[0]?.id ?? '');
+    const activeHeatmapYColumnId = getActiveAnalysisColumnId(
+        columns,
+        heatmapYColumnId,
+        allowDisabledAnalysisColumn,
+        1
+    );
     const activeHeatmapYColumn = columns.find(c => c.id === activeHeatmapYColumnId);
 
     // count_distinct works on any column type, other aggregates need numeric
     const measureColumns = aggregate === 'count_distinct' ? columns : numericColumns;
-    const activeMeasureColumnId = measureColumns.some(c => c.id === measureColumnId)
-        ? measureColumnId
-        : (measureColumns[0]?.id ?? '');
+    const activeMeasureColumnId = getActiveAnalysisColumnId(
+        measureColumns,
+        measureColumnId,
+        allowDisabledAnalysisColumn
+    );
 
     const secondMeasureColumns =
         secondAggregate === 'count_distinct' ? columns : numericColumns;
-    const activeSecondMeasureColumnId = secondMeasureColumns.some(
-        c => c.id === secondMeasureColumnId
-    )
-        ? secondMeasureColumnId
-        : (secondMeasureColumns[1]?.id ?? secondMeasureColumns[0]?.id ?? '');
+    const activeSecondMeasureColumnId = getActiveAnalysisColumnId(
+        secondMeasureColumns,
+        secondMeasureColumnId,
+        allowDisabledAnalysisColumn,
+        1
+    );
 
-    const activeSeriesColumnId = columns.some(c => c.id === seriesColumnId)
-        ? seriesColumnId
-        : (columns[0]?.id ?? '');
-    const activeFilterColumn =
-        columns.find(column => column.id === filterColumnId) ?? columns[0];
+    const activeSeriesColumnId = getActiveAnalysisColumnId(
+        columns,
+        seriesColumnId,
+        allowDisabledAnalysisColumn
+    );
+    const activeFilterColumnId = getActiveAnalysisColumnId(
+        columns,
+        filterColumnId,
+        allowDisabledAnalysisColumn
+    );
+    const activeFilterColumn = columns.find(column => column.id === activeFilterColumnId);
 
     // grouping modes available depend on column data type
     const dimGroupingModes = useMemo((): GroupingMode[] => {
@@ -612,6 +631,25 @@ export const DatasetChartBuilder = ({
     }, [activeHeatmapYColumn?.dataType]);
 
     const nullaryFilter = filterOperation === 'is_null' || filterOperation === 'not_null';
+    const selectedAnalysisColumnsEnabled =
+        isAnalysisColumnEnabled(columns, activeDimensionColumnId) &&
+        (chartType !== 'heatmap' ||
+            isAnalysisColumnEnabled(columns, activeHeatmapYColumnId)) &&
+        (!needsColumn(aggregate) ||
+            isAnalysisColumnEnabled(measureColumns, activeMeasureColumnId)) &&
+        (!secondMeasureEnabled ||
+            chartType === 'pie' ||
+            chartType === 'heatmap' ||
+            !needsColumn(secondAggregate) ||
+            isAnalysisColumnEnabled(secondMeasureColumns, activeSecondMeasureColumnId)) &&
+        (!seriesEnabled ||
+            chartType === 'pie' ||
+            chartType === 'heatmap' ||
+            isAnalysisColumnEnabled(columns, activeSeriesColumnId)) &&
+        (!filterEnabled ||
+            (activeFilterColumn
+                ? isAnalysisColumnEnabled(columns, activeFilterColumn.id)
+                : false));
     const canPreview =
         Boolean(activeDimensionColumnId) &&
         (chartType !== 'heatmap' || Boolean(activeHeatmapYColumnId)) &&
@@ -620,7 +658,8 @@ export const DatasetChartBuilder = ({
         (!secondMeasureEnabled ||
             !needsColumn(secondAggregate) ||
             Boolean(activeSecondMeasureColumnId)) &&
-        (!seriesEnabled || Boolean(activeSeriesColumnId));
+        (!seriesEnabled || Boolean(activeSeriesColumnId)) &&
+        selectedAnalysisColumnsEnabled;
 
     // reset grouping mode when switching to a column that doesn't support it
     const handleDimensionColumnChange = (newId: string) => {
@@ -656,7 +695,7 @@ export const DatasetChartBuilder = ({
         }
 
         if (!canPreview) {
-            setChartError('Choose compatible columns for this chart.');
+            setChartError('Choose columns included in analysis for this chart.');
 
             return null;
         }
@@ -938,11 +977,7 @@ export const DatasetChartBuilder = ({
                             handleDimensionColumnChange(event.target.value)
                         }
                     >
-                        {columns.map(column => (
-                            <option key={column.id} value={column.id}>
-                                {column.displayName}
-                            </option>
-                        ))}
+                        <AnalysisColumnOptions columns={columns} />
                     </Select>
                 </label>
 
@@ -955,11 +990,7 @@ export const DatasetChartBuilder = ({
                                 handleHeatmapYColumnChange(event.target.value)
                             }
                         >
-                            {columns.map(column => (
-                                <option key={column.id} value={column.id}>
-                                    {column.displayName}
-                                </option>
-                            ))}
+                            <AnalysisColumnOptions columns={columns} />
                         </Select>
                     </label>
                 )}
@@ -1109,11 +1140,7 @@ export const DatasetChartBuilder = ({
                             value={activeMeasureColumnId}
                             onChange={event => setMeasureColumnId(event.target.value)}
                         >
-                            {measureColumns.map(column => (
-                                <option key={column.id} value={column.id}>
-                                    {column.displayName}
-                                </option>
-                            ))}
+                            <AnalysisColumnOptions columns={measureColumns} />
                         </Select>
                     </label>
                 )}
@@ -1209,11 +1236,9 @@ export const DatasetChartBuilder = ({
                                             setSecondMeasureColumnId(event.target.value)
                                         }
                                     >
-                                        {secondMeasureColumns.map(column => (
-                                            <option key={column.id} value={column.id}>
-                                                {column.displayName}
-                                            </option>
-                                        ))}
+                                        <AnalysisColumnOptions
+                                            columns={secondMeasureColumns}
+                                        />
                                     </Select>
                                 </label>
                             )}
@@ -1261,11 +1286,7 @@ export const DatasetChartBuilder = ({
                                 value={activeSeriesColumnId}
                                 onChange={event => setSeriesColumnId(event.target.value)}
                             >
-                                {columns.map(column => (
-                                    <option key={column.id} value={column.id}>
-                                        {column.displayName}
-                                    </option>
-                                ))}
+                                <AnalysisColumnOptions columns={columns} />
                             </Select>
                         </label>
                         <label className={styles['control']} data-stack="v" data-gap="xs">
@@ -1328,11 +1349,7 @@ export const DatasetChartBuilder = ({
                                 value={activeFilterColumn?.id ?? ''}
                                 onChange={event => setFilterColumnId(event.target.value)}
                             >
-                                {columns.map(column => (
-                                    <option key={column.id} value={column.id}>
-                                        {column.displayName}
-                                    </option>
-                                ))}
+                                <AnalysisColumnOptions columns={columns} />
                             </Select>
                         </label>
 

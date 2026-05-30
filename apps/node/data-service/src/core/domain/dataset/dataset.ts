@@ -18,6 +18,7 @@ export type DatasetColumn = {
     displayName: string;
     dataType: ColumnDataType;
     orderIndex: number;
+    isAnalyzable: boolean;
 };
 
 // database entity for a dataset row

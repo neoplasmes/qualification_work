@@ -14,6 +14,7 @@ export type DatasetColumn = {
     displayName: string;
     dataType: 'number' | 'string' | 'date' | 'bool' | 'day_of_week';
     orderIndex: number;
+    isAnalyzable?: boolean;
 };
 
 export type DatasetMetadata = {
@@ -39,4 +40,11 @@ export type DatasetRowsPage = {
 export type PatchDatasetPayload = {
     datasetId: string;
     name?: string;
+};
+
+export type PatchDatasetColumnPayload = {
+    datasetId: string;
+    columnId: string;
+    orgId: string;
+    isAnalyzable: boolean;
 };

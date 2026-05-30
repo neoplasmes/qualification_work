@@ -27,6 +27,10 @@ export type DatasetGridProps = {
     onCellCommit: (rowId: string, column: DatasetColumn, rawValue: string) => void;
     onDraftValueChange: Dispatch<SetStateAction<Record<string, string>>>;
     onRowContextMenu: (rowIndex: number, position: { x: number; y: number }) => void;
+    onColumnContextMenu: (
+        column: DatasetColumn,
+        position: { x: number; y: number }
+    ) => void;
     onDraftRowBoundsChange: (bounds: DraftRowBounds | null) => void;
     onVisibleRangeChange: (startRow: number, endRow: number) => void;
 };

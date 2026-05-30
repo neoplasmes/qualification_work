@@ -10,6 +10,8 @@ export const datasetsTestIds = {
     lastPageButton: 'datasets-last-page-button',
     addRowButton: 'datasets-add-row-button',
     rowContextMenu: 'datasets-row-context-menu',
+    columnContextMenu: 'datasets-column-context-menu',
+    includeColumnInAnalysisCheckbox: 'datasets-include-column-in-analysis-checkbox',
     insertRowMenuItem: 'datasets-insert-row-menu-item',
     deleteRowMenuItem: 'datasets-delete-row-menu-item',
     confirmInsertButton: 'datasets-confirm-insert-button',

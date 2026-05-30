@@ -4,6 +4,7 @@ import {
     useDeleteRowMutation,
     useInsertRowMutation,
     useLazyGetDatasetRowsQuery,
+    usePatchDatasetColumnMutation,
     useUpdateRowMutation,
     type DatasetColumn,
     type DatasetMetadata,
@@ -15,6 +16,7 @@ import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 import { HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
 import { getInsertRowData, isInsertRowValid, parseDatasetCellValue } from '../../../lib';
 
+import type { DatasetColumnContextMenuState } from '../DatasetColumnContextMenu';
 import { DatasetGrid } from '../DatasetGrid';
 import type { DraftRowBounds, InsertRowDraft } from '../DatasetGrid/types';
 import type { DatasetRowContextMenuState } from '../DatasetRowContextMenu';
@@ -51,12 +53,15 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     const [contextMenu, setContextMenu] = useState<DatasetRowContextMenuState | null>(
         null
     );
+    const [columnContextMenu, setColumnContextMenu] =
+        useState<DatasetColumnContextMenuState | null>(null);
     const [draftRowTop, setDraftRowTop] = useState<number | null>(null);
     const { ref: gridContainerRef, size: gridSize } = useMeasuredSize<HTMLDivElement>();
 
     const [updateRow] = useUpdateRowMutation();
     const [insertRow, insertState] = useInsertRowMutation();
     const [deleteRow, deleteState] = useDeleteRowMutation();
+    const [patchDatasetColumn, patchColumnState] = usePatchDatasetColumnMutation();
     const [fetchRows] = useLazyGetDatasetRowsQuery();
 
     const columns = selectedDataset?.columns ?? [];
@@ -96,6 +101,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         resetCache();
         setInsertDraft(null);
         setContextMenu(null);
+        setColumnContextMenu(null);
     }, [datasetId, resetCache]);
 
     // fetch one chunk; idempotent (skips if cached or in-flight)
@@ -264,8 +270,25 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                 y: position.y,
                 mode: 'actions',
             });
+            setColumnContextMenu(null);
         },
         [getRowAt, insertDraft]
+    );
+
+    const handleColumnContextMenu = useCallback(
+        (column: DatasetColumn, position: { x: number; y: number }) => {
+            if (insertDraft) {
+                return;
+            }
+
+            setColumnContextMenu({
+                column,
+                x: position.x,
+                y: position.y,
+            });
+            setContextMenu(null);
+        },
+        [insertDraft]
     );
 
     const handleInsertBelow = () => {
@@ -298,6 +321,27 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             void requestChunk(0);
         } catch {
             // silent - user can retry
+        }
+    };
+
+    const handleColumnAnalysisToggle = async (
+        column: DatasetColumn,
+        isAnalyzable: boolean
+    ) => {
+        if (!selectedDataset) {
+            return;
+        }
+
+        try {
+            await patchDatasetColumn({
+                datasetId: selectedDataset.dataset.id,
+                orgId: selectedDataset.dataset.orgId,
+                columnId: column.id,
+                isAnalyzable,
+            }).unwrap();
+            setColumnContextMenu(null);
+        } catch {
+            // silent - user can retry from the same menu
         }
     };
 
@@ -358,6 +402,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                         onCellCommit={commitCell}
                         onDraftValueChange={handleDraftValueChange}
                         onRowContextMenu={handleRowContextMenu}
+                        onColumnContextMenu={handleColumnContextMenu}
                         onDraftRowBoundsChange={handleDraftRowBoundsChange}
                         onVisibleRangeChange={handleVisibleRangeChange}
                     />
@@ -367,9 +412,11 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                     insertDraft={insertDraft}
                     draftRowTop={draftRowTop}
                     contextMenu={contextMenu}
+                    columnContextMenu={columnContextMenu}
                     insertValid={isNewRowValid}
                     insertLoading={insertState.isLoading}
                     deleteLoading={deleteState.isLoading}
+                    columnToggleLoading={patchColumnState.isLoading}
                     showScrollToBottom={showScrollToBottom}
                     onScrollToBottom={() => void handleScrollToBottom()}
                     onInsertConfirm={() => void handleInsertConfirm()}
@@ -381,7 +428,13 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                         )
                     }
                     onDeleteConfirm={() => void handleDeleteConfirm()}
-                    onMenuCancel={() => setContextMenu(null)}
+                    onColumnAnalysisToggle={(column, isAnalyzable) =>
+                        void handleColumnAnalysisToggle(column, isAnalyzable)
+                    }
+                    onMenuCancel={() => {
+                        setContextMenu(null);
+                        setColumnContextMenu(null);
+                    }}
                 />
             </div>
         </section>

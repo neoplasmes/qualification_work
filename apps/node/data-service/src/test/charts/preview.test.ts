@@ -1,6 +1,13 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { api, createTestUserWithOrg, startServer, stopServer, truncate } from '../setup';
+import {
+    api,
+    createTestUserWithOrg,
+    dbQuery,
+    startServer,
+    stopServer,
+    truncate,
+} from '../setup';
 import { getColumnId, uploadDataset } from './helpers';
 
 beforeAll(startServer);
@@ -120,6 +127,33 @@ describe('POST /api/charts/preview - errors', () => {
         const res = await api('/api/charts/preview', {
             method: 'POST',
             body: JSON.stringify({ chartType: 'bar' }),
+        });
+
+        expect(res.status).toBe(400);
+    });
+
+    it('rejects configs that use disabled analysis columns', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
+        const cityId = await getColumnId(datasetId, 'city');
+        const scoreId = await getColumnId(datasetId, 'score');
+
+        await dbQuery(
+            `UPDATE data.dataset_columns SET is_analyzable = false WHERE id = $1`,
+            [scoreId]
+        );
+
+        const res = await api('/api/charts/preview', {
+            method: 'POST',
+            body: JSON.stringify({
+                datasetId,
+                chartType: 'bar',
+                config: {
+                    kind: 'bar',
+                    dimension: { columnId: cityId },
+                    measures: [{ columnId: scoreId, aggregate: 'sum' }],
+                },
+            }),
         });
 
         expect(res.status).toBe(400);

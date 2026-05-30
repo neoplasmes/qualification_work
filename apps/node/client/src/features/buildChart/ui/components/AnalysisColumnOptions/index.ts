@@ -1,2 +1,1 @@
 export { AnalysisColumnOptions } from './AnalysisColumnOptions';
-export { ColorPickerControl } from './ColorPickerControl';

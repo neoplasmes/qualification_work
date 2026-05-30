@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -253,6 +253,51 @@ describe('DatasetChartBuilder', () => {
                 }),
             })
         );
+    });
+
+    it('renders non-analyzable columns disabled and defaults to analyzable columns', () => {
+        const disabledDataset = {
+            ...testDataset,
+            columns: testDataset.columns.map(column =>
+                column.id === 'city' ? { ...column, isAnalyzable: false } : column
+            ),
+        };
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder orgId="org-1" selectedDataset={disabledDataset} />
+            </MemoryRouter>
+        );
+
+        const axisSelect = screen.getByLabelText('X axis') as HTMLSelectElement;
+        const cityOption = within(axisSelect).getByRole('option', {
+            name: 'city',
+        }) as HTMLOptionElement;
+
+        expect(cityOption).toBeDisabled();
+        expect(axisSelect.value).toBe('country');
+    });
+
+    it('blocks saving edited charts while a selected column is not analyzable', () => {
+        const disabledDataset = {
+            ...testDataset,
+            columns: testDataset.columns.map(column =>
+                column.id === 'city' ? { ...column, isAnalyzable: false } : column
+            ),
+        };
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder
+                    orgId="org-1"
+                    selectedDataset={disabledDataset}
+                    editChartId="chart-1"
+                    initialFields={{ dimensionColumnId: 'city' }}
+                />
+            </MemoryRouter>
+        );
+
+        expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled();
     });
 
     it('builds correct heatmap config with between filter', async () => {

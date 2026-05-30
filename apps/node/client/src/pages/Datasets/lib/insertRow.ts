@@ -20,7 +20,9 @@ export const isInsertRowValid = (
     columns: DatasetColumn[],
     values: Record<string, string>
 ) =>
-    columns.length > 0 &&
-    columns.every(column =>
-        isValidDatasetCellValue(values[column.key] ?? '', column.dataType)
-    );
+    columns.some(column => (values[column.key] ?? '').trim() !== '') &&
+    columns.every(column => {
+        const raw = values[column.key] ?? '';
+
+        return raw === '' || isValidDatasetCellValue(raw, column.dataType);
+    });

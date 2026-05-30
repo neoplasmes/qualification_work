@@ -1,11 +1,17 @@
 import type { Dataset, DatasetColumn, DatasetRow } from '@/core/domain';
 
+export type DatasetColumnInput = Omit<
+    DatasetColumn,
+    'id' | 'datasetId' | 'isAnalyzable'
+> &
+    Partial<Pick<DatasetColumn, 'isAnalyzable'>>;
+
 export type CreateDatasetPayload = {
     orgId: string;
     name: string;
     // TODO: create enum or smth and reuse across the codebase. This is not the only place where source types are used
     sourceType: 'csv' | 'xlsx' | 'manual';
-    columns: Array<Omit<DatasetColumn, 'id' | 'datasetId'>>;
+    columns: DatasetColumnInput[];
 };
 
 export type DatasetMetadata = {
@@ -103,6 +109,12 @@ export interface DatasetRepo {
         partialData: Record<string, unknown>
     ): Promise<DatasetRow | null>;
 
+    updateColumnAnalysis(
+        datasetId: string,
+        columnId: string,
+        isAnalyzable: boolean
+    ): Promise<DatasetColumn | null>;
+
     /**
      * appends one row with next available row_index, or inserts below afterRowId.
      * uses row-level lock to avoid race
@@ -126,10 +138,7 @@ export interface DatasetRepo {
      * @param datasetId
      * @param columns
      */
-    addColumns(
-        datasetId: string,
-        columns: Array<Omit<DatasetColumn, 'id' | 'datasetId'>>
-    ): Promise<void>;
+    addColumns(datasetId: string, columns: DatasetColumnInput[]): Promise<void>;
 
     /**
      * finds first violation of compound uniqueness by selected column keys

@@ -116,6 +116,50 @@ describe('GET /api/dashboards/:id', () => {
         });
     });
 
+    it('continues to evaluate a saved metric after its column is disabled', async () => {
+        const dashboardId = await createDashboard(orgId);
+
+        const [column] = await dbQuery<{ id: string }>(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index)
+            VALUES
+                ($1, 'amount', 'Amount', 'number', 0)
+            RETURNING id`,
+            [datasetId]
+        );
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES
+                ($1, 0, '{"amount": 10}'::jsonb),
+                ($1, 1, '{"amount": 15}'::jsonb)`,
+            [datasetId]
+        );
+        await api(`/api/dashboards/${dashboardId}/items`, {
+            method: 'POST',
+            body: JSON.stringify({
+                kind: 'metric',
+                datasetId,
+                name: 'Revenue',
+                expression: 'sum(amount)',
+                format: 'currency',
+            }),
+        });
+
+        await dbQuery(
+            `UPDATE data.dataset_columns SET is_analyzable = false WHERE id = $1`,
+            [column.id]
+        );
+
+        const res = await api(`/api/dashboards/${dashboardId}`);
+        const body = (await res.json()) as Dashboard;
+        const metric = body.items.find(item => item.kind === 'metric');
+
+        expect(metric).toMatchObject({
+            kind: 'metric',
+            value: 25,
+        });
+    });
+
     it('returns calculated count metric value for a column', async () => {
         const dashboardId = await createDashboard(orgId);
 

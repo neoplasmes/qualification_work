@@ -7,6 +7,11 @@ export type { InsertRowCommandIO } from './insertRow.command';
 export { PatchDatasetCommand, type PatchDatasetPayload } from './patch.command';
 export type { PatchDatasetCommandIO } from './patch.command';
 export {
+    UpdateColumnAnalysisCommand,
+    type UpdateColumnAnalysisInput,
+} from './updateColumnAnalysis.command';
+export type { UpdateColumnAnalysisCommandIO } from './updateColumnAnalysis.command';
+export {
     CancelMergeCommand,
     type CancelMergeInput,
     CommitMergeCommand,

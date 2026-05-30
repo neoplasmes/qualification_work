@@ -19,6 +19,7 @@ import {
     coerce,
     columnExpr,
     getColumn,
+    measureColumnKey,
     measureExpr,
     numberOrNull,
     type ColumnMeta,
@@ -41,10 +42,24 @@ export async function executeBarOrLineChart(
         ? columnExpr(getColumn(columnsById, config.series.columnId), null)
         : null;
 
-    const whereSql = buildWhere(filters, columnsById, params, ctx.datasetId);
-
     const measureExprs = config.measures.map((m, i) =>
         measureExpr(m, columnsById, `m${i}`)
+    );
+    const requiredKeys = [
+        dim.columnKey,
+        ...(series ? [series.columnKey] : []),
+        ...config.measures.flatMap(measure => {
+            const key = measureColumnKey(measure, columnsById);
+
+            return key ? [key] : [];
+        }),
+    ];
+    const whereSql = buildWhere(
+        filters,
+        columnsById,
+        params,
+        ctx.datasetId,
+        requiredKeys
     );
 
     const dimSortSelects = buildSortSelects(dim, 'dim');

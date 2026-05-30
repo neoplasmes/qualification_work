@@ -4,6 +4,10 @@ import { IconButton } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 
+import {
+    DatasetColumnContextMenu,
+    type DatasetColumnContextMenuState,
+} from '../DatasetColumnContextMenu';
 import type { InsertRowDraft } from '../DatasetGrid/types';
 import {
     DatasetRowContextMenu,
@@ -17,9 +21,11 @@ type DatasetPreviewOverlaysProps = {
     insertDraft: InsertRowDraft | null;
     draftRowTop: number | null;
     contextMenu: DatasetRowContextMenuState | null;
+    columnContextMenu: DatasetColumnContextMenuState | null;
     insertValid: boolean;
     insertLoading: boolean;
     deleteLoading: boolean;
+    columnToggleLoading: boolean;
     showScrollToBottom: boolean;
     onScrollToBottom: () => void;
     onInsertConfirm: () => void;
@@ -27,6 +33,10 @@ type DatasetPreviewOverlaysProps = {
     onInsertBelow: () => void;
     onAskDelete: () => void;
     onDeleteConfirm: () => void;
+    onColumnAnalysisToggle: (
+        column: DatasetColumnContextMenuState['column'],
+        value: boolean
+    ) => void;
     onMenuCancel: () => void;
 };
 
@@ -34,9 +44,11 @@ export const DatasetPreviewOverlays = ({
     insertDraft,
     draftRowTop,
     contextMenu,
+    columnContextMenu,
     insertValid,
     insertLoading,
     deleteLoading,
+    columnToggleLoading,
     showScrollToBottom,
     onScrollToBottom,
     onInsertConfirm,
@@ -44,6 +56,7 @@ export const DatasetPreviewOverlays = ({
     onInsertBelow,
     onAskDelete,
     onDeleteConfirm,
+    onColumnAnalysisToggle,
     onMenuCancel,
 }: DatasetPreviewOverlaysProps) => (
     <>
@@ -65,6 +78,15 @@ export const DatasetPreviewOverlays = ({
                 onInsertBelow={onInsertBelow}
                 onAskDelete={onAskDelete}
                 onConfirmDelete={onDeleteConfirm}
+                onCancel={onMenuCancel}
+            />
+        )}
+
+        {columnContextMenu && (
+            <DatasetColumnContextMenu
+                state={columnContextMenu}
+                disabled={columnToggleLoading}
+                onToggleAnalysis={onColumnAnalysisToggle}
                 onCancel={onMenuCancel}
             />
         )}

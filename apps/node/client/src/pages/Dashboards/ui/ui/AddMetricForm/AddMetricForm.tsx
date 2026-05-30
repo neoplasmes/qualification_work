@@ -66,9 +66,11 @@ export const AddMetricForm = ({
         () => getMetricExpressionColumns(selectedDataset?.columns ?? [], aggregate),
         [aggregate, selectedDataset?.columns]
     );
-    const activeColumnId = expressionColumns.some(column => column.id === columnId)
+    const activeColumnId = expressionColumns.some(
+        column => column.id === columnId && column.isAnalyzable !== false
+    )
         ? columnId
-        : (expressionColumns[0]?.id ?? '');
+        : (expressionColumns.find(column => column.isAnalyzable !== false)?.id ?? '');
     const activeColumn = expressionColumns.find(column => column.id === activeColumnId);
     const builtExpression = buildMetricExpression(aggregate, activeColumn);
     const builtMetricName = buildMetricName(aggregate, activeColumn);
@@ -183,10 +185,18 @@ export const AddMetricForm = ({
                             data-test-id={dashboardsTestIds.metricColumnSelect}
                             value={activeColumnId}
                             onChange={event => setColumnId(event.target.value)}
-                            disabled={expressionColumns.length === 0}
+                            disabled={
+                                !expressionColumns.some(
+                                    column => column.isAnalyzable !== false
+                                )
+                            }
                         >
                             {expressionColumns.map(column => (
-                                <option key={column.id} value={column.id}>
+                                <option
+                                    key={column.id}
+                                    value={column.id}
+                                    disabled={column.isAnalyzable === false}
+                                >
                                     {column.displayName}
                                 </option>
                             ))}

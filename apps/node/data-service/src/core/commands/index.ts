@@ -14,6 +14,7 @@ export {
     InsertRowCommand,
     PatchDatasetCommand,
     PreviewMergeCommand,
+    UpdateColumnAnalysisCommand,
     UpdateRowValuesCommand,
     UploadDatasetCommand,
 } from './dataset';

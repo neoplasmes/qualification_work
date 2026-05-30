@@ -1,11 +1,18 @@
 import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
-import type { ChartConfig, ChartResponse, ChartType, FilterClause } from '@qualification-work/types';
+import type {
+    ChartConfig,
+    ChartResponse,
+    ChartType,
+    FilterClause,
+} from '@qualification-work/types';
 
 import type { Chart } from '@/core/domain';
+import { assertChartConfigUsesAnalyzableColumns } from '@/core/domain/chart';
 import { NotFoundError } from '@/core/errors';
 import type { ChartCompilationContext, ChartRepo } from '@/core/ports/driven/repos';
 import type { ChartCompilerTool } from '@/core/ports/driven/tools';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
 export type PreviewChartDataInput = {
@@ -16,9 +23,10 @@ export type PreviewChartDataInput = {
     orgs: OrgMembership[];
 };
 
-export class PreviewChartDataQuery
-    implements Executable<[PreviewChartDataInput], Promise<ChartResponse>>
-{
+export class PreviewChartDataQuery implements Executable<
+    [PreviewChartDataInput],
+    Promise<ChartResponse>
+> {
     constructor(
         private readonly chartRepo: ChartRepo,
         private readonly compiler: ChartCompilerTool
@@ -32,6 +40,7 @@ export class PreviewChartDataQuery
         }
 
         checkOrgMembership(input.orgs, datasetCtx.orgId);
+        assertChartConfigUsesAnalyzableColumns(input.config, datasetCtx.columns);
 
         // synthetic chart - compiler dispatches on config, id/orgId/name are unused
         const syntheticChart: Chart = {
@@ -52,7 +61,9 @@ export class PreviewChartDataQuery
             columns: datasetCtx.columns,
         };
 
-        return this.compiler.compileAndExecute(ctx, { filterOverrides: input.filterOverrides });
+        return this.compiler.compileAndExecute(ctx, {
+            filterOverrides: input.filterOverrides,
+        });
     }
 }
 

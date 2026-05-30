@@ -134,8 +134,13 @@ export class PgChartRepo implements ChartRepo {
             id: string;
             key: string;
             dataType: ColumnDataType;
+            isAnalyzable: boolean;
         }>(
-            `SELECT id, key, data_type AS "dataType"
+            `SELECT
+                id,
+                key,
+                data_type AS "dataType",
+                is_analyzable AS "isAnalyzable"
              FROM data.dataset_columns
              WHERE dataset_id = $1
              ORDER BY order_index`,
@@ -177,8 +182,13 @@ export class PgChartRepo implements ChartRepo {
             id: string;
             key: string;
             dataType: ColumnDataType;
+            isAnalyzable: boolean;
         }>(
-            `SELECT id, key, data_type AS "dataType"
+            `SELECT
+                id,
+                key,
+                data_type AS "dataType",
+                is_analyzable AS "isAnalyzable"
              FROM data.dataset_columns
              WHERE dataset_id = $1
              ORDER BY order_index`,

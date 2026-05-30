@@ -1,7 +1,14 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { api, createTestUserWithOrg, startServer, stopServer, truncate } from '../setup';
-import { createChart, uploadDataset } from './helpers';
+import {
+    api,
+    createTestUserWithOrg,
+    dbQuery,
+    startServer,
+    stopServer,
+    truncate,
+} from '../setup';
+import { createChart, getColumnId, uploadDataset } from './helpers';
 
 beforeAll(startServer);
 afterAll(stopServer);
@@ -71,6 +78,36 @@ describe('PATCH /api/charts/:id', () => {
             method: 'PATCH',
             body: JSON.stringify({}),
         });
+        expect(res.status).toBe(400);
+    });
+
+    it('rejects changed configs that use disabled analysis columns', async () => {
+        const { orgId } = await createTestUserWithOrg();
+        const datasetId = await uploadDataset(orgId);
+        const cityId = await getColumnId(datasetId, 'city');
+        const scoreId = await getColumnId(datasetId, 'score');
+        const chartId = await createChart(orgId, datasetId, {
+            kind: 'bar',
+            dimension: { columnId: 'col' },
+            measures: [],
+        });
+
+        await dbQuery(
+            `UPDATE data.dataset_columns SET is_analyzable = false WHERE id = $1`,
+            [scoreId]
+        );
+
+        const res = await api(`/api/charts/${chartId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                config: {
+                    kind: 'bar',
+                    dimension: { columnId: cityId },
+                    measures: [{ columnId: scoreId, aggregate: 'sum' }],
+                },
+            }),
+        });
+
         expect(res.status).toBe(400);
     });
 });

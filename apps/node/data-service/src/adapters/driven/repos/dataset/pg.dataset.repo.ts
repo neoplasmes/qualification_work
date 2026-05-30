@@ -24,6 +24,7 @@ const datasetMetadataColumnMap: Partial<Record<keyof DatasetColumn, string>> = {
     displayName: 'display_name AS "displayName"',
     dataType: 'data_type AS "dataType"',
     orderIndex: 'order_index AS "orderIndex"',
+    isAnalyzable: 'is_analyzable AS "isAnalyzable"',
 };
 
 const datasetRowColumnMap: Partial<Record<keyof DatasetRow, string>> = {
@@ -74,19 +75,20 @@ export class PgDatasetRepo implements DatasetRepo {
 
             for (const column of data.columns) {
                 columnPlaceholders.push(
-                    `($${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++})`
+                    `($${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++}, $${columnParamIndex++})`
                 );
                 columnValues.push(
                     datasetId,
                     column.key,
                     column.displayName,
                     column.dataType,
-                    column.orderIndex
+                    column.orderIndex,
+                    column.isAnalyzable ?? true
                 );
             }
 
             await client.query(
-                `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index)
+                `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index, is_analyzable)
                 VALUES ${columnPlaceholders.join(', ')}`,
                 columnValues
             );
@@ -185,7 +187,8 @@ export class PgDatasetRepo implements DatasetRepo {
                     key,
                     ${datasetMetadataColumnMap.displayName},
                     ${datasetMetadataColumnMap.dataType},
-                    ${datasetMetadataColumnMap.orderIndex}
+                    ${datasetMetadataColumnMap.orderIndex},
+                    ${datasetMetadataColumnMap.isAnalyzable}
                 FROM data.dataset_columns
                 WHERE dataset_id = $1
                 ORDER BY order_index`,
@@ -249,7 +252,8 @@ export class PgDatasetRepo implements DatasetRepo {
                    key,
                    ${datasetMetadataColumnMap.displayName},
                    ${datasetMetadataColumnMap.dataType},
-                   ${datasetMetadataColumnMap.orderIndex}
+                   ${datasetMetadataColumnMap.orderIndex},
+                   ${datasetMetadataColumnMap.isAnalyzable}
                 FROM data.dataset_columns
                 WHERE dataset_id = ANY($1::uuid[])
                 ORDER BY dataset_id, order_index`,
@@ -366,12 +370,21 @@ export class PgDatasetRepo implements DatasetRepo {
             const placeholders: string[] = [];
             let i = 1;
             for (const c of data.columns) {
-                placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
-                values.push(datasetId, c.key, c.displayName, c.dataType, c.orderIndex);
+                placeholders.push(
+                    `($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`
+                );
+                values.push(
+                    datasetId,
+                    c.key,
+                    c.displayName,
+                    c.dataType,
+                    c.orderIndex,
+                    c.isAnalyzable ?? true
+                );
             }
 
             await client.query(
-                `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index)
+                `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index, is_analyzable)
                 VALUES ${placeholders.join(', ')}`,
                 values
             );
@@ -407,22 +420,52 @@ export class PgDatasetRepo implements DatasetRepo {
         rowId: string,
         partialData: Record<string, unknown>
     ): Promise<DatasetRow | null> {
-        // jsonb concat (`||`) does shallow merge, so existing keys outside partialData stay intact
+        const keysToDelete = Object.keys(partialData).filter(
+            key => partialData[key] === null
+        );
+        const dataToMerge = Object.fromEntries(
+            Object.entries(partialData).filter(([, value]) => value !== null)
+        );
         const [row] = await this.pool
             .query<DatasetRow>(
                 `UPDATE data.dataset_rows
-                SET data = data || $3::jsonb
+                SET data = (data - $3::text[]) || $4::jsonb
                 WHERE dataset_id = $1 AND id = $2
                 RETURNING
                     id,
                     ${datasetRowColumnMap.datasetId},
                     ${datasetRowColumnMap.rowIndex},
                     data`,
-                [datasetId, rowId, JSON.stringify(partialData)]
+                [datasetId, rowId, keysToDelete, JSON.stringify(dataToMerge)]
             )
             .then(result => result.rows);
 
         return row ?? null;
+    }
+
+    async updateColumnAnalysis(
+        datasetId: string,
+        columnId: string,
+        isAnalyzable: boolean
+    ): Promise<DatasetColumn | null> {
+        const [column] = await this.pool
+            .query<DatasetColumn>(
+                `UPDATE data.dataset_columns
+                SET is_analyzable = $3
+                WHERE dataset_id = $1 AND id = $2
+                RETURNING
+                    id,
+                    ${datasetMetadataColumnMap.datasetId},
+                    key,
+                    ${datasetMetadataColumnMap.displayName},
+                    ${datasetMetadataColumnMap.dataType},
+                    ${datasetMetadataColumnMap.orderIndex},
+                    ${datasetMetadataColumnMap.isAnalyzable}`,
+                [datasetId, columnId, isAnalyzable]
+            )
+            .then(result => result.rows);
+
+        return column ?? null;
     }
 
     async insertRow(
@@ -576,7 +619,10 @@ export class PgDatasetRepo implements DatasetRepo {
 
     async addColumns(
         datasetId: string,
-        columns: Array<Omit<DatasetColumn, 'id' | 'datasetId'>>
+        columns: Array<
+            Omit<DatasetColumn, 'id' | 'datasetId' | 'isAnalyzable'> &
+                Partial<Pick<DatasetColumn, 'isAnalyzable'>>
+        >
     ): Promise<void> {
         if (columns.length === 0) {
             return;
@@ -587,13 +633,20 @@ export class PgDatasetRepo implements DatasetRepo {
         let i = 1;
 
         for (const c of columns) {
-            placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
-            values.push(datasetId, c.key, c.displayName, c.dataType, c.orderIndex);
+            placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
+            values.push(
+                datasetId,
+                c.key,
+                c.displayName,
+                c.dataType,
+                c.orderIndex,
+                c.isAnalyzable ?? true
+            );
         }
 
         // ON CONFLICT keeps existing column intact - we only add missing ones
         await this.pool.query(
-            `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index)
+            `INSERT INTO data.dataset_columns (dataset_id, key, display_name, data_type, order_index, is_analyzable)
             VALUES ${placeholders.join(', ')}
             ON CONFLICT (dataset_id, key) DO NOTHING`,
             values

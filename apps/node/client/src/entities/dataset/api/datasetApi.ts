@@ -4,6 +4,7 @@ import type {
     DatasetMetadata,
     DatasetRow,
     DatasetRowsPage,
+    PatchDatasetColumnPayload,
     PatchDatasetPayload,
 } from './types';
 
@@ -50,6 +51,21 @@ export const datasetApi = api.injectEndpoints({
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Datasets', id: 'LIST' },
                 { type: 'Datasets', id: arg.datasetId },
+            ],
+        }),
+        patchDatasetColumn: builder.mutation<
+            DatasetMetadata['columns'][number],
+            PatchDatasetColumnPayload
+        >({
+            query: ({ datasetId, columnId, orgId, isAnalyzable }) => ({
+                url: `/data/datasets/${datasetId}/columns/${columnId}?orgId=${encodeURIComponent(orgId)}`,
+                method: 'PATCH',
+                body: { isAnalyzable },
+            }),
+            invalidatesTags: (_result, _error, arg) => [
+                { type: 'Datasets', id: 'LIST' },
+                { type: 'Datasets', id: arg.datasetId },
+                { type: 'DatasetRows', id: arg.datasetId },
             ],
         }),
         getDatasetRows: builder.query<
@@ -126,6 +142,7 @@ export const {
     useLazyGetDatasetMetadataQuery,
     useLazyGetDatasetRowsQuery,
     useListDatasetsQuery,
+    usePatchDatasetColumnMutation,
     usePatchDatasetMutation,
     useUpdateRowMutation,
 } = datasetApi;

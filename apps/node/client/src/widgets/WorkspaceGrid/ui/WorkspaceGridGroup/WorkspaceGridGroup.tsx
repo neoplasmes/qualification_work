@@ -47,7 +47,6 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
 
     const savedSizes = useSelector(selectPanelSizes(pageKey ?? ''));
 
-    // always-fresh ref: updated before useMemo so re-runs always get current Redux sizes
     const savedSizesRef = useRef(savedSizes);
     savedSizesRef.current = savedSizes;
 
@@ -60,7 +59,6 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
     const collapseRightRef = useRef(collapseRight);
     collapseRightRef.current = collapseRight;
 
-    // always-fresh callback: reads current sizes of all panels and persists to Redux
     const onResizeEndRef = useRef<() => void>(() => {});
     onResizeEndRef.current = () => {
         if (!pageKey) {
@@ -146,7 +144,6 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         return linked;
     }, [children, direction]);
 
-    // always-fresh fit fn so the collapse-change effect can call it without re-subscribing
     const applyFitRef = useRef<(() => void) | null>(null);
 
     useLayoutEffect(() => {
@@ -162,7 +159,6 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
                     ? groupElement.clientWidth
                     : groupElement.clientHeight;
 
-            // skip collapsed edge panels so the remaining panels fill the space
             const visible = new Map<unknown, WorkspaceGridPanelModel>();
             let idx = 0;
             const total = panelModels.current.size;
@@ -177,7 +173,6 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
                 idx++;
             }
 
-            // resizerss are physical 8px flex items; subtract their total width
             const n = visible.size;
             const totalGapPx = n > 1 ? 8 * (n - 1) : 0;
 
@@ -198,7 +193,6 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         };
     }, [direction, panelModels.current]);
 
-    // re-fit when collapse state toggles
     useLayoutEffect(() => {
         applyFitRef.current?.();
     }, [collapseLeft, collapseRight]);

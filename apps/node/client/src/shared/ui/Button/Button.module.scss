@@ -46,15 +46,17 @@
     min-height: 44px;
 }
 
-.icon {
-    --icon-button-padding: var(--spacing-sm);
+// default padding lives in :where(.icon) so global data-p attrs override it
+:where(.icon) {
+    padding: var(--spacing-sm);
+}
 
+.icon {
     cursor: pointer;
 
     display: inline-grid;
     place-items: center;
 
-    padding: var(--icon-button-padding);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
 
@@ -82,14 +84,6 @@
     svg {
         stroke-width: var(--icon-stroke-width, 2);
     }
-}
-
-.size-sm.icon {
-    --icon-button-padding: var(--spacing-xs);
-}
-
-.size-md.icon {
-    --icon-button-padding: var(--spacing-sm);
 }
 
 .danger {

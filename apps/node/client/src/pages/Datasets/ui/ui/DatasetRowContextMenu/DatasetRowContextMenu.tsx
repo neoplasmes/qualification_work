@@ -80,7 +80,7 @@ export const DatasetRowContextMenu = ({
                         <IconButton
                             data-test-id={datasetsTestIds.cancelDeleteRowButton}
                             tone="plain"
-                            size="sm"
+                            data-p="xs"
                             aria-label="Cancel delete"
                             onClick={onCancel}
                         >

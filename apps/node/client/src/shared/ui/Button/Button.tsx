@@ -1,24 +1,26 @@
-import { Loader2 } from 'lucide-react';
-import type { ButtonHTMLAttributes, CSSProperties, FC, ReactNode } from 'react';
-import { Link, type LinkProps } from 'react-router';
+import { Loader2, type LucideIcon } from 'lucide-react';
+import type {
+    ButtonHTMLAttributes,
+    ComponentProps,
+    CSSProperties,
+    FC,
+    ReactElement,
+    ReactNode,
+} from 'react';
 
 import styles from './Button.module.scss';
 
 type ButtonTone = 'default' | 'danger' | 'ghost' | 'plain' | 'transparent' | 'nav';
 type ButtonSize = 'sm' | 'md';
 
-type BaseButtonProps = {
-    tone?: ButtonTone;
-    size?: ButtonSize;
-};
-
-type BaseIconProps = {
-    iconPadding?: IconPadding;
-};
+// only a lucide icon element is allowed as IconButton children
+type LucideElement = ReactElement<ComponentProps<LucideIcon>, LucideIcon>;
 
 const loader: ReactNode = <Loader2 className={styles['loader']} size={16} aria-hidden />;
 
-type ButtonProps = BaseButtonProps & {
+type ButtonProps = {
+    tone?: ButtonTone;
+    size?: ButtonSize;
     isLoading?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -35,7 +37,7 @@ export const Button: FC<ButtonProps> = ({
     <button
         // eslint-disable-next-line react/button-has-type
         type={type}
-        className={getButtonClassName('button', tone, size, className)}
+        className={getButtonClassName(tone, size, className)}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
         {...props}
@@ -45,18 +47,18 @@ export const Button: FC<ButtonProps> = ({
     </button>
 );
 
-type IconButtonProps = BaseButtonProps &
-    BaseIconProps & {
-        isLoading?: boolean;
-        iconStrokeWidth?: number;
-    } & ButtonHTMLAttributes<HTMLButtonElement>;
+type IconButtonProps = {
+    tone?: ButtonTone;
+    isLoading?: boolean;
+    iconStrokeWidth?: number;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
+        children: LucideElement;
+    };
 
 export const IconButton: FC<IconButtonProps> = ({
     tone = 'default',
-    size = 'md',
     isLoading = false,
     className,
-    iconPadding,
     iconStrokeWidth,
     style,
     type = 'button',
@@ -67,8 +69,7 @@ export const IconButton: FC<IconButtonProps> = ({
     <button
         // eslint-disable-next-line react/button-has-type
         type={type}
-        className={getButtonClassName('icon', tone, size, className)}
-        data-icon-p={iconPadding}
+        className={getIconClassName(tone, className)}
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
         style={getIconButtonStyle(style, iconStrokeWidth)}
@@ -78,38 +79,20 @@ export const IconButton: FC<IconButtonProps> = ({
     </button>
 );
 
-type ButtonLinkProps = BaseButtonProps & LinkProps;
+const getButtonClassName = (tone: ButtonTone, size: ButtonSize, className?: string) => {
+    let result = `${styles['button']} ${styles[`size-${size}`]}`;
+    if (tone !== 'default') {
+        result += ` ${styles[tone]}`;
+    }
+    if (className) {
+        result += ` ${className}`;
+    }
 
-export const ButtonLink: FC<ButtonLinkProps> = ({
-    tone = 'default',
-    size = 'md',
-    className,
-    ...props
-}) => <Link className={getButtonClassName('button', tone, size, className)} {...props} />;
+    return result;
+};
 
-type IconButtonLinkProps = BaseButtonProps & BaseIconProps & LinkProps;
-
-export const IconButtonLink: FC<IconButtonLinkProps> = ({
-    tone = 'default',
-    size = 'md',
-    iconPadding,
-    className,
-    ...props
-}) => (
-    <Link
-        className={getButtonClassName('icon', tone, size, className)}
-        data-icon-p={iconPadding}
-        {...props}
-    />
-);
-
-const getButtonClassName = (
-    base: 'button' | 'icon',
-    tone: ButtonTone,
-    size: ButtonSize,
-    className?: string
-) => {
-    let result = `${styles[base]} ${styles[`size-${size}`]}`;
+const getIconClassName = (tone: ButtonTone, className?: string) => {
+    let result = styles['icon'] ?? '';
     if (tone !== 'default') {
         result += ` ${styles[tone]}`;
     }

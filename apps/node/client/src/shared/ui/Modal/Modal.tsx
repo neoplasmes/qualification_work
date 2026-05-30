@@ -71,7 +71,7 @@ export const Modal = ({
                 <div data-stack="h" data-align="center" data-justify="between">
                     <span className={styles['title']}>{title}</span>
                     <IconButton
-                        size="sm"
+                        data-p="xs"
                         tone="ghost"
                         data-test-id={closeButtonTestId}
                         aria-label="Close modal"

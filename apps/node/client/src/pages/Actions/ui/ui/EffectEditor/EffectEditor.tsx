@@ -190,7 +190,7 @@ const EffectHeader = ({
         <div data-stack="h" data-gap="xs">
             <IconButton
                 tone="transparent"
-                iconPadding="none"
+                data-p="none"
                 iconStrokeWidth={2.6}
                 aria-label={collapsed ? 'Expand effect' : 'Collapse effect'}
                 onClick={onToggleCollapse}
@@ -199,7 +199,7 @@ const EffectHeader = ({
             </IconButton>
             <IconButton
                 tone="transparent"
-                iconPadding="none"
+                data-p="none"
                 iconStrokeWidth={2.6}
                 aria-label="Move effect up"
                 disabled={disabled || index === 0}
@@ -214,7 +214,7 @@ const EffectHeader = ({
             </IconButton>
             <IconButton
                 tone="transparent"
-                iconPadding="none"
+                data-p="none"
                 iconStrokeWidth={2.6}
                 aria-label="Move effect down"
                 disabled={disabled || index === effectsCount - 1}
@@ -229,7 +229,7 @@ const EffectHeader = ({
             </IconButton>
             <IconButton
                 tone="transparent"
-                iconPadding="none"
+                data-p="none"
                 iconStrokeWidth={2.6}
                 aria-label="Remove effect"
                 disabled={disabled || effectsCount === 1}

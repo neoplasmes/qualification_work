@@ -44,26 +44,25 @@ declare global {
     type Justify = 'start' | 'center' | 'end' | 'between';
     type Align = 'start' | 'center' | 'end' | 'stretch';
     type Wrap = 'wrap' | 'nowrap';
-    type IconPadding = 'none' | Spacing;
+    type Padding = 'none' | Spacing;
 }
 
 declare module 'react' {
     interface HTMLAttributes<T> {
         'data-stack'?: 'h' | 'v';
         'data-gap'?: Spacing;
-        'data-p'?: Spacing;
-        'data-px'?: Spacing;
-        'data-py'?: Spacing;
-        'data-pt'?: Spacing;
-        'data-pr'?: Spacing;
-        'data-pb'?: Spacing;
-        'data-pl'?: Spacing;
+        'data-p'?: Padding;
+        'data-px'?: Padding;
+        'data-py'?: Padding;
+        'data-pt'?: Padding;
+        'data-pr'?: Padding;
+        'data-pb'?: Padding;
+        'data-pl'?: Padding;
         'data-justify'?: Justify;
         'data-align'?: Align;
         'data-wrap'?: Wrap;
         'data-grow'?: boolean | '';
         'data-flex'?: boolean | '';
         'data-display'?: Display;
-        'data-icon-p'?: IconPadding;
     }
 }

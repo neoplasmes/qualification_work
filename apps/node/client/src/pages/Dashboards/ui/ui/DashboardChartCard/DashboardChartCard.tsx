@@ -51,7 +51,7 @@ export const DashboardChartCard = ({
                 <div data-stack="h" className={styles['card-actions']}>
                     <IconButton
                         tone="plain"
-                        iconPadding="none"
+                        data-p="none"
                         iconStrokeWidth={2.6}
                         aria-label={`Move ${chart?.name ?? item.chartId} up`}
                         disabled={index === 0 || reorderLoading}
@@ -61,7 +61,7 @@ export const DashboardChartCard = ({
                     </IconButton>
                     <IconButton
                         tone="plain"
-                        iconPadding="none"
+                        data-p="none"
                         iconStrokeWidth={2.6}
                         aria-label={`Move ${chart?.name ?? item.chartId} down`}
                         disabled={index === itemsCount - 1 || reorderLoading}
@@ -71,7 +71,7 @@ export const DashboardChartCard = ({
                     </IconButton>
                     <IconButton
                         tone="plain"
-                        iconPadding="none"
+                        data-p="none"
                         iconStrokeWidth={2.6}
                         aria-label={`Remove ${chart?.name ?? item.chartId}`}
                         disabled={removing}

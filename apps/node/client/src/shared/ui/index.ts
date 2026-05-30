@@ -1,5 +1,5 @@
 export { Badge } from './Badge';
-export { Button, ButtonLink, IconButton, IconButtonLink } from './Button';
+export { Button, IconButton } from './Button';
 export { Card } from './Card';
 export { Checkbox } from './Checkbox';
 export { ClientOnlyDeffered } from './ClientOnlyDeffered';

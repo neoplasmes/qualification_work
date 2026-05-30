@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { Check, X } from 'lucide-react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Button, IconButton } from './Button';
@@ -20,26 +21,23 @@ describe('Button', () => {
     it('renders icon button disabled loading state', () => {
         render(
             <IconButton isLoading aria-label="Refresh">
-                R
+                <Check aria-hidden />
             </IconButton>
         );
 
         expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled();
     });
 
-    it('passes icon padding through data attribute', () => {
+    it('renders icon child and forwards layout padding attribute', () => {
         render(
-            <IconButton iconPadding="none" aria-label="Close">
-                X
+            <IconButton data-p="none" aria-label="Close">
+                <X aria-hidden />
             </IconButton>
         );
 
-        expect(screen.getByRole('button', { name: 'Close' })).toHaveAttribute(
-            'data-icon-p',
-            'none'
-        );
-        expect(screen.getByRole('button', { name: 'Close' })).not.toHaveAttribute(
-            'style'
-        );
+        const button = screen.getByRole('button', { name: 'Close' });
+        expect(button).toHaveAttribute('data-p', 'none');
+        expect(button.querySelector('svg')).toBeInTheDocument();
+        expect(button).not.toHaveAttribute('style');
     });
 });

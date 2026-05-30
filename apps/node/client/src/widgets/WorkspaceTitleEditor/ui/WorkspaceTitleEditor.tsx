@@ -102,7 +102,7 @@ export const WorkspaceTitleEditor = ({
                     onKeyDown={handleKeyDown}
                 />
                 <IconButton
-                    size="sm"
+                    data-p="xs"
                     aria-label="Save name"
                     disabled={saving}
                     onMouseDown={event => event.preventDefault()}
@@ -111,7 +111,7 @@ export const WorkspaceTitleEditor = ({
                     <Check size={16} />
                 </IconButton>
                 <IconButton
-                    size="sm"
+                    data-p="xs"
                     aria-label="Cancel rename"
                     disabled={saving}
                     onMouseDown={event => event.preventDefault()}
@@ -127,12 +127,12 @@ export const WorkspaceTitleEditor = ({
                 <h2 className={styles['title']}>{shownTitle}</h2>
                 {editable && (
                     <IconButton
-                        size="sm"
                         tone="ghost"
                         aria-label="Rename"
                         data-test-id={editButtonTestId}
                         onClick={() => setEditing(true)}
-                        iconPadding="none"
+                        data-px="none"
+                        data-pb="none"
                         data-pt="xs"
                     >
                         <PencilLine size={16} />

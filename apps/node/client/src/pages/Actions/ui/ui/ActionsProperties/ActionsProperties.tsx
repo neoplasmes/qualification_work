@@ -1,9 +1,7 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useDispatch } from 'react-redux';
-
-import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { usePatchActionMutation } from '@/features/manageActions';
@@ -13,7 +11,15 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { Badge, Button, Card, PanelPlaceholder, StatusMessage, Table } from '@/shared/ui';
+import {
+    Badge,
+    Button,
+    Card,
+    EditableText,
+    PanelPlaceholder,
+    StatusMessage,
+    Table,
+} from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { canMutate } from '../../../lib';
@@ -107,17 +113,50 @@ export const ActionsProperties = ({
         return <PanelPlaceholder>Select an action to view properties.</PanelPlaceholder>;
     }
 
-    return (
-        <section data-display="grid" data-gap="md" aria-label="Action properties">
-            <WorkspaceTitleEditor
+    let titleContent: ReactNode;
+
+    if (canMutate(org?.role)) {
+        titleContent = (
+            <EditableText
                 title={selectedAction.name}
                 fallbackTitle="Untitled action"
-                editable={canMutate(org?.role)}
                 saving={patchActionState.isLoading}
                 editButtonTestId={actionsTestIds.renameButton}
                 inputTestId={actionsTestIds.renameInput}
                 onRename={handleRename}
             />
+        );
+    } else {
+        titleContent = (
+            <h2 className={styles['title']}>
+                {selectedAction.name.trim() || 'Untitled action'}
+            </h2>
+        );
+    }
+
+    let datasetsContent: ReactNode;
+
+    if (affectedDatasets.length === 0) {
+        datasetsContent = <span className={styles['empty-meta']}>No datasets</span>;
+    } else {
+        datasetsContent = affectedDatasets.map(datasetId => {
+            const datasetName = datasetsById.get(datasetId) ?? 'Unknown dataset';
+
+            return (
+                <Badge
+                    key={datasetId}
+                    className={styles['dataset-badge']}
+                    title={datasetName}
+                >
+                    {datasetName}
+                </Badge>
+            );
+        });
+    }
+
+    return (
+        <section data-display="grid" data-gap="md" aria-label="Action properties">
+            {titleContent}
 
             {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
@@ -132,20 +171,9 @@ export const ActionsProperties = ({
                 ]}
             />
 
-            <Card
-                className={styles['card']}
-                data-display="grid"
-                data-gap="md"
-                data-p="md"
-            >
+            <Card className={styles['card']} data-stack="v" data-gap="sm" data-p="md">
                 <span className={styles['eyebrow']}>Datasets</span>
-                <div className={styles['meta']}>
-                    {affectedDatasets.map(datasetId => (
-                        <Badge key={datasetId}>
-                            {datasetsById.get(datasetId) ?? 'Unknown dataset'}
-                        </Badge>
-                    ))}
-                </div>
+                <div className={styles['datasets-list']}>{datasetsContent}</div>
             </Card>
 
             <Card

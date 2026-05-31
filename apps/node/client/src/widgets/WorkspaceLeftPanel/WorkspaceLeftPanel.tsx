@@ -5,8 +5,6 @@ import { EmptyState, IconButton, Separator, StatusMessage } from '@/shared/ui';
 
 import styles from './WorkspaceLeftPanel.module.scss';
 
-const workspaceLeftPanelActionIconSize = 20;
-
 export type WorkspaceLeftPanelAction = {
     label: string;
     Icon: LucideIcon;
@@ -51,11 +49,18 @@ export const WorkspaceLeftPanel = ({
         data-flex
         data-test-id={testId}
     >
-        <div data-stack="h" data-align="center" data-justify="between" data-px="md">
+        <div
+            className={styles['top-line-block']}
+            data-stack="h"
+            data-align="center"
+            data-justify="between"
+            data-px="md"
+        >
             <h1 className={styles['title']}>{title}</h1>
             {action ? (
                 <IconButton
                     tone="nav"
+                    data-p="none"
                     data-test-id={action.testId}
                     disabled={action.disabled}
                     isLoading={action.isLoading}
@@ -63,7 +68,7 @@ export const WorkspaceLeftPanel = ({
                     aria-label={action.label}
                     onClick={action.onClick}
                 >
-                    <action.Icon size={workspaceLeftPanelActionIconSize} />
+                    <action.Icon size={20} strokeWidth={2.4} />
                 </IconButton>
             ) : null}
         </div>

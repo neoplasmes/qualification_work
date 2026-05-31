@@ -8,7 +8,7 @@ import type { RequestHandlerType } from '@/shared/appState';
 
 const updateRowSchema = z.object({
     datasetId: z.uuid(),
-    rowId: z.uuid(),
+    rowIds: z.array(z.uuid()).min(1),
     orgId: z.uuid(),
     values: z.record(z.string(), z.unknown()),
 });
@@ -18,11 +18,14 @@ export function createUpdateRowHandler(
 ): RequestHandlerType {
     return async ({ request, response }) => {
         const orgIdFromRequest = request.query.orgId ?? request.getHeader('x-org-id');
-        const body = await request.json<{ values?: Record<string, unknown> }>();
+        const body = await request.json<{
+            rowIds?: string[];
+            values?: Record<string, unknown>;
+        }>();
 
         const input = parseWithZod(updateRowSchema, {
             datasetId: request.params.id,
-            rowId: request.params.rowId,
+            rowIds: body.rowIds,
             orgId: orgIdFromRequest,
             values: body.values,
         });

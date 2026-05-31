@@ -1,0 +1,47 @@
+@use '../../../../../../shared/ui/styles/typography.scss' as typography;
+
+.tooltip {
+    min-width: 160px;
+    text-align: center;
+}
+
+.tooltip-title {
+    width: 100%;
+    border-bottom: 1px solid rgb(255 255 255 / 10%);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.tooltip-row {
+    width: 100%;
+    min-width: 0;
+}
+
+.tooltip-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.tooltip-name {
+    @include typography.text-xs;
+
+    overflow: hidden;
+
+    color: var(--color-on-surface-variant);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tooltip-value {
+    @include typography.text-xs-medium;
+
+    color: var(--color-on-surface);
+    white-space: nowrap;
+}
+
+.tooltip-delta {
+    @include typography.text-xs;
+}

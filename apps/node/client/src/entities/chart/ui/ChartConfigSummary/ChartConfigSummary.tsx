@@ -15,6 +15,7 @@ type Props = {
     config: Record<string, unknown>;
     columns: readonly ChartSummaryColumn[];
     className?: string;
+    size?: 'default' | 'small';
 };
 
 type ChartSummaryColumn = {
@@ -43,7 +44,13 @@ type SliceLike = {
     topN?: number;
 };
 
-export const ChartConfigSummary = ({ chartType, config, columns, className }: Props) => {
+export const ChartConfigSummary = ({
+    chartType,
+    config,
+    columns,
+    className,
+    size = 'default',
+}: Props) => {
     const colName = (id: string | undefined): string => {
         if (!id) {
             return '?';
@@ -227,9 +234,13 @@ export const ChartConfigSummary = ({ chartType, config, columns, className }: Pr
         );
     };
 
-    return (
-        <p className={[styles['summary'], className].filter(Boolean).join(' ')}>
-            {renderBody()}
-        </p>
-    );
+    const classNames = [
+        styles['summary'],
+        size === 'small' ? styles['small'] : '',
+        className,
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    return <p className={classNames}>{renderBody()}</p>;
 };

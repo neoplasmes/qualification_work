@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
+import type { GridSelection } from '@glideapps/glide-data-grid';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type SetStateAction,
+} from 'react';
 
 import {
     useDeleteRowMutation,
@@ -13,7 +21,7 @@ import {
 
 import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
-import { HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
+import { EMPTY_GRID_SELECTION, HEADER_H, ROW_H, ROWS_PAGE_SIZE } from '../../../const';
 import { getInsertRowData, isInsertRowValid, parseDatasetCellValue } from '../../../lib';
 
 import type { DatasetColumnContextMenuState } from '../DatasetColumnContextMenu';
@@ -55,6 +63,8 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
     );
     const [columnContextMenu, setColumnContextMenu] =
         useState<DatasetColumnContextMenuState | null>(null);
+    const [gridSelection, setGridSelection] =
+        useState<GridSelection>(EMPTY_GRID_SELECTION);
     const [draftRowTop, setDraftRowTop] = useState<number | null>(null);
     const { ref: gridContainerRef, size: gridSize } = useMeasuredSize<HTMLDivElement>();
 
@@ -102,6 +112,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         setInsertDraft(null);
         setContextMenu(null);
         setColumnContextMenu(null);
+        setGridSelection(EMPTY_GRID_SELECTION);
     }, [datasetId, resetCache]);
 
     // fetch one chunk; idempotent (skips if cached or in-flight)
@@ -166,6 +177,39 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
         [loadedChunks]
     );
 
+    // ids of every loaded row touched by the native selection (row markers, the
+    // active range, and any extra range rectangles); the draft row is skipped
+    const touchedRowIds = useMemo(() => {
+        const draftIndex = insertDraft?.visualIndex ?? null;
+        const visualRows = new Set<number>(gridSelection.rows.toArray());
+        const current = gridSelection.current;
+        if (current) {
+            for (const rect of [current.range, ...current.rangeStack]) {
+                for (let r = rect.y; r < rect.y + rect.height; r++) {
+                    visualRows.add(r);
+                }
+            }
+        }
+
+        const ids: string[] = [];
+        const seen = new Set<string>();
+        for (const visualRow of visualRows) {
+            if (draftIndex !== null && visualRow === draftIndex) {
+                continue;
+            }
+
+            const sourceRow =
+                draftIndex !== null && visualRow > draftIndex ? visualRow - 1 : visualRow;
+            const row = getRowAt(sourceRow);
+            if (row && !seen.has(row.id)) {
+                seen.add(row.id);
+                ids.push(row.id);
+            }
+        }
+
+        return ids;
+    }, [gridSelection, insertDraft, getRowAt]);
+
     const handleVisibleRangeChange = useCallback(
         (startRow: number, endRow: number) => {
             const startChunk = Math.max(0, Math.floor(startRow / ROWS_PAGE_SIZE));
@@ -210,7 +254,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             const batch = new Map(pendingEditsRef.current);
             pendingEditsRef.current.clear();
             for (const [rowId, values] of batch) {
-                void updateRow({ datasetId: dsId, orgId, rowId, values });
+                void updateRow({ datasetId: dsId, orgId, rowIds: [rowId], values });
             }
         }, 1000);
 
@@ -263,16 +307,20 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                 return;
             }
 
+            // bulk only when the clicked row is part of a multi-row selection
+            const isMulti = touchedRowIds.length > 1 && touchedRowIds.includes(row.id);
+
             setContextMenu({
                 rowId: row.id,
                 rowIndex,
+                selectedRowIds: isMulti ? touchedRowIds : [row.id],
                 x: position.x,
                 y: position.y,
                 mode: 'actions',
             });
             setColumnContextMenu(null);
         },
-        [getRowAt, insertDraft]
+        [getRowAt, insertDraft, touchedRowIds]
     );
 
     const handleColumnContextMenu = useCallback(
@@ -354,9 +402,37 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
             await deleteRow({
                 datasetId: selectedDataset.dataset.id,
                 orgId: selectedDataset.dataset.orgId,
-                rowId: contextMenu.rowId,
+                rowIds: contextMenu.selectedRowIds,
             }).unwrap();
             setContextMenu(null);
+            setGridSelection(EMPTY_GRID_SELECTION);
+            resetCache();
+            void requestChunk(0);
+        } catch {
+            // silent - user can retry
+        }
+    };
+
+    const handleClearSelected = async () => {
+        if (!selectedDataset || !contextMenu) {
+            return;
+        }
+
+        // clear every cell of the selected rows by nulling all column keys
+        const values: Record<string, null> = {};
+        for (const column of columns) {
+            values[column.key] = null;
+        }
+
+        try {
+            await updateRow({
+                datasetId: selectedDataset.dataset.id,
+                orgId: selectedDataset.dataset.orgId,
+                rowIds: contextMenu.selectedRowIds,
+                values,
+            }).unwrap();
+            setContextMenu(null);
+            setGridSelection(EMPTY_GRID_SELECTION);
             resetCache();
             void requestChunk(0);
         } catch {
@@ -399,6 +475,8 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                         gridWidth={gridSize.w}
                         gridHeight={gridHeight}
                         scrollToBottomSignal={scrollToBottomSignal}
+                        gridSelection={gridSelection}
+                        onGridSelectionChange={setGridSelection}
                         onCellCommit={commitCell}
                         onDraftValueChange={handleDraftValueChange}
                         onRowContextMenu={handleRowContextMenu}
@@ -422,6 +500,7 @@ export const DatasetPreview = ({ selectedDataset }: DatasetPreviewProps) => {
                     onInsertConfirm={() => void handleInsertConfirm()}
                     onInsertCancel={() => setInsertDraft(null)}
                     onInsertBelow={handleInsertBelow}
+                    onClearSelected={() => void handleClearSelected()}
                     onAskDelete={() =>
                         setContextMenu(current =>
                             current ? { ...current, mode: 'delete' } : current

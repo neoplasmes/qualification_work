@@ -8,17 +8,18 @@ import type { RequestHandlerType } from '@/shared/appState';
 
 const deleteRowSchema = z.object({
     datasetId: z.uuid(),
-    rowId: z.uuid(),
+    rowIds: z.array(z.uuid()).min(1),
     orgId: z.uuid(),
 });
 
 export function createDeleteRowHandler(handler: DeleteRowCommand): RequestHandlerType {
     return async ({ request, response }) => {
         const orgIdFromRequest = request.query.orgId ?? request.getHeader('x-org-id');
+        const body = await request.json<{ rowIds?: string[] }>();
 
         const input = parseWithZod(deleteRowSchema, {
             datasetId: request.params.id,
-            rowId: request.params.rowId,
+            rowIds: body.rowIds,
             orgId: orgIdFromRequest,
         });
 

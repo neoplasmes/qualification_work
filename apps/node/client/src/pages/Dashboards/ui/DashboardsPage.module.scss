@@ -1,7 +1,13 @@
+@use '../../../shared/ui/styles/layout.scss' as layout;
+
 .panel {
     overflow-y: scroll;
     min-width: 0;
     min-height: 0;
+}
+
+.top-line-block {
+    @include layout.top-line-block;
 }
 
 .eyebrow {

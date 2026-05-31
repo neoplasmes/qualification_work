@@ -2,9 +2,11 @@ import { metricTimeBuckets, type MetricTimeBucket } from '@qualification-work/ty
 
 import type { DatasetColumn } from '@/entities/dataset';
 
-import { FormField, Select, Switch } from '@/shared/ui';
+import { FormField, Select } from '@/shared/ui';
 
 import type { MetricConfigForm } from '../../../../lib';
+
+import styles from './MetricTrendFields.module.scss';
 
 type MetricTrendFieldsProps = {
     config: MetricConfigForm;
@@ -18,12 +20,11 @@ export const MetricTrendFields = ({
     onConfigChange,
 }: MetricTrendFieldsProps) => (
     <>
-        <FormField label="Trend" hint="show a sparkline of the value over time">
-            <Switch
-                checked={config.showTrend}
-                onChange={event => onConfigChange({ showTrend: event.target.checked })}
-            />
-        </FormField>
+        <div className={styles['hint-field']}>
+            <span className={styles['hint']}>
+                Show a sparkline of the value over time.
+            </span>
+        </div>
 
         {config.showTrend && (
             <>

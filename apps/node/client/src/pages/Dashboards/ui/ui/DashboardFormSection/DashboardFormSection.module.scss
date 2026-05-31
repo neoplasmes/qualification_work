@@ -5,14 +5,20 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-
-    span {
-        flex: none;
-    }
 }
 
 .separator.separator {
     flex: 1 1 auto;
     width: auto;
     min-width: 0;
+}
+
+.label,
+.action {
+    flex: none;
+}
+
+.action {
+    display: inline-flex;
+    align-items: center;
 }

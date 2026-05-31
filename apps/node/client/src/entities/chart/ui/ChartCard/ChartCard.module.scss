@@ -1,0 +1,27 @@
+@use '../../../../shared/ui/styles/typography.scss' as typography;
+
+.description {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.description-summary {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.aggregated-at {
+    @include typography.text-sm;
+
+    overflow: hidden;
+    color: var(--color-on-surface-variant);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aggregated-at-small {
+    @include typography.text-xs;
+}

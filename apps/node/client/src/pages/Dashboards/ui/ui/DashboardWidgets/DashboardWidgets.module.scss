@@ -7,10 +7,20 @@
 .grid {
     width: 100%;
     min-height: 144px;
+}
 
-    /* stylelint-disable-next-line selector-pseudo-class-no-unknown */
-    :global(.grid-stack-item-content) {
-        overflow: hidden;
-        border-radius: var(--radius-xs);
-    }
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack)
+    > :global(.grid-stack-item)
+    > :global(.grid-stack-item-content) {
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-xs);
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-se) {
+    right: calc(var(--gs-item-margin-right) + var(--spacing-md));
+    bottom: calc(var(--gs-item-margin-bottom) + var(--spacing-md));
 }

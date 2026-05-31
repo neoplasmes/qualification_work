@@ -1,0 +1,49 @@
+.root {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.trigger {
+    cursor: default;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-outline);
+
+    transition: color 0.18s ease;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--color-on-surface);
+        outline: none;
+    }
+}
+
+.tooltip {
+    position: absolute;
+    z-index: 30;
+    bottom: calc(100% + var(--spacing-xs));
+    left: 50%;
+
+    width: max-content;
+    max-width: min(260px, calc(100vw - 32px));
+
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+
+    transition:
+        opacity 0.16s ease,
+        transform 0.16s ease,
+        visibility 0.16s ease;
+}
+
+.root:hover .tooltip,
+.root:focus-within .tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+}

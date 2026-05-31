@@ -3,8 +3,6 @@ import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
-
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useRenameDashboardMutation } from '@/features/manageDashboards';
 
@@ -16,11 +14,18 @@ import {
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { getSelected } from '@/shared/lib/getSelected';
-import { Button, PanelPlaceholder, StatusMessage, Table } from '@/shared/ui';
+import {
+    Button,
+    EditableText,
+    PanelPlaceholder,
+    StatusMessage,
+    Table,
+} from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 import { selectDashboard, selectSelectedDashboardId } from '../../../model';
+
+import { getResolvedDashboard, getSelectedDashboard } from '../../lib';
 
 export const DashboardsPropertiesPanel = () => {
     const dispatch = useDispatch();
@@ -35,7 +40,7 @@ export const DashboardsPropertiesPanel = () => {
     const selectedDashboardId = useSelector(selectSelectedDashboardId);
 
     const selectedListDashboard = useMemo(
-        () => getSelected(dashboardsQuery.data, selectedDashboardId),
+        () => getSelectedDashboard(dashboardsQuery.data, selectedDashboardId),
         [dashboardsQuery.data, selectedDashboardId]
     );
     const dashboardId = selectedListDashboard?.id;
@@ -43,8 +48,15 @@ export const DashboardsPropertiesPanel = () => {
         refetchOnMountOrArgChange: true,
     });
 
-    const selectedDashboard = dashboardQuery.data ?? selectedListDashboard;
-    const widgetsCount = dashboardQuery.data?.items.length ?? 'Loading...';
+    const selectedDashboard = getResolvedDashboard(
+        dashboardQuery.data,
+        selectedListDashboard
+    );
+    const detailedDashboard =
+        dashboardQuery.data?.id === selectedDashboard?.id
+            ? dashboardQuery.data
+            : undefined;
+    const widgetsCount = detailedDashboard?.items.length ?? 'Loading...';
 
     const handleDelete = async () => {
         if (!selectedDashboard) {
@@ -96,7 +108,7 @@ export const DashboardsPropertiesPanel = () => {
 
     return (
         <section data-display="grid" data-gap="md" aria-label="Dashboard properties">
-            <WorkspaceTitleEditor
+            <EditableText
                 title={selectedDashboard.name}
                 fallbackTitle="Untitled dashboard"
                 saving={renameState.isLoading}
@@ -119,6 +131,7 @@ export const DashboardsPropertiesPanel = () => {
 
             <Button
                 tone="danger"
+                data-test-id={dashboardsTestIds.deleteButton}
                 disabled={deleteDashboardState.isLoading}
                 onClick={() => void handleDelete()}
             >

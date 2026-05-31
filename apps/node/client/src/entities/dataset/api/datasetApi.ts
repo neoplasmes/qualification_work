@@ -90,18 +90,18 @@ export const datasetApi = api.injectEndpoints({
             ],
         }),
         updateRow: builder.mutation<
-            DatasetRow,
+            DatasetRow[],
             {
                 datasetId: string;
-                rowId: string;
+                rowIds: string[];
                 orgId: string;
                 values: Record<string, unknown>;
             }
         >({
-            query: ({ datasetId, rowId, orgId, values }) => ({
-                url: `/data/datasets/${datasetId}/rows/${rowId}?orgId=${encodeURIComponent(orgId)}`,
+            query: ({ datasetId, rowIds, orgId, values }) => ({
+                url: `/data/datasets/${datasetId}/rows?orgId=${encodeURIComponent(orgId)}`,
                 method: 'PATCH',
-                body: { values },
+                body: { rowIds, values },
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'DatasetRows', id: arg.datasetId },
@@ -128,12 +128,13 @@ export const datasetApi = api.injectEndpoints({
             ],
         }),
         deleteRow: builder.mutation<
-            DatasetRow,
-            { datasetId: string; rowId: string; orgId: string }
+            DatasetRow[],
+            { datasetId: string; rowIds: string[]; orgId: string }
         >({
-            query: ({ datasetId, rowId, orgId }) => ({
-                url: `/data/datasets/${datasetId}/rows/${rowId}?orgId=${encodeURIComponent(orgId)}`,
+            query: ({ datasetId, rowIds, orgId }) => ({
+                url: `/data/datasets/${datasetId}/rows?orgId=${encodeURIComponent(orgId)}`,
                 method: 'DELETE',
+                body: { rowIds },
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'DatasetRows', id: arg.datasetId },

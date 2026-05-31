@@ -1,3 +1,4 @@
+import { CompactSelection } from '@glideapps/glide-data-grid';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -52,25 +53,31 @@ const selectedDataset = vi.hoisted(
                 updatedAt: '2026-01-01T00:00:00.000Z',
             },
             columns,
-            totalRows: 1,
+            totalRows: 2,
         }) satisfies DatasetMetadata
 );
 
-const mockRow = vi.hoisted(
-    (): DatasetRow => ({
+const mockRows = vi.hoisted((): DatasetRow[] => [
+    {
         id: 'row-1',
         datasetId: 'dataset-1',
-        rowIndex: 1,
+        rowIndex: 0,
         data: { amount: 1, name: 'Row 1' },
-    })
-);
+    },
+    {
+        id: 'row-2',
+        datasetId: 'dataset-1',
+        rowIndex: 1,
+        data: { amount: 2, name: 'Row 2' },
+    },
+]);
 
 vi.mock('@/entities/dataset', () => ({
     useLazyGetDatasetRowsQuery: () => [
         (arg: { datasetId: string; offset?: number; limit?: number }) => ({
             unwrap: () =>
                 Promise.resolve({
-                    rows: [mockRow],
+                    rows: mockRows,
                     totalRows: selectedDataset.totalRows,
                     offset: arg.offset ?? 0,
                     limit: arg.limit ?? 200,
@@ -93,6 +100,7 @@ vi.mock('../DatasetGrid', () => ({
         onRowContextMenu,
         onColumnContextMenu,
         onDraftRowBoundsChange,
+        onGridSelectionChange,
     }: DatasetGridProps) => {
         // emulate the real grid reporting draft row bounds
         useEffect(() => {
@@ -100,8 +108,8 @@ vi.mock('../DatasetGrid', () => ({
         }, [insertDraft, onDraftRowBoundsChange]);
 
         // NOTE: getRowAt is also passed, but the test interacts with row index 0
-        // and the lazy hook mock fills loadedChunks[0] with [mockRow], so getRowAt(0)
-        // will return mockRow once the initial chunk fetch resolves.
+        // and the lazy hook mock fills loadedChunks[0] with mockRows, so getRowAt(0/1)
+        // resolve once the initial chunk fetch lands
 
         return (
             <div data-testid="mock-grid">
@@ -110,6 +118,23 @@ vi.mock('../DatasetGrid', () => ({
                     onClick={() => onCellCommit('row-1', columns[0], '42')}
                 >
                     Commit amount
+                </button>
+                <button
+                    type="button"
+                    // emulate a native range drag covering the first two rows
+                    onClick={() =>
+                        onGridSelectionChange({
+                            columns: CompactSelection.empty(),
+                            rows: CompactSelection.empty(),
+                            current: {
+                                cell: [0, 0],
+                                range: { x: 0, y: 0, width: 1, height: 2 },
+                                rangeStack: [],
+                            },
+                        })
+                    }
+                >
+                    Select two rows
                 </button>
                 <button
                     type="button"
@@ -161,6 +186,9 @@ describe('DatasetPreview', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
+        mocks.updateRow.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue([]),
+        });
         mocks.insertRow.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
@@ -199,7 +227,7 @@ describe('DatasetPreview', () => {
         expect(mocks.updateRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
-            rowId: 'row-1',
+            rowIds: ['row-1'],
             values: { amount: 42 },
         });
 
@@ -240,7 +268,60 @@ describe('DatasetPreview', () => {
         expect(mocks.deleteRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
-            rowId: 'row-1',
+            rowIds: ['row-1'],
+        });
+    });
+
+    it('shows bulk actions for a multi-row selection and clears every selected row', async () => {
+        const { container } = render(
+            <DatasetPreview selectedDataset={selectedDataset} />
+        );
+
+        await flushPromises();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Select two rows' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Open row menu' }));
+
+        // single-row item is gone, both bulk items are present
+        expect(
+            container.querySelector(
+                `[data-test-id="${datasetsTestIds.insertRowMenuItem}"]`
+            )
+        ).toBeNull();
+        fireEvent.click(
+            getByDataTestId(container, datasetsTestIds.clearSelectedMenuItem)
+        );
+
+        expect(mocks.updateRow).toHaveBeenCalledWith({
+            datasetId: 'dataset-1',
+            orgId: 'org-1',
+            rowIds: ['row-1', 'row-2'],
+            values: { amount: null, name: null },
+        });
+    });
+
+    it('deletes every selected row from the bulk confirm step', async () => {
+        const { container } = render(
+            <DatasetPreview selectedDataset={selectedDataset} />
+        );
+
+        await flushPromises();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Select two rows' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Open row menu' }));
+        fireEvent.click(
+            getByDataTestId(container, datasetsTestIds.deleteSelectedRowsMenuItem)
+        );
+        expect(mocks.deleteRow).not.toHaveBeenCalled();
+
+        fireEvent.click(
+            getByDataTestId(container, datasetsTestIds.confirmDeleteRowButton)
+        );
+
+        expect(mocks.deleteRow).toHaveBeenCalledWith({
+            datasetId: 'dataset-1',
+            orgId: 'org-1',
+            rowIds: ['row-1', 'row-2'],
         });
     });
 

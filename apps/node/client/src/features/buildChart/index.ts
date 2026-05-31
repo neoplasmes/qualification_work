@@ -4,7 +4,11 @@ export {
     usePreviewChartDataMutation,
     useUpdateChartMutation,
 } from './api';
-export { createChartBuilderFields, type ChartBuilderFields } from './lib';
+export {
+    configToBuilderFields,
+    createChartBuilderFields,
+    type ChartBuilderFields,
+} from './lib';
 export type {
     Aggregate,
     AxisGrouping,
@@ -16,4 +20,4 @@ export type {
     TimeGranularity,
     UpdateChartPayload,
 } from './api';
-export { DatasetChartBuilder, configToBuilderFields } from './ui';
+export { DatasetChartBuilder } from './ui';

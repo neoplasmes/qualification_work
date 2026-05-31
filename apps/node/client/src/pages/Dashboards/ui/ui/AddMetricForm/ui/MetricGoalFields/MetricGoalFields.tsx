@@ -1,16 +1,23 @@
 import type { metricTargetDirections } from '@qualification-work/types';
 
-import { FormField, SegmentedTabs, TextInput } from '@/shared/ui';
+import {
+    Explain,
+    FormField,
+    SegmentedControl,
+    TextInput,
+    type SegmentedControlOption,
+} from '@/shared/ui';
 
 import type { MetricConfigForm } from '../../../../lib';
+
+import styles from './MetricGoalFields.module.scss';
 
 const directionOptions = [
     { value: 'higher', label: 'Higher is better' },
     { value: 'lower', label: 'Lower is better' },
-] as const satisfies readonly {
-    value: (typeof metricTargetDirections)[number];
-    label: string;
-}[];
+] as const satisfies readonly SegmentedControlOption<
+    (typeof metricTargetDirections)[number]
+>[];
 
 type MetricGoalFieldsProps = {
     config: MetricConfigForm;
@@ -31,10 +38,28 @@ export const MetricGoalFields = ({ config, onConfigChange }: MetricGoalFieldsPro
                     onChange={event => onConfigChange({ target: event.target.value })}
                 />
             </FormField>
-            <FormField label="Goal direction" hint="colors the value vs the target">
-                <SegmentedTabs
+            <FormField
+                label={
+                    <span className={styles['label-with-explain']}>
+                        Goal direction
+                        <Explain
+                            label="Explain goal direction"
+                            description="Colors the value against the target."
+                        />
+                    </span>
+                }
+            >
+                <SegmentedControl
                     value={config.targetDirection}
                     options={directionOptions}
+                    ariaLabel="Goal direction"
+                    className={styles['direction-tabs']}
+                    classNames={{
+                        indicator: styles['direction-indicator'],
+                        item: styles['direction-tab'],
+                        itemActive: styles['active'],
+                        label: styles['direction-label'],
+                    }}
                     disabled={!hasTarget}
                     onChange={value => onConfigChange({ targetDirection: value })}
                 />

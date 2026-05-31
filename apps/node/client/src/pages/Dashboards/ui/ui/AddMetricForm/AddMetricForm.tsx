@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { DashboardMetricItem } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
+import { Button, FormField, Select, StatusMessage, Switch, TextInput } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -236,7 +236,19 @@ export const AddMetricForm = ({
             <DashboardFormSection>Goal</DashboardFormSection>
             <MetricGoalFields config={config} onConfigChange={onConfigChange} />
 
-            <DashboardFormSection>Trend</DashboardFormSection>
+            <DashboardFormSection
+                action={
+                    <Switch
+                        aria-label="Show trend"
+                        checked={config.showTrend}
+                        onChange={event =>
+                            onConfigChange({ showTrend: event.target.checked })
+                        }
+                    />
+                }
+            >
+                Trend
+            </DashboardFormSection>
             <MetricTrendFields
                 config={config}
                 dateColumns={dateColumns}

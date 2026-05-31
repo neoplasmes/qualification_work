@@ -20,7 +20,7 @@ export type DashboardGridItem = {
 const gridOptions: GridStackOptions = {
     column: dashboardGridColumns,
     cellHeight: 64,
-    margin: 8,
+    margin: 0,
     float: false,
     columnOpts: {
         breakpoints: [{ w: 700, c: 1, layout: 'list' }],

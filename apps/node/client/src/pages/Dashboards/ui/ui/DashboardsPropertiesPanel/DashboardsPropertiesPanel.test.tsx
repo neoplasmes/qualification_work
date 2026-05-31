@@ -105,17 +105,23 @@ const renderPropertiesPanel = (selectedDashboardId: string | null) => {
         },
     });
 
-    return render(
-        <Provider store={store}>
-            <DashboardsPropertiesPanel />
-        </Provider>
-    );
+    return {
+        store,
+        ...render(
+            <Provider store={store}>
+                <DashboardsPropertiesPanel />
+            </Provider>
+        ),
+    };
 };
 
 describe('DashboardsPropertiesPanel', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mocks.renameDashboard.mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue(undefined),
+        });
+        mocks.deleteDashboard.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
         mocks.refetchDashboard.mockResolvedValue(undefined);
@@ -151,5 +157,17 @@ describe('DashboardsPropertiesPanel', () => {
             dashboardId: 'dashboard-1',
             name: 'Operations',
         });
+    });
+
+    it('clears explicit selection after confirmed delete', async () => {
+        const user = userEvent.setup();
+        const { store } = renderPropertiesPanel('dashboard-1');
+
+        await user.click(screen.getByRole('button', { name: 'Delete dashboard' }));
+        await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+
+        await waitFor(() => expect(mocks.deleteDashboard).toHaveBeenCalledTimes(1));
+        expect(mocks.deleteDashboard).toHaveBeenCalledWith('dashboard-1');
+        expect(store.getState().dashboardsPage.selectedDashboardId).toBeNull();
     });
 });

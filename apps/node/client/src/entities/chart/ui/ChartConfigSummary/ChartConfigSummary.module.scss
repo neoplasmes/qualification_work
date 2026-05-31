@@ -1,9 +1,15 @@
+@use '../../../../shared/ui/styles/typography.scss' as typography;
+
 .summary {
+    @include typography.text-sm;
+
     margin: 0;
 
-    font-size: var(--font-size-sm);
-    line-height: 1.45;
     color: var(--color-on-surface-variant);
+}
+
+.small {
+    @include typography.text-xs;
 }
 
 .col {

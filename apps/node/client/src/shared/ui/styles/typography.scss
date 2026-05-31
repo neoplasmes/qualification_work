@@ -11,3 +11,10 @@
     font-weight: 400;
     line-height: 1.4;
 }
+
+@mixin text-sm {
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    line-height: 1.45;
+}

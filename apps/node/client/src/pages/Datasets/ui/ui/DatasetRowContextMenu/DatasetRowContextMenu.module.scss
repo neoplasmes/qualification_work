@@ -3,7 +3,8 @@
     z-index: 20;
 
     display: grid;
-    min-width: 180px;
+    gap: 2px;
+    min-width: 192px;
     padding: var(--spacing-xs);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
@@ -16,7 +17,7 @@
     cursor: pointer;
 
     display: flex;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
     align-items: center;
 
     width: 100%;
@@ -26,14 +27,60 @@
 
     font: inherit;
     font-size: var(--font-size-sm);
+    font-weight: 600;
     color: var(--color-on-surface);
     text-align: left;
 
     background: transparent;
 
-    &:hover {
-        background: rgb(255 255 255 / 6%);
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
+
+    // brand-tinted accent on the leading icon
+    svg {
+        color: var(--color-on-surface-variant);
+        transition: color 0.15s ease;
     }
+
+    &:hover {
+        background: rgb(var(--color-secondary-rgb) / 16%);
+
+        svg {
+            color: var(--color-on-surface);
+        }
+    }
+
+    // destructive actions read in the brand/danger color on hover
+    &.danger:hover {
+        color: var(--color-on-surface);
+        background: var(--color-primary);
+
+        svg {
+            color: var(--color-on-surface);
+        }
+    }
+
+    // divider before the first destructive action in the list
+    & + .danger {
+        margin-top: var(--spacing-xs);
+
+        &::before {
+            content: '';
+
+            position: absolute;
+            top: calc(var(--spacing-xs) * -0.5 - 1px);
+            right: var(--spacing-xs);
+            left: var(--spacing-xs);
+
+            border-top: 1px solid var(--color-outline-new);
+        }
+    }
+}
+
+// anchor the divider pseudo-element
+.danger {
+    position: relative;
 }
 
 .confirm {

@@ -1,3 +1,4 @@
+import type { GridSelection } from '@glideapps/glide-data-grid';
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { DatasetColumn, DatasetRow } from '@/entities/dataset';
@@ -24,6 +25,9 @@ export type DatasetGridProps = {
     gridHeight: number;
     // counter; on change the grid scrolls to last row
     scrollToBottomSignal: number;
+    // controlled native selection, lifted so the parent can read touched rows and reset it
+    gridSelection: GridSelection;
+    onGridSelectionChange: (selection: GridSelection) => void;
     onCellCommit: (rowId: string, column: DatasetColumn, rawValue: string) => void;
     onDraftValueChange: Dispatch<SetStateAction<Record<string, string>>>;
     onRowContextMenu: (rowIndex: number, position: { x: number; y: number }) => void;

@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
     getChartData: vi
         .fn()
         .mockReturnValue({ data: undefined, isLoading: false, isFetching: false }),
+    navigate: vi.fn(),
 }));
 
 vi.mock('gridstack', () => ({
@@ -32,12 +33,44 @@ vi.mock('gridstack', () => ({
     },
 }));
 
+vi.mock('react-router', async importActual => {
+    const actual = await importActual<object>();
+
+    return {
+        ...actual,
+        useNavigate: () => mocks.navigate,
+    };
+});
+
 vi.mock('@/entities/chart', () => ({
     BAR_CHART_ROWS_LIMIT: 12,
-    ChartCard: ({ data }: { data: ChartResponse }) => (
-        <div data-testid="chart-result">Aggregated at {data.aggregatedAt}</div>
+    ChartCard: ({
+        data,
+        chartHeight,
+        descriptionSize,
+        showAxisTickLabels,
+        showDescription,
+        showLegend,
+    }: {
+        data: ChartResponse;
+        chartHeight?: string;
+        descriptionSize?: string;
+        showAxisTickLabels?: boolean;
+        showDescription?: boolean;
+        showLegend?: boolean;
+    }) => (
+        <div
+            data-testid="chart-result"
+            data-chart-height={chartHeight}
+            data-description-size={descriptionSize}
+            data-show-axis-tick-labels={String(showAxisTickLabels)}
+            data-show-description={String(showDescription)}
+            data-show-legend={String(showLegend)}
+        >
+            Aggregated at {data.aggregatedAt}
+        </div>
     ),
-    ChartResult: () => <div data-testid="chart-result" />,
+    ChartShell: () => <div data-testid="chart-result" />,
     getChartColorFromConfig: () => '#8a6cff',
     useGetChartDataQuery: (chartId: string) => mocks.getChartData(chartId),
 }));
@@ -102,11 +135,12 @@ describe('DashboardWidgets', () => {
             getByDataTestId(container, dashboardsTestIds.metricWidget)
         ).toHaveAttribute('title', 'Average score');
         expect(screen.getByText(/42\s?%/)).toBeInTheDocument();
-
+        await user.click(screen.getByLabelText('Edit Revenue'));
         await user.click(screen.getByLabelText('Edit Average score'));
         await user.click(screen.getByLabelText('Remove Average score'));
         await user.click(screen.getByLabelText('Remove Revenue'));
 
+        expect(mocks.navigate).toHaveBeenCalledWith('/charts/edit?id=chart-1');
         expect(onEditMetric).toHaveBeenCalledWith(items[1]);
         expect(onRemoveItem).toHaveBeenCalledWith('item-metric');
         expect(onRemoveItem).toHaveBeenCalledWith('item-chart');
@@ -210,6 +244,96 @@ describe('DashboardWidgets', () => {
         await waitFor(() => expect(mocks.getChartData).toHaveBeenCalledWith('chart-1'));
         expect(screen.getByTestId('chart-result')).toHaveTextContent(
             'Aggregated at 2026-05-28T13:37:00.000Z'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-chart-height',
+            'fill'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-description-size',
+            'small'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-show-description',
+            'true'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-show-axis-tick-labels',
+            'true'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-show-legend',
+            'false'
+        );
+    });
+
+    it('hides chart description when chart widget is five cells tall', async () => {
+        mocks.getChartData.mockReturnValue({
+            data: {
+                kind: 'bar',
+                columns: [],
+                rows: [],
+                truncated: false,
+                aggregatedAt: '2026-05-28T13:37:00.000Z',
+            },
+            isLoading: false,
+            isFetching: false,
+        });
+
+        renderWidgets({
+            items: [
+                {
+                    ...items[0],
+                    layout: { ...items[0].layout, height: 5 },
+                },
+            ],
+        });
+
+        await waitFor(() => expect(mocks.getChartData).toHaveBeenCalledWith('chart-1'));
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-show-description',
+            'false'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-show-axis-tick-labels',
+            'true'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-chart-height',
+            'fill'
+        );
+    });
+
+    it('hides chart axis tick labels when chart widget is at minimum size', async () => {
+        mocks.getChartData.mockReturnValue({
+            data: {
+                kind: 'bar',
+                columns: [],
+                rows: [],
+                truncated: false,
+                aggregatedAt: '2026-05-28T13:37:00.000Z',
+            },
+            isLoading: false,
+            isFetching: false,
+        });
+
+        renderWidgets({
+            items: [
+                {
+                    ...items[0],
+                    layout: { ...items[0].layout, width: 4, height: 8 },
+                },
+            ],
+        });
+
+        await waitFor(() => expect(mocks.getChartData).toHaveBeenCalledWith('chart-1'));
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-show-axis-tick-labels',
+            'false'
+        );
+        expect(screen.getByTestId('chart-result')).toHaveAttribute(
+            'data-chart-height',
+            'fill'
         );
     });
 });

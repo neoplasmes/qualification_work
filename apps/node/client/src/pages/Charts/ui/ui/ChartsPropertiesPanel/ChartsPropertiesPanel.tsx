@@ -4,8 +4,6 @@ import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
-import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
-
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { usePatchChartMutation } from '@/features/buildChart';
 
@@ -14,7 +12,13 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, PanelPlaceholder, StatusMessage, Table } from '@/shared/ui';
+import {
+    Button,
+    EditableText,
+    PanelPlaceholder,
+    StatusMessage,
+    Table,
+} from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
 import { chartsWorkspaceIndexPath } from '../../../lib';
@@ -105,7 +109,7 @@ export const ChartsPropertiesPanel = () => {
 
     return (
         <section data-display="grid" data-gap="md" aria-label="Chart properties">
-            <WorkspaceTitleEditor
+            <EditableText
                 title={selectedChart.name}
                 fallbackTitle="Untitled chart"
                 saving={patchChartState.isLoading}

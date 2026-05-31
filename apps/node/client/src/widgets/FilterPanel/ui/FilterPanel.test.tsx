@@ -40,6 +40,12 @@ vi.mock('@/entities/dataset', () => ({
 }));
 
 vi.mock('@/entities/chart', () => ({
+    CHART_KIND_ICONS: {
+        bar: () => <span data-testid="bar-chart-icon" />,
+        heatmap: () => <span data-testid="heatmap-chart-icon" />,
+        line: () => <span data-testid="line-chart-icon" />,
+        pie: () => <span data-testid="pie-chart-icon" />,
+    },
     useListChartsQuery: () => ({
         data: [
             {

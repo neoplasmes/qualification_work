@@ -163,16 +163,36 @@
 }
 
 .source-toggle {
+    position: relative;
+
     justify-self: start;
     overflow: hidden;
+    display: inline-flex;
     padding: 1px;
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-sm);
     background-color: var(--color-surface-container-low);
 }
 
+.source-indicator {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    left: 1px;
+    z-index: 0;
+
+    width: calc((100% - 2px) / 2);
+    border-radius: calc(var(--radius-sm) - 2px);
+
+    background-color: var(--color-primary);
+}
+
 .source-btn {
     cursor: pointer;
+
+    position: relative;
+    z-index: 1;
+
     min-width: 62px;
     min-height: 24px;
     padding: 0 var(--spacing-xs);
@@ -190,7 +210,6 @@
 
     &.active {
         color: var(--color-on-surface);
-        background-color: var(--color-primary);
     }
 
     &:hover,

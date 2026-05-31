@@ -7,10 +7,9 @@ import {
 } from '@/entities/chart';
 
 import type { Aggregate, MeasureValueFormat, TimeGranularity } from '../api';
+import type { GroupingMode } from '../types';
 
-type GroupingMode = 'none' | 'time' | 'numeric';
-
-const CHART_RESULT_LIMIT = 24;
+const chartResultLimit = 24;
 
 export type ChartBuilderFields = {
     chartName: string;
@@ -62,7 +61,7 @@ const defaultFields = ((): ChartBuilderFields => ({
     secondAggregate: 'avg',
     secondValueFormat: 'number',
     secondMeasureColumnId: '',
-    limit: CHART_RESULT_LIMIT,
+    limit: chartResultLimit,
     topN: 12,
     seriesEnabled: false,
     seriesColumnId: '',
@@ -81,7 +80,7 @@ export const createChartBuilderFields = (
     ...initialOverrides,
 });
 
-type Setters = {
+export type ChartBuilderSetters = {
     setChartName(v: string): void;
     setChartColor(v: string): void;
     setChartType(v: ChartType): void;
@@ -124,7 +123,7 @@ export const useChartBuilderState = ({
     initialOverrides,
     value,
     onChange,
-}: UseChartBuilderStateParams): ChartBuilderFields & Setters => {
+}: UseChartBuilderStateParams): ChartBuilderFields & ChartBuilderSetters => {
     const [localFields, setLocalFields] = useState<ChartBuilderFields>(() =>
         createChartBuilderFields(initialOverrides)
     );

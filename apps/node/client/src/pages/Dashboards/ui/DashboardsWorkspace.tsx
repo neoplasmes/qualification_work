@@ -3,6 +3,7 @@ import {
     type DashboardItemLayoutInput,
 } from '@qualification-work/types';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -18,9 +19,8 @@ import { useGetDashboardQuery, useListDashboardsQuery } from '@/entities/dashboa
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { getSelected } from '@/shared/lib/getSelected';
 import { useHasOverflow } from '@/shared/lib/useHasOverflow';
-import { Modal, PanelPlaceholder, StatusMessage } from '@/shared/ui';
+import { Button, Modal, PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
 import {
@@ -29,13 +29,12 @@ import {
     selectSelectedDashboardId,
     selectWorkspaceDraftDashboardId,
 } from '../model';
-import { useDashboardMetricModal } from './lib';
 import {
-    AddChartModal,
-    AddMetricForm,
-    DashboardWidgets,
-    DashboardWorkspaceHeading,
-} from './ui';
+    getResolvedDashboard,
+    getSelectedDashboard,
+    useDashboardMetricModal,
+} from './lib';
+import { AddChartModal, AddMetricForm, DashboardWidgets } from './ui';
 
 import styles from './DashboardsPage.module.scss';
 
@@ -56,12 +55,13 @@ export const DashboardsWorkspace = () => {
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
     const selectedListDashboard = useMemo(
-        () => getSelected(dashboardsQuery.data, selectedDashboardId),
+        () => getSelectedDashboard(dashboardsQuery.data, selectedDashboardId),
         [dashboardsQuery.data, selectedDashboardId]
     );
     const dashboardQuery = useGetDashboardQuery(selectedListDashboard?.id ?? skipToken);
-    const dashboard = dashboardQuery.data ?? selectedListDashboard;
+    const dashboard = getResolvedDashboard(dashboardQuery.data, selectedListDashboard);
     const dashboardItems = dashboard?.items ?? [];
+    const dashboardTitle = dashboard?.name.trim() || 'Untitled dashboard';
 
     const chartsById = useMemo(
         () => new Map((chartsQuery.data ?? []).map(chart => [chart.id, chart])),
@@ -174,7 +174,7 @@ export const DashboardsWorkspace = () => {
             ref={workspaceRef}
             className={styles['panel']}
             data-stack="v"
-            data-gap="md"
+            data-gap="sm"
             data-flex
             data-test-id={dashboardsTestIds.workspace}
             aria-label="Dashboard details"
@@ -185,14 +185,40 @@ export const DashboardsWorkspace = () => {
 
             {dashboard && (
                 <>
-                    <DashboardWorkspaceHeading
-                        name={dashboard.name}
-                        onAddMetric={() => {
-                            metricModal.openAdd();
-                            setActiveModal('metric');
-                        }}
-                        onAddChart={() => setActiveModal('chart')}
-                    />
+                    <div
+                        className={styles['top-line-block']}
+                        data-stack="h"
+                        data-justify="between"
+                        data-align="center"
+                        data-gap="sm"
+                    >
+                        <h2 className={styles['title']}>{dashboardTitle}</h2>
+
+                        <div data-stack="h" data-gap="sm">
+                            <Button
+                                size="sm"
+                                data-test-id={dashboardsTestIds.openAddMetricModalButton}
+                                onClick={() => {
+                                    metricModal.openAdd();
+                                    setActiveModal('metric');
+                                }}
+                            >
+                                <Plus size={16} strokeWidth={2.6} />
+                                Metric
+                            </Button>
+                            <Button
+                                size="sm"
+                                data-gap="xs"
+                                data-test-id={dashboardsTestIds.openAddChartModalButton}
+                                onClick={() => setActiveModal('chart')}
+                            >
+                                <Plus size={16} strokeWidth={2.6} />
+                                Chart
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Separator />
 
                     {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
@@ -225,6 +251,7 @@ export const DashboardsWorkspace = () => {
                             title={metricModal.editing ? 'Edit metric' : 'Add metric'}
                             testId={dashboardsTestIds.addMetricModal}
                             size="md"
+                            padding="md"
                             onClose={() => {
                                 metricModal.close();
                                 setActiveModal(null);

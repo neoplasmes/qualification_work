@@ -89,8 +89,8 @@ export function createDatasetRouter(deps: DatasetRouterDeps): Router<AppState> {
     router.delete('/:id', createDeleteDatasetHandler(deps.deleteDatasetHandler));
 
     router.post('/:id/rows', createInsertRowHandler(deps.insertRowHandler));
-    router.patch('/:id/rows/:rowId', createUpdateRowHandler(deps.updateRowHandler));
-    router.delete('/:id/rows/:rowId', createDeleteRowHandler(deps.deleteRowHandler));
+    router.patch('/:id/rows', createUpdateRowHandler(deps.updateRowHandler));
+    router.delete('/:id/rows', createDeleteRowHandler(deps.deleteRowHandler));
 
     router.post(
         '/merge/preview',

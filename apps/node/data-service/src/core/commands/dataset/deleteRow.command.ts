@@ -1,4 +1,8 @@
-import { ForbiddenError, NotFoundError } from '@qualification-work/microservice-utils';
+import {
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
+} from '@qualification-work/microservice-utils';
 import type { DatasetRow } from '@qualification-work/types';
 
 import type { DatasetRepo } from '@/core/ports/driven/repos';
@@ -7,16 +11,20 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 export type DeleteRowInput = {
     orgId: string;
     datasetId: string;
-    rowId: string;
+    rowIds: string[];
 };
 
 export class DeleteRowCommand implements Executable<
     [DeleteRowInput],
-    Promise<DatasetRow>
+    Promise<DatasetRow[]>
 > {
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
-    async execute(input: DeleteRowInput): Promise<DatasetRow> {
+    async execute(input: DeleteRowInput): Promise<DatasetRow[]> {
+        if (input.rowIds.length === 0) {
+            throw new ValidationError([], 'rowIds is empty');
+        }
+
         const metadata = await this.datasetRepo.getDatasetMetadataByDatasetId(
             input.datasetId
         );
@@ -29,10 +37,10 @@ export class DeleteRowCommand implements Executable<
             throw new ForbiddenError('dataset belongs to another organization');
         }
 
-        const deleted = await this.datasetRepo.deleteRow(input.datasetId, input.rowId);
+        const deleted = await this.datasetRepo.deleteRows(input.datasetId, input.rowIds);
 
-        if (!deleted) {
-            throw new NotFoundError('row not found');
+        if (deleted.length === 0) {
+            throw new NotFoundError('rows not found');
         }
 
         return deleted;

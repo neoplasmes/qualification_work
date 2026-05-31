@@ -18,6 +18,24 @@ type LucideElement = ReactElement<ComponentProps<LucideIcon>, LucideIcon>;
 
 const loader: ReactNode = <Loader2 className={styles['loader']} size={16} aria-hidden />;
 
+// ———————————————————————————— Button component ————————————————————————————
+
+const getButtonClassName = (tone: ButtonTone, size: ButtonSize, className?: string) => {
+    let result = styles['button'];
+    const sizeClassName = styles[`size-${size}`];
+    if (sizeClassName) {
+        result += ` ${sizeClassName}`;
+    }
+    if (tone !== 'default') {
+        result += ` ${styles[tone]}`;
+    }
+    if (className) {
+        result += ` ${className}`;
+    }
+
+    return result;
+};
+
 type ButtonProps = {
     tone?: ButtonTone;
     size?: ButtonSize;
@@ -38,6 +56,9 @@ export const Button: FC<ButtonProps> = ({
         // eslint-disable-next-line react/button-has-type
         type={type}
         className={getButtonClassName(tone, size, className)}
+        data-display="inline-flex"
+        data-align="center"
+        data-justify="center"
         disabled={disabled || isLoading}
         aria-busy={isLoading || undefined}
         {...props}
@@ -47,49 +68,7 @@ export const Button: FC<ButtonProps> = ({
     </button>
 );
 
-type IconButtonProps = {
-    tone?: ButtonTone;
-    isLoading?: boolean;
-    iconStrokeWidth?: number;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
-        children: LucideElement;
-    };
-
-export const IconButton: FC<IconButtonProps> = ({
-    tone = 'default',
-    isLoading = false,
-    className,
-    iconStrokeWidth,
-    style,
-    type = 'button',
-    disabled,
-    children,
-    ...props
-}) => (
-    <button
-        // eslint-disable-next-line react/button-has-type
-        type={type}
-        className={getIconClassName(tone, className)}
-        disabled={disabled || isLoading}
-        aria-busy={isLoading || undefined}
-        style={getIconButtonStyle(style, iconStrokeWidth)}
-        {...props}
-    >
-        {isLoading ? loader : children}
-    </button>
-);
-
-const getButtonClassName = (tone: ButtonTone, size: ButtonSize, className?: string) => {
-    let result = `${styles['button']} ${styles[`size-${size}`]}`;
-    if (tone !== 'default') {
-        result += ` ${styles[tone]}`;
-    }
-    if (className) {
-        result += ` ${className}`;
-    }
-
-    return result;
-};
+// ———————————————————————————— IconButton component ————————————————————————————
 
 const getIconClassName = (tone: ButtonTone, className?: string) => {
     let result = styles['icon'] ?? '';
@@ -116,3 +95,38 @@ const getIconButtonStyle = (
         '--icon-stroke-width': iconStrokeWidth,
     } as CSSProperties;
 };
+
+type IconButtonProps = {
+    tone?: ButtonTone;
+    isLoading?: boolean;
+    iconStrokeWidth?: number;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
+        children: LucideElement;
+    };
+
+export const IconButton: FC<IconButtonProps> = ({
+    tone = 'nav',
+    isLoading = false,
+    className,
+    iconStrokeWidth,
+    style,
+    type = 'button',
+    disabled,
+    children,
+    ...props
+}) => (
+    <button
+        // eslint-disable-next-line react/button-has-type
+        type={type}
+        className={getIconClassName(tone, className)}
+        data-display="inline-flex"
+        data-align="center"
+        data-justify="center"
+        disabled={disabled || isLoading}
+        aria-busy={isLoading || undefined}
+        style={getIconButtonStyle(style, iconStrokeWidth)}
+        {...props}
+    >
+        {isLoading ? loader : children}
+    </button>
+);

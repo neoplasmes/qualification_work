@@ -19,6 +19,7 @@ export type FilterPanelItem = {
     id: string;
     label: string;
     meta: string[];
+    chartKind?: string;
 };
 
 export type StaticFilterPanelSourceItem = FilterPanelItem;

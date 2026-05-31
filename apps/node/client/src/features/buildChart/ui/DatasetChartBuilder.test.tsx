@@ -1,12 +1,11 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type * as ChartEntity from '@/entities/chart';
 
 import { createChartBuilderFields } from '../lib';
-import { DatasetChartBuilder } from './DatasetChartBuilder';
+import { createTestDataset, renderDatasetChartBuilder, setColumnAnalyzable } from './lib';
 
 const previewChart = vi.fn();
 const createChart = vi.fn();
@@ -31,64 +30,18 @@ vi.mock('@/entities/chart', async importOriginal => {
 
     return {
         ...actual,
-        ChartResult: () => <div data-testid="chart-result" />,
+        ChartShell: () => <div data-testid="chart-result" />,
         ChartConfigSummary: () => <p data-testid="chart-summary" />,
     };
 });
 
-const dataset = {
-    dataset: {
-        id: 'dataset-1',
-        orgId: 'org-1',
-        name: 'sales',
-        sourceType: 'csv' as const,
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-01T00:00:00.000Z',
-    },
-    columns: [
-        {
-            id: 'city',
-            datasetId: 'dataset-1',
-            key: 'city',
-            displayName: 'city',
-            dataType: 'string' as const,
-            orderIndex: 0,
-            isAnalyzable: true,
-        },
-        {
-            id: 'country',
-            datasetId: 'dataset-1',
-            key: 'country',
-            displayName: 'country',
-            dataType: 'string' as const,
-            orderIndex: 1,
-            isAnalyzable: true,
-        },
-        {
-            id: 'score',
-            datasetId: 'dataset-1',
-            key: 'score',
-            displayName: 'score',
-            dataType: 'number' as const,
-            orderIndex: 2,
-            isAnalyzable: true,
-        },
-    ],
-    totalRows: 10,
-};
-
-let testDataset = dataset;
+let testDataset = createTestDataset(0);
 let datasetSequence = 0;
 
 describe('DatasetChartBuilder', () => {
     beforeEach(() => {
         datasetSequence += 1;
-        const datasetId = `dataset-${datasetSequence}`;
-        testDataset = {
-            ...dataset,
-            dataset: { ...dataset.dataset, id: datasetId },
-            columns: dataset.columns.map(column => ({ ...column, datasetId })),
-        };
+        testDataset = createTestDataset(datasetSequence);
         previewChart.mockReset();
         createChart.mockReset();
         updateChart.mockReset();
@@ -101,15 +54,10 @@ describe('DatasetChartBuilder', () => {
         const user = userEvent.setup();
         const onChartCreated = vi.fn();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder
-                    orgId="org-1"
-                    selectedDataset={testDataset}
-                    onChartCreated={onChartCreated}
-                />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({
+            selectedDataset: testDataset,
+            onChartCreated,
+        });
 
         await user.selectOptions(screen.getByLabelText('Chart type'), 'heatmap');
         await user.selectOptions(screen.getByLabelText('X axis'), 'city');
@@ -126,11 +74,7 @@ describe('DatasetChartBuilder', () => {
                 config: expect.objectContaining({ kind: 'heatmap', limit: 200 }),
             })
         );
-
-        // createChart must not be called yet
         expect(createChart).not.toHaveBeenCalled();
-
-        // preview step is shown
         expect(screen.getByTestId('chart-result')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /save chart/i })).toBeInTheDocument();
 
@@ -150,11 +94,7 @@ describe('DatasetChartBuilder', () => {
     it('goes back to config form when Edit is clicked', async () => {
         const user = userEvent.setup();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         await user.click(screen.getByRole('button', { name: 'Preview' }));
         await waitFor(() =>
@@ -170,11 +110,7 @@ describe('DatasetChartBuilder', () => {
     it('disables grouping select when only none is available', async () => {
         const user = userEvent.setup();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         const groupBySelect = screen.getByLabelText('Group by');
 
@@ -186,11 +122,7 @@ describe('DatasetChartBuilder', () => {
     });
 
     it('does not expose row limit setting', () => {
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         expect(screen.queryByLabelText('Row limit')).not.toBeInTheDocument();
     });
@@ -198,11 +130,7 @@ describe('DatasetChartBuilder', () => {
     it('does not expose sort setting for bar or line charts', async () => {
         const user = userEvent.setup();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         expect(screen.queryByLabelText('Sort')).not.toBeInTheDocument();
 
@@ -214,11 +142,7 @@ describe('DatasetChartBuilder', () => {
     it('orders bar charts by dimension instead of measure', async () => {
         const user = userEvent.setup();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         await user.click(screen.getByRole('button', { name: 'Preview' }));
 
@@ -237,11 +161,7 @@ describe('DatasetChartBuilder', () => {
     it('orders line charts by dimension instead of measure', async () => {
         const user = userEvent.setup();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         await user.selectOptions(screen.getByLabelText('Chart type'), 'line');
         await user.click(screen.getByRole('button', { name: 'Preview' }));
@@ -259,18 +179,9 @@ describe('DatasetChartBuilder', () => {
     });
 
     it('renders non-analyzable columns disabled and defaults to analyzable columns', () => {
-        const disabledDataset = {
-            ...testDataset,
-            columns: testDataset.columns.map(column =>
-                column.id === 'city' ? { ...column, isAnalyzable: false } : column
-            ),
-        };
+        const disabledDataset = setColumnAnalyzable(testDataset, 'city', false);
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={disabledDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: disabledDataset });
 
         const axisSelect = screen.getByLabelText('X axis') as HTMLSelectElement;
         const cityOption = within(axisSelect).getByRole('option', {
@@ -282,23 +193,13 @@ describe('DatasetChartBuilder', () => {
     });
 
     it('blocks saving edited charts while a selected column is not analyzable', () => {
-        const disabledDataset = {
-            ...testDataset,
-            columns: testDataset.columns.map(column =>
-                column.id === 'city' ? { ...column, isAnalyzable: false } : column
-            ),
-        };
+        const disabledDataset = setColumnAnalyzable(testDataset, 'city', false);
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder
-                    orgId="org-1"
-                    selectedDataset={disabledDataset}
-                    editChartId="chart-1"
-                    initialFields={{ dimensionColumnId: 'city' }}
-                />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({
+            selectedDataset: disabledDataset,
+            editChartId: 'chart-1',
+            initialFields: { dimensionColumnId: 'city' },
+        });
 
         expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled();
     });
@@ -306,11 +207,7 @@ describe('DatasetChartBuilder', () => {
     it('builds correct heatmap config with between filter', async () => {
         const user = userEvent.setup();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder orgId="org-1" selectedDataset={testDataset} />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
 
         await user.type(screen.getByLabelText('Chart name'), 'Score heatmap');
         await user.selectOptions(screen.getByLabelText('Chart type'), 'heatmap');
@@ -343,16 +240,11 @@ describe('DatasetChartBuilder', () => {
         const user = userEvent.setup();
         const onChartUpdated = vi.fn();
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder
-                    orgId="org-1"
-                    selectedDataset={testDataset}
-                    editChartId="chart-1"
-                    onChartUpdated={onChartUpdated}
-                />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({
+            selectedDataset: testDataset,
+            editChartId: 'chart-1',
+            onChartUpdated,
+        });
 
         await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
         await user.selectOptions(screen.getByLabelText('Column'), 'score');
@@ -382,16 +274,11 @@ describe('DatasetChartBuilder', () => {
         const onChange = vi.fn();
         const setItem = vi.spyOn(Storage.prototype, 'setItem');
 
-        render(
-            <MemoryRouter>
-                <DatasetChartBuilder
-                    orgId="org-1"
-                    selectedDataset={testDataset}
-                    value={createChartBuilderFields()}
-                    onChange={onChange}
-                />
-            </MemoryRouter>
-        );
+        renderDatasetChartBuilder({
+            selectedDataset: testDataset,
+            value: createChartBuilderFields(),
+            onChange,
+        });
 
         await user.selectOptions(screen.getByLabelText('Chart type'), 'line');
 

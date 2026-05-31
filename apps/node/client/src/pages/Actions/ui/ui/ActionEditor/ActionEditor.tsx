@@ -1,4 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
+import { Save, X } from 'lucide-react';
 import { useCallback, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -12,7 +13,7 @@ import type { Action } from '@/entities/action';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { StatusMessage } from '@/shared/ui';
+import { Button, Separator, StatusMessage } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import {
@@ -35,7 +36,6 @@ import {
 
 import { ConfigureForm } from '../ConfigureForm';
 import { RunForm } from '../RunForm';
-import { WorkspaceHeader } from '../WorkspaceHeader';
 import { WorkspaceTabs } from '../WorkspaceTabs';
 import { useActionDraftUpdaters } from './lib';
 
@@ -120,35 +120,6 @@ export const ActionEditor = ({
         ]
     );
 
-    const handleRename = useCallback(
-        async (name: string) => {
-            if (isCreatingAction) {
-                setDraft(current => ({ ...current, name }));
-
-                return;
-            }
-            if (!selectedAction || !editable) {
-                return;
-            }
-
-            try {
-                setError('');
-                await patchAction({ actionId: selectedAction.id, name }).unwrap();
-                setDraft(current => ({ ...current, name }));
-                await refetchActions();
-            } catch (renameError) {
-                const message = getApiErrorMessage(
-                    renameError,
-                    'Unable to rename this action.'
-                );
-                setError(message);
-
-                throw new Error(message);
-            }
-        },
-        [editable, isCreatingAction, patchAction, refetchActions, selectedAction]
-    );
-
     const handleRun = useCallback(
         async (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
@@ -200,31 +171,55 @@ export const ActionEditor = ({
     );
 
     const saving = createState.isLoading || patchState.isLoading;
+    const saveFormId =
+        workspaceTab === 'configure' && editable ? CONFIGURE_FORM_ID : undefined;
+    const workspaceTitle =
+        (isCreatingAction ? draft.name : (selectedAction?.name ?? '')).trim() ||
+        'Untitled action';
 
     return (
         <section
             className={styles['workspace']}
             data-stack="v"
-            data-gap="md"
+            data-gap="sm"
             data-flex
             data-test-id={actionsTestIds.workspace}
             aria-label="Action details"
         >
-            <WorkspaceHeader
-                title={isCreatingAction ? draft.name : (selectedAction?.name ?? '')}
-                isCreatingAction={isCreatingAction}
-                editable={editable && isCreatingAction}
-                saveDisabled={!editable || saving}
-                saveFormId={
-                    workspaceTab === 'configure' && editable
-                        ? CONFIGURE_FORM_ID
-                        : undefined
-                }
-                saving={saving}
-                renaming={patchState.isLoading}
-                onRename={handleRename}
-                onCancelCreate={() => dispatch(cancelCreateAction())}
-            />
+            <div
+                className={styles['top-line-block']}
+                data-stack="h"
+                data-align="center"
+                data-justify="between"
+            >
+                <h2 className={styles['title']}>{workspaceTitle}</h2>
+                <div data-stack="h" data-gap="sm" data-align="center">
+                    {saveFormId ? (
+                        <Button
+                            type="submit"
+                            form={saveFormId}
+                            size="sm"
+                            data-test-id={actionsTestIds.saveButton}
+                            disabled={!editable || saving}
+                            isLoading={saving}
+                        >
+                            <Save size={16} />
+                            Save
+                        </Button>
+                    ) : null}
+                    {isCreatingAction ? (
+                        <Button
+                            data-test-id={actionsTestIds.cancelCreateButton}
+                            onClick={() => dispatch(cancelCreateAction())}
+                        >
+                            <X size={18} />
+                            Cancel
+                        </Button>
+                    ) : null}
+                </div>
+            </div>
+
+            <Separator />
 
             <WorkspaceTabs
                 activeTab={workspaceTab}

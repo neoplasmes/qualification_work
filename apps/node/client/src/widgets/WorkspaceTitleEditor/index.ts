@@ -1,1 +1,0 @@
-export { WorkspaceTitleEditor } from './ui';

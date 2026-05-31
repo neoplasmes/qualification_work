@@ -420,32 +420,30 @@ export class PgDatasetRepo implements DatasetRepo {
         );
     }
 
-    async updateRowValues(
+    async updateRowsValues(
         datasetId: string,
-        rowId: string,
+        rowIds: string[],
         partialData: Record<string, unknown>
-    ): Promise<DatasetRow | null> {
+    ): Promise<DatasetRow[]> {
         const keysToDelete = Object.keys(partialData).filter(
             key => partialData[key] === null
         );
         const dataToMerge = Object.fromEntries(
             Object.entries(partialData).filter(([, value]) => value !== null)
         );
-        const [row] = await this.pool
-            .query<DatasetRow>(
-                `UPDATE data.dataset_rows
-                SET data = (data - $3::text[]) || $4::jsonb
-                WHERE dataset_id = $1 AND id = $2
-                RETURNING
-                    id,
-                    ${datasetRowColumnMap.datasetId},
-                    ${datasetRowColumnMap.rowIndex},
-                    data`,
-                [datasetId, rowId, keysToDelete, JSON.stringify(dataToMerge)]
-            )
-            .then(result => result.rows);
+        const { rows } = await this.pool.query<DatasetRow>(
+            `UPDATE data.dataset_rows
+            SET data = (data - $3::text[]) || $4::jsonb
+            WHERE dataset_id = $1 AND id = ANY($2::uuid[])
+            RETURNING
+                id,
+                ${datasetRowColumnMap.datasetId},
+                ${datasetRowColumnMap.rowIndex},
+                data`,
+            [datasetId, rowIds, keysToDelete, JSON.stringify(dataToMerge)]
+        );
 
-        return row ?? null;
+        return rows;
     }
 
     async updateColumnAnalysis(
@@ -521,48 +519,53 @@ export class PgDatasetRepo implements DatasetRepo {
         }
     }
 
-    async deleteRow(datasetId: string, rowId: string): Promise<DatasetRow | null> {
+    async deleteRows(datasetId: string, rowIds: string[]): Promise<DatasetRow[]> {
         const client = await this.pool.connect();
 
         try {
             await client.query('BEGIN');
             await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [datasetId]);
 
-            const [row] = await client
-                .query<DatasetRow>(
-                    `DELETE FROM data.dataset_rows
-                    WHERE dataset_id = $1 AND id = $2
-                    RETURNING
-                        id,
-                        ${datasetRowColumnMap.datasetId},
-                        ${datasetRowColumnMap.rowIndex},
-                        data`,
-                    [datasetId, rowId]
-                )
-                .then(result => result.rows);
+            const { rows: deleted } = await client.query<DatasetRow>(
+                `DELETE FROM data.dataset_rows
+                WHERE dataset_id = $1 AND id = ANY($2::uuid[])
+                RETURNING
+                    id,
+                    ${datasetRowColumnMap.datasetId},
+                    ${datasetRowColumnMap.rowIndex},
+                    data`,
+                [datasetId, rowIds]
+            );
 
-            if (!row) {
+            if (deleted.length === 0) {
                 await client.query('ROLLBACK');
 
-                return null;
+                return [];
             }
 
+            // shift survivors out of the way, then densely renumber from 0;
+            // the pre-shift avoids transient (dataset_id, row_index) unique collisions
             await client.query(
                 `UPDATE data.dataset_rows
                 SET row_index = row_index + $2
-                WHERE dataset_id = $1 AND row_index > $3`,
-                [datasetId, rowIndexShiftOffset, row.rowIndex]
+                WHERE dataset_id = $1`,
+                [datasetId, rowIndexShiftOffset]
             );
             await client.query(
-                `UPDATE data.dataset_rows
-                SET row_index = row_index - $2
-                WHERE dataset_id = $1 AND row_index > $3`,
-                [datasetId, rowIndexShiftOffset + 1, row.rowIndex + rowIndexShiftOffset]
+                `UPDATE data.dataset_rows AS r
+                SET row_index = ordered.new_index
+                FROM (
+                    SELECT id, (ROW_NUMBER() OVER (ORDER BY row_index)) - 1 AS new_index
+                    FROM data.dataset_rows
+                    WHERE dataset_id = $1
+                ) AS ordered
+                WHERE r.id = ordered.id`,
+                [datasetId]
             );
 
             await client.query('COMMIT');
 
-            return row;
+            return deleted;
         } catch (err) {
             await client.query('ROLLBACK');
 

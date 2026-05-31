@@ -34,6 +34,8 @@ export const DatasetGridEditor = ({
     gridWidth,
     gridHeight,
     scrollToBottomSignal,
+    gridSelection,
+    onGridSelectionChange,
     onCellCommit,
     onDraftValueChange,
     onRowContextMenu,
@@ -307,6 +309,9 @@ export const DatasetGridEditor = ({
                     onHeaderContextMenu={handleHeaderContextMenu}
                     onColumnResize={handleColumnResize}
                     onVisibleRegionChanged={onVisibleRegionChanged}
+                    gridSelection={gridSelection}
+                    onGridSelectionChange={onGridSelectionChange}
+                    rangeSelect="multi-rect"
                     rowMarkers="number"
                     headerHeight={HEADER_H}
                     rowHeight={ROW_H}

@@ -14,6 +14,8 @@ export const datasetsTestIds = {
     includeColumnInAnalysisCheckbox: 'datasets-include-column-in-analysis-checkbox',
     insertRowMenuItem: 'datasets-insert-row-menu-item',
     deleteRowMenuItem: 'datasets-delete-row-menu-item',
+    clearSelectedMenuItem: 'datasets-clear-selected-menu-item',
+    deleteSelectedRowsMenuItem: 'datasets-delete-selected-rows-menu-item',
     confirmInsertButton: 'datasets-confirm-insert-button',
     cancelInsertButton: 'datasets-cancel-insert-button',
     confirmDeleteRowButton: 'datasets-confirm-delete-row-button',

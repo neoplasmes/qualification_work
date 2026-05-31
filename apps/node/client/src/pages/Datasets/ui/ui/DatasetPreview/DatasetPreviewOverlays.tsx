@@ -31,6 +31,7 @@ type DatasetPreviewOverlaysProps = {
     onInsertConfirm: () => void;
     onInsertCancel: () => void;
     onInsertBelow: () => void;
+    onClearSelected: () => void;
     onAskDelete: () => void;
     onDeleteConfirm: () => void;
     onColumnAnalysisToggle: (
@@ -54,6 +55,7 @@ export const DatasetPreviewOverlays = ({
     onInsertConfirm,
     onInsertCancel,
     onInsertBelow,
+    onClearSelected,
     onAskDelete,
     onDeleteConfirm,
     onColumnAnalysisToggle,
@@ -76,6 +78,7 @@ export const DatasetPreviewOverlays = ({
                 state={contextMenu}
                 deleting={deleteLoading}
                 onInsertBelow={onInsertBelow}
+                onClearSelected={onClearSelected}
                 onAskDelete={onAskDelete}
                 onConfirmDelete={onDeleteConfirm}
                 onCancel={onMenuCancel}
@@ -97,6 +100,7 @@ export const DatasetPreviewOverlays = ({
                     data-test-id={datasetsTestIds.scrollToBottomButton}
                     className={styles['scroll-bottom']}
                     aria-label="Scroll to end"
+                    data-p="sm"
                     onClick={onScrollToBottom}
                 >
                     <ArrowDown size={18} />

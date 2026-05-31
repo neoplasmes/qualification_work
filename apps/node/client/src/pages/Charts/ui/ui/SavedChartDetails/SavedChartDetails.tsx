@@ -29,6 +29,7 @@ export const SavedChartDetails = ({
                 columns={columns}
                 data={chartResult}
                 ariaLabel="Saved chart result"
+                transparentBackground
             />
         )}
     </>

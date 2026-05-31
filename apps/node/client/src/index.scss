@@ -1,9 +1,18 @@
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+@layer reset {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+@layer base {
+    body {
+        font-family: var(--font-body);
+        color: var(--color-on-surface);
+    }
 }
 
 html,
@@ -33,9 +42,6 @@ body,
 }
 
 body {
-    font-family: var(--font-body);
-    color: var(--color-on-surface);
-
     background:
         radial-gradient(
             ellipse 1500px 600px at 33% -10%,

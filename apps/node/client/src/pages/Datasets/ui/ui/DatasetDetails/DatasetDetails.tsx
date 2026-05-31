@@ -1,11 +1,9 @@
 import { GitMerge, Trash2 } from 'lucide-react';
 
-import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
-
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { Button, StatusMessage, Table } from '@/shared/ui';
+import { Button, EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 
@@ -34,7 +32,7 @@ export const DatasetDetails = ({
 }: DatasetDetailsProps) => (
     <section className={styles['details']} data-flex aria-label="Dataset details">
         <div className={styles['details-header']}>
-            <WorkspaceTitleEditor
+            <EditableText
                 title={selectedDataset.dataset.name}
                 fallbackTitle="Untitled dataset"
                 saving={renaming}

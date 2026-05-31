@@ -43,6 +43,7 @@ const createChartItems = (charts: Chart[] | undefined) =>
     charts?.map(chart => ({
         id: chart.id,
         label: chart.name,
+        chartKind: chart.chartType,
         meta: [chart.chartType, formatDate(chart.createdAt)],
     }));
 

@@ -77,18 +77,19 @@ export interface DatasetRepo {
     deleteById(datasetId: string): Promise<void>;
 
     /**
-     * partial jsonb update of a single row. returns updated row or null if not found
+     * partial jsonb update of the given rows. the same partialData is applied to every row.
+     * returns the updated rows (missing ids are silently skipped)
      *
      * @param datasetId
-     * @param rowId
+     * @param rowIds
      * @param partialData only keys in this object are written; missing keys stay untouched
      * @returns
      */
-    updateRowValues(
+    updateRowsValues(
         datasetId: string,
-        rowId: string,
+        rowIds: string[],
         partialData: Record<string, unknown>
-    ): Promise<DatasetRow | null>;
+    ): Promise<DatasetRow[]>;
 
     updateColumnAnalysis(
         datasetId: string,
@@ -111,7 +112,15 @@ export interface DatasetRepo {
         afterRowId?: string
     ): Promise<DatasetRow | null>;
 
-    deleteRow(datasetId: string, rowId: string): Promise<DatasetRow | null>;
+    /**
+     * deletes the given rows and densely renumbers the remaining ones.
+     * returns the deleted rows (missing ids are silently skipped)
+     *
+     * @param datasetId
+     * @param rowIds
+     * @returns
+     */
+    deleteRows(datasetId: string, rowIds: string[]): Promise<DatasetRow[]>;
 
     /**
      * adds new columns to existing dataset, skipping ones whose key already exists

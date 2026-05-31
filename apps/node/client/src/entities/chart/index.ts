@@ -13,7 +13,7 @@ export {
     CHART_KIND_ICONS,
 } from './lib';
 export { BAR_CHART_ROWS_LIMIT } from './const';
-export { ChartCard, ChartConfigSummary, ChartResult } from './ui';
+export { ChartCard, ChartConfigSummary, ChartShell } from './ui';
 export {
     useDeleteChartMutation,
     useGetChartDataQuery,

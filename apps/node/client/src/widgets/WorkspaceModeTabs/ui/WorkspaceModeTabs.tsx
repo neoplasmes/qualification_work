@@ -15,7 +15,6 @@ type WorkspaceModeTabsProps<Value extends string> = {
     value: Value;
     options: readonly WorkspaceModeTabOption<Value>[];
     layoutId: string;
-    /** equal-width grid layout when set */
     columns?: 2 | 3 | 4;
     onChange: (value: Value) => void;
 };

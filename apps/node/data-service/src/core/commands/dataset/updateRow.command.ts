@@ -13,17 +13,21 @@ import { coerceValueByType } from './lib';
 export type UpdateRowValuesInput = {
     orgId: string;
     datasetId: string;
-    rowId: string;
+    rowIds: string[];
     values: Record<string, unknown>;
 };
 
 export class UpdateRowValuesCommand implements Executable<
     [UpdateRowValuesInput],
-    Promise<DatasetRow>
+    Promise<DatasetRow[]>
 > {
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
-    async execute(input: UpdateRowValuesInput): Promise<DatasetRow> {
+    async execute(input: UpdateRowValuesInput): Promise<DatasetRow[]> {
+        if (input.rowIds.length === 0) {
+            throw new ValidationError([], 'rowIds is empty');
+        }
+
         const keys = Object.keys(input.values);
 
         if (keys.length === 0) {
@@ -58,14 +62,14 @@ export class UpdateRowValuesCommand implements Executable<
             coerced[key] = coerceValueByType(input.values[key], column.dataType, key);
         }
 
-        const updated = await this.datasetRepo.updateRowValues(
+        const updated = await this.datasetRepo.updateRowsValues(
             input.datasetId,
-            input.rowId,
+            input.rowIds,
             coerced
         );
 
-        if (!updated) {
-            throw new NotFoundError('row not found');
+        if (updated.length === 0) {
+            throw new NotFoundError('rows not found');
         }
 
         return updated;

@@ -52,7 +52,6 @@ export const ActionsWorkspace = () => {
         );
     }
 
-    // key drops local state on action switch instead of syncing via effect
     const editorKey = isCreatingAction ? '__new__' : (selectedAction?.id ?? '__none__');
 
     return (

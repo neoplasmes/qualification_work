@@ -12,6 +12,18 @@ type ModalProps = {
     testId?: string;
     footer?: ReactNode;
     size?: 'sm' | 'md' | 'lg';
+    padding?:
+        | 'xs'
+        | 'sm'
+        | 'sm-plus'
+        | 'md'
+        | 'md-plus'
+        | 'lg'
+        | 'lg-plus'
+        | 'xl'
+        | '2xl'
+        | '3xl'
+        | 'none';
     /** fixed modal height in px; content area scrolls within */
     height?: number;
     closeOnBackdrop?: boolean;
@@ -27,6 +39,7 @@ export const Modal = ({
     testId,
     footer,
     size = 'md',
+    padding = 'lg',
     height,
     closeOnBackdrop = true,
     closeOnEscape = true,
@@ -63,7 +76,7 @@ export const Modal = ({
                 aria-label={ariaLabel ?? title}
                 data-stack="v"
                 data-gap="md"
-                data-p="lg"
+                data-p={padding}
                 className={`${styles['modal']} ${styles[`size-${size}`]}`}
                 style={height !== undefined ? { height: `${height}px` } : undefined}
                 onClick={e => e.stopPropagation()}
@@ -72,7 +85,7 @@ export const Modal = ({
                     <span className={styles['title']}>{title}</span>
                     <IconButton
                         data-p="xs"
-                        tone="ghost"
+                        tone="nav"
                         data-test-id={closeButtonTestId}
                         aria-label="Close modal"
                         onClick={onClose}
@@ -80,11 +93,7 @@ export const Modal = ({
                         <X size={18} />
                     </IconButton>
                 </div>
-                <div
-                    data-display="grid"
-                    data-gap="md"
-                    className={height !== undefined ? styles['body-scroll'] : undefined}
-                >
+                <div data-display="grid" data-gap="md" className={styles['body-scroll']}>
                     {children}
                 </div>
                 {footer && (

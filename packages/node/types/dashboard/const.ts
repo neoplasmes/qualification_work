@@ -22,4 +22,4 @@ export const dashboardChartDefaultHeight = 8;
 
 export const dashboardChartMinWidth = 4;
 
-export const dashboardChartMinHeight = 7;
+export const dashboardChartMinHeight = 4;

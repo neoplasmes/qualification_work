@@ -248,12 +248,12 @@ export class CommitMergeCommand implements Executable<
                     continue;
                 }
 
-                const updated = await this.datasetRepo.updateRowValues(
+                const updated = await this.datasetRepo.updateRowsValues(
                     targetDatasetId,
-                    existingRowId,
+                    [existingRowId],
                     coerced
                 );
-                if (updated) {
+                if (updated.length > 0) {
                     updatedRows += 1;
                 }
             }

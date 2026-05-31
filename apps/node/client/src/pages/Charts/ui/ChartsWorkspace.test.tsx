@@ -89,7 +89,7 @@ vi.mock('@/entities/chart', () => ({
     ChartCard: ({ data }: { data: ChartResponse }) => (
         <div data-testid="chart-result">{data.rows.length} rows</div>
     ),
-    ChartResult: ({ data }: { data: ChartResponse }) => (
+    ChartShell: ({ data }: { data: ChartResponse }) => (
         <div data-testid="chart-result">{data.rows.length} rows</div>
     ),
     ChartConfigSummary: () => <p data-testid="chart-summary" />,
@@ -324,14 +324,12 @@ describe('ChartsWorkspace', () => {
         expect(screen.queryByTestId('chart-builder')).not.toBeInTheDocument();
     });
 
-    it('keeps chart title editing out of the central workspace', () => {
+    it('shows chart title above workspace tabs without central rename controls', () => {
         const { container } = renderWorkspace({ selectedChartId: 'chart-1' });
 
         expect(
             container.querySelector(`[data-test-id="${chartsTestIds.renameButton}"]`)
         ).toBeNull();
-        expect(
-            screen.queryByRole('heading', { name: 'Revenue' })
-        ).not.toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Revenue' })).toBeInTheDocument();
     });
 });

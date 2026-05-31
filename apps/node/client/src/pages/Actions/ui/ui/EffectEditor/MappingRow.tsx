@@ -2,7 +2,12 @@ import { X } from 'lucide-react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { IconButton, TextInput } from '@/shared/ui';
+import {
+    IconButton,
+    SegmentedControl,
+    TextInput,
+    type SegmentedControlOption,
+} from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import type {
@@ -14,6 +19,21 @@ import type {
 import { ColumnSelect, ParameterSelect } from './SelectControls';
 
 import styles from './EffectEditor.module.scss';
+
+const mappingSourceOptions = [
+    {
+        value: 'parameter',
+        label: 'param',
+        testId: actionsTestIds.mappingSourceParameterButton,
+    },
+    {
+        value: 'literal',
+        label: 'literal',
+        testId: actionsTestIds.mappingSourceLiteralButton,
+    },
+] as const satisfies readonly SegmentedControlOption<
+    ActionValueMappingDraft['sourceKind']
+>[];
 
 type MappingRowProps = {
     effect: ActionEffectDraft;
@@ -54,45 +74,21 @@ export const MappingRow = ({
                 data-align="center"
             >
                 <span className={styles['control-label']}>Column</span>
-                <div
+                <SegmentedControl
+                    value={mapping.sourceKind}
+                    options={mappingSourceOptions}
+                    ariaLabel="Value source"
                     className={styles['source-toggle']}
-                    data-display="inline-flex"
-                    role="group"
-                    aria-label="Value source"
-                >
-                    <button
-                        type="button"
-                        data-test-id={actionsTestIds.mappingSourceParameterButton}
-                        className={`${styles['source-btn']} ${
-                            mapping.sourceKind === 'parameter' ? styles['active'] : ''
-                        }`}
-                        disabled={disabled}
-                        aria-pressed={mapping.sourceKind === 'parameter'}
-                        onClick={() =>
-                            onUpdateMapping(effect.id, mapping.id, {
-                                sourceKind: 'parameter',
-                            })
-                        }
-                    >
-                        param
-                    </button>
-                    <button
-                        type="button"
-                        data-test-id={actionsTestIds.mappingSourceLiteralButton}
-                        className={`${styles['source-btn']} ${
-                            mapping.sourceKind === 'literal' ? styles['active'] : ''
-                        }`}
-                        disabled={disabled}
-                        aria-pressed={mapping.sourceKind === 'literal'}
-                        onClick={() =>
-                            onUpdateMapping(effect.id, mapping.id, {
-                                sourceKind: 'literal',
-                            })
-                        }
-                    >
-                        literal
-                    </button>
-                </div>
+                    classNames={{
+                        indicator: styles['source-indicator'],
+                        item: styles['source-btn'],
+                        itemActive: styles['active'],
+                    }}
+                    disabled={disabled}
+                    onChange={sourceKind =>
+                        onUpdateMapping(effect.id, mapping.id, { sourceKind })
+                    }
+                />
             </div>
             <ColumnSelect
                 testId={actionsTestIds.mappingColumnSelect}

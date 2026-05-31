@@ -20,7 +20,7 @@ import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { useHasOverflow } from '@/shared/lib/useHasOverflow';
-import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
+import { PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
 import { chartsWorkspaceIndexPath, getChartWorkspaceUrl } from '../lib';
@@ -89,6 +89,7 @@ export const ChartsWorkspace = () => {
     });
 
     const selectedChart = selectedChartQuery.data ?? null;
+    const chartTitle = selectedChart?.name.trim() || 'Untitled chart';
     const chartData = useChartDataResult(selectedChart?.id ?? null, workspaceMode);
 
     const builderDataset = useMemo(
@@ -131,8 +132,10 @@ export const ChartsWorkspace = () => {
 
     const handleChartCreated = async (chartId: string) => {
         await chartsQuery.refetch();
+
         dispatch(setBuilderDatasetId(null));
         dispatch(selectChart(chartId));
+
         navigate(getChartWorkspaceUrl(chartId, 'view'));
     };
 
@@ -165,7 +168,7 @@ export const ChartsWorkspace = () => {
                 ref={workspaceRef}
                 className={styles['panel']}
                 data-stack="v"
-                data-gap="md"
+                data-gap="sm"
                 data-flex
                 data-test-id={chartsTestIds.workspace}
                 aria-label="Chart details"
@@ -196,6 +199,16 @@ export const ChartsWorkspace = () => {
 
                 {selectedChart && !builderDataset && (
                     <>
+                        <div
+                            className={styles['top-line-block']}
+                            data-stack="h"
+                            data-align="center"
+                        >
+                            <h2 className={styles['title']}>{chartTitle}</h2>
+                        </div>
+
+                        <Separator />
+
                         <WorkspaceModeTabs
                             value={workspaceMode}
                             options={CHARTS_WORKSPACE_MODE_TABS}

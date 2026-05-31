@@ -1,8 +1,14 @@
+@use '../../shared/ui/styles/layout.scss' as layout;
+
 .panel {
     --workspace-left-panel-item-padding: var(--spacing-md);
 
     min-width: 0;
     overflow: visible;
+}
+
+.top-line-block {
+    @include layout.top-line-block;
 }
 
 .title {

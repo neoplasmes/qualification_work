@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { filterApplicationEntitiesSlice } from '@/features/filterApplicationEntities';
+
 import { dashboardsPageSlice } from '../model/dashboardsPageSlice';
 import { DashboardsLeftPanel } from './DashboardsLeftPanel';
 
@@ -46,6 +48,7 @@ const makeStore = () =>
     configureStore({
         reducer: combineReducers({
             [dashboardsPageSlice.name]: dashboardsPageSlice.reducer,
+            [filterApplicationEntitiesSlice.name]: filterApplicationEntitiesSlice.reducer,
         }),
     });
 

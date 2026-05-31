@@ -3,20 +3,15 @@ import { describe, expect, it } from 'vitest';
 import {
     chartsPageInitialState,
     chartsPageSlice,
-    clearDashboardFilter,
-    clearDatasetFilter,
     initWorkspaceDraft,
     resetWorkspaceDraft,
     selectChart,
     setBuilderDatasetId,
-    setChartsFilterActiveTab,
     setShowDatasetPicker,
     setWorkspaceDraftChartType,
     setWorkspaceDraftConfigText,
     setWorkspaceDraftName,
     setWorkspaceFilterOverrideText,
-    toggleDashboardFilter,
-    toggleDatasetFilter,
 } from './chartsPageSlice';
 
 describe('chartsPageSlice', () => {
@@ -45,25 +40,6 @@ describe('chartsPageSlice', () => {
         expect(state.showDatasetPicker).toBe(false);
     });
 
-    it('toggles and clears dataset and dashboard filters', () => {
-        let state = chartsPageSlice.reducer(
-            chartsPageInitialState,
-            toggleDatasetFilter('ds-1')
-        );
-        state = chartsPageSlice.reducer(state, toggleDatasetFilter('ds-2'));
-        state = chartsPageSlice.reducer(state, toggleDatasetFilter('ds-1'));
-        state = chartsPageSlice.reducer(state, toggleDashboardFilter('db-1'));
-
-        expect(state.filterDatasetIds).toEqual(['ds-2']);
-        expect(state.filterDashboardIds).toEqual(['db-1']);
-
-        state = chartsPageSlice.reducer(state, clearDatasetFilter());
-        state = chartsPageSlice.reducer(state, clearDashboardFilter());
-
-        expect(state.filterDatasetIds).toEqual([]);
-        expect(state.filterDashboardIds).toEqual([]);
-    });
-
     it('stores workspace draft fields and resets them together', () => {
         let state = chartsPageSlice.reducer(
             chartsPageInitialState,
@@ -84,7 +60,6 @@ describe('chartsPageSlice', () => {
             state,
             setWorkspaceFilterOverrideText('[{"op":"eq"}]')
         );
-        state = chartsPageSlice.reducer(state, setChartsFilterActiveTab('dashboards'));
         state = chartsPageSlice.reducer(state, setShowDatasetPicker(true));
 
         expect(state).toMatchObject({
@@ -93,7 +68,6 @@ describe('chartsPageSlice', () => {
             workspaceDraftChartType: 'pie',
             workspaceDraftConfigText: '{"x":"status"}',
             workspaceFilterOverrideText: '[{"op":"eq"}]',
-            chartsFilterActiveTab: 'dashboards',
             showDatasetPicker: true,
         });
 

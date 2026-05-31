@@ -1,17 +1,13 @@
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
 import { Fragment, useMemo, type Dispatch, type SetStateAction } from 'react';
 
+import { getEffectLabel } from '@/entities/action';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { Button, IconButton, Separator } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
-import {
-    createBlankValueMappingDraft,
-    getDatasetColumns,
-    getEffectLabel,
-    moveItem,
-} from '../../../lib';
+import { createBlankValueMappingDraft, getDatasetColumns, moveItem } from '../../../lib';
 import type {
     ActionDraft,
     ActionEffectDraft,

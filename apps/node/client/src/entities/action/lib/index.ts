@@ -1,0 +1,1 @@
+export { getEffectLabel } from './actionLabels';

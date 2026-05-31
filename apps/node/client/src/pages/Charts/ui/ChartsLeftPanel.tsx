@@ -6,6 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
+import {
+    filterApplicationEntities,
+    selectFilterApplicationValues,
+} from '@/features/filterApplicationEntities';
 
 import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
@@ -15,14 +19,7 @@ import { formatDate } from '@/shared/lib/formatDate';
 import { Badge } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
-import { filterCharts } from '../lib';
-import {
-    selectChart,
-    selectFilterDashboardIds,
-    selectFilterDatasetIds,
-    selectSelectedChartId,
-    setShowDatasetPicker,
-} from '../model';
+import { selectChart, selectSelectedChartId, setShowDatasetPicker } from '../model';
 
 export const ChartsLeftPanel = () => {
     const dispatch = useDispatch();
@@ -34,14 +31,13 @@ export const ChartsLeftPanel = () => {
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
     const selectedChartId = useSelector(selectSelectedChartId);
-    const filterDatasetIds = useSelector(selectFilterDatasetIds);
-    const filterDashboardIds = useSelector(selectFilterDashboardIds);
+    const filterValues = useSelector(selectFilterApplicationValues('charts'));
 
-    const filteredCharts = filterCharts({
+    const filteredCharts = filterApplicationEntities({
+        scope: 'charts',
         charts: chartsQuery.data,
         dashboards: dashboardsQuery.data,
-        datasetIds: filterDatasetIds,
-        dashboardIds: filterDashboardIds,
+        values: filterValues,
     });
     const datasetNameById = useMemo(
         () =>

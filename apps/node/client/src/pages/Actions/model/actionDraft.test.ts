@@ -7,7 +7,6 @@ import {
     coerceRunValues,
     createBlankActionDraft,
     draftToActionPayload,
-    filterActions,
 } from './actionDraft';
 
 const baseAction: Action = {
@@ -116,29 +115,5 @@ describe('action draft helpers', () => {
                 { amount: '15.5', paid: 'true' }
             )
         ).toEqual({ amount: 15.5, paid: true });
-    });
-
-    it('filters actions by dataset, effect and run status', () => {
-        expect(
-            filterActions([baseAction], {
-                searchText: '',
-                datasetIds: ['dataset-1'],
-                effectKinds: ['updateRowsByMatch'],
-                runStatuses: ['success'],
-                runs: [
-                    {
-                        id: 'run-1',
-                        actionId: 'action-1',
-                        orgId: 'org-1',
-                        userId: 'user-1',
-                        parameters: {},
-                        changes: [],
-                        status: 'success',
-                        errorMessage: null,
-                        executedAt: '2026-01-01T00:00:00.000Z',
-                    },
-                ],
-            })
-        ).toEqual([baseAction]);
     });
 });

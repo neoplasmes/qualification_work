@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
+import { FilterPanel } from '@/widgets/FilterPanel';
 import { WorkspaceRightPanel } from '@/widgets/WorkspaceRightPanel';
 
 import { datasetsTestIds } from '../../../const';
 
-import { DatasetsFilterPanel } from '../DatasetsFilterPanel';
 import { DatasetsPropertiesPanel } from '../DatasetsPropertiesPanel';
 
 type RightPanelTab = 'properties' | 'filters';
@@ -33,7 +33,17 @@ export const DatasetsRightPanel = () => {
             {activeTab === 'properties' ? (
                 <DatasetsPropertiesPanel />
             ) : (
-                <DatasetsFilterPanel />
+                <FilterPanel
+                    scope="datasets"
+                    testIds={{
+                        chip: datasetsTestIds.filterChip,
+                        clearButton: datasetsTestIds.clearFilterButton,
+                        tabs: {
+                            charts: datasetsTestIds.filterTabCharts,
+                            dashboards: datasetsTestIds.filterTabDashboards,
+                        },
+                    }}
+                />
             )}
         </WorkspaceRightPanel>
     );

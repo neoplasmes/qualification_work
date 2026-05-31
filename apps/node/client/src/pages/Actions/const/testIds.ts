@@ -42,7 +42,9 @@ export const actionsTestIds = {
     historyTab: 'actions-history-tab',
     propertiesTab: 'actions-properties-tab',
     filtersTab: 'actions-filters-tab',
-    filtersSearchInput: 'actions-filters-search-input',
+    filterTabDatasets: 'actions-filter-tab-datasets',
+    filterTabEffects: 'actions-filter-tab-effects',
+    filterTabRuns: 'actions-filter-tab-runs',
     filterChip: 'actions-filter-chip',
     clearFiltersButton: 'actions-clear-filters-button',
 } as const;

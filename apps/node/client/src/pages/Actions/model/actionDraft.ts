@@ -1,4 +1,4 @@
-import type { ActionEffect, ActionParameterType, ActionRun } from '@/entities/action';
+import type { ActionEffect, ActionParameterType } from '@/entities/action';
 
 export type ActionParameterDraft = {
     id: string;
@@ -36,13 +36,6 @@ export type ActionDraft = {
     effects: ActionEffectDraft[];
 };
 
-export type ActionListFilters = {
-    searchText: string;
-    datasetIds: string[];
-    effectKinds: Array<ActionEffect['kind']>;
-    runStatuses: Array<ActionRun['status']>;
-    runs: ActionRun[];
-};
 export {
     actionToDraft,
     coerceRunValues,
@@ -51,7 +44,6 @@ export {
     createBlankParameterDraft,
     createBlankValueMappingDraft,
     draftToActionPayload,
-    filterActions,
     getDefaultRunValues,
     labelToKey,
 } from '../lib';

@@ -27,6 +27,12 @@ import {
     type PanelLayoutState,
 } from '@/widgets/WorkspaceGrid';
 
+import {
+    filterApplicationEntitiesPersistence,
+    filterApplicationEntitiesSlice,
+    type FilterApplicationEntitiesState,
+} from '@/features/filterApplicationEntities';
+
 import { api } from '@/shared/api';
 
 import { rootReducer, type RootState } from './rootReducer';
@@ -54,6 +60,10 @@ export function createStore(preloadedState?: Partial<RootState>) {
             DashboardsPageState,
             ReturnType<typeof dashboardsPagePersistence.pickPersistedState>
         >(dashboardsPagePersistence),
+        [filterApplicationEntitiesSlice.name]: getPersistedInitialState<
+            FilterApplicationEntitiesState,
+            ReturnType<typeof filterApplicationEntitiesPersistence.pickPersistedState>
+        >(filterApplicationEntitiesPersistence),
     };
 
     const store = configureStore({
@@ -91,6 +101,13 @@ export function createStore(preloadedState?: Partial<RootState>) {
             selectPersistedState: state =>
                 dashboardsPagePersistence.pickPersistedState(
                     state[dashboardsPageSlice.name]
+                ),
+        },
+        {
+            key: filterApplicationEntitiesPersistence.key,
+            selectPersistedState: state =>
+                filterApplicationEntitiesPersistence.pickPersistedState(
+                    state[filterApplicationEntitiesSlice.name]
                 ),
         },
     ]);

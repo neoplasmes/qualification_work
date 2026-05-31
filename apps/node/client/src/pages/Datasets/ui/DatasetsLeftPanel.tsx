@@ -6,6 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
+import {
+    filterApplicationEntities,
+    selectFilterApplicationValues,
+} from '@/features/filterApplicationEntities';
 
 import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
@@ -16,14 +20,7 @@ import { getSelected } from '@/shared/lib/getSelected';
 import { Badge } from '@/shared/ui';
 
 import { datasetsTestIds } from '../const';
-import { filterDatasets } from '../lib';
-import {
-    selectDataset,
-    selectFilterChartIds,
-    selectFilterDashboardIds,
-    selectSelectedDatasetId,
-    setShowUpload,
-} from '../model';
+import { selectDataset, selectSelectedDatasetId, setShowUpload } from '../model';
 
 export const DatasetsLeftPanel = () => {
     const dispatch = useDispatch();
@@ -35,8 +32,7 @@ export const DatasetsLeftPanel = () => {
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
 
     const selectedDatasetId = useSelector(selectSelectedDatasetId);
-    const filterChartIds = useSelector(selectFilterChartIds);
-    const filterDashboardIds = useSelector(selectFilterDashboardIds);
+    const filterValues = useSelector(selectFilterApplicationValues('datasets'));
 
     const selectedDataset = useMemo(
         () => getSelected(datasetsQuery.data, selectedDatasetId, item => item.dataset.id),
@@ -45,20 +41,14 @@ export const DatasetsLeftPanel = () => {
 
     const filteredDatasets = useMemo(
         () =>
-            filterDatasets({
+            filterApplicationEntities({
+                scope: 'datasets',
                 datasets: datasetsQuery.data,
                 charts: chartsQuery.data,
                 dashboards: dashboardsQuery.data,
-                chartIds: filterChartIds,
-                dashboardIds: filterDashboardIds,
+                values: filterValues,
             }),
-        [
-            chartsQuery.data,
-            dashboardsQuery.data,
-            datasetsQuery.data,
-            filterChartIds,
-            filterDashboardIds,
-        ]
+        [chartsQuery.data, dashboardsQuery.data, datasetsQuery.data, filterValues]
     );
 
     return (

@@ -1,22 +1,16 @@
 export {
-    clearChartFilter,
-    clearDatasetFilter,
     clearWorkspaceMetricForm,
     dashboardsPageInitialState,
     dashboardsPageSlice,
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
     selectDashboard,
-    selectDashboardsFilterActiveTab,
     selectDashboardsWorkspaceDraftName,
-    selectFilterChartIds,
-    selectFilterDatasetIds,
     selectSelectedDashboardId,
     selectWorkspaceDraftDashboardId,
     selectWorkspaceMetricExpression,
     selectWorkspaceMetricFormat,
     selectWorkspaceMetricName,
-    setDashboardsFilterActiveTab,
     setDashboardsRightPanelTab,
     selectDashboardsRightPanelTab,
     setDashboardsWorkspaceDraftName,
@@ -24,8 +18,6 @@ export {
     setWorkspaceMetricForm,
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
-    toggleChartFilter,
-    toggleDatasetFilter,
 } from './dashboardsPageSlice';
 export type { DashboardsPageState, DashboardsRightPanelTab } from './dashboardsPageSlice';
 export { dashboardsPagePersistence } from './dashboardsPagePersistence';

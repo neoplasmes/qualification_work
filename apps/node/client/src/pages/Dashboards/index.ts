@@ -3,7 +3,6 @@ export {
     DashboardsLeftPanel,
     DashboardsWorkspace,
     DashboardsWorkspaceRightPanel,
-    DashboardsFilterPanel,
 } from './ui';
 export {
     dashboardsPageSlice,

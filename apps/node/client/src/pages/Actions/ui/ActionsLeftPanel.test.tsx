@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { filterApplicationEntitiesSlice } from '@/features/filterApplicationEntities';
+
 import { actionsPageSlice } from '../model/actionsPageSlice';
 import { ActionsLeftPanel } from './ActionsLeftPanel';
 
@@ -52,7 +54,10 @@ vi.mock('@/entities/action', () => ({
 
 const makeStore = () =>
     configureStore({
-        reducer: combineReducers({ [actionsPageSlice.name]: actionsPageSlice.reducer }),
+        reducer: combineReducers({
+            [actionsPageSlice.name]: actionsPageSlice.reducer,
+            [filterApplicationEntitiesSlice.name]: filterApplicationEntitiesSlice.reducer,
+        }),
     });
 
 const renderPanel = () =>

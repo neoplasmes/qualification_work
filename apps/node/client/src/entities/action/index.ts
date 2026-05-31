@@ -4,6 +4,7 @@ export {
     useListActionRunsQuery,
     useListActionsQuery,
 } from './api';
+export { getEffectLabel } from './lib';
 export type {
     Action,
     ActionEffect,

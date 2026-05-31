@@ -20,11 +20,9 @@ export {
     parseLiteralValue,
     valueToDraftString,
 } from './draftValues';
-export { filterActions } from './filterActions';
 export {
     canMutate,
     getDatasetColumns,
-    getEffectLabel,
     getSelectedAction,
     moveItem,
     summarizeRun,

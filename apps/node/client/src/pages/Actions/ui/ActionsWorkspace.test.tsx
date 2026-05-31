@@ -86,6 +86,8 @@ vi.mock('@/entities/dataset', () => ({
 }));
 
 vi.mock('@/entities/action', () => ({
+    getEffectLabel: (kind: string) =>
+        kind === 'insertRow' ? 'Insert row' : 'Update by match',
     useListActionsQuery: () => ({
         data: [action],
         isLoading: false,

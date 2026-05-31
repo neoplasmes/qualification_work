@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 
+import { FilterPanel } from '@/widgets/FilterPanel';
 import { WorkspaceRightPanel } from '@/widgets/WorkspaceRightPanel';
 
 import { chartsTestIds } from '../const';
@@ -8,7 +9,6 @@ import {
     setChartsRightPanelTab,
     type ChartsRightPanelTab,
 } from '../model';
-import { ChartsFilterPanel } from './ui/ChartsFilterPanel';
 import { ChartsPropertiesPanel } from './ui/ChartsPropertiesPanel';
 
 const CHARTS_WORKSPACE_RIGHT_PANEL_TABS = [
@@ -36,7 +36,18 @@ export const ChartsWorkspaceRightPanel = () => {
             {activeTab === 'properties' ? (
                 <ChartsPropertiesPanel />
             ) : (
-                <ChartsFilterPanel />
+                <FilterPanel
+                    scope="charts"
+                    testIds={{
+                        panel: chartsTestIds.filterPanel,
+                        chip: chartsTestIds.filterChip,
+                        clearButton: chartsTestIds.clearFilterButton,
+                        tabs: {
+                            datasets: chartsTestIds.filterTabDatasets,
+                            dashboards: chartsTestIds.filterTabDashboards,
+                        },
+                    }}
+                />
             )}
         </WorkspaceRightPanel>
     );

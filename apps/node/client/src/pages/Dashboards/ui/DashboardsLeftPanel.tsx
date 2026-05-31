@@ -6,6 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
+import {
+    filterApplicationEntities,
+    selectFilterApplicationValues,
+} from '@/features/filterApplicationEntities';
 import { useCreateDashboardMutation } from '@/features/manageDashboards';
 
 import { useListChartsQuery } from '@/entities/chart';
@@ -16,13 +20,7 @@ import { formatDate } from '@/shared/lib/formatDate';
 import { StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
-import { filterDashboards } from '../lib';
-import {
-    selectDashboard,
-    selectFilterChartIds,
-    selectFilterDatasetIds,
-    selectSelectedDashboardId,
-} from '../model';
+import { selectDashboard, selectSelectedDashboardId } from '../model';
 
 export const DashboardsLeftPanel = () => {
     const dispatch = useDispatch();
@@ -35,18 +33,17 @@ export const DashboardsLeftPanel = () => {
     const [createDashboard, createState] = useCreateDashboardMutation();
 
     const selectedDashboardId = useSelector(selectSelectedDashboardId);
-    const filterChartIds = useSelector(selectFilterChartIds);
-    const filterDatasetIds = useSelector(selectFilterDatasetIds);
+    const filterValues = useSelector(selectFilterApplicationValues('dashboards'));
 
     const filteredDashboards = useMemo(
         () =>
-            filterDashboards({
+            filterApplicationEntities({
+                scope: 'dashboards',
                 dashboards: dashboardsQuery.data,
                 charts: chartsQuery.data,
-                chartIds: filterChartIds,
-                datasetIds: filterDatasetIds,
+                values: filterValues,
             }),
-        [dashboardsQuery.data, chartsQuery.data, filterChartIds, filterDatasetIds]
+        [dashboardsQuery.data, chartsQuery.data, filterValues]
     );
 
     const handleCreate = async () => {

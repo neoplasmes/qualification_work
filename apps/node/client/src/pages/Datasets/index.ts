@@ -1,9 +1,4 @@
-export {
-    DatasetsLeftPanel,
-    DatasetsWorkspace,
-    DatasetsFilterPanel,
-    DatasetsRightPanel,
-} from './ui';
+export { DatasetsLeftPanel, DatasetsWorkspace, DatasetsRightPanel } from './ui';
 export {
     datasetsPageSlice,
     datasetsPageInitialState,

@@ -6,9 +6,6 @@ import {
 type DashboardsPagePersisted = Pick<
     DashboardsPageState,
     | 'selectedDashboardId'
-    | 'filterChartIds'
-    | 'filterDatasetIds'
-    | 'dashboardsFilterActiveTab'
     | 'workspaceDraftDashboardId'
     | 'workspaceDraftName'
     | 'workspaceMetricName'
@@ -20,9 +17,6 @@ export const dashboardsPagePersistence = {
     key: 'dashboardsPage_v1',
     fallbackState: {
         selectedDashboardId: null,
-        filterChartIds: [],
-        filterDatasetIds: [],
-        dashboardsFilterActiveTab: 'charts',
         workspaceDraftDashboardId: null,
         workspaceDraftName: '',
         workspaceMetricName: '',
@@ -31,13 +25,15 @@ export const dashboardsPagePersistence = {
     } satisfies DashboardsPagePersisted,
     getInitialState: (persistedState: DashboardsPagePersisted): DashboardsPageState => ({
         ...dashboardsPageInitialState,
-        ...persistedState,
+        selectedDashboardId: persistedState.selectedDashboardId,
+        workspaceDraftDashboardId: persistedState.workspaceDraftDashboardId,
+        workspaceDraftName: persistedState.workspaceDraftName,
+        workspaceMetricName: persistedState.workspaceMetricName,
+        workspaceMetricExpression: persistedState.workspaceMetricExpression,
+        workspaceMetricFormat: persistedState.workspaceMetricFormat,
     }),
     pickPersistedState: (state: DashboardsPageState): DashboardsPagePersisted => ({
         selectedDashboardId: state.selectedDashboardId,
-        filterChartIds: state.filterChartIds,
-        filterDatasetIds: state.filterDatasetIds,
-        dashboardsFilterActiveTab: state.dashboardsFilterActiveTab,
         workspaceDraftDashboardId: state.workspaceDraftDashboardId,
         workspaceDraftName: state.workspaceDraftName,
         workspaceMetricName: state.workspaceMetricName,

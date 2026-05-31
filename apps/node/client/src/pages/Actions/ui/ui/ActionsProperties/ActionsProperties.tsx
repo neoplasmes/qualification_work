@@ -8,7 +8,7 @@ import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { usePatchActionMutation } from '@/features/manageActions';
 
-import { useArchiveActionMutation, type Action } from '@/entities/action';
+import { getEffectLabel, useArchiveActionMutation, type Action } from '@/entities/action';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
@@ -16,7 +16,7 @@ import { formatDate } from '@/shared/lib/formatDate';
 import { Badge, Button, Card, PanelPlaceholder, StatusMessage, Table } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
-import { canMutate, getEffectLabel } from '../../../lib';
+import { canMutate } from '../../../lib';
 import { selectAction } from '../../../model';
 
 import styles from '../../ActionsPage.module.scss';

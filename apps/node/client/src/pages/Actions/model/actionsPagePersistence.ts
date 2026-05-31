@@ -2,14 +2,7 @@ import { actionsPageInitialState, type ActionsPageState } from './actionsPageSli
 
 type ActionsPagePersisted = Pick<
     ActionsPageState,
-    | 'selectedActionId'
-    | 'workspaceTab'
-    | 'rightPanelTab'
-    | 'filtersTab'
-    | 'searchText'
-    | 'filterDatasetIds'
-    | 'filterEffectKinds'
-    | 'filterRunStatuses'
+    'selectedActionId' | 'workspaceTab' | 'rightPanelTab'
 >;
 
 export const actionsPagePersistence = {
@@ -18,25 +11,17 @@ export const actionsPagePersistence = {
         selectedActionId: null,
         workspaceTab: 'configure',
         rightPanelTab: 'history',
-        filtersTab: 'datasets',
-        searchText: '',
-        filterDatasetIds: [],
-        filterEffectKinds: [],
-        filterRunStatuses: [],
     } satisfies ActionsPagePersisted,
     getInitialState: (persistedState: ActionsPagePersisted): ActionsPageState => ({
         ...actionsPageInitialState,
-        ...persistedState,
+        selectedActionId: persistedState.selectedActionId,
+        workspaceTab: persistedState.workspaceTab,
+        rightPanelTab: persistedState.rightPanelTab,
         isCreatingAction: false,
     }),
     pickPersistedState: (state: ActionsPageState): ActionsPagePersisted => ({
         selectedActionId: state.selectedActionId,
         workspaceTab: state.workspaceTab,
         rightPanelTab: state.rightPanelTab,
-        filtersTab: state.filtersTab,
-        searchText: state.searchText,
-        filterDatasetIds: state.filterDatasetIds,
-        filterEffectKinds: state.filterEffectKinds,
-        filterRunStatuses: state.filterRunStatuses,
     }),
 };

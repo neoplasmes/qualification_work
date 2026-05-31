@@ -6,11 +6,8 @@ export type ChartsRightPanelTab = 'properties' | 'filters';
 
 export type ChartsPageState = {
     selectedChartId: string | null;
-    filterDatasetIds: string[];
-    filterDashboardIds: string[];
     builderDatasetId: string | null;
     showDatasetPicker: boolean;
-    chartsFilterActiveTab: 'datasets' | 'dashboards';
     chartsRightPanelTab: ChartsRightPanelTab;
     workspaceDraftChartId: string | null;
     workspaceDraftName: string;
@@ -23,11 +20,8 @@ type StateWithChartsPage = { chartsPage: ChartsPageState };
 
 export const chartsPageInitialState: ChartsPageState = {
     selectedChartId: null,
-    filterDatasetIds: [],
-    filterDashboardIds: [],
     builderDatasetId: null,
     showDatasetPicker: false,
-    chartsFilterActiveTab: 'datasets',
     chartsRightPanelTab: 'properties',
     workspaceDraftChartId: null,
     workspaceDraftName: '',
@@ -44,30 +38,6 @@ export const chartsPageSlice = createSlice({
             state.selectedChartId = action.payload;
             state.builderDatasetId = null;
         },
-        toggleDatasetFilter(state, action: PayloadAction<string>) {
-            const id = action.payload;
-            const idx = state.filterDatasetIds.indexOf(id);
-            if (idx >= 0) {
-                state.filterDatasetIds.splice(idx, 1);
-            } else {
-                state.filterDatasetIds.push(id);
-            }
-        },
-        toggleDashboardFilter(state, action: PayloadAction<string>) {
-            const id = action.payload;
-            const idx = state.filterDashboardIds.indexOf(id);
-            if (idx >= 0) {
-                state.filterDashboardIds.splice(idx, 1);
-            } else {
-                state.filterDashboardIds.push(id);
-            }
-        },
-        clearDatasetFilter(state) {
-            state.filterDatasetIds = [];
-        },
-        clearDashboardFilter(state) {
-            state.filterDashboardIds = [];
-        },
         setBuilderDatasetId(state, action: PayloadAction<string | null>) {
             state.builderDatasetId = action.payload;
             state.selectedChartId = null;
@@ -75,12 +45,6 @@ export const chartsPageSlice = createSlice({
         },
         setShowDatasetPicker(state, action: PayloadAction<boolean>) {
             state.showDatasetPicker = action.payload;
-        },
-        setChartsFilterActiveTab(
-            state,
-            action: PayloadAction<'datasets' | 'dashboards'>
-        ) {
-            state.chartsFilterActiveTab = action.payload;
         },
         setChartsRightPanelTab(state, action: PayloadAction<ChartsRightPanelTab>) {
             state.chartsRightPanelTab = action.payload;
@@ -124,13 +88,8 @@ export const chartsPageSlice = createSlice({
 
 export const {
     selectChart,
-    toggleDatasetFilter,
-    toggleDashboardFilter,
-    clearDatasetFilter,
-    clearDashboardFilter,
     setBuilderDatasetId,
     setShowDatasetPicker,
-    setChartsFilterActiveTab,
     setChartsRightPanelTab,
     initWorkspaceDraft,
     resetWorkspaceDraft,
@@ -142,16 +101,10 @@ export const {
 
 export const selectSelectedChartId = (state: StateWithChartsPage) =>
     state.chartsPage.selectedChartId;
-export const selectFilterDatasetIds = (state: StateWithChartsPage) =>
-    state.chartsPage.filterDatasetIds;
-export const selectFilterDashboardIds = (state: StateWithChartsPage) =>
-    state.chartsPage.filterDashboardIds;
 export const selectBuilderDatasetId = (state: StateWithChartsPage) =>
     state.chartsPage.builderDatasetId;
 export const selectShowDatasetPicker = (state: StateWithChartsPage) =>
     state.chartsPage.showDatasetPicker;
-export const selectChartsFilterActiveTab = (state: StateWithChartsPage) =>
-    state.chartsPage.chartsFilterActiveTab;
 export const selectChartsRightPanelTab = (state: StateWithChartsPage) =>
     state.chartsPage.chartsRightPanelTab;
 export const selectWorkspaceDraftChartId = (state: StateWithChartsPage) =>

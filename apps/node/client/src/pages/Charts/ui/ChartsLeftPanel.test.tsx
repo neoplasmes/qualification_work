@@ -4,12 +4,16 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 
+import {
+    filterApplicationEntitiesSlice,
+    toggleFilterApplicationValue,
+} from '@/features/filterApplicationEntities';
+
 import { chartsTestIds } from '../const';
 import {
     chartsPageSlice,
     selectSelectedChartId,
     selectShowDatasetPicker,
-    toggleDatasetFilter,
 } from '../model';
 import { ChartsLeftPanel } from './ChartsLeftPanel';
 
@@ -113,11 +117,20 @@ const getByDataTestId = <T extends HTMLElement>(
 
 const makeStore = (withFilter = false) => {
     const store = configureStore({
-        reducer: combineReducers({ [chartsPageSlice.name]: chartsPageSlice.reducer }),
+        reducer: combineReducers({
+            [chartsPageSlice.name]: chartsPageSlice.reducer,
+            [filterApplicationEntitiesSlice.name]: filterApplicationEntitiesSlice.reducer,
+        }),
     });
 
     if (withFilter) {
-        store.dispatch(toggleDatasetFilter('dataset-1'));
+        store.dispatch(
+            toggleFilterApplicationValue({
+                scope: 'charts',
+                entity: 'datasets',
+                value: 'dataset-1',
+            })
+        );
     }
 
     return store;

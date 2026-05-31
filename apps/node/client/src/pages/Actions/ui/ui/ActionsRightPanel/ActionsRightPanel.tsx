@@ -2,6 +2,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { FilterPanel } from '@/widgets/FilterPanel';
 import { WorkspaceRightPanel } from '@/widgets/WorkspaceRightPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -18,7 +19,6 @@ import {
     type ActionsRightPanelTab,
 } from '../../../model';
 
-import { ActionsFilters } from '../ActionsFilters';
 import { ActionsHistory } from '../ActionsHistory';
 import { ActionsProperties } from '../ActionsProperties';
 
@@ -75,7 +75,20 @@ export const ActionsRightPanel = () => {
                     refetchActions={refetchActions}
                 />
             )}
-            {activeTab === 'filters' && <ActionsFilters />}
+            {activeTab === 'filters' && (
+                <FilterPanel
+                    scope="actions"
+                    testIds={{
+                        chip: actionsTestIds.filterChip,
+                        clearButton: actionsTestIds.clearFiltersButton,
+                        tabs: {
+                            datasets: actionsTestIds.filterTabDatasets,
+                            effects: actionsTestIds.filterTabEffects,
+                            runs: actionsTestIds.filterTabRuns,
+                        },
+                    }}
+                />
+            )}
         </WorkspaceRightPanel>
     );
 };

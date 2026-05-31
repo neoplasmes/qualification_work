@@ -4,13 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 
-import { datasetsTestIds } from '../const';
 import {
-    datasetsPageSlice,
-    selectSelectedDatasetId,
-    selectShowUpload,
-    toggleChartFilter,
-} from '../model';
+    filterApplicationEntitiesSlice,
+    toggleFilterApplicationValue,
+} from '@/features/filterApplicationEntities';
+
+import { datasetsTestIds } from '../const';
+import { datasetsPageSlice, selectSelectedDatasetId, selectShowUpload } from '../model';
 import { DatasetsLeftPanel } from './DatasetsLeftPanel';
 
 vi.mock('@/features/authenticate', () => ({
@@ -91,11 +91,20 @@ const getByDataTestId = <T extends HTMLElement>(
 
 const makeStore = (withFilter = false) => {
     const store = configureStore({
-        reducer: combineReducers({ [datasetsPageSlice.name]: datasetsPageSlice.reducer }),
+        reducer: combineReducers({
+            [datasetsPageSlice.name]: datasetsPageSlice.reducer,
+            [filterApplicationEntitiesSlice.name]: filterApplicationEntitiesSlice.reducer,
+        }),
     });
 
     if (withFilter) {
-        store.dispatch(toggleChartFilter('chart-1'));
+        store.dispatch(
+            toggleFilterApplicationValue({
+                scope: 'datasets',
+                entity: 'charts',
+                value: 'chart-1',
+            })
+        );
     }
 
     return store;

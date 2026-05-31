@@ -1,5 +1,4 @@
 export { ActionEditor } from './ActionEditor';
-export { ActionsFilters } from './ActionsFilters';
 export { ActionsHistory } from './ActionsHistory';
 export { ActionsProperties } from './ActionsProperties';
 export { ActionsRightPanel } from './ActionsRightPanel';

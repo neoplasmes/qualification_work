@@ -1,16 +1,11 @@
 export {
     chartsPageInitialState,
     chartsPageSlice,
-    clearDashboardFilter,
-    clearDatasetFilter,
     initWorkspaceDraft,
     resetWorkspaceDraft,
     selectBuilderDatasetId,
     selectChart,
-    selectChartsFilterActiveTab,
     selectChartsRightPanelTab,
-    selectFilterDashboardIds,
-    selectFilterDatasetIds,
     selectSelectedChartId,
     selectShowDatasetPicker,
     selectWorkspaceDraftChartId,
@@ -19,15 +14,12 @@ export {
     selectWorkspaceDraftName,
     selectWorkspaceFilterOverrideText,
     setBuilderDatasetId,
-    setChartsFilterActiveTab,
     setChartsRightPanelTab,
     setShowDatasetPicker,
     setWorkspaceDraftChartType,
     setWorkspaceDraftConfigText,
     setWorkspaceDraftName,
     setWorkspaceFilterOverrideText,
-    toggleDashboardFilter,
-    toggleDatasetFilter,
 } from './chartsPageSlice';
 export type { ChartsPageState, ChartsRightPanelTab } from './chartsPageSlice';
 export { chartsPagePersistence } from './chartsPagePersistence';

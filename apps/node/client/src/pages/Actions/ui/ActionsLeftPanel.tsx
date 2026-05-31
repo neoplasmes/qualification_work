@@ -6,6 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
+import {
+    filterApplicationEntities,
+    selectFilterApplicationValues,
+} from '@/features/filterApplicationEntities';
 
 import { useListActionRunsQuery, useListActionsQuery } from '@/entities/action';
 
@@ -13,13 +17,8 @@ import { formatDate } from '@/shared/lib/formatDate';
 
 import { actionsTestIds } from '../const';
 import { canMutate } from '../lib';
-import { filterActions } from '../model/actionDraft';
 import {
     selectAction,
-    selectActionsFilterDatasetIds,
-    selectActionsFilterEffectKinds,
-    selectActionsFilterRunStatuses,
-    selectActionsSearchText,
     selectIsCreatingAction,
     selectSelectedActionId,
     startCreateAction,
@@ -36,28 +35,17 @@ export const ActionsLeftPanel = () => {
 
     const selectedActionId = useSelector(selectSelectedActionId);
     const isCreatingAction = useSelector(selectIsCreatingAction);
-    const searchText = useSelector(selectActionsSearchText);
-    const filterDatasetIds = useSelector(selectActionsFilterDatasetIds);
-    const filterEffectKinds = useSelector(selectActionsFilterEffectKinds);
-    const filterRunStatuses = useSelector(selectActionsFilterRunStatuses);
+    const filterValues = useSelector(selectFilterApplicationValues('actions'));
 
     const filteredActions = useMemo(
         () =>
-            filterActions(actionsQuery.data ?? [], {
-                searchText,
-                datasetIds: filterDatasetIds,
-                effectKinds: filterEffectKinds,
-                runStatuses: filterRunStatuses,
+            filterApplicationEntities({
+                scope: 'actions',
+                actions: actionsQuery.data,
                 runs: runsQuery.data ?? [],
-            }),
-        [
-            actionsQuery.data,
-            filterDatasetIds,
-            filterEffectKinds,
-            filterRunStatuses,
-            runsQuery.data,
-            searchText,
-        ]
+                values: filterValues,
+            }) ?? [],
+        [actionsQuery.data, filterValues, runsQuery.data]
     );
 
     const canCreate = canMutate(org?.role);

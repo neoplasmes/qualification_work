@@ -1,1 +1,0 @@
-export { ChartsFilterPanel } from './ChartsFilterPanel';

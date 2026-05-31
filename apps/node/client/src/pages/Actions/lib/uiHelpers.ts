@@ -33,9 +33,6 @@ export const moveItem = <T>(items: T[], index: number, direction: -1 | 1) => {
     return next;
 };
 
-export const getEffectLabel = (kind: Action['effects'][number]['kind']) =>
-    kind === 'insertRow' ? 'Insert row' : 'Update by match';
-
 export const summarizeRun = (run: ActionRun) => {
     if (run.status === 'failed') {
         return run.errorMessage ?? 'Run failed.';

@@ -1,0 +1,1 @@
+export { MetricTrendFields } from './MetricTrendFields';

@@ -6,6 +6,8 @@ import { metricFormats } from '@qualification-work/types';
 
 import type { UpdateDashboardItemCommand } from '@/core/commands';
 
+import { metricConfigSchema } from '@/adapters/driving/http/dashboards/shared';
+
 import type { RequestHandlerType } from '@/shared/appState';
 
 const updateItemSchema = z.object({
@@ -14,6 +16,7 @@ const updateItemSchema = z.object({
     name: z.string().trim().min(1).max(255),
     expression: z.string().trim().min(1),
     format: z.enum(metricFormats),
+    ...metricConfigSchema,
 });
 
 const paramsSchema = z.object({

@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 import { ChartCard, useGetChartDataQuery, type Chart } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
@@ -12,11 +12,7 @@ type DashboardChartCardProps = {
     item: DashboardChartItem;
     chart: Chart | undefined;
     columns: DatasetColumn[];
-    index: number;
-    itemsCount: number;
-    reorderLoading: boolean;
     removing: boolean;
-    onMoveItem: (itemId: string, direction: -1 | 1) => void;
     onRemove: (itemId: string) => void;
     'data-test-id'?: string;
 };
@@ -25,11 +21,7 @@ export const DashboardChartCard = ({
     item,
     chart,
     columns,
-    index,
-    itemsCount,
-    reorderLoading,
     removing,
-    onMoveItem,
     onRemove,
     'data-test-id': testId,
 }: DashboardChartCardProps) => {
@@ -49,26 +41,6 @@ export const DashboardChartCard = ({
                     <h3>{chart?.name ?? `Chart ${item.chartId.slice(0, 8)}`}</h3>
                 </div>
                 <div data-stack="h" className={styles['card-actions']}>
-                    <IconButton
-                        tone="plain"
-                        data-p="none"
-                        iconStrokeWidth={2.6}
-                        aria-label={`Move ${chart?.name ?? item.chartId} up`}
-                        disabled={index === 0 || reorderLoading}
-                        onClick={() => onMoveItem(item.id, -1)}
-                    >
-                        <ArrowUp size={20} />
-                    </IconButton>
-                    <IconButton
-                        tone="plain"
-                        data-p="none"
-                        iconStrokeWidth={2.6}
-                        aria-label={`Move ${chart?.name ?? item.chartId} down`}
-                        disabled={index === itemsCount - 1 || reorderLoading}
-                        onClick={() => onMoveItem(item.id, 1)}
-                    >
-                        <ArrowDown size={20} />
-                    </IconButton>
                     <IconButton
                         tone="plain"
                         data-p="none"

@@ -26,7 +26,17 @@ export class UpdateDashboardItemCommand implements Executable<
         const updated = await this.dashboardRepo.updateMetricItem(
             dashboardId,
             itemId,
-            pick(input, ['datasetId', 'name', 'expression', 'format']),
+            pick(input, [
+                'datasetId',
+                'name',
+                'expression',
+                'format',
+                'target',
+                'targetDirection',
+                'showTrend',
+                'timeColumn',
+                'timeBucket',
+            ]),
             writableOrgIds
         );
 

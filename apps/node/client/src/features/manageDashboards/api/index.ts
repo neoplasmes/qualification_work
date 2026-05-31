@@ -2,9 +2,9 @@ export {
     useAddDashboardChartMutation,
     useAddDashboardMetricMutation,
     useCreateDashboardMutation,
-    useReorderDashboardItemsMutation,
     useRemoveDashboardItemMutation,
     useRenameDashboardMutation,
+    useUpdateDashboardLayoutMutation,
     useUpdateDashboardMetricMutation,
 } from './manageDashboardsApi';
 export type {
@@ -15,6 +15,6 @@ export type {
     CreateDashboardResponse,
     RemoveDashboardItemPayload,
     RenameDashboardPayload,
-    ReorderDashboardItemsPayload,
+    UpdateDashboardLayoutPayload,
     UpdateDashboardMetricPayload,
 } from './types';

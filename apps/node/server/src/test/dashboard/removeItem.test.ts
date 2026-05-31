@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import type { Dashboard } from '@qualification-work/types';
+import { dashboardChartDefaultHeight, type Dashboard } from '@qualification-work/types';
 
 import { api, apiAs, resetTestIdentity, startServer, stopServer, truncate } from '../lib';
 import {
@@ -45,7 +45,7 @@ describe('DELETE /api/dashboards/:id/items/:itemId', () => {
         ).json()) as Dashboard;
         expect(dashboard.items).toHaveLength(1);
         expect(dashboard.items[0].id).toBe(secondId);
-        expect(dashboard.items[0].layout.posY).toBe(1);
+        expect(dashboard.items[0].layout.posY).toBe(dashboardChartDefaultHeight);
     });
 
     it('404 when item does not belong to dashboard', async () => {

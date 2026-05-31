@@ -1,8 +1,9 @@
 .metric-card {
-    width: 160px;
-    height: 80px;
-    min-width: 160px;
-    min-height: 80px;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
     padding: var(--spacing-xs) 0 var(--spacing-sm) var(--spacing-sm);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
@@ -32,4 +33,37 @@
     line-height: 1.05;
     color: var(--color-on-surface);
     text-align: center;
+}
+
+.metric-empty {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-on-surface-variant);
+}
+
+// tone color, inherited by the value, the progress fill and the sparkline stroke
+.tone-success {
+    color: rgb(173 235 196);
+}
+
+.tone-danger {
+    color: var(--color-on-error-container);
+}
+
+.tone-neutral {
+    color: var(--color-on-surface);
+}
+
+.progress {
+    width: 90%;
+    height: 4px;
+    overflow: hidden;
+    border-radius: var(--radius-xs);
+    background-color: var(--color-outline-new);
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background-color: currentcolor;
 }

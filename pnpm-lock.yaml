@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   backend:
+    jsep:
+      specifier: ^1.4.0
+      version: 1.4.0
     redis:
       specifier: ^5.11.0
       version: 5.11.0
@@ -115,6 +118,9 @@ importers:
       '@visx/xychart':
         specifier: 3.12.0
         version: 3.12.0(@react-spring/web@9.7.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      gridstack:
+        specifier: ^12.6.0
+        version: 12.6.0
       idb:
         specifier: ^8.0.3
         version: 8.0.3
@@ -267,6 +273,9 @@ importers:
       fast-json-stringify:
         specifier: ^6.3.0
         version: 6.3.0
+      jsep:
+        specifier: catalog:backend
+        version: 1.4.0
       pg:
         specifier: catalog:postgres
         version: 8.20.0
@@ -2696,6 +2705,9 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  gridstack@12.6.0:
+    resolution: {integrity: sha512-dUrqsormSybFn/2P4Dz8AgprftKD5e/IiV7UmC0XLQU+G+/WtkAeFiCSNLoAGhPDXoJ/O61Xtj3gljY/Ds83yQ==}
+
   has-async-hooks@1.0.0:
     resolution: {integrity: sha512-YF0VPGjkxr7AyyQQNykX8zK4PvtEDsUJAPqwu06UFz1lb6EvI53sPh5H1kWxg8NXI5LsfRCZ8uX9NkYDZBb/mw==}
 
@@ -2902,6 +2914,10 @@ packages:
     peerDependenciesMeta:
       canvas:
         optional: true
+
+  jsep@1.4.0:
+    resolution: {integrity: sha512-B7qPcEVE3NVkmSJbaYxvv4cHkVW7DQsZz13pUMrfS8z8Q/BuShN+gcTXrUlPiGqM2/t/EEaI030bpxMqY8gMlw==}
+    engines: {node: '>= 10.16.0'}
 
   jsesc@3.1.0:
     resolution: {integrity: sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA==}
@@ -6553,6 +6569,8 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+  gridstack@12.6.0: {}
+
   has-async-hooks@1.0.0: {}
 
   has-flag@4.0.0: {}
@@ -6731,6 +6749,8 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
       - supports-color
+
+  jsep@1.4.0: {}
 
   jsesc@3.1.0: {}
 

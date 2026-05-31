@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -16,10 +16,21 @@ import {
     selectWorkspaceMetricExpression,
     selectWorkspaceMetricFormat,
     selectWorkspaceMetricName,
+    selectWorkspaceMetricShowTrend,
+    selectWorkspaceMetricTarget,
+    selectWorkspaceMetricTargetDirection,
+    selectWorkspaceMetricTimeBucket,
+    selectWorkspaceMetricTimeColumn,
     setWorkspaceMetricExpression,
     setWorkspaceMetricForm,
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
+    setWorkspaceMetricShowTrend,
+    setWorkspaceMetricTarget,
+    setWorkspaceMetricTargetDirection,
+    setWorkspaceMetricTimeBucket,
+    setWorkspaceMetricTimeColumn,
+    type WorkspaceMetricForm,
 } from '../../model';
 
 type Refetch = () => Promise<unknown> | unknown;
@@ -31,8 +42,27 @@ type UseDashboardMetricModalParams = {
     refetchDashboards: Refetch;
 };
 
+/**
+ * the goal and trend config slice of the metric form, edited as one object
+ */
+export type MetricConfigForm = Pick<
+    WorkspaceMetricForm,
+    'target' | 'targetDirection' | 'showTrend' | 'timeColumn' | 'timeBucket'
+>;
+
 const getFirstDatasetId = (datasets: DatasetMetadata[] | undefined) =>
     datasets?.[0]?.dataset.id ?? '';
+
+const itemToForm = (item: DashboardMetricItem): WorkspaceMetricForm => ({
+    name: item.name,
+    expression: item.expression,
+    format: item.format,
+    target: item.target === null ? '' : String(item.target),
+    targetDirection: item.targetDirection ?? 'higher',
+    showTrend: item.showTrend,
+    timeColumn: item.timeColumn ?? '',
+    timeBucket: item.timeBucket ?? '',
+});
 
 export const useDashboardMetricModal = ({
     dashboard,
@@ -48,6 +78,11 @@ export const useDashboardMetricModal = ({
     const name = useSelector(selectWorkspaceMetricName);
     const expression = useSelector(selectWorkspaceMetricExpression);
     const format = useSelector(selectWorkspaceMetricFormat);
+    const target = useSelector(selectWorkspaceMetricTarget);
+    const targetDirection = useSelector(selectWorkspaceMetricTargetDirection);
+    const showTrend = useSelector(selectWorkspaceMetricShowTrend);
+    const timeColumn = useSelector(selectWorkspaceMetricTimeColumn);
+    const timeBucket = useSelector(selectWorkspaceMetricTimeBucket);
 
     const [addDashboardMetric, addState] = useAddDashboardMetricMutation();
     const [updateDashboardMetric, updateState] = useUpdateDashboardMetricMutation();
@@ -59,6 +94,32 @@ export const useDashboardMetricModal = ({
             return hasCurrent ? current : getFirstDatasetId(datasets);
         });
     }, [datasets]);
+
+    const config = useMemo<MetricConfigForm>(
+        () => ({ target, targetDirection, showTrend, timeColumn, timeBucket }),
+        [target, targetDirection, showTrend, timeColumn, timeBucket]
+    );
+
+    const setConfig = useCallback(
+        (patch: Partial<MetricConfigForm>) => {
+            if (patch.target !== undefined) {
+                dispatch(setWorkspaceMetricTarget(patch.target));
+            }
+            if (patch.targetDirection !== undefined) {
+                dispatch(setWorkspaceMetricTargetDirection(patch.targetDirection));
+            }
+            if (patch.showTrend !== undefined) {
+                dispatch(setWorkspaceMetricShowTrend(patch.showTrend));
+            }
+            if (patch.timeColumn !== undefined) {
+                dispatch(setWorkspaceMetricTimeColumn(patch.timeColumn));
+            }
+            if (patch.timeBucket !== undefined) {
+                dispatch(setWorkspaceMetricTimeBucket(patch.timeBucket));
+            }
+        },
+        [dispatch]
+    );
 
     const openAdd = useCallback(() => {
         setEditingMetricId(null);
@@ -72,13 +133,7 @@ export const useDashboardMetricModal = ({
             setEditingMetricId(item.id);
             setError('');
             setSelectedDatasetId(item.datasetId);
-            dispatch(
-                setWorkspaceMetricForm({
-                    name: item.name,
-                    expression: item.expression,
-                    format: item.format,
-                })
-            );
+            dispatch(setWorkspaceMetricForm(itemToForm(item)));
         },
         [dispatch]
     );
@@ -126,6 +181,22 @@ export const useDashboardMetricModal = ({
                 return false;
             }
 
+            const trimmedTarget = target.trim();
+            const parsedTarget = trimmedTarget === '' ? null : Number(trimmedTarget);
+            if (parsedTarget !== null && !Number.isFinite(parsedTarget)) {
+                setError('Target must be a number.');
+
+                return false;
+            }
+
+            const configPayload = {
+                target: parsedTarget,
+                targetDirection: parsedTarget === null ? null : targetDirection,
+                showTrend,
+                timeColumn: timeColumn || null,
+                timeBucket: timeBucket || null,
+            };
+
             try {
                 setError('');
                 if (editingMetricId) {
@@ -136,6 +207,7 @@ export const useDashboardMetricModal = ({
                         name: nextName,
                         expression: nextExpression,
                         format,
+                        ...configPayload,
                     }).unwrap();
                 } else {
                     await addDashboardMetric({
@@ -144,7 +216,7 @@ export const useDashboardMetricModal = ({
                         name: nextName,
                         expression: nextExpression,
                         format,
-                        height: 4,
+                        ...configPayload,
                     }).unwrap();
                 }
 
@@ -174,6 +246,11 @@ export const useDashboardMetricModal = ({
             refetchDashboard,
             refetchDashboards,
             selectedDatasetId,
+            showTrend,
+            target,
+            targetDirection,
+            timeBucket,
+            timeColumn,
             updateDashboardMetric,
         ]
     );
@@ -186,6 +263,7 @@ export const useDashboardMetricModal = ({
         expression,
         format,
         name,
+        config,
         close,
         openAdd,
         openEdit,
@@ -193,6 +271,7 @@ export const useDashboardMetricModal = ({
         setExpression,
         setFormat,
         setName,
+        setConfig,
         submit,
     };
 };

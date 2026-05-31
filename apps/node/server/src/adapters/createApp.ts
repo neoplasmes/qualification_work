@@ -13,12 +13,13 @@ import {
     DeleteDashboardItemCommand,
     DeleteOrgCommand,
     RenameDashboardCommand,
-    ReorderDashboardCommand,
     UpdateDashboardItemCommand,
+    UpdateDashboardLayoutCommand,
 } from '@/core/commands';
 import { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
 
 import { PgDashboardRepo, PgOrgRepo } from '@/adapters/driven/repos';
+import { JsepMetricExpressionTool } from '@/adapters/driven/tools';
 import { createDashboardsRouter, createOrgsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
@@ -100,7 +101,7 @@ export function createApp(
     // ———————————————————————————————— Dashboard ——————————————————————————————————
     // —————————————————————————————————————————————————————————————————————————————
 
-    const dashboardRepo = new PgDashboardRepo(pool);
+    const dashboardRepo = new PgDashboardRepo(pool, new JsepMetricExpressionTool());
 
     const baseCreateDashboard = new CreateDashboardCommand(dashboardRepo);
     const baseDeleteDashboard = new DeleteDashboardCommand(dashboardRepo);
@@ -108,7 +109,7 @@ export function createApp(
     const baseAddDashboardItem = new AddDashboardItemCommand(dashboardRepo);
     const baseDeleteDashboardItem = new DeleteDashboardItemCommand(dashboardRepo);
     const baseUpdateDashboardItem = new UpdateDashboardItemCommand(dashboardRepo);
-    const baseReorderDashboard = new ReorderDashboardCommand(dashboardRepo);
+    const baseUpdateDashboardLayout = new UpdateDashboardLayoutCommand(dashboardRepo);
 
     const baseGetDashboard = new GetDashboardQuery(dashboardRepo);
     const baseListDashboards = new ListDashboardsQuery(dashboardRepo);
@@ -203,14 +204,14 @@ export function createApp(
             );
         },
     } as UpdateDashboardItemCommand;
-    const reorderDashboard = {
-        execute: async (...args: Parameters<ReorderDashboardCommand['execute']>) => {
+    const updateDashboardLayout = {
+        execute: async (...args: Parameters<UpdateDashboardLayoutCommand['execute']>) => {
             const dashboard = await dashboardRepo.findById(
                 args[0],
                 getReadableOrgIds(args[2])
             );
 
-            await baseReorderDashboard.execute(...args);
+            await baseUpdateDashboardLayout.execute(...args);
             await cache.invalidateTags(
                 compact([
                     `dashboard:${args[0]}`,
@@ -218,7 +219,7 @@ export function createApp(
                 ])
             );
         },
-    } as ReorderDashboardCommand;
+    } as UpdateDashboardLayoutCommand;
 
     const getDashboard = cache.wrapExecutable(baseGetDashboard, {
         key: (dashboardId: string, orgs: OrgMembership[]) => [
@@ -246,7 +247,7 @@ export function createApp(
         addDashboardItem,
         deleteDashboardItem,
         updateDashboardItem,
-        reorderDashboard,
+        updateDashboardLayout,
         getDashboard,
         listDashboards,
     });

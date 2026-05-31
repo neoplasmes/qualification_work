@@ -1,3 +1,4 @@
+import { dashboardChartDefaultHeight } from '@qualification-work/types';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -18,7 +19,7 @@ const mocks = vi.hoisted(() => ({
     addDashboardChart: vi.fn(),
     addDashboardMetric: vi.fn(),
     updateDashboardMetric: vi.fn(),
-    reorderDashboardItems: vi.fn(),
+    updateDashboardLayout: vi.fn(),
     removeDashboardItem: vi.fn(),
     refetchDashboards: vi.fn(),
     refetchDashboard: vi.fn(),
@@ -130,8 +131,8 @@ vi.mock('@/features/manageDashboards', () => ({
         mocks.updateDashboardMetric,
         { isLoading: false },
     ],
-    useReorderDashboardItemsMutation: () => [
-        mocks.reorderDashboardItems,
+    useUpdateDashboardLayoutMutation: () => [
+        mocks.updateDashboardLayout,
         { isLoading: false },
     ],
     useRemoveDashboardItemMutation: () => [
@@ -280,7 +281,7 @@ describe('DashboardsWorkspace', () => {
         expect(mocks.addDashboardChart).toHaveBeenCalledWith({
             dashboardId: 'dashboard-1',
             chartId: 'chart-1',
-            height: 8,
+            height: dashboardChartDefaultHeight,
         });
         expect(mocks.addDashboardMetric).toHaveBeenCalledWith({
             dashboardId: 'dashboard-1',
@@ -288,7 +289,11 @@ describe('DashboardsWorkspace', () => {
             name: 'Average Score',
             expression: 'avg(score)',
             format: 'percent',
-            height: 4,
+            target: null,
+            targetDirection: null,
+            showTrend: false,
+            timeColumn: null,
+            timeBucket: null,
         });
     });
 

@@ -8,7 +8,7 @@ import type {
     CreateDashboardResponse,
     RemoveDashboardItemPayload,
     RenameDashboardPayload,
-    ReorderDashboardItemsPayload,
+    UpdateDashboardLayoutPayload,
     UpdateDashboardMetricPayload,
 } from './types';
 
@@ -55,10 +55,10 @@ export const manageDashboardsApi = api.injectEndpoints({
             AddDashboardItemResponse,
             AddDashboardMetricPayload
         >({
-            query: ({ dashboardId, datasetId, name, expression, format, height }) => ({
+            query: ({ dashboardId, ...metric }) => ({
                 url: `/dashboards/${dashboardId}/items`,
                 method: 'POST',
-                body: { kind: 'metric', datasetId, name, expression, format, height },
+                body: { kind: 'metric', ...metric },
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'Dashboards', id: arg.dashboardId },
@@ -66,10 +66,10 @@ export const manageDashboardsApi = api.injectEndpoints({
             ],
         }),
         updateDashboardMetric: builder.mutation<void, UpdateDashboardMetricPayload>({
-            query: ({ dashboardId, itemId, datasetId, name, expression, format }) => ({
+            query: ({ dashboardId, itemId, ...metric }) => ({
                 url: `/dashboards/${dashboardId}/items/${itemId}`,
                 method: 'PATCH',
-                body: { kind: 'metric', datasetId, name, expression, format },
+                body: { kind: 'metric', ...metric },
                 responseHandler: 'text',
             }),
             invalidatesTags: (_result, _error, arg) => [
@@ -77,11 +77,11 @@ export const manageDashboardsApi = api.injectEndpoints({
                 { type: 'Dashboards', id: 'LIST' },
             ],
         }),
-        reorderDashboardItems: builder.mutation<void, ReorderDashboardItemsPayload>({
-            query: ({ dashboardId, order }) => ({
-                url: `/dashboards/${dashboardId}/items/order`,
+        updateDashboardLayout: builder.mutation<void, UpdateDashboardLayoutPayload>({
+            query: ({ dashboardId, layout }) => ({
+                url: `/dashboards/${dashboardId}/items/layout`,
                 method: 'PATCH',
-                body: { order },
+                body: { layout },
                 responseHandler: 'text',
             }),
             invalidatesTags: (_result, _error, arg) => [
@@ -107,8 +107,8 @@ export const {
     useAddDashboardChartMutation,
     useAddDashboardMetricMutation,
     useCreateDashboardMutation,
-    useReorderDashboardItemsMutation,
     useRemoveDashboardItemMutation,
     useRenameDashboardMutation,
+    useUpdateDashboardLayoutMutation,
     useUpdateDashboardMetricMutation,
 } = manageDashboardsApi;

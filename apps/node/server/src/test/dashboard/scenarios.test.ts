@@ -1,7 +1,13 @@
 import { delay } from 'es-toolkit';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import type { Dashboard } from '@qualification-work/types';
+import {
+    dashboardChartDefaultWidth,
+    dashboardChartMinHeight,
+    dashboardMetricDefaultHeight,
+    dashboardMetricDefaultWidth,
+    type Dashboard,
+} from '@qualification-work/types';
 
 import { api, resetTestIdentity, startServer, stopServer, truncate } from '../lib';
 import { addChartItem, bootFixture, createDashboard, silenceErrors } from './lib';
@@ -24,7 +30,7 @@ afterEach(async () => {
 });
 
 describe('сквозной сценарий жизни дашборда', () => {
-    it('create -> add chart + metric -> rename -> reorder -> remove -> delete', async () => {
+    it('create -> add chart + metric -> rename -> layout -> remove -> delete', async () => {
         const dashboardId = await createDashboard(orgId, 'Sales');
 
         const chartItemId = await addChartItem(dashboardId, chartId);
@@ -46,21 +52,33 @@ describe('сквозной сценарий жизни дашборда', () => 
             body: JSON.stringify({ name: 'Sales Q2' }),
         });
 
-        await api(`/api/dashboards/${dashboardId}/items/order`, {
+        await api(`/api/dashboards/${dashboardId}/items/layout`, {
             method: 'PATCH',
             body: JSON.stringify({
-                order: [
-                    { itemId: metricItemId, posY: 0 },
-                    { itemId: chartItemId, posY: 1 },
+                layout: [
+                    {
+                        itemId: metricItemId,
+                        posX: 0,
+                        posY: 0,
+                        width: dashboardMetricDefaultWidth,
+                        height: dashboardMetricDefaultHeight,
+                    },
+                    {
+                        itemId: chartItemId,
+                        posX: 0,
+                        posY: dashboardMetricDefaultHeight,
+                        width: dashboardChartDefaultWidth,
+                        height: dashboardChartMinHeight,
+                    },
                 ],
             }),
         });
 
-        const afterReorder = (await (
+        const afterLayout = (await (
             await api(`/api/dashboards/${dashboardId}`)
         ).json()) as Dashboard;
-        expect(afterReorder.name).toBe('Sales Q2');
-        expect(afterReorder.items.map(i => i.id)).toEqual([metricItemId, chartItemId]);
+        expect(afterLayout.name).toBe('Sales Q2');
+        expect(afterLayout.items.map(i => i.id)).toEqual([metricItemId, chartItemId]);
 
         await api(`/api/dashboards/${dashboardId}/items/${metricItemId}`, {
             method: 'DELETE',

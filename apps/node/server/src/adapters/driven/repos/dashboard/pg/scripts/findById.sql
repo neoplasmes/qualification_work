@@ -28,13 +28,18 @@ SELECT
 						'width',  di.width,
 						'height', di.height
 					),
-					'datasetId',  im.dataset_id,
-					'name',       im.name,
-					'expression', im.expression,
-					'format',     im.format
+					'datasetId',       im.dataset_id,
+					'name',            im.name,
+					'expression',      im.expression,
+					'format',          im.format,
+					'target',          im.target,
+					'targetDirection', im.target_direction,
+					'showTrend',       im.show_trend,
+					'timeColumn',      im.time_column,
+					'timeBucket',      im.time_bucket
 				)
 			END
-			ORDER BY di.pos_y
+			ORDER BY di.pos_y, di.pos_x
 		)
 		FROM dashboards.dashboard_items di
 		LEFT JOIN dashboards.item_charts  ic ON ic.item_id = di.id

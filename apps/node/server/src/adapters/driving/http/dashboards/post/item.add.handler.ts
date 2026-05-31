@@ -6,6 +6,8 @@ import { metricFormats } from '@qualification-work/types';
 
 import type { AddDashboardItemCommand } from '@/core/commands';
 
+import { metricConfigSchema } from '@/adapters/driving/http/dashboards/shared';
+
 import type { RequestHandlerType } from '@/shared/appState';
 
 const heightSchema = z.number().int().min(1).max(64).optional();
@@ -23,6 +25,7 @@ const addItemSchema = z.discriminatedUnion('kind', [
         expression: z.string().trim().min(1),
         format: z.enum(metricFormats),
         height: heightSchema,
+        ...metricConfigSchema,
     }),
 ]);
 

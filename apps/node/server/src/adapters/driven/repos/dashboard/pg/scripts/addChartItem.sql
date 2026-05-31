@@ -6,15 +6,15 @@ WITH owned AS (
 	FOR UPDATE
 ),
 next_pos AS (
-	SELECT COALESCE(MAX(pos_y), -1) + 1 AS pos_y
+	SELECT COALESCE(MAX(pos_y + height), 0) AS pos_y
 	FROM dashboards.dashboard_items
 	WHERE dashboard_id = (SELECT id FROM owned)
 ),
 inserted AS (
 	INSERT INTO dashboards.dashboard_items
 		(dashboard_id, item_type, pos_x, pos_y, width, height)
-	-- $3: pos_x (vertical-stack convention r.n.)
-	-- $4: width (vertical-stack convention r.n.)
+		-- $3: initial pos_x on the dashboard grid
+		-- $4: initial width on the dashboard grid
 	-- $5: height
 	SELECT owned.id, 'chart', $3, next_pos.pos_y, $4, $5
 	FROM owned, next_pos

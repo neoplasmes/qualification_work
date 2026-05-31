@@ -22,5 +22,5 @@ export type {
     UpdateDashboardItemInput,
 } from './item.update.command';
 
-export { ReorderDashboardCommand } from './reorder.command';
-export type { ReorderDashboardCommandIO } from './reorder.command';
+export { UpdateDashboardLayoutCommand } from './layout.update.command';
+export type { UpdateDashboardLayoutCommandIO } from './layout.update.command';

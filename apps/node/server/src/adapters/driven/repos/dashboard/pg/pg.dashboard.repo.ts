@@ -7,13 +7,44 @@ import {
     isForeignKeyViolation,
     loadScript,
 } from '@qualification-work/microservice-utils/pg';
-import type { Dashboard, DashboardMetricItem } from '@qualification-work/types';
+import {
+    dashboardChartDefaultHeight,
+    dashboardChartDefaultWidth,
+    dashboardChartMinHeight,
+    dashboardChartMinWidth,
+    dashboardMetricDefaultHeight,
+    dashboardMetricDefaultWidth,
+    dashboardMetricMinHeight,
+    dashboardMetricMinWidth,
+    type Dashboard,
+    type DashboardItemLayoutInput,
+    type DashboardMetricItem,
+    type MetricTimeBucket,
+    type MetricTrendPoint,
+} from '@qualification-work/types';
 
 import type { DashboardMetricSpec, DashboardRepo } from '@/core/ports/driven/repos';
+import type {
+    MetricAggTerm,
+    MetricExpressionNode,
+    MetricExpressionTool,
+    MetricTermKey,
+} from '@/core/ports/driven/tools';
 
-const stackX = 0;
-const stackWidth = 12;
-const defaultHeight = 4;
+const dashboardGridX = 0;
+
+// aggregates whose column must be numeric
+const numericAggregates = new Set(['sum', 'avg', 'min', 'max']);
+// fallback bucket when trend is enabled without an explicit one
+const defaultTimeBucket: MetricTimeBucket = 'month';
+// cap of trend points rendered as a sparkline
+const maxTrendPoints = 30;
+// whitelist guarding the inlined date_trunc unit
+const timeBucketUnits: Record<MetricTimeBucket, string> = {
+    day: 'day',
+    week: 'week',
+    month: 'month',
+};
 
 const scriptsDir = join(dirname(fileURLToPath(import.meta.url)), 'scripts');
 
@@ -25,15 +56,21 @@ type DashboardHead = {
     updated_at: Date;
 };
 
-type DatasetColumnRow = {
-    key: string;
-    display_name: string;
-    data_type: string;
-    is_analyzable: boolean;
+type DatasetColumnMeta = {
+    dataType: string;
+    isAnalyzable: boolean;
 };
 
-const metricExpressionPattern = /^([a-z_]+)\((.*)\)$/i;
-const metricAggregates = new Set(['sum', 'avg', 'min', 'max', 'count', 'count_distinct']);
+type DatasetColumns = {
+    byKey: Map<string, DatasetColumnMeta>;
+    firstDateColumn: string | null;
+};
+
+// metric item carrying its parsed expression for the batched evaluation
+type ParsedMetric = {
+    item: DashboardMetricItem;
+    ast: MetricExpressionNode | null;
+};
 
 export class PgDashboardRepo implements DashboardRepo {
     private readonly findByIdSql: string;
@@ -41,15 +78,18 @@ export class PgDashboardRepo implements DashboardRepo {
     private readonly addChartItemSql: string;
     private readonly addMetricItemSql: string;
     private readonly updateMetricItemSql: string;
-    private readonly reorderItemsSql: string;
+    private readonly updateItemsLayoutSql: string;
 
-    constructor(private readonly pool: Pool) {
+    constructor(
+        private readonly pool: Pool,
+        private readonly expressionTool: MetricExpressionTool
+    ) {
         this.findByIdSql = loadScript(join(scriptsDir, 'findById.sql'));
         this.listByOrgSql = loadScript(join(scriptsDir, 'listByOrg.sql'));
         this.addChartItemSql = loadScript(join(scriptsDir, 'addChartItem.sql'));
         this.addMetricItemSql = loadScript(join(scriptsDir, 'addMetricItem.sql'));
         this.updateMetricItemSql = loadScript(join(scriptsDir, 'updateMetricItem.sql'));
-        this.reorderItemsSql = loadScript(join(scriptsDir, 'reorderItems.sql'));
+        this.updateItemsLayoutSql = loadScript(join(scriptsDir, 'updateItemsLayout.sql'));
     }
 
     async create(orgId: string, name: string): Promise<string> {
@@ -125,9 +165,9 @@ export class PgDashboardRepo implements DashboardRepo {
             }>(this.addChartItemSql, [
                 dashboardId,
                 userOrgIds,
-                stackX,
-                stackWidth,
-                height ?? defaultHeight,
+                dashboardGridX,
+                dashboardChartDefaultWidth,
+                height ?? dashboardChartDefaultHeight,
                 chartId,
             ]);
 
@@ -152,7 +192,7 @@ export class PgDashboardRepo implements DashboardRepo {
         userOrgIds: string[]
     ): Promise<{ itemId: string; posY: number } | null> {
         try {
-            await this.assertMetricExpressionUsesAnalyzableColumn(metric);
+            await this.assertMetricExpressionIsValid(metric);
 
             const { rows } = await this.pool.query<{
                 id: string;
@@ -160,13 +200,18 @@ export class PgDashboardRepo implements DashboardRepo {
             }>(this.addMetricItemSql, [
                 dashboardId,
                 userOrgIds,
-                stackX,
-                stackWidth,
-                height ?? defaultHeight,
+                dashboardGridX,
+                dashboardMetricDefaultWidth,
+                height ?? dashboardMetricDefaultHeight,
                 metric.datasetId,
                 metric.name,
                 metric.expression,
                 metric.format,
+                metric.showTrend,
+                metric.timeColumn,
+                metric.timeBucket,
+                metric.target,
+                metric.targetDirection,
             ]);
 
             if (rows.length === 0) {
@@ -190,7 +235,7 @@ export class PgDashboardRepo implements DashboardRepo {
         userOrgIds: string[]
     ): Promise<boolean> {
         try {
-            await this.assertMetricExpressionUsesAnalyzableColumn(metric);
+            await this.assertMetricExpressionIsValid(metric);
 
             const { rowCount } = await this.pool.query(this.updateMetricItemSql, [
                 dashboardId,
@@ -200,6 +245,11 @@ export class PgDashboardRepo implements DashboardRepo {
                 metric.name,
                 metric.expression,
                 metric.format,
+                metric.showTrend,
+                metric.timeColumn,
+                metric.timeBucket,
+                metric.target,
+                metric.targetDirection,
             ]);
 
             return Boolean(rowCount);
@@ -230,33 +280,48 @@ export class PgDashboardRepo implements DashboardRepo {
         return Boolean(rowCount);
     }
 
-    async reorderItems(
+    async updateItemsLayout(
         dashboardId: string,
-        order: Array<{ itemId: string; posY: number }>,
+        layout: DashboardItemLayoutInput[],
         userOrgIds: string[]
-    ): Promise<{ dashboardFound: boolean; updatedCount: number }> {
-        if (order.length === 0) {
-            const { rows } = await this.pool.query<{ exists: boolean }>(
-                `SELECT EXISTS(
-					SELECT 1 FROM dashboards.dashboards
-					WHERE id = $1 AND org_id = ANY($2::uuid[])
-				) AS exists`,
-                [dashboardId, userOrgIds]
-            );
-
-            return { dashboardFound: rows[0].exists, updatedCount: 0 };
-        }
-
-        const itemIds = order.map(o => o.itemId);
-        const posYs = order.map(o => o.posY);
+    ): Promise<{
+        dashboardFound: boolean;
+        itemCount: number;
+        matchedCount: number;
+        invalidSizeCount: number;
+        updatedCount: number;
+    }> {
+        const itemIds = layout.map(o => o.itemId);
+        const posXs = layout.map(o => o.posX);
+        const posYs = layout.map(o => o.posY);
+        const widths = layout.map(o => o.width);
+        const heights = layout.map(o => o.height);
 
         const { rows } = await this.pool.query<{
             dashboard_count: number;
+            item_count: number;
+            matched_count: number;
+            invalid_size_count: number;
             updated_count: number;
-        }>(this.reorderItemsSql, [dashboardId, userOrgIds, itemIds, posYs]);
+        }>(this.updateItemsLayoutSql, [
+            dashboardId,
+            userOrgIds,
+            itemIds,
+            posXs,
+            posYs,
+            widths,
+            heights,
+            dashboardMetricMinWidth,
+            dashboardMetricMinHeight,
+            dashboardChartMinWidth,
+            dashboardChartMinHeight,
+        ]);
 
         return {
             dashboardFound: rows[0].dashboard_count > 0,
+            itemCount: rows[0].item_count,
+            matchedCount: rows[0].matched_count,
+            invalidSizeCount: rows[0].invalid_size_count,
             updatedCount: rows[0].updated_count,
         };
     }
@@ -264,11 +329,7 @@ export class PgDashboardRepo implements DashboardRepo {
     private async toDashboard(
         row: DashboardHead & { items: Dashboard['items'] }
     ): Promise<Dashboard> {
-        const items = await Promise.all(
-            row.items.map(item =>
-                item.kind === 'metric' ? this.withMetricValue(item) : item
-            )
-        );
+        const items = await this.enrichMetricItems(row.items);
 
         return {
             id: row.id,
@@ -293,135 +354,372 @@ export class PgDashboardRepo implements DashboardRepo {
         };
     }
 
-    private async withMetricValue(
-        item: DashboardMetricItem
-    ): Promise<DashboardMetricItem> {
-        const value = await this.evaluateMetric(item);
+    /**
+     * enriches metric items with computed value and optional trend
+     * metrics are grouped by dataset so each dataset is scanned once for all its
+     * scalar values, turning the former per-metric N+1 into 2 queries per dataset
+     *
+     * @param items
+     * @returns items with metric values resolved
+     */
+    private async enrichMetricItems(
+        items: Dashboard['items']
+    ): Promise<Dashboard['items']> {
+        const byDataset = new Map<string, ParsedMetric[]>();
 
-        return { ...item, value };
-    }
+        for (const item of items) {
+            if (item.kind !== 'metric') {
+                continue;
+            }
 
-    private async evaluateMetric(item: DashboardMetricItem): Promise<number | null> {
-        const parsed = this.parseMetricExpression(item.expression);
-        if (!parsed) {
-            return null;
+            const ast = this.safeParse(item.expression);
+            const group = byDataset.get(item.datasetId);
+            if (group) {
+                group.push({ item, ast });
+            } else {
+                byDataset.set(item.datasetId, [{ item, ast }]);
+            }
         }
 
-        const { aggregate, columnName } = parsed;
-        const column = columnName
-            ? await this.findMetricColumn(item.datasetId, columnName)
-            : null;
-
-        if (aggregate !== 'count' && !column) {
-            return null;
+        if (byDataset.size === 0) {
+            return items;
         }
 
-        if (
-            column &&
-            aggregate !== 'count' &&
-            aggregate !== 'count_distinct' &&
-            column.data_type !== 'number'
-        ) {
-            return null;
-        }
-
-        const sql = this.metricSql(aggregate, Boolean(column));
-        if (!sql) {
-            return null;
-        }
-
-        const params = column ? [item.datasetId, column.key] : [item.datasetId];
-        const { rows } = await this.pool.query<{ value: string | number | null }>(
-            sql,
-            params
+        const computed = new Map<
+            string,
+            { value: number | null; trend: MetricTrendPoint[] | null }
+        >();
+        await Promise.all(
+            [...byDataset].map(([datasetId, metrics]) =>
+                this.evaluateDataset(datasetId, metrics, computed)
+            )
         );
-        const rawValue = rows[0]?.value;
 
-        return rawValue === null || rawValue === undefined ? null : Number(rawValue);
+        return items.map(item => {
+            if (item.kind !== 'metric') {
+                return item;
+            }
+
+            const result = computed.get(item.id);
+
+            return {
+                ...item,
+                value: result?.value ?? null,
+                trend: result?.trend ?? null,
+            };
+        });
     }
 
-    private parseMetricExpression(
-        expression: string
-    ): { aggregate: string; columnName: string | null } | null {
-        const match = metricExpressionPattern.exec(expression.trim());
-        if (!match) {
-            return null;
-        }
-
-        const aggregate = match[1].toLowerCase();
-        if (!metricAggregates.has(aggregate)) {
-            return null;
-        }
-
-        const columnName = match[2].trim();
-        if (aggregate === 'count' && (!columnName || columnName === '*')) {
-            return { aggregate, columnName: null };
-        }
-
-        return { aggregate, columnName };
-    }
-
-    private async findMetricColumn(
+    /**
+     * evaluates every metric of a single dataset in one scalar scan
+     * plus one grouped scan per trend-enabled metric
+     *
+     * @param datasetId
+     * @param metrics
+     * @param out
+     * @returns
+     */
+    private async evaluateDataset(
         datasetId: string,
-        columnName: string
-    ): Promise<DatasetColumnRow | null> {
-        const { rows } = await this.pool.query<DatasetColumnRow>(
-            `SELECT key, display_name, data_type, is_analyzable
-            FROM data.dataset_columns
-            WHERE dataset_id = $1 AND (key = $2 OR display_name = $2)
-            LIMIT 1`,
-            [datasetId, columnName]
+        metrics: ParsedMetric[],
+        out: Map<string, { value: number | null; trend: MetricTrendPoint[] | null }>
+    ): Promise<void> {
+        const columns = await this.loadDatasetColumns(datasetId);
+
+        // keep only metrics whose terms all resolve against valid columns
+        const valid = metrics.filter(
+            metric => metric.ast !== null && this.termsAreValid(metric.ast, columns.byKey)
         );
 
-        return rows[0] ?? null;
+        const values = await this.computeScalarValues(datasetId, valid);
+
+        for (const metric of metrics) {
+            const value =
+                metric.ast && valid.includes(metric)
+                    ? this.expressionTool.evaluate(metric.ast, values)
+                    : null;
+            out.set(metric.item.id, { value, trend: null });
+        }
+
+        await Promise.all(
+            valid
+                .filter(metric => metric.item.showTrend)
+                .map(metric => this.attachTrend(datasetId, metric, columns, out))
+        );
     }
 
-    private async assertMetricExpressionUsesAnalyzableColumn(
-        metric: DashboardMetricSpec
+    /**
+     * runs the single batched aggregate scan for the dataset
+     *
+     * @param datasetId
+     * @param metrics valid metrics whose terms feed the scan
+     * @returns term key -> scalar value map
+     */
+    private async computeScalarValues(
+        datasetId: string,
+        metrics: ParsedMetric[]
+    ): Promise<Map<MetricTermKey, number | null>> {
+        const values = new Map<MetricTermKey, number | null>();
+        const terms = this.collectDatasetTerms(metrics);
+        if (terms.length === 0) {
+            return values;
+        }
+
+        const built = this.buildAggregateSelect(terms, 2);
+        const sql = `SELECT ${built.selects.join(', ')}
+            FROM data.dataset_rows
+            WHERE dataset_id = $1`;
+
+        try {
+            const { rows } = await this.pool.query<
+                Record<string, string | number | null>
+            >(sql, [datasetId, ...built.params]);
+            this.readTermValues(rows[0], built.aliasByKey, values);
+        } catch {
+            // a malformed value would fail the whole scan, leave values empty -> null metrics
+        }
+
+        return values;
+    }
+
+    /**
+     * runs one grouped scan and folds it into a trend series for a metric
+     *
+     * @param datasetId
+     * @param metric
+     * @param columns
+     * @param out
+     * @returns
+     */
+    private async attachTrend(
+        datasetId: string,
+        metric: ParsedMetric,
+        columns: DatasetColumns,
+        out: Map<string, { value: number | null; trend: MetricTrendPoint[] | null }>
     ): Promise<void> {
-        const parsed = this.parseMetricExpression(metric.expression);
-        if (!parsed?.columnName) {
+        if (!metric.ast) {
             return;
         }
 
-        const column = await this.findMetricColumn(metric.datasetId, parsed.columnName);
-        if (column && !column.is_analyzable) {
-            throw new ValidationError(
-                [column.key],
-                `Column "${column.display_name}" is not included in analysis`
-            );
+        const timeColumn = this.resolveTimeColumn(metric.item, columns);
+        if (!timeColumn) {
+            return;
+        }
+
+        const bucketUnit = timeBucketUnits[metric.item.timeBucket ?? defaultTimeBucket];
+        const terms = this.expressionTool.collectTerms(metric.ast);
+        const built = this.buildAggregateSelect(terms, 3);
+        const sql = `SELECT
+                date_trunc('${bucketUnit}', (NULLIF(data->>$2, ''))::timestamptz) AS bucket,
+                ${built.selects.join(', ')}
+            FROM data.dataset_rows
+            WHERE dataset_id = $1 AND NULLIF(data->>$2, '') IS NOT NULL
+            GROUP BY bucket
+            ORDER BY bucket`;
+
+        try {
+            const { rows } = await this.pool.query<
+                { bucket: Date | null } & Record<string, string | number | null>
+            >(sql, [datasetId, timeColumn, ...built.params]);
+
+            const series: MetricTrendPoint[] = rows
+                .filter(row => row.bucket !== null)
+                .map(row => {
+                    const values = new Map<MetricTermKey, number | null>();
+                    this.readTermValues(row, built.aliasByKey, values);
+
+                    return {
+                        bucket: (row.bucket as Date).toISOString(),
+                        value: this.expressionTool.evaluate(metric.ast!, values),
+                    };
+                });
+
+            const existing = out.get(metric.item.id);
+            out.set(metric.item.id, {
+                value: existing?.value ?? null,
+                trend: series.slice(-maxTrendPoints),
+            });
+        } catch {
+            // bad date values must not break the dashboard read, keep trend null
         }
     }
 
-    private metricSql(aggregate: string, hasColumn: boolean): string | null {
-        const valueExpr = hasColumn ? `NULLIF(data->>$2, '')` : null;
+    private resolveTimeColumn(
+        item: DashboardMetricItem,
+        columns: DatasetColumns
+    ): string | null {
+        if (item.timeColumn) {
+            const meta = columns.byKey.get(item.timeColumn);
 
-        if (aggregate === 'count') {
-            const countExpr = valueExpr ? `count(${valueExpr})` : 'count(*)';
-
-            return `SELECT ${countExpr}::numeric AS value
-            FROM data.dataset_rows
-            WHERE dataset_id = $1`;
+            return meta?.dataType === 'date' ? item.timeColumn : null;
         }
 
-        if (!valueExpr) {
+        return columns.firstDateColumn;
+    }
+
+    private collectDatasetTerms(metrics: ParsedMetric[]): MetricAggTerm[] {
+        const byKey = new Map<MetricTermKey, MetricAggTerm>();
+
+        for (const metric of metrics) {
+            if (!metric.ast) {
+                continue;
+            }
+
+            for (const term of this.expressionTool.collectTerms(metric.ast)) {
+                byKey.set(this.expressionTool.termKey(term), term);
+            }
+        }
+
+        return [...byKey.values()];
+    }
+
+    private buildAggregateSelect(
+        terms: MetricAggTerm[],
+        firstParamIndex: number
+    ): {
+        selects: string[];
+        params: string[];
+        aliasByKey: Map<MetricTermKey, string>;
+    } {
+        const selects: string[] = [];
+        const params: string[] = [];
+        const aliasByKey = new Map<MetricTermKey, string>();
+        let paramIndex = firstParamIndex;
+
+        terms.forEach((term, index) => {
+            const alias = `t${index}`;
+            aliasByKey.set(this.expressionTool.termKey(term), alias);
+
+            if (term.column === null) {
+                selects.push(`count(*)::numeric AS ${alias}`);
+
+                return;
+            }
+
+            const valueExpr = `NULLIF(data->>$${paramIndex}, '')`;
+            params.push(term.column);
+            paramIndex += 1;
+
+            if (term.aggregate === 'count') {
+                selects.push(`count(${valueExpr})::numeric AS ${alias}`);
+            } else if (term.aggregate === 'count_distinct') {
+                selects.push(`count(distinct ${valueExpr})::numeric AS ${alias}`);
+            } else {
+                selects.push(`${term.aggregate}(${valueExpr}::numeric) AS ${alias}`);
+            }
+        });
+
+        return { selects, params, aliasByKey };
+    }
+
+    private readTermValues(
+        row: Record<string, string | number | null> | undefined,
+        aliasByKey: Map<MetricTermKey, string>,
+        out: Map<MetricTermKey, number | null>
+    ): void {
+        if (!row) {
+            return;
+        }
+
+        for (const [key, alias] of aliasByKey) {
+            const raw = row[alias];
+            out.set(key, raw === null || raw === undefined ? null : Number(raw));
+        }
+    }
+
+    /**
+     * read-time term validity, mirrors the legacy evaluator
+     * a referenced column must exist and be numeric for arithmetic aggregates
+     * analyzability is enforced only on write, saved metrics keep evaluating
+     *
+     * @param ast
+     * @param columns
+     * @returns
+     */
+    private termsAreValid(
+        ast: MetricExpressionNode,
+        columns: Map<string, DatasetColumnMeta>
+    ): boolean {
+        return this.expressionTool.collectTerms(ast).every(term => {
+            if (term.column === null) {
+                return true;
+            }
+
+            const meta = columns.get(term.column);
+            if (!meta) {
+                return false;
+            }
+
+            return !numericAggregates.has(term.aggregate) || meta.dataType === 'number';
+        });
+    }
+
+    private safeParse(expression: string): MetricExpressionNode | null {
+        try {
+            return this.expressionTool.parse(expression);
+        } catch {
             return null;
         }
+    }
 
-        const sqlByAggregate: Record<string, string> = {
-            sum: `sum(${valueExpr}::numeric)`,
-            avg: `avg(${valueExpr}::numeric)`,
-            min: `min(${valueExpr}::numeric)`,
-            max: `max(${valueExpr}::numeric)`,
-            count_distinct: `count(distinct ${valueExpr})::numeric`,
-        };
-        const sql = sqlByAggregate[aggregate];
-        if (!sql) {
-            return null;
+    private async loadDatasetColumns(datasetId: string): Promise<DatasetColumns> {
+        const { rows } = await this.pool.query<{
+            key: string;
+            data_type: string;
+            is_analyzable: boolean;
+        }>(
+            `SELECT key, data_type, is_analyzable
+            FROM data.dataset_columns
+            WHERE dataset_id = $1
+            ORDER BY order_index`,
+            [datasetId]
+        );
+
+        const byKey = new Map<string, DatasetColumnMeta>();
+        let firstDateColumn: string | null = null;
+
+        for (const row of rows) {
+            byKey.set(row.key, {
+                dataType: row.data_type,
+                isAnalyzable: row.is_analyzable,
+            });
+
+            if (firstDateColumn === null && row.data_type === 'date') {
+                firstDateColumn = row.key;
+            }
         }
 
-        return `SELECT ${sql} AS value
-        FROM data.dataset_rows
-        WHERE dataset_id = $1`;
+        return { byKey, firstDateColumn };
+    }
+
+    /**
+     * validates that columns referenced by the expression are analyzable
+     * the deep grammar check happens in the parser, rejecting malformed input
+     *
+     * @param metric
+     * @returns
+     */
+    private async assertMetricExpressionIsValid(
+        metric: DashboardMetricSpec
+    ): Promise<void> {
+        const ast = this.expressionTool.parse(metric.expression);
+        const terms = this.expressionTool.collectTerms(ast);
+        const named = terms
+            .map(term => term.column)
+            .filter((c): c is string => c !== null);
+        if (named.length === 0) {
+            return;
+        }
+
+        const columns = await this.loadDatasetColumns(metric.datasetId);
+        for (const column of named) {
+            const meta = columns.byKey.get(column);
+            if (meta && !meta.isAnalyzable) {
+                throw new ValidationError(
+                    [column],
+                    `Column "${column}" is not included in analysis`
+                );
+            }
+        }
     }
 }

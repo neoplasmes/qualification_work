@@ -11,6 +11,11 @@ export {
     selectWorkspaceMetricExpression,
     selectWorkspaceMetricFormat,
     selectWorkspaceMetricName,
+    selectWorkspaceMetricTarget,
+    selectWorkspaceMetricTargetDirection,
+    selectWorkspaceMetricShowTrend,
+    selectWorkspaceMetricTimeColumn,
+    selectWorkspaceMetricTimeBucket,
     setDashboardsRightPanelTab,
     selectDashboardsRightPanelTab,
     setDashboardsWorkspaceDraftName,
@@ -18,6 +23,15 @@ export {
     setWorkspaceMetricForm,
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
+    setWorkspaceMetricTarget,
+    setWorkspaceMetricTargetDirection,
+    setWorkspaceMetricShowTrend,
+    setWorkspaceMetricTimeColumn,
+    setWorkspaceMetricTimeBucket,
 } from './dashboardsPageSlice';
-export type { DashboardsPageState, DashboardsRightPanelTab } from './dashboardsPageSlice';
+export type {
+    DashboardsPageState,
+    DashboardsRightPanelTab,
+    WorkspaceMetricForm,
+} from './dashboardsPageSlice';
 export { dashboardsPagePersistence } from './dashboardsPagePersistence';

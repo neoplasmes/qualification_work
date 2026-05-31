@@ -1,3 +1,3 @@
 export { createRenameDashboardHandler } from './rename.handler';
-export { createReorderItemsHandler } from './reorder.handler';
+export { createUpdateItemsLayoutHandler } from './layout.update.handler';
 export { createUpdateItemHandler } from './item.update.handler';

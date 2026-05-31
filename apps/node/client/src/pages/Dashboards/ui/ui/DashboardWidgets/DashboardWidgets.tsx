@@ -1,4 +1,14 @@
+import 'gridstack/dist/gridstack.min.css';
+
+import {
+    dashboardChartMinHeight,
+    dashboardChartMinWidth,
+    dashboardMetricMinHeight,
+    dashboardMetricMinWidth,
+    type DashboardItemLayoutInput,
+} from '@qualification-work/types';
 import { useMemo } from 'react';
+import { createPortal } from 'react-dom';
 
 import type { Chart } from '@/entities/chart';
 import type { DashboardItem } from '@/entities/dashboard';
@@ -7,8 +17,8 @@ import type { DatasetColumn } from '@/entities/dataset';
 import { EmptyState } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
-import { splitDashboardItems } from '../../../lib';
 
+import { useDashboardGrid, type DashboardGridItem } from './lib';
 import { ChartWidget, MetricWidget } from './ui';
 
 import styles from './DashboardWidgets.module.scss';
@@ -17,33 +27,71 @@ type DashboardWidgetsProps = {
     items: DashboardItem[];
     chartsById: Map<string, Chart>;
     datasetColumnsById: Map<string, DatasetColumn[]>;
-    reorderLoading: boolean;
     removing: boolean;
-    onMoveItem: (itemId: string, direction: -1 | 1) => void;
     onRemoveItem: (itemId: string) => void;
     onEditMetric: (item: Extract<DashboardItem, { kind: 'metric' }>) => void;
+    onLayoutChange: (layout: DashboardItemLayoutInput[]) => void;
+};
+
+const toGridItem = (item: DashboardItem): DashboardGridItem => {
+    const minW =
+        item.kind === 'metric' ? dashboardMetricMinWidth : dashboardChartMinWidth;
+    const minH =
+        item.kind === 'metric' ? dashboardMetricMinHeight : dashboardChartMinHeight;
+
+    return {
+        id: item.id,
+        x: item.layout.posX,
+        y: item.layout.posY,
+        w: item.layout.width,
+        h: item.layout.height,
+        minW,
+        minH,
+    };
 };
 
 export const DashboardWidgets = ({
     items,
     chartsById,
     datasetColumnsById,
-    reorderLoading,
     removing,
-    onMoveItem,
     onRemoveItem,
     onEditMetric,
+    onLayoutChange,
 }: DashboardWidgetsProps) => {
-    const { metricItems, chartItems } = useMemo(
-        () => splitDashboardItems(items),
-        [items]
-    );
+    const gridItems = useMemo(() => items.map(toGridItem), [items]);
+    const itemsById = useMemo(() => new Map(items.map(item => [item.id, item])), [items]);
+
+    const { containerRef, hosts } = useDashboardGrid(gridItems, onLayoutChange);
+
+    const renderItem = (item: DashboardItem) => {
+        if (item.kind === 'metric') {
+            return (
+                <MetricWidget
+                    item={item}
+                    removing={removing}
+                    onRemoveItem={onRemoveItem}
+                    onEditItem={onEditMetric}
+                />
+            );
+        }
+
+        const chart = chartsById.get(item.chartId);
+
+        return (
+            <ChartWidget
+                item={item}
+                chart={chart}
+                columns={datasetColumnsById.get(chart?.datasetId ?? '') ?? []}
+                removing={removing}
+                onRemoveItem={onRemoveItem}
+            />
+        );
+    };
 
     return (
         <div
             className={styles['widgets']}
-            data-stack="v"
-            data-gap="md"
             data-test-id={dashboardsTestIds.widgetList}
             aria-label="Dashboard widgets"
         >
@@ -51,57 +99,12 @@ export const DashboardWidgets = ({
                 <EmptyState>Add a saved chart to this dashboard.</EmptyState>
             )}
 
-            {metricItems.length > 0 && (
-                <div
-                    className={styles['metrics']}
-                    data-stack="v"
-                    data-gap="md"
-                    data-p="md"
-                >
-                    <h3 className={styles['metrics-title']}>Metrics</h3>
-                    <div
-                        data-stack="h"
-                        data-gap="md"
-                        data-wrap="wrap"
-                        data-justify="start"
-                    >
-                        {metricItems.map(item => (
-                            <MetricWidget
-                                key={item.id}
-                                item={item}
-                                removing={removing}
-                                onRemoveItem={onRemoveItem}
-                                onEditItem={onEditMetric}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
+            <div ref={containerRef} className={`grid-stack ${styles['grid']}`} />
+            {[...hosts].map(([id, host]) => {
+                const item = itemsById.get(id);
 
-            {chartItems.length > 0 && (
-                <div className={styles['charts']} data-display="grid" data-gap="md">
-                    {chartItems.map((item, index) => {
-                        const chart = chartsById.get(item.chartId);
-
-                        return (
-                            <ChartWidget
-                                key={item.id}
-                                item={item}
-                                index={index}
-                                itemsCount={chartItems.length}
-                                chart={chart}
-                                columns={
-                                    datasetColumnsById.get(chart?.datasetId ?? '') ?? []
-                                }
-                                reorderLoading={reorderLoading}
-                                removing={removing}
-                                onMoveItem={onMoveItem}
-                                onRemoveItem={onRemoveItem}
-                            />
-                        );
-                    })}
-                </div>
-            )}
+                return item ? createPortal(renderItem(item), host, id) : null;
+            })}
         </div>
     );
 };

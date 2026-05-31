@@ -25,5 +25,5 @@ export type { DeleteDashboardItemCommandIO } from './dashboard';
 export { UpdateDashboardItemCommand } from './dashboard';
 export type { UpdateDashboardItemCommandIO, UpdateDashboardItemInput } from './dashboard';
 
-export { ReorderDashboardCommand } from './dashboard';
-export type { ReorderDashboardCommandIO } from './dashboard';
+export { UpdateDashboardLayoutCommand } from './dashboard';
+export type { UpdateDashboardLayoutCommandIO } from './dashboard';

@@ -1,3 +1,7 @@
+import {
+    dashboardChartDefaultHeight,
+    type DashboardItemLayoutInput,
+} from '@qualification-work/types';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +10,7 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     useAddDashboardChartMutation,
     useRemoveDashboardItemMutation,
-    useReorderDashboardItemsMutation,
+    useUpdateDashboardLayoutMutation,
 } from '@/features/manageDashboards';
 
 import { useListChartsQuery } from '@/entities/chart';
@@ -19,7 +23,6 @@ import { useHasOverflow } from '@/shared/lib/useHasOverflow';
 import { Modal, PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
-import { getDashboardItemsOrder, moveDashboardItem } from '../lib';
 import {
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
@@ -76,7 +79,7 @@ export const DashboardsWorkspace = () => {
     );
 
     const [addDashboardChart, addChartState] = useAddDashboardChartMutation();
-    const [reorderDashboardItems, reorderState] = useReorderDashboardItemsMutation();
+    const [updateDashboardLayout] = useUpdateDashboardLayoutMutation();
     const [removeDashboardItem, removeItemState] = useRemoveDashboardItemMutation();
     const metricModal = useDashboardMetricModal({
         dashboard,
@@ -124,7 +127,7 @@ export const DashboardsWorkspace = () => {
             await addDashboardChart({
                 dashboardId: dashboard.id,
                 chartId: selectedChartId,
-                height: 8,
+                height: dashboardChartDefaultHeight,
             }).unwrap();
             setActiveModal(null);
             await dashboardQuery.refetch();
@@ -134,25 +137,20 @@ export const DashboardsWorkspace = () => {
         }
     };
 
-    const handleMoveItem = async (itemId: string, direction: -1 | 1) => {
-        if (!dashboard) {
-            return;
-        }
-
-        const nextItems = moveDashboardItem(dashboardItems, itemId, direction);
-        if (nextItems === dashboardItems) {
+    const handleLayoutChange = async (layout: DashboardItemLayoutInput[]) => {
+        if (!dashboard || layout.length === 0) {
             return;
         }
 
         try {
-            await reorderDashboardItems({
+            await updateDashboardLayout({
                 dashboardId: dashboard.id,
-                order: getDashboardItemsOrder(nextItems),
+                layout,
             }).unwrap();
             await dashboardQuery.refetch();
-        } catch (reorderError) {
+        } catch (layoutError) {
             setError(
-                getApiErrorMessage(reorderError, 'Unable to reorder dashboard widgets.')
+                getApiErrorMessage(layoutError, 'Unable to save the dashboard layout.')
             );
         }
     };
@@ -202,11 +200,8 @@ export const DashboardsWorkspace = () => {
                         items={dashboardItems}
                         chartsById={chartsById}
                         datasetColumnsById={datasetColumnsById}
-                        reorderLoading={reorderState.isLoading}
                         removing={removeItemState.isLoading}
-                        onMoveItem={(itemId, direction) =>
-                            void handleMoveItem(itemId, direction)
-                        }
+                        onLayoutChange={layout => void handleLayoutChange(layout)}
                         onRemoveItem={itemId => void handleRemoveItem(itemId)}
                         onEditMetric={item => {
                             metricModal.openEdit(item);
@@ -241,6 +236,7 @@ export const DashboardsWorkspace = () => {
                                 metricName={metricModal.name}
                                 metricExpression={metricModal.expression}
                                 metricFormat={metricModal.format}
+                                config={metricModal.config}
                                 error={metricModal.error}
                                 disabled={metricModal.disabled}
                                 editing={metricModal.editing}
@@ -248,6 +244,7 @@ export const DashboardsWorkspace = () => {
                                 onNameChange={metricModal.setName}
                                 onExpressionChange={metricModal.setExpression}
                                 onFormatChange={metricModal.setFormat}
+                                onConfigChange={metricModal.setConfig}
                                 onSubmit={event => {
                                     void metricModal.submit(event).then(saved => {
                                         if (saved) {

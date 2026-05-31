@@ -1,13 +1,17 @@
 import type {
     Dashboard,
     DashboardChartItem,
+    DashboardItemLayoutInput,
     DashboardMetricItem,
 } from '@qualification-work/types';
 
 /**
  * dashboard metric short specification for internal usage
  */
-export type DashboardMetricSpec = Omit<DashboardMetricItem, 'id' | 'kind' | 'layout'>;
+export type DashboardMetricSpec = Omit<
+    DashboardMetricItem,
+    'id' | 'kind' | 'layout' | 'value' | 'trend'
+>;
 
 /**
  * repository for working with user's dashboards
@@ -129,16 +133,22 @@ export interface DashboardRepo {
     ): Promise<boolean>;
 
     /**
-     * reorders items in a specific dashboard
+     * updates item layout in a specific dashboard
      *
      * @param dashboardId
-     * @param order
+     * @param layout
      * @param userOrgIds
      * @returns
      */
-    reorderItems(
+    updateItemsLayout(
         dashboardId: string,
-        order: Array<{ itemId: string; posY: number }>,
+        layout: DashboardItemLayoutInput[],
         userOrgIds: string[]
-    ): Promise<{ dashboardFound: boolean; updatedCount: number }>;
+    ): Promise<{
+        dashboardFound: boolean;
+        itemCount: number;
+        matchedCount: number;
+        invalidSizeCount: number;
+        updatedCount: number;
+    }>;
 }

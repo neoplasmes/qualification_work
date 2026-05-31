@@ -6,8 +6,8 @@ import type {
     DeleteDashboardCommand,
     DeleteDashboardItemCommand,
     RenameDashboardCommand,
-    ReorderDashboardCommand,
     UpdateDashboardItemCommand,
+    UpdateDashboardLayoutCommand,
 } from '@/core/commands';
 import type { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
 
@@ -17,8 +17,8 @@ import { createDeleteDashboardHandler, createDeleteItemHandler } from './delete'
 import { createGetDashboardHandler, createListDashboardsHandler } from './get';
 import {
     createRenameDashboardHandler,
-    createReorderItemsHandler,
     createUpdateItemHandler,
+    createUpdateItemsLayoutHandler,
 } from './patch';
 import { createAddItemHandler, createCreateDashboardHandler } from './post';
 
@@ -29,7 +29,7 @@ export type DashboardsRouterDeps = {
     addDashboardItem: AddDashboardItemCommand;
     deleteDashboardItem: DeleteDashboardItemCommand;
     updateDashboardItem: UpdateDashboardItemCommand;
-    reorderDashboard: ReorderDashboardCommand;
+    updateDashboardLayout: UpdateDashboardLayoutCommand;
     getDashboard: GetDashboardQuery;
     listDashboards: ListDashboardsQuery;
 };
@@ -43,7 +43,10 @@ export function createDashboardsRouter(deps: DashboardsRouterDeps): Router<AppSt
     router.patch('/:id', createRenameDashboardHandler(deps.renameDashboard));
     router.delete('/:id', createDeleteDashboardHandler(deps.deleteDashboard));
 
-    router.patch('/:id/items/order', createReorderItemsHandler(deps.reorderDashboard));
+    router.patch(
+        '/:id/items/layout',
+        createUpdateItemsLayoutHandler(deps.updateDashboardLayout)
+    );
     router.post('/:id/items', createAddItemHandler(deps.addDashboardItem));
     router.patch('/:id/items/:itemId', createUpdateItemHandler(deps.updateDashboardItem));
     router.delete(

@@ -8,6 +8,7 @@ import { Button, FormField, Select, StatusMessage, TextInput } from '@/shared/ui
 
 import { dashboardsTestIds } from '../../../const';
 
+import type { MetricConfigForm } from '../../lib';
 import { DashboardFormSection } from '../DashboardFormSection';
 import {
     buildMetricExpression,
@@ -18,6 +19,7 @@ import {
     type MetricAggregate,
     type MetricExpressionMode,
 } from './lib';
+import { MetricGoalFields, MetricTrendFields } from './ui';
 
 import styles from './AddMetricForm.module.scss';
 
@@ -27,6 +29,7 @@ type AddMetricFormProps = {
     metricName: string;
     metricExpression: string;
     metricFormat: DashboardMetricItem['format'];
+    config: MetricConfigForm;
     error?: string;
     disabled: boolean;
     editing?: boolean;
@@ -34,6 +37,7 @@ type AddMetricFormProps = {
     onNameChange: (value: string) => void;
     onExpressionChange: (value: string) => void;
     onFormatChange: (value: DashboardMetricItem['format']) => void;
+    onConfigChange: (patch: Partial<MetricConfigForm>) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
@@ -43,6 +47,7 @@ export const AddMetricForm = ({
     metricName,
     metricExpression,
     metricFormat,
+    config,
     error,
     disabled,
     editing,
@@ -50,6 +55,7 @@ export const AddMetricForm = ({
     onNameChange,
     onExpressionChange,
     onFormatChange,
+    onConfigChange,
     onSubmit,
 }: AddMetricFormProps) => {
     const [expressionMode, setExpressionMode] = useState<MetricExpressionMode>('builder');
@@ -65,6 +71,11 @@ export const AddMetricForm = ({
     const expressionColumns = useMemo(
         () => getMetricExpressionColumns(selectedDataset?.columns ?? [], aggregate),
         [aggregate, selectedDataset?.columns]
+    );
+    const dateColumns = useMemo(
+        () =>
+            (selectedDataset?.columns ?? []).filter(column => column.dataType === 'date'),
+        [selectedDataset?.columns]
     );
     const activeColumnId = expressionColumns.some(
         column => column.id === columnId && column.isAnalyzable !== false
@@ -221,6 +232,16 @@ export const AddMetricForm = ({
                     />
                 </FormField>
             )}
+
+            <DashboardFormSection>Goal</DashboardFormSection>
+            <MetricGoalFields config={config} onConfigChange={onConfigChange} />
+
+            <DashboardFormSection>Trend</DashboardFormSection>
+            <MetricTrendFields
+                config={config}
+                dateColumns={dateColumns}
+                onConfigChange={onConfigChange}
+            />
 
             {error && (
                 <StatusMessage tone="error" className={styles['error']}>

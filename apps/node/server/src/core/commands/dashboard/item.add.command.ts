@@ -42,7 +42,17 @@ export class AddDashboardItemCommand implements Executable<
             case 'metric':
                 result = await this.dashboardRepo.addMetricItem(
                     dashboardId,
-                    pick(input, ['datasetId', 'name', 'expression', 'format']),
+                    pick(input, [
+                        'datasetId',
+                        'name',
+                        'expression',
+                        'format',
+                        'target',
+                        'targetDirection',
+                        'showTrend',
+                        'timeColumn',
+                        'timeBucket',
+                    ]),
                     input.height,
                     writableOrgIds
                 );

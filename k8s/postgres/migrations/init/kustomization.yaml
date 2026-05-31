@@ -16,5 +16,7 @@ configMapGenerator:
       - ../../../../infrastructure/postgres/init/005_create_dashboards.sql
       - ../../../../infrastructure/postgres/init/006_create_dashboard_variables.sql
       - ../../../../infrastructure/postgres/init/007_create_actions.sql
+      - ../../../../infrastructure/postgres/init/008_metric_trend.sql
+      - ../../../../infrastructure/postgres/init/009_metric_visuals.sql
 resources:
   - job.yaml

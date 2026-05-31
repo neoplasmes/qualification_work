@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import type { Dashboard } from '@qualification-work/types';
+import { dashboardChartDefaultHeight, type Dashboard } from '@qualification-work/types';
 
 import {
     api,
@@ -51,7 +51,7 @@ describe('GET /api/dashboards/:id', () => {
         expect(body.items).toEqual([]);
     });
 
-    it('items ordered by posY + stack convention', async () => {
+    it('items ordered by posY + grid placement', async () => {
         const dashboardId = await createDashboard(orgId);
 
         await addChartItem(dashboardId, chartId);
@@ -71,11 +71,11 @@ describe('GET /api/dashboards/:id', () => {
 
         expect(body.items).toHaveLength(2);
         expect(body.items[0].layout.posY).toBe(0);
-        expect(body.items[1].layout.posY).toBe(1);
+        expect(body.items[1].layout.posY).toBe(dashboardChartDefaultHeight);
         expect(body.items[0].kind).toBe('chart');
         expect(body.items[1].kind).toBe('metric');
         expect(body.items[0].layout.posX).toBe(0);
-        expect(body.items[0].layout.width).toBe(12);
+        expect(body.items[0].layout.width).toBe(6);
     });
 
     it('returns calculated metric value', async () => {

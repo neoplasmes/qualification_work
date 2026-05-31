@@ -24,6 +24,7 @@
         "@qualification-work/types": "workspace:*",
         "es-toolkit": "^1.46.1",
         "fast-json-stringify": "^6.3.0",
+        "jsep": "catalog:backend",
         "pg": "catalog:postgres",
         "primitive-server": "workspace:*",
         "redis": "catalog:backend",

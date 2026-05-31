@@ -5,7 +5,7 @@ import type {
     CreateDashboardPayload,
     CreateDashboardResponse,
     RenameDashboardPayload as RenameDashboardBodyPayload,
-    ReorderDashboardItemsPayload as ReorderDashboardItemsBodyPayload,
+    UpdateDashboardLayoutPayload as UpdateDashboardLayoutBodyPayload,
     UpdateDashboardMetricPayload as UpdateDashboardMetricBodyPayload,
 } from '@qualification-work/types';
 
@@ -36,6 +36,6 @@ export type RemoveDashboardItemPayload = {
     itemId: string;
 };
 
-export type ReorderDashboardItemsPayload = ReorderDashboardItemsBodyPayload & {
+export type UpdateDashboardLayoutPayload = UpdateDashboardLayoutBodyPayload & {
     dashboardId: string;
 };

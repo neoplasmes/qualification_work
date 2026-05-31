@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import type { Dashboard } from '@qualification-work/types';
+import { dashboardChartDefaultHeight, type Dashboard } from '@qualification-work/types';
 
 import {
     api,
@@ -33,7 +33,7 @@ afterEach(async () => {
 });
 
 describe('POST /api/dashboards/:id/items', () => {
-    it('chart-item: posY=0, posY=1', async () => {
+    it('chart-item: new items stack below existing grid height', async () => {
         const dashboardId = await createDashboard(orgId);
 
         const first = await api(`/api/dashboards/${dashboardId}/items`, {
@@ -48,7 +48,9 @@ describe('POST /api/dashboards/:id/items', () => {
             body: JSON.stringify({ kind: 'chart', chartId }),
         });
         expect(second.status).toBe(201);
-        expect(((await second.json()) as { posY: number }).posY).toBe(1);
+        expect(((await second.json()) as { posY: number }).posY).toBe(
+            dashboardChartDefaultHeight
+        );
     });
 
     it('metric-item with valid format', async () => {
@@ -227,6 +229,6 @@ describe('POST /api/dashboards/:id/items', () => {
         const get = await api(`/api/dashboards/${dashboardId}`);
         const body = (await get.json()) as Dashboard;
         expect(body.items[0].layout.posX).toBe(0);
-        expect(body.items[0].layout.width).toBe(12);
+        expect(body.items[0].layout.width).toBe(6);
     });
 });

@@ -5,12 +5,13 @@ import {
     selectPanelSizes,
     setPanelSizes,
     WorkspaceGridPanelModel,
+    type WorkspaceGridCollapseController,
     type WorkspaceGridGroupDirection,
 } from '../../model';
+import { useWorkspaceGridConfig } from '../workspaceGridConfig';
 import {
     WorkspaceGridPanelInternal,
     type WorkspaceGridPanelElementType,
-    type WorkspaceGridPanelInternalElementType,
 } from '../WorkspaceGridPanel';
 import { WorkspaceGridResizer } from '../WorkspaceGridResizer';
 //@ts-ignore - language server lags
@@ -18,11 +19,13 @@ import { fitPanels, isPanelElement } from './helpers';
 
 import styles from './WorkspaceGridGroup.module.scss';
 
-type WorkspaceGridGroupProps = {
+type WorkspaceGridGroupProps<K extends string = string> = {
     direction: WorkspaceGridGroupDirection;
     pageKey?: string;
-    collapseLeft?: boolean;
-    collapseRight?: boolean;
+    /**
+     * external collapse control, panels are addressed by their panelKey
+     */
+    collapse?: WorkspaceGridCollapseController<K>;
     /**
      * only WorkspaceGridPanel elements are allowed as children, otherwise behaviour is undefined
      */
@@ -31,159 +34,170 @@ type WorkspaceGridGroupProps = {
 
 /**
  * a kind of linked-list of grid panels, where each panel is connected to the next one through
- * the resizer.
+ * the resizer. any panel can be collapsed through the collapse controller, collapsed panels stay
+ * mounted (their size is preserved) and resizers are wired only between visible neighbours.
  *
  * @returns
  */
-export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
+export const WorkspaceGridGroup = <K extends string = string>({
     direction,
     children,
     pageKey,
-    collapseLeft = false,
-    collapseRight = false,
-}: WorkspaceGridGroupProps) => {
+    collapse,
+}: WorkspaceGridGroupProps<K>) => {
     const groupRef = useRef<HTMLDivElement>(null);
     const dispatch = useDispatch();
+
+    const { resizerSize } = useWorkspaceGridConfig();
 
     const savedSizes = useSelector(selectPanelSizes(pageKey ?? ''));
 
     const savedSizesRef = useRef(savedSizes);
     savedSizesRef.current = savedSizes;
 
-    const panelModels = useRef<
-        Map<WorkspaceGridPanelInternalElementType, WorkspaceGridPanelModel>
-    >(new Map());
-
-    const collapseLeftRef = useRef(collapseLeft);
-    collapseLeftRef.current = collapseLeft;
-    const collapseRightRef = useRef(collapseRight);
-    collapseRightRef.current = collapseRight;
+    // models reused across renders, keyed by panel index, so collapsing a panel
+    // never re-creates it and its size survives
+    const modelsByIndex = useRef<Map<number, WorkspaceGridPanelModel>>(new Map());
+    const directionRef = useRef(direction);
 
     const onResizeEndRef = useRef<() => void>(() => {});
+
+    const { linked, orderedModels, hidden } = useMemo(() => {
+        const childrenArray = Children.toArray(children).filter(
+            isPanelElement
+        ) as WorkspaceGridPanelElementType[];
+
+        const cache = modelsByIndex.current;
+
+        // direction is baked into the model, drop the cache when it flips
+        if (directionRef.current !== direction) {
+            cache.clear();
+            directionRef.current = direction;
+        }
+
+        const orderedModels: WorkspaceGridPanelModel[] = [];
+        const hidden: boolean[] = [];
+
+        childrenArray.forEach((child, i) => {
+            const { initialSize, minSize, maxSize, panelKey } = child.props;
+
+            let model = cache.get(i);
+            if (
+                !model ||
+                model.initialSize !== initialSize ||
+                model.minSize !== minSize ||
+                model.maxSize !== maxSize
+            ) {
+                model = new WorkspaceGridPanelModel(
+                    direction,
+                    initialSize,
+                    minSize,
+                    maxSize,
+                    `panel-${i}`,
+                    savedSizesRef.current?.[i]
+                );
+                cache.set(i, model);
+            }
+
+            orderedModels.push(model);
+            hidden.push(
+                panelKey != null && (collapse?.isCollapsed(panelKey as K) ?? false)
+            );
+        });
+
+        // drop stale models when the children count shrinks
+        for (const key of cache.keys()) {
+            if (key >= childrenArray.length) {
+                cache.delete(key);
+            }
+        }
+
+        const linked: React.ReactNode[] = [];
+        let prevVisibleModel: WorkspaceGridPanelModel | null = null;
+
+        childrenArray.forEach((child, i) => {
+            const model = orderedModels[i];
+            const isHidden = hidden[i];
+
+            // a resizer only sits between two visible panels
+            if (!isHidden && prevVisibleModel) {
+                linked.push(
+                    <WorkspaceGridResizer
+                        key={`resizer-${i}`}
+                        direction={direction}
+                        prev={prevVisibleModel}
+                        next={model}
+                        onResizeEnd={onResizeEndRef}
+                    />
+                );
+            }
+
+            linked.push(
+                <WorkspaceGridPanelInternal
+                    key={`panel-${i}`}
+                    attach={model.attach}
+                    external={child}
+                    hidden={isHidden}
+                />
+            );
+
+            if (!isHidden) {
+                prevVisibleModel = model;
+            }
+        });
+
+        return { linked, orderedModels, hidden };
+    }, [children, direction, collapse?.collapsed]);
+
+    const orderedModelsRef = useRef(orderedModels);
+    orderedModelsRef.current = orderedModels;
+
     onResizeEndRef.current = () => {
         if (!pageKey) {
             return;
         }
 
-        const sizes = [...panelModels.current.values()].map(model =>
-            model.getCurrentSizePx()
-        );
+        const sizes = orderedModelsRef.current.map(model => model.getCurrentSizePx());
         dispatch(setPanelSizes({ pageKey, sizes }));
     };
 
-    const linked = useMemo(() => {
-        const childrenArray = Children.toArray(children).filter(
-            isPanelElement
-        ) as WorkspaceGridPanelElementType[];
+    // re-built each render so it always closes over fresh models, hidden flags,
+    // direction and resizerSize
+    const applyFitRef = useRef<() => void>(() => {});
+    applyFitRef.current = () => {
+        const groupElement = groupRef.current;
 
-        panelModels.current = new Map<
-            WorkspaceGridPanelInternalElementType,
-            WorkspaceGridPanelModel
-        >();
-
-        if (childrenArray.length === 0) {
-            return [];
-        } else if (childrenArray.length === 1) {
-            return [childrenArray[0]];
+        if (!groupElement || orderedModels.length === 0) {
+            return;
         }
 
-        let i = 0;
+        const fullSize =
+            direction === 'row' ? groupElement.clientWidth : groupElement.clientHeight;
 
-        const firstModel = new WorkspaceGridPanelModel(
-            direction,
-            childrenArray[0].props.initialSize,
-            childrenArray[0].props.minSize,
-            childrenArray[0].props.maxSize,
-            `panel-${i}`,
-            savedSizesRef.current?.[0]
-        );
-        const linked = [
-            <WorkspaceGridPanelInternal
-                key={`panel-${i}`}
-                attach={firstModel.attach}
-                external={childrenArray[i++]}
-            />,
-        ];
-        panelModels.current.set(linked[0], firstModel);
+        const visible = new Map<unknown, WorkspaceGridPanelModel>();
+        orderedModels.forEach((model, i) => {
+            if (!hidden[i]) {
+                visible.set(model, model);
+            }
+        });
 
-        for (; i < childrenArray.length; ) {
-            const prevWrapped = linked[linked.length - 1];
-            const prevModel = panelModels.current.get(prevWrapped)!;
+        const n = visible.size;
+        const totalGapPx = n > 1 ? resizerSize * (n - 1) : 0;
 
-            const nextKey = `panel-${i}`;
-            const nextModel = new WorkspaceGridPanelModel(
-                direction,
-                childrenArray[i].props.initialSize,
-                childrenArray[i].props.minSize,
-                childrenArray[i].props.maxSize,
-                nextKey,
-                savedSizesRef.current?.[i]
-            );
-            const nextWrapped = (
-                <WorkspaceGridPanelInternal
-                    key={nextKey}
-                    attach={nextModel.attach}
-                    external={childrenArray[i++]}
-                />
-            );
-
-            panelModels.current.set(nextWrapped, nextModel);
-
-            linked.push(
-                <WorkspaceGridResizer
-                    key={`resizer-${i}`}
-                    direction={direction}
-                    prev={prevModel}
-                    next={nextModel}
-                    onResizeEnd={onResizeEndRef}
-                />,
-                nextWrapped
-            );
-        }
-
-        return linked;
-    }, [children, direction]);
-
-    const applyFitRef = useRef<(() => void) | null>(null);
+        fitPanels(fullSize - totalGapPx, visible);
+    };
 
     useLayoutEffect(() => {
         const groupElement = groupRef.current;
 
-        if (!groupElement || panelModels.current.size === 0) {
+        if (!groupElement) {
             return;
         }
 
-        const applyFit = () => {
-            const fullSize =
-                direction === 'row'
-                    ? groupElement.clientWidth
-                    : groupElement.clientHeight;
-
-            const visible = new Map<unknown, WorkspaceGridPanelModel>();
-            let idx = 0;
-            const total = panelModels.current.size;
-            for (const [key, model] of panelModels.current) {
-                const skip =
-                    (idx === 0 && collapseLeftRef.current) ||
-                    (idx === total - 1 && collapseRightRef.current);
-                if (!skip) {
-                    visible.set(key, model);
-                }
-
-                idx++;
-            }
-
-            const n = visible.size;
-            const totalGapPx = n > 1 ? 8 * (n - 1) : 0;
-
-            fitPanels(fullSize - totalGapPx, visible);
-        };
-
-        applyFitRef.current = applyFit;
-        applyFit();
+        applyFitRef.current();
 
         const resizeObserver = new ResizeObserver(() => {
-            applyFit();
+            applyFitRef.current();
         });
 
         resizeObserver.observe(groupElement);
@@ -191,19 +205,23 @@ export const WorkspaceGridGroup: React.FC<WorkspaceGridGroupProps> = ({
         return () => {
             resizeObserver.disconnect();
         };
-    }, [direction, panelModels.current]);
+    }, []);
 
+    // refit when the panel composition, direction or resizer size changes
     useLayoutEffect(() => {
-        applyFitRef.current?.();
-    }, [collapseLeft, collapseRight]);
+        applyFitRef.current();
+    }, [orderedModels, hidden, direction, resizerSize]);
 
     return (
         <div
             className={styles['workspace-grid-group']}
             ref={groupRef}
-            style={{ '--direction': direction } as React.CSSProperties}
-            data-collapse-left={collapseLeft || undefined}
-            data-collapse-right={collapseRight || undefined}
+            style={
+                {
+                    '--direction': direction,
+                    '--resizer-size': `${resizerSize}px`,
+                } as React.CSSProperties
+            }
         >
             {linked}
         </div>

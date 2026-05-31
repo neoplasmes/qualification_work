@@ -1,5 +1,9 @@
-export type { WorkspaceGridGroupDirection } from './types';
+export type {
+    WorkspaceGridGroupDirection,
+    WorkspaceGridCollapseController,
+} from './types';
 export { WorkspaceGridPanelModel } from './workspaceGridPanelModel';
+export { useWorkspaceGridCollapse } from './useWorkspaceGridCollapse';
 export {
     panelLayoutSlice,
     setPanelSizes,

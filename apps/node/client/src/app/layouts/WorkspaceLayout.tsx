@@ -1,11 +1,14 @@
-import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import { useSelector } from 'react-redux';
+import { lazy, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 
 import {
     selectIsLeftCollapsed,
     selectIsRightCollapsed,
+    toggleLeftPanel,
+    toggleRightPanel,
     WorkspaceGrid,
+    type WorkspaceGridCollapseController,
 } from '@/widgets/WorkspaceGrid';
 
 import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
@@ -109,10 +112,44 @@ const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
 
 const workspaceFallback = <div className={styles['panel-fallback']} />;
 
+type WorkspacePanelKey = 'left' | 'right';
+
 export const WorkspaceLayout = () => {
     const { pathname } = useLocation();
+    const dispatch = useDispatch();
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
+
+    // adapt the redux collapse state to the grid's keyed controller, redux stays
+    // the source of truth since the toggle buttons live in the NavBar subtree
+    const collapse = useMemo<WorkspaceGridCollapseController<WorkspacePanelKey>>(() => {
+        const collapsed = new Set<WorkspacePanelKey>();
+        if (isLeftCollapsed) {
+            collapsed.add('left');
+        }
+        if (isRightCollapsed) {
+            collapsed.add('right');
+        }
+
+        const toggle = (key: WorkspacePanelKey) =>
+            dispatch(key === 'left' ? toggleLeftPanel() : toggleRightPanel());
+
+        return {
+            collapsed,
+            isCollapsed: key => collapsed.has(key),
+            toggle,
+            collapse: key => {
+                if (!collapsed.has(key)) {
+                    toggle(key);
+                }
+            },
+            expand: key => {
+                if (collapsed.has(key)) {
+                    toggle(key);
+                }
+            },
+        };
+    }, [isLeftCollapsed, isRightCollapsed, dispatch]);
 
     const slots = WORKSPACE_SLOTS[pathname];
 
@@ -124,13 +161,13 @@ export const WorkspaceLayout = () => {
 
     return (
         <WorkspaceGrid>
-            <WorkspaceGrid.Group
-                direction="row"
-                pageKey="workspace"
-                collapseLeft={isLeftCollapsed}
-                collapseRight={isRightCollapsed}
-            >
-                <WorkspaceGrid.Panel initialSize="320px" minSize="300px" maxSize="800px">
+            <WorkspaceGrid.Group direction="row" pageKey="workspace" collapse={collapse}>
+                <WorkspaceGrid.Panel
+                    panelKey="left"
+                    initialSize="320px"
+                    minSize="300px"
+                    maxSize="800px"
+                >
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Left}
@@ -142,7 +179,12 @@ export const WorkspaceLayout = () => {
                         LazyComponent={Center}
                     />
                 </WorkspaceGrid.Panel>
-                <WorkspaceGrid.Panel initialSize="320px" minSize="300px" maxSize="800px">
+                <WorkspaceGrid.Panel
+                    panelKey="right"
+                    initialSize="320px"
+                    minSize="300px"
+                    maxSize="800px"
+                >
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Right}

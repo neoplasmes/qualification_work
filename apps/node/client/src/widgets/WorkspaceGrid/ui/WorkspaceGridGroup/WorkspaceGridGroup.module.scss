@@ -6,16 +6,4 @@
 
     min-width: 0;
     min-height: 0;
-
-    // hide left panel + its adjacent resizer
-    &[data-collapse-left] > :first-child,
-    &[data-collapse-left] > :nth-child(2) {
-        display: none;
-    }
-
-    // hide right panel + its adjacent resizer
-    &[data-collapse-right] > :last-child,
-    &[data-collapse-right] > :nth-last-child(2) {
-        display: none;
-    }
 }

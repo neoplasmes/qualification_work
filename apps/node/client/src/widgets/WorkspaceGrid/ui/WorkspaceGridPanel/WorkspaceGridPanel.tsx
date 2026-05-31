@@ -6,6 +6,10 @@ import styles from './WorkspaceGridPanel.module.scss';
 
 type WorkspaceGridPanelProps = React.PropsWithChildren<{
     className?: string;
+    /**
+     * stable identifier used by the collapse controller to hide this panel
+     */
+    panelKey?: string;
     initialSize: WorkspaceGridPanelModel['initialSize'];
     minSize: WorkspaceGridPanelModel['minSize'];
     maxSize: WorkspaceGridPanelModel['maxSize'];
@@ -34,6 +38,10 @@ export type WorkspaceGridPanelElementType = React.ReactElement<
 type WorkspaceGridPanelInternalProps = {
     attach: (node: HTMLDivElement) => void;
     external: React.ReactElement<WorkspaceGridPanelProps, typeof WorkspaceGridPanel>;
+    /**
+     * collapsed panels stay mounted (size preserved) but are hidden via display:none
+     */
+    hidden?: boolean;
 };
 
 /**
@@ -44,6 +52,7 @@ type WorkspaceGridPanelInternalProps = {
 export const WorkspaceGridPanelInternal: React.FC<WorkspaceGridPanelInternalProps> = ({
     attach,
     external,
+    hidden,
 }: WorkspaceGridPanelInternalProps) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -57,8 +66,9 @@ export const WorkspaceGridPanelInternal: React.FC<WorkspaceGridPanelInternalProp
 
     return (
         <div
-            className={`${styles['workspace-grid-panel']} ${external.props.className}`}
+            className={`${styles['workspace-grid-panel']} ${external.props.className ?? ''}`}
             data-p="md"
+            data-hidden={hidden || undefined}
             ref={panelRef}
         >
             {external}

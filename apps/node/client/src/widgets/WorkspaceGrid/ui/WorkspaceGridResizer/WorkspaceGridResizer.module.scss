@@ -7,13 +7,13 @@
     z-index: 1;
 
     &.horizontal {
-        width: 8px;
+        width: var(--resizer-size, 8px);
         height: 100%;
     }
 
     &.vertical {
         width: 100%;
-        height: 8px;
+        height: var(--resizer-size, 8px);
     }
 }
 

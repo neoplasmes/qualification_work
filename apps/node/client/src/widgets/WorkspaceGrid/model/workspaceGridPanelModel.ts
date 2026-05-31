@@ -16,6 +16,9 @@ export class WorkspaceGridPanelModel {
     private readonly initialSizePx: number;
     private readonly minSizePx: number;
     private readonly maxSizePx: number;
+    // last size applied to the element, used as a fallback when the element is
+    // hidden (display:none) and offset measurement reports 0
+    private lastSizePx = 0;
 
     constructor(
         private readonly direction: WorkspaceGridGroupDirection,
@@ -57,9 +60,14 @@ export class WorkspaceGridPanelModel {
             throw new Error('incorrect usage of the model');
         }
 
-        return this.direction === 'row'
-            ? this.element.offsetWidth
-            : this.element.offsetHeight;
+        const measured =
+            this.direction === 'row'
+                ? this.element.offsetWidth
+                : this.element.offsetHeight;
+
+        // hidden panels measure 0, fall back to the last applied size so collapsed
+        // panels keep their width across persistence and re-expansion
+        return measured > 0 ? measured : this.lastSizePx;
     };
 
     public attach = (element: WorkspaceGridPanelElement | null) => {
@@ -87,6 +95,8 @@ export class WorkspaceGridPanelModel {
 
     private applySizePx = (size: number) => {
         const nextSize = `${size}px`;
+
+        this.lastSizePx = size;
 
         if (this.element) {
             if (this.direction === 'row') {

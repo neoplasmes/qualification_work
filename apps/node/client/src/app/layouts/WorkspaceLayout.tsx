@@ -120,8 +120,6 @@ export const WorkspaceLayout = () => {
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
 
-    // adapt the redux collapse state to the grid's keyed controller, redux stays
-    // the source of truth since the toggle buttons live in the NavBar subtree
     const collapse = useMemo<WorkspaceGridCollapseController<WorkspacePanelKey>>(() => {
         const collapsed = new Set<WorkspacePanelKey>();
         if (isLeftCollapsed) {
@@ -160,7 +158,7 @@ export const WorkspaceLayout = () => {
     const { Left, Center, Right } = slots;
 
     return (
-        <WorkspaceGrid>
+        <WorkspaceGrid resizerSize={4}>
             <WorkspaceGrid.Group direction="row" pageKey="workspace" collapse={collapse}>
                 <WorkspaceGrid.Panel
                     panelKey="left"

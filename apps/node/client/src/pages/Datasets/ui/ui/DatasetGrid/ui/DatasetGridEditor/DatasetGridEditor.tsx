@@ -12,14 +12,17 @@ import '@glideapps/glide-data-grid/dist/index.css';
 
 import { useCallback, useEffect, useMemo, useRef, type ComponentProps } from 'react';
 
+import { useDatasetTableOptions } from '@/features/manageDatasetTableOptions';
+
 import { GRID_THEME, HEADER_H, ROW_H } from '../../../../../const';
 import { formatDatasetCellValue, isValidDatasetCellValue } from '../../../../../lib';
 
 import type { DatasetGridEditorProps } from '../../types';
-import { useColumnWidths } from './useColumnWidths';
 
 const DEFAULT_COL_WIDTH = 150;
 const DRAFT_ROW_OVERSCROLL_Y = 128;
+// trailing empty space after the last column so its resize handle is reachable
+const GRID_OVERSCROLL_X = 160;
 
 export const DatasetGridEditor = ({
     datasetId,
@@ -41,7 +44,7 @@ export const DatasetGridEditor = ({
     const gridRef = useRef<DataEditorRef>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollerRef = useRef<HTMLElement | null>(null);
-    const { widths, setColumnWidth } = useColumnWidths(datasetId);
+    const { widths, setColumnWidth, isHydrated } = useDatasetTableOptions(datasetId);
     const draftIndex = insertDraft?.visualIndex ?? null;
     const rowCount = totalRows + (insertDraft ? 1 : 0);
 
@@ -291,28 +294,31 @@ export const DatasetGridEditor = ({
 
     return (
         <div ref={wrapperRef} style={{ width: gridWidth, height: gridHeight }}>
-            <DataEditor
-                ref={gridRef}
-                theme={GRID_THEME}
-                columns={gridColumns}
-                rows={rowCount}
-                getCellContent={getCellContent}
-                onCellEdited={onCellEdited}
-                validateCell={validateCell}
-                onCellContextMenu={handleCellContextMenu}
-                onHeaderContextMenu={handleHeaderContextMenu}
-                onColumnResize={handleColumnResize}
-                onVisibleRegionChanged={onVisibleRegionChanged}
-                rowMarkers="number"
-                headerHeight={HEADER_H}
-                rowHeight={ROW_H}
-                width={gridWidth}
-                height={gridHeight}
-                cellActivationBehavior="double-click"
-                overscrollY={insertDraft ? DRAFT_ROW_OVERSCROLL_Y : undefined}
-                smoothScrollX
-                smoothScrollY
-            />
+            {isHydrated && (
+                <DataEditor
+                    ref={gridRef}
+                    theme={GRID_THEME}
+                    columns={gridColumns}
+                    rows={rowCount}
+                    getCellContent={getCellContent}
+                    onCellEdited={onCellEdited}
+                    validateCell={validateCell}
+                    onCellContextMenu={handleCellContextMenu}
+                    onHeaderContextMenu={handleHeaderContextMenu}
+                    onColumnResize={handleColumnResize}
+                    onVisibleRegionChanged={onVisibleRegionChanged}
+                    rowMarkers="number"
+                    headerHeight={HEADER_H}
+                    rowHeight={ROW_H}
+                    width={gridWidth}
+                    height={gridHeight}
+                    cellActivationBehavior="double-click"
+                    overscrollX={GRID_OVERSCROLL_X}
+                    overscrollY={insertDraft ? DRAFT_ROW_OVERSCROLL_Y : undefined}
+                    smoothScrollX
+                    smoothScrollY
+                />
+            )}
         </div>
     );
 };

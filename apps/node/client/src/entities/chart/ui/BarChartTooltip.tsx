@@ -1,11 +1,8 @@
+import { Tooltip } from '@/shared/ui';
+
 import { formatChartCell } from '../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
-import {
-    formatDelta,
-    formatTooltipValue,
-    getPreviousPoint,
-    tooltipStyle,
-} from './BarChart.config';
+import { formatDelta, formatTooltipValue, getPreviousPoint } from './BarChart.config';
 
 export type HoveredBar = {
     datum: ChartDataPoint;
@@ -31,17 +28,15 @@ export const BarChartTooltip = ({ hovered, series, width }: BarChartTooltipProps
     const placeLeft = hovered.x > width - 220;
 
     return (
-        <div
+        <Tooltip
             data-stack="v"
             data-gap="xs"
             style={{
-                ...tooltipStyle,
                 position: 'absolute',
                 zIndex: 2,
                 top: hovered.y,
                 left: placeLeft ? hovered.x - 12 : hovered.x + 12,
                 maxWidth: 220,
-                padding: '8px 10px',
                 pointerEvents: 'none',
                 transform: placeLeft ? 'translate(-100%, -50%)' : 'translateY(-50%)',
             }}
@@ -56,6 +51,6 @@ export const BarChartTooltip = ({ hovered, series, width }: BarChartTooltipProps
                 {series.length > 1 ? ` ${hovered.seriesName}` : ''}
                 {delta && <span style={{ color: delta.tone }}> {delta.text}</span>}
             </span>
-        </div>
+        </Tooltip>
     );
 };

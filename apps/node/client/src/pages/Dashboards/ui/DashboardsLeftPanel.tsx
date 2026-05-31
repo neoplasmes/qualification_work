@@ -78,7 +78,7 @@ export const DashboardsLeftPanel = () => {
             status={error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
             action={{
                 label: 'New dashboard',
-                icon: <Plus size={18} />,
+                Icon: Plus,
                 testId: dashboardsTestIds.createButton,
                 isLoading: createState.isLoading,
                 onClick: () => void handleCreate(),

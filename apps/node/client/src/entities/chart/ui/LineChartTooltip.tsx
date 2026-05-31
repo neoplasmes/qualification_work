@@ -1,11 +1,8 @@
+import { Tooltip } from '@/shared/ui';
+
 import { formatChartCell } from '../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../lib/parseChartData';
-import {
-    formatDelta,
-    formatTooltipValue,
-    getPreviousPoint,
-    tooltipStyle,
-} from './BarChart.config';
+import { formatDelta, formatTooltipValue, getPreviousPoint } from './BarChart.config';
 import { getSeriesColor, stripGlyphSeriesSuffix } from './LineChart.config';
 
 import styles from './LineChart.module.scss';
@@ -44,12 +41,11 @@ export const LineChartTooltip = ({
     const placeLeft = hovered.x > width - 240;
 
     return (
-        <div
+        <Tooltip
             className={styles['tooltip']}
             data-stack="v"
             data-gap="xs"
             style={{
-                ...tooltipStyle,
                 position: 'absolute',
                 zIndex: 4,
                 top: hovered.y,
@@ -77,6 +73,6 @@ export const LineChartTooltip = ({
                 </span>
                 {delta && <span style={{ color: delta.tone }}>{delta.text}</span>}
             </div>
-        </div>
+        </Tooltip>
     );
 };

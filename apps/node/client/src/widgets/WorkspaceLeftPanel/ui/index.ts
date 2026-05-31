@@ -1,5 +1,1 @@
-export {
-    WorkspaceLeftPanel,
-    WorkspaceLeftPanelItem,
-    type WorkspaceLeftPanelAction,
-} from './WorkspaceLeftPanel';
+export { WorkspaceLeftPanelItem } from './WorkspaceLeftPanelItem';

@@ -1,0 +1,76 @@
+@use '../../../shared/ui/styles/typography.scss' as typography;
+
+.item {
+    cursor: pointer;
+    margin: 0;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border-radius: var(--radius-xs);
+
+    color: inherit;
+    text-align: left;
+
+    background-color: var(--color-surface-container-low);
+    border: none;
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--color-surface-container-highest);
+        outline: none;
+    }
+
+    &.selected {
+        background-color: var(--color-primary);
+        outline: none;
+    }
+}
+
+.body {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.header {
+    @include typography.text-xs-medium;
+    font-weight: 700;
+
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.details[data-gap] {
+    row-gap: var(--spacing-xs);
+}
+
+.details {
+    @include typography.text-xs;
+
+    margin-top: var(--spacing-xs);
+    color: var(--color-on-surface-variant);
+}
+
+.icon {
+    flex: 0 0 auto;
+    color: var(--color-on-surface);
+}
+
+.tooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+
+    max-width: 260px;
+    overflow-wrap: break-word;
+    transform: translateX(var(--spacing-sm)) translateY(var(--spacing-sm));
+    will-change: transform;
+}

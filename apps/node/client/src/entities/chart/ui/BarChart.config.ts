@@ -1,5 +1,4 @@
 import { buildChartTheme } from '@visx/xychart';
-import type { CSSProperties } from 'react';
 
 import { buildChartPalette, DEFAULT_CHART_COLOR } from '../lib';
 import { formatChartCell } from '../lib/formatChartCell';
@@ -94,16 +93,6 @@ export const chartTheme = buildChartTheme({
     xTickLineStyles: { stroke: C.outline },
     yTickLineStyles: { stroke: C.outline },
 });
-
-export const tooltipStyle: CSSProperties = {
-    ...chartTheme.htmlLabel,
-    background: 'rgba(36, 36, 36, 0.78)',
-    border: `1px solid ${C.outline}`,
-    borderRadius: 8,
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.32)',
-} satisfies CSSProperties;
 
 export const getPreviousPoint = (
     series: ChartSeries[],

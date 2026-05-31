@@ -55,8 +55,6 @@ export const WorkspaceGridGroup = <K extends string = string>({
     const savedSizesRef = useRef(savedSizes);
     savedSizesRef.current = savedSizes;
 
-    // models reused across renders, keyed by panel index, so collapsing a panel
-    // never re-creates it and its size survives
     const modelsByIndex = useRef<Map<number, WorkspaceGridPanelModel>>(new Map());
     const directionRef = useRef(direction);
 
@@ -69,7 +67,6 @@ export const WorkspaceGridGroup = <K extends string = string>({
 
         const cache = modelsByIndex.current;
 
-        // direction is baked into the model, drop the cache when it flips
         if (directionRef.current !== direction) {
             cache.clear();
             directionRef.current = direction;
@@ -105,7 +102,6 @@ export const WorkspaceGridGroup = <K extends string = string>({
             );
         });
 
-        // drop stale models when the children count shrinks
         for (const key of cache.keys()) {
             if (key >= childrenArray.length) {
                 cache.delete(key);
@@ -119,7 +115,6 @@ export const WorkspaceGridGroup = <K extends string = string>({
             const model = orderedModels[i];
             const isHidden = hidden[i];
 
-            // a resizer only sits between two visible panels
             if (!isHidden && prevVisibleModel) {
                 linked.push(
                     <WorkspaceGridResizer
@@ -161,8 +156,6 @@ export const WorkspaceGridGroup = <K extends string = string>({
         dispatch(setPanelSizes({ pageKey, sizes }));
     };
 
-    // re-built each render so it always closes over fresh models, hidden flags,
-    // direction and resizerSize
     const applyFitRef = useRef<() => void>(() => {});
     applyFitRef.current = () => {
         const groupElement = groupRef.current;

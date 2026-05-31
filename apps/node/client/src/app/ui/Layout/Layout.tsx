@@ -22,8 +22,9 @@ export const Layout = () => {
         <LazyMotion features={motionFeatures} strict>
             <div
                 data-stack="v"
-                data-gap="md"
-                data-p="md"
+                data-gap="sm"
+                data-px="sm"
+                data-py="xs"
                 style={{ height: '100vh', overflow: 'hidden' }}
             >
                 <NavBar />

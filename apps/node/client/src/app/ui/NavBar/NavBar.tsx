@@ -70,15 +70,15 @@ export const NavBar: FC = () => {
 
     return (
         <header data-stack="h" data-align="center" data-justify="between">
-            <Logo text="" />
+            <Logo text="BI TOOL" />
             <nav aria-label="Main navigation">
                 <ul data-stack="h" data-gap="sm">
                     {navLinks.map(({ to, label, Icon }) => (
-                        <div key={to} className={styles['link-wrapper']}>
+                        <div key={to} data-stack="v">
                             <NavLink
                                 to={to}
                                 className={l =>
-                                    `${styles['link']} pb-8 ${l.isActive ? styles['active'] : ''}`
+                                    `${styles['link']} ${l.isActive ? styles['active'] : ''}`
                                 }
                             >
                                 <Icon size={17} />

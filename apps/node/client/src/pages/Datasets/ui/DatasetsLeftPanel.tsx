@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Upload } from 'lucide-react';
+import { Sheet, Upload } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -17,7 +17,6 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
-import { Badge } from '@/shared/ui';
 
 import { datasetsTestIds } from '../const';
 import { selectDataset, selectSelectedDatasetId, setShowUpload } from '../model';
@@ -63,7 +62,7 @@ export const DatasetsLeftPanel = () => {
             emptyText="Upload a dataset to start."
             action={{
                 label: 'Upload dataset',
-                icon: <Upload size={18} />,
+                Icon: Upload,
                 testId: datasetsTestIds.uploadButton,
                 onClick: () => dispatch(setShowUpload(true)),
             }}
@@ -75,8 +74,7 @@ export const DatasetsLeftPanel = () => {
                     testId={datasetsTestIds.datasetListItem}
                     header={item.dataset.name}
                     details={[formatDate(item.dataset.createdAt)]}
-                    iconElement={<Badge>{item.dataset.sourceType}</Badge>}
-                    multilineTitle
+                    iconElement={<Sheet size={18} />}
                     onClick={() => dispatch(selectDataset(item.dataset.id))}
                 />
             ))}

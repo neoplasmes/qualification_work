@@ -9,7 +9,7 @@ export type LogoProps = {
 
 export const Logo = ({ text = 'BI Tool', size = 24 }: LogoProps) => {
     return (
-        <div data-stack="h" data-gap="sm" className={styles['logo']}>
+        <div data-stack="h" data-gap="sm" data-align="center" className={styles['logo']}>
             <Landmark size={size} />
             {text}
         </div>

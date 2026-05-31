@@ -5,7 +5,6 @@ import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
 import type { ChartResultColumn } from '../api';
 import { BAR_CHART_ROWS_LIMIT } from '../const';
 import type { ChartKind } from '../lib/chartKind';
-import { formatChartCell } from '../lib/formatChartCell';
 import {
     parseChartResult,
     type ChartDataPoint,
@@ -32,28 +31,6 @@ type ChartResultData = {
     columns: Array<Partial<ChartResultColumn> & Pick<ChartResultColumn, 'name'>>;
     rows: Array<Array<string | number | null>>;
     truncated: boolean;
-};
-
-const colDisplayName = (col: ChartResultData['columns'][number]): string => {
-    if (col.role === 'dim') {
-        return 'Category';
-    }
-
-    if (col.role === 'series') {
-        return 'Breakdown';
-    }
-
-    if (col.role === 'measure') {
-        if (col.name === 'm0') {
-            return 'Value';
-        }
-
-        if (col.name === 'm1') {
-            return 'Value 2';
-        }
-    }
-
-    return col.name;
 };
 
 type ChartResultProps = {
@@ -138,7 +115,7 @@ export const ChartResult = ({
         activeKind === 'heatmap' && heatmapRows.length !== data.rows.length
             ? ['Rows with non-numeric measure values were omitted.']
             : [];
-    const tableWarnings = chart.warnings.filter(w => w.startsWith('Chart preview shows'));
+
     const chartWarnings = [
         ...new Set([
             ...chart.warnings.filter(w => !w.startsWith('Chart preview shows')),
@@ -242,49 +219,6 @@ export const ChartResult = ({
                     {warning}
                 </div>
             ))}
-
-            {!hideTable && (
-                <>
-                    {tableWarnings.map(warning => (
-                        <div
-                            key={warning}
-                            role="status"
-                            className={styles['chart-warning']}
-                            data-px="md"
-                            data-py="sm"
-                        >
-                            {warning}
-                        </div>
-                    ))}
-                    <div className={styles['table-wrap']}>
-                        <table className={styles['table']}>
-                            <thead>
-                                <tr>
-                                    {data.columns.map(column => (
-                                        <th key={column.name}>
-                                            {colDisplayName(column)}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.rows.map((row, index) => (
-                                    <tr key={index}>
-                                        {row.map((cell, cellIndex) => (
-                                            <td key={cellIndex}>
-                                                {formatChartCell(
-                                                    cell,
-                                                    data.columns[cellIndex]
-                                                )}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </>
-            )}
 
             {(children || (!hideTable && (data.rows.length > 0 || data.truncated))) && (
                 <div

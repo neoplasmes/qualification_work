@@ -23,3 +23,4 @@ export { Switch } from './Switch';
 export { Table, type TableRow } from './Table';
 export { Textarea } from './Textarea';
 export { TextInput } from './TextInput';
+export { Tooltip, type TooltipProps } from './Tooltip';

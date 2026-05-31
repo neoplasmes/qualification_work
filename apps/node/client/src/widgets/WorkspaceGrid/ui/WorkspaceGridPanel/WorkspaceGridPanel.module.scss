@@ -5,8 +5,7 @@
     min-height: 0;
 
     background-color: var(--color-surface-new);
-
-    border-radius: var(--radius-sm);
+    border-radius: 0.66rem;
 
     &[data-hidden] {
         display: none;

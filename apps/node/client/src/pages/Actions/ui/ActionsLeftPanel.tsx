@@ -62,7 +62,7 @@ export const ActionsLeftPanel = () => {
             emptyText="Create an action to automate a small workflow."
             action={{
                 label: 'New action',
-                icon: <Plus size={18} />,
+                Icon: Plus,
                 disabled: !canCreate,
                 title: canCreate
                     ? undefined

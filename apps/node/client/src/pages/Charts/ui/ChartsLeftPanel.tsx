@@ -60,7 +60,7 @@ export const ChartsLeftPanel = () => {
             emptyText="Build a chart from a dataset to see it here."
             action={{
                 label: 'Create chart',
-                icon: <Plus size={18} />,
+                Icon: Plus,
                 testId: chartsTestIds.createChartButton,
                 onClick: () => dispatch(setShowDatasetPicker(true)),
             }}

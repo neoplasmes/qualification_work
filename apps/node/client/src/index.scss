@@ -38,37 +38,14 @@ body {
 
     background:
         radial-gradient(
-            1050px circle at 12% 14%,
-            rgb(var(--color-secondary-rgb), 0.24) 0,
-            rgb(var(--color-secondary-rgb), 0.15) 14%,
-            rgb(var(--color-secondary-rgb), 0.08) 32%,
-            rgb(var(--color-secondary-rgb), 0.03) 56%,
+            ellipse 1500px 600px at 33% -10%,
+            rgb(var(--color-secondary-rgb), 0.4) 0,
+            rgb(var(--color-secondary-rgb), 0.25) 20%,
+            rgb(var(--color-secondary-rgb), 0.1) 45%,
+            rgb(var(--color-secondary-rgb), 0.03) 65%,
             transparent 84%
         ),
-        radial-gradient(
-            1200px circle at 90% 33%,
-            rgb(var(--color-secondary-rgb), 0.12) 0,
-            rgb(var(--color-secondary-rgb), 0.09) 16%,
-            rgb(var(--color-secondary-rgb), 0.06) 34%,
-            rgb(var(--color-secondary-rgb), 0.018) 56%,
-            transparent 82%
-        ),
-        radial-gradient(
-            1250px circle at 40% 100%,
-            rgb(var(--color-secondary-rgb), 0.11) 0,
-            rgb(var(--color-secondary-rgb), 0.065) 18%,
-            rgb(var(--color-secondary-rgb), 0.03) 38%,
-            rgb(var(--color-secondary-rgb), 0.012) 60%,
-            transparent 86%
-        ),
-        radial-gradient(
-            1700px circle at 50% 45%,
-            rgb(255 255 255 / 1.6%) 0,
-            rgb(255 255 255 / 0.8%) 24%,
-            rgb(255 255 255 / 0.3%) 48%,
-            transparent 78%
-        ),
-        linear-gradient(180deg, #100f13 0%, #0c0b0f 36%, #0a0a0d 72%, #090a0d 100%);
+        #1d0002;
 
     background-attachment: fixed;
 }

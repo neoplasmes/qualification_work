@@ -5,7 +5,6 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     filterApplicationEffectKinds,
     filterApplicationEntityConfigs,
-    filterApplicationRunStatuses,
     type FilterApplicationEntity,
     type FilterApplicationScope,
 } from '@/features/filterApplicationEntities';
@@ -47,21 +46,11 @@ export const useFilterPanelSources = (scope: FilterApplicationScope) => {
             })),
         []
     );
-    const runs = useMemo<StaticFilterPanelSourceItem[]>(
-        () =>
-            filterApplicationRunStatuses.map(status => ({
-                id: status,
-                label: status,
-                meta: ['Run status'],
-            })),
-        []
-    );
 
     return {
         charts: chartsQuery.data,
         dashboards: dashboardsQuery.data,
         datasets: datasetsQuery.data,
         effects,
-        runs,
     };
 };

@@ -25,7 +25,6 @@ const createEmptyValues = (): FilterApplicationEntityValues => ({
     dashboards: [],
     datasets: [],
     effects: [],
-    runs: [],
 });
 
 export const filterApplicationEntitiesInitialState: FilterApplicationEntitiesState = {
@@ -72,17 +71,17 @@ export const filterApplicationEntitiesSlice = createSlice({
                 action.payload.value
             );
         },
-        clearFilterApplicationValues(
+        clearFilterApplicationScopeValues(
             state,
-            action: PayloadAction<FilterApplicationEntityPayload>
+            action: PayloadAction<FilterApplicationScope>
         ) {
-            state.values[action.payload.scope][action.payload.entity] = [];
+            state.values[action.payload] = createEmptyValues();
         },
     },
 });
 
 export const {
-    clearFilterApplicationValues,
+    clearFilterApplicationScopeValues,
     setFilterApplicationActiveTab,
     toggleFilterApplicationValue,
 } = filterApplicationEntitiesSlice.actions;

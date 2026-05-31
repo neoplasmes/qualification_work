@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Archive } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
@@ -79,7 +79,7 @@ export const ActionsProperties = ({
             setArchiveConfirmationId(null);
             await refetchActions();
         } catch (archiveError) {
-            setError(getApiErrorMessage(archiveError, 'Unable to archive this action.'));
+            setError(getApiErrorMessage(archiveError, 'Unable to delete this action.'));
         }
     };
 
@@ -172,14 +172,14 @@ export const ActionsProperties = ({
                 title={
                     canMutate(org?.role)
                         ? undefined
-                        : 'Only owners and editors can archive actions.'
+                        : 'Only owners and editors can delete actions.'
                 }
                 onClick={() => void handleArchive()}
             >
-                <Archive size={18} />
+                <Trash2 size={18} />
                 {archiveConfirmationId === selectedAction.id
-                    ? 'Confirm archive'
-                    : 'Archive action'}
+                    ? 'Confirm delete'
+                    : 'Delete action'}
             </Button>
         </section>
     );

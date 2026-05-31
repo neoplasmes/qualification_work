@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -25,6 +26,12 @@ vi.mock('@/features/authenticate', () => ({
 }));
 
 vi.mock('@/entities/chart', () => ({
+    CHART_KIND_ICONS: {
+        bar: () => <svg aria-hidden />,
+        heatmap: () => <svg aria-hidden />,
+        line: () => <svg aria-hidden />,
+        pie: () => <svg aria-hidden />,
+    },
     useListChartsQuery: () => ({
         data: [
             {
@@ -142,7 +149,9 @@ describe('ChartsLeftPanel', () => {
         const store = makeStore();
         const { container } = render(
             <Provider store={store}>
-                <ChartsLeftPanel />
+                <MemoryRouter>
+                    <ChartsLeftPanel />
+                </MemoryRouter>
             </Provider>
         );
 
@@ -156,7 +165,9 @@ describe('ChartsLeftPanel', () => {
     it('renders charts filtered by selected dataset ids', () => {
         render(
             <Provider store={makeStore(true)}>
-                <ChartsLeftPanel />
+                <MemoryRouter>
+                    <ChartsLeftPanel />
+                </MemoryRouter>
             </Provider>
         );
 

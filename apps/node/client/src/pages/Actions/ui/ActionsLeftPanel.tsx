@@ -3,7 +3,7 @@ import { Plus, Workflow } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
+import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
@@ -11,9 +11,10 @@ import {
     selectFilterApplicationValues,
 } from '@/features/filterApplicationEntities';
 
-import { useListActionRunsQuery, useListActionsQuery } from '@/entities/action';
+import { useListActionsQuery } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
+import { WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { actionsTestIds } from '../const';
 import { canMutate } from '../lib';
@@ -29,9 +30,6 @@ export const ActionsLeftPanel = () => {
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
-    const runsQuery = useListActionRunsQuery(
-        org ? { kind: 'org', orgId: org.id, limit: 100 } : skipToken
-    );
 
     const selectedActionId = useSelector(selectSelectedActionId);
     const isCreatingAction = useSelector(selectIsCreatingAction);
@@ -42,10 +40,9 @@ export const ActionsLeftPanel = () => {
             filterApplicationEntities({
                 scope: 'actions',
                 actions: actionsQuery.data,
-                runs: runsQuery.data ?? [],
                 values: filterValues,
             }) ?? [],
-        [actionsQuery.data, filterValues, runsQuery.data]
+        [actionsQuery.data, filterValues]
     );
 
     const canCreate = canMutate(org?.role);

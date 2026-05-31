@@ -3,7 +3,7 @@ import { Sheet, Upload } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
+import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
@@ -17,6 +17,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
+import { WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { datasetsTestIds } from '../const';
 import { selectDataset, selectSelectedDatasetId, setShowUpload } from '../model';

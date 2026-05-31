@@ -6,7 +6,7 @@ import {
     type PointerEvent as ReactPointerEvent,
 } from 'react';
 
-import { Tooltip } from '@/shared/ui';
+import { Tooltip } from '../Tooltip';
 
 import styles from './WorkspaceLeftPanelItem.module.scss';
 

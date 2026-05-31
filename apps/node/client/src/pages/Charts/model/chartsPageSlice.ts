@@ -1,19 +1,22 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import type { ChartType } from '@/entities/chart';
+import type { ChartBuilderFields } from '@/features/buildChart';
 
 export type ChartsRightPanelTab = 'properties' | 'filters';
+export type ChartsWorkspaceMode = 'view' | 'edit';
+
+export type ChartsEditDraft = {
+    chartId: string;
+    fields: ChartBuilderFields;
+};
 
 export type ChartsPageState = {
     selectedChartId: string | null;
     builderDatasetId: string | null;
     showDatasetPicker: boolean;
     chartsRightPanelTab: ChartsRightPanelTab;
-    workspaceDraftChartId: string | null;
-    workspaceDraftName: string;
-    workspaceDraftChartType: ChartType;
-    workspaceDraftConfigText: string;
-    workspaceFilterOverrideText: string;
+    workspaceMode: ChartsWorkspaceMode;
+    editDraft: ChartsEditDraft | null;
 };
 
 type StateWithChartsPage = { chartsPage: ChartsPageState };
@@ -23,11 +26,8 @@ export const chartsPageInitialState: ChartsPageState = {
     builderDatasetId: null,
     showDatasetPicker: false,
     chartsRightPanelTab: 'properties',
-    workspaceDraftChartId: null,
-    workspaceDraftName: '',
-    workspaceDraftChartType: 'bar',
-    workspaceDraftConfigText: '',
-    workspaceFilterOverrideText: '',
+    workspaceMode: 'view',
+    editDraft: null,
 };
 
 export const chartsPageSlice = createSlice({
@@ -35,13 +35,41 @@ export const chartsPageSlice = createSlice({
     initialState: chartsPageInitialState,
     reducers: {
         selectChart(state, action: PayloadAction<string | null>) {
+            const chartChanged = state.selectedChartId !== action.payload;
+
             state.selectedChartId = action.payload;
             state.builderDatasetId = null;
+            state.showDatasetPicker = false;
+
+            if (chartChanged) {
+                state.workspaceMode = 'view';
+                state.editDraft = null;
+            }
+        },
+        openChartRoute(
+            state,
+            action: PayloadAction<{
+                chartId: string;
+                mode: ChartsWorkspaceMode;
+            }>
+        ) {
+            const chartChanged = state.selectedChartId !== action.payload.chartId;
+
+            state.selectedChartId = action.payload.chartId;
+            state.builderDatasetId = null;
+            state.showDatasetPicker = false;
+            state.workspaceMode = action.payload.mode;
+
+            if (chartChanged) {
+                state.editDraft = null;
+            }
         },
         setBuilderDatasetId(state, action: PayloadAction<string | null>) {
             state.builderDatasetId = action.payload;
             state.selectedChartId = null;
             state.showDatasetPicker = false;
+            state.workspaceMode = 'view';
+            state.editDraft = null;
         },
         setShowDatasetPicker(state, action: PayloadAction<boolean>) {
             state.showDatasetPicker = action.payload;
@@ -49,54 +77,29 @@ export const chartsPageSlice = createSlice({
         setChartsRightPanelTab(state, action: PayloadAction<ChartsRightPanelTab>) {
             state.chartsRightPanelTab = action.payload;
         },
-        initWorkspaceDraft(
-            state,
-            action: PayloadAction<{
-                chartId: string;
-                name: string;
-                chartType: ChartType;
-                configText: string;
-            }>
-        ) {
-            state.workspaceDraftChartId = action.payload.chartId;
-            state.workspaceDraftName = action.payload.name;
-            state.workspaceDraftChartType = action.payload.chartType;
-            state.workspaceDraftConfigText = action.payload.configText;
-            state.workspaceFilterOverrideText = '';
+        setChartsWorkspaceMode(state, action: PayloadAction<ChartsWorkspaceMode>) {
+            state.workspaceMode = action.payload;
         },
-        resetWorkspaceDraft(state) {
-            state.workspaceDraftChartId = null;
-            state.workspaceDraftName = '';
-            state.workspaceDraftChartType = 'bar';
-            state.workspaceDraftConfigText = '';
-            state.workspaceFilterOverrideText = '';
+        setChartEditDraft(state, action: PayloadAction<ChartsEditDraft>) {
+            state.editDraft = action.payload;
         },
-        setWorkspaceDraftName(state, action: PayloadAction<string>) {
-            state.workspaceDraftName = action.payload;
-        },
-        setWorkspaceDraftChartType(state, action: PayloadAction<ChartType>) {
-            state.workspaceDraftChartType = action.payload;
-        },
-        setWorkspaceDraftConfigText(state, action: PayloadAction<string>) {
-            state.workspaceDraftConfigText = action.payload;
-        },
-        setWorkspaceFilterOverrideText(state, action: PayloadAction<string>) {
-            state.workspaceFilterOverrideText = action.payload;
+        clearChartEditDraft(state, action: PayloadAction<string | undefined>) {
+            if (!action.payload || state.editDraft?.chartId === action.payload) {
+                state.editDraft = null;
+            }
         },
     },
 });
 
 export const {
+    clearChartEditDraft,
+    openChartRoute,
     selectChart,
     setBuilderDatasetId,
+    setChartEditDraft,
     setShowDatasetPicker,
     setChartsRightPanelTab,
-    initWorkspaceDraft,
-    resetWorkspaceDraft,
-    setWorkspaceDraftName,
-    setWorkspaceDraftChartType,
-    setWorkspaceDraftConfigText,
-    setWorkspaceFilterOverrideText,
+    setChartsWorkspaceMode,
 } = chartsPageSlice.actions;
 
 export const selectSelectedChartId = (state: StateWithChartsPage) =>
@@ -107,13 +110,7 @@ export const selectShowDatasetPicker = (state: StateWithChartsPage) =>
     state.chartsPage.showDatasetPicker;
 export const selectChartsRightPanelTab = (state: StateWithChartsPage) =>
     state.chartsPage.chartsRightPanelTab;
-export const selectWorkspaceDraftChartId = (state: StateWithChartsPage) =>
-    state.chartsPage.workspaceDraftChartId;
-export const selectWorkspaceDraftName = (state: StateWithChartsPage) =>
-    state.chartsPage.workspaceDraftName;
-export const selectWorkspaceDraftChartType = (state: StateWithChartsPage) =>
-    state.chartsPage.workspaceDraftChartType;
-export const selectWorkspaceDraftConfigText = (state: StateWithChartsPage) =>
-    state.chartsPage.workspaceDraftConfigText;
-export const selectWorkspaceFilterOverrideText = (state: StateWithChartsPage) =>
-    state.chartsPage.workspaceFilterOverrideText;
+export const selectChartsWorkspaceMode = (state: StateWithChartsPage) =>
+    state.chartsPage.workspaceMode;
+export const selectChartEditDraft = (state: StateWithChartsPage) =>
+    state.chartsPage.editDraft;

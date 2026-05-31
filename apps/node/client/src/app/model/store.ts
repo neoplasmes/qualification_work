@@ -6,11 +6,6 @@ import {
     type ActionsPageState,
 } from '@/pages/Actions';
 import {
-    chartsPagePersistence,
-    chartsPageSlice,
-    type ChartsPageState,
-} from '@/pages/Charts';
-import {
     dashboardsPagePersistence,
     dashboardsPageSlice,
     type DashboardsPageState,
@@ -48,10 +43,6 @@ export function createStore(preloadedState?: Partial<RootState>) {
             ActionsPageState,
             ReturnType<typeof actionsPagePersistence.pickPersistedState>
         >(actionsPagePersistence),
-        [chartsPageSlice.name]: getPersistedInitialState<
-            ChartsPageState,
-            ReturnType<typeof chartsPagePersistence.pickPersistedState>
-        >(chartsPagePersistence),
         [datasetsPageSlice.name]: getPersistedInitialState<
             DatasetsPageState,
             ReturnType<typeof datasetsPagePersistence.pickPersistedState>
@@ -85,11 +76,6 @@ export function createStore(preloadedState?: Partial<RootState>) {
             key: actionsPagePersistence.key,
             selectPersistedState: state =>
                 actionsPagePersistence.pickPersistedState(state[actionsPageSlice.name]),
-        },
-        {
-            key: chartsPagePersistence.key,
-            selectPersistedState: state =>
-                chartsPagePersistence.pickPersistedState(state[chartsPageSlice.name]),
         },
         {
             key: datasetsPagePersistence.key,

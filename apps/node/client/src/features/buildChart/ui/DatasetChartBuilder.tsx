@@ -31,10 +31,7 @@ import {
     type MeasureValueFormat,
     type TimeGranularity,
 } from '../api';
-import {
-    useChartBuilderState,
-    type ChartBuilderFields,
-} from '../lib/useChartBuilderState';
+import { useChartBuilderState, type ChartBuilderFields } from '../lib';
 import { AnalysisColumnOptions, ColorPickerControl } from './components';
 import {
     getActiveAnalysisColumnId,
@@ -471,6 +468,8 @@ type DatasetChartBuilderProps = {
     onChartCreated?: (chartId: string) => void;
     editChartId?: string;
     initialFields?: Partial<ChartBuilderFields>;
+    value?: ChartBuilderFields;
+    onChange?: (fields: ChartBuilderFields) => void;
     onChartUpdated?: (chartId: string) => void;
 };
 
@@ -480,6 +479,8 @@ export const DatasetChartBuilder = ({
     onChartCreated,
     editChartId,
     initialFields,
+    value,
+    onChange,
     onChartUpdated,
 }: DatasetChartBuilderProps) => {
     const [step, setStep] = useState<'config' | 'preview'>('config');
@@ -542,7 +543,12 @@ export const DatasetChartBuilder = ({
         setFilterOperation,
         filterValue,
         setFilterValue,
-    } = useChartBuilderState(selectedDataset.dataset.id, initialFields);
+    } = useChartBuilderState({
+        datasetId: selectedDataset.dataset.id,
+        initialOverrides: initialFields,
+        value,
+        onChange,
+    });
 
     const [previewChart, previewState] = usePreviewChartDataMutation();
     const [createChart, createChartState] = useCreateChartMutation();

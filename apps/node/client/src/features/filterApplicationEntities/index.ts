@@ -1,11 +1,7 @@
-export {
-    filterApplicationEffectKinds,
-    filterApplicationEntityConfigs,
-    filterApplicationRunStatuses,
-} from './const';
+export { filterApplicationEffectKinds, filterApplicationEntityConfigs } from './const';
 export { filterApplicationEntities } from './lib';
 export {
-    clearFilterApplicationValues,
+    clearFilterApplicationScopeValues,
     filterApplicationEntitiesInitialState,
     filterApplicationEntitiesPersistence,
     filterApplicationEntitiesSlice,
@@ -19,7 +15,6 @@ export type {
     FilterApplicationEntitiesState,
     FilterApplicationEntity,
     FilterApplicationEntityValues,
-    FilterApplicationRunStatus,
     FilterApplicationScope,
     FilterApplicationTabConfig,
 } from './types';

@@ -14,6 +14,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 
 import {
+    chartsWorkspaceIndexPath,
+    getChartWorkspaceUrl,
+    isChartsWorkspacePath,
+    selectChartsWorkspaceMode,
+    selectSelectedChartId,
+} from '@/pages/Charts';
+
+import {
     selectIsLeftCollapsed,
     selectIsRightCollapsed,
     toggleLeftPanel,
@@ -33,12 +41,24 @@ import styles from './NavBar.module.scss';
 
 const navLinks = [
     { to: '/datasets', label: 'Datasets', Icon: TableProperties },
-    { to: '/charts', label: 'Charts', Icon: ChartNoAxesColumnIncreasing },
+    {
+        to: chartsWorkspaceIndexPath,
+        label: 'Charts',
+        Icon: ChartNoAxesColumnIncreasing,
+    },
     { to: '/dashboards', label: 'Dashboards', Icon: LayoutDashboard },
     { to: '/actions', label: 'Actions', Icon: Workflow },
 ];
 
-const workspacePaths = new Set(['/datasets', '/charts', '/dashboards', '/actions']);
+const workspacePaths = new Set(['/datasets', '/dashboards', '/actions']);
+
+const isActiveNavPath = (pathname: string, linkPath: string) => {
+    if (linkPath === chartsWorkspaceIndexPath) {
+        return isChartsWorkspacePath(pathname);
+    }
+
+    return pathname === linkPath;
+};
 
 export const NavBar: FC = () => {
     const { pathname } = useLocation();
@@ -48,6 +68,8 @@ export const NavBar: FC = () => {
 
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
+    const selectedChartId = useSelector(selectSelectedChartId);
+    const chartsWorkspaceMode = useSelector(selectChartsWorkspaceMode);
 
     const meQuery = useGetMeQuery();
     const { activeOrg, orgs, setActiveOrgId } = useActiveOrganization(meQuery.data);
@@ -63,7 +85,11 @@ export const NavBar: FC = () => {
         }
     };
 
-    const isWorkspacePage = workspacePaths.has(pathname);
+    const chartsLink = selectedChartId
+        ? getChartWorkspaceUrl(selectedChartId, chartsWorkspaceMode)
+        : chartsWorkspaceIndexPath;
+    const isWorkspacePage =
+        workspacePaths.has(pathname) || isChartsWorkspacePath(pathname);
     const workspaceOrgs = hasMounted ? orgs : [];
     const workspaceValue = hasMounted ? (activeOrg?.id ?? '') : '';
     const workspaceDisabled = hasMounted ? orgs.length === 0 : false;
@@ -73,26 +99,31 @@ export const NavBar: FC = () => {
             <Logo text="BI TOOL" />
             <nav aria-label="Main navigation">
                 <ul data-stack="h" data-gap="sm">
-                    {navLinks.map(({ to, label, Icon }) => (
-                        <div key={to} data-stack="v">
-                            <NavLink
-                                to={to}
-                                className={l =>
-                                    `${styles['link']} ${l.isActive ? styles['active'] : ''}`
-                                }
-                            >
-                                <Icon size={17} />
-                                {label}
-                            </NavLink>
-                            {pathname === to && (
-                                <m.div
-                                    className={styles['active-link']}
-                                    layoutId="active-link-header"
-                                    transition={{ duration: 0.3 }}
-                                />
-                            )}
-                        </div>
-                    ))}
+                    {navLinks.map(({ to, label, Icon }) => {
+                        const href = to === chartsWorkspaceIndexPath ? chartsLink : to;
+                        const active = isActiveNavPath(pathname, to);
+
+                        return (
+                            <div key={to} data-stack="v">
+                                <NavLink
+                                    to={href}
+                                    className={`${styles['link']} ${
+                                        active ? styles['active'] : ''
+                                    }`}
+                                >
+                                    <Icon size={17} />
+                                    {label}
+                                </NavLink>
+                                {active && (
+                                    <m.div
+                                        className={styles['active-link']}
+                                        layoutId="active-link-header"
+                                        transition={{ duration: 0.3 }}
+                                    />
+                                )}
+                            </div>
+                        );
+                    })}
                 </ul>
             </nav>
             <div
@@ -135,7 +166,7 @@ export const NavBar: FC = () => {
                             aria-pressed={!isLeftCollapsed}
                             onClick={() => dispatch(toggleLeftPanel())}
                         >
-                            <PanelLeft size={16} />
+                            <PanelLeft size={18} />
                         </IconButton>
                         <IconButton
                             tone="nav"
@@ -146,7 +177,7 @@ export const NavBar: FC = () => {
                             aria-pressed={!isRightCollapsed}
                             onClick={() => dispatch(toggleRightPanel())}
                         >
-                            <PanelRight size={16} />
+                            <PanelRight size={18} />
                         </IconButton>
                     </>
                 )}
@@ -157,7 +188,7 @@ export const NavBar: FC = () => {
                     aria-label="Profile"
                     onClick={() => navigate('/profile')}
                 >
-                    <User size={16} />
+                    <User size={18} />
                 </IconButton>
                 <IconButton
                     tone="nav"
@@ -166,7 +197,7 @@ export const NavBar: FC = () => {
                     disabled={logoutState.isLoading}
                     onClick={() => void handleLogout()}
                 >
-                    <LogOut size={16} />
+                    <LogOut size={18} />
                 </IconButton>
             </div>
         </header>

@@ -16,7 +16,6 @@ type FilterPanelSources = {
     dashboards: Dashboard[] | undefined;
     datasets: DatasetMetadata[] | undefined;
     effects: StaticFilterPanelSourceItem[];
-    runs: StaticFilterPanelSourceItem[];
 };
 
 type CreateFilterPanelItemsParams = {
@@ -71,9 +70,5 @@ export const createFilterPanelItems = ({
         return createDashboardItems(sources.dashboards);
     }
 
-    if (entity === 'effects') {
-        return sources.effects;
-    }
-
-    return sources.runs;
+    return sources.effects;
 };

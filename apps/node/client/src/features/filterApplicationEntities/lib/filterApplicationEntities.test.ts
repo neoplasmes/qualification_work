@@ -40,7 +40,7 @@ const otherAction: Action = {
 };
 
 describe('filterApplicationEntities', () => {
-    it('filters actions by dataset, effect and run status without search text', () => {
+    it('filters actions by dataset and effect without search text', () => {
         expect(
             filterApplicationEntities({
                 scope: 'actions',
@@ -49,32 +49,7 @@ describe('filterApplicationEntities', () => {
                     ...filterApplicationEntitiesInitialState.values.actions,
                     datasets: ['dataset-1'],
                     effects: ['updateRowsByMatch'],
-                    runs: ['success'],
                 },
-                runs: [
-                    {
-                        id: 'run-1',
-                        actionId: 'action-1',
-                        orgId: 'org-1',
-                        userId: 'user-1',
-                        parameters: {},
-                        changes: [],
-                        status: 'success',
-                        errorMessage: null,
-                        executedAt: '2026-01-01T00:00:00.000Z',
-                    },
-                    {
-                        id: 'run-2',
-                        actionId: 'action-2',
-                        orgId: 'org-1',
-                        userId: 'user-1',
-                        parameters: {},
-                        changes: [],
-                        status: 'failed',
-                        errorMessage: 'Bad invoice',
-                        executedAt: '2026-01-01T00:00:00.000Z',
-                    },
-                ],
             })
         ).toEqual([baseAction]);
     });

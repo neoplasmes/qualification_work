@@ -7,7 +7,7 @@ type FilterApplicationEntitiesPersisted = Pick<
 >;
 
 export const filterApplicationEntitiesPersistence = {
-    key: 'filterApplicationEntities_v2',
+    key: 'filterApplicationEntities_v3',
     fallbackState:
         filterApplicationEntitiesInitialState satisfies FilterApplicationEntitiesPersisted,
     getInitialState: (

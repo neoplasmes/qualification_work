@@ -1,13 +1,11 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
-
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListActionRunsQuery } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { EmptyState, StatusMessage } from '@/shared/ui';
+import { EmptyState, StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { summarizeRun } from '../../../lib';
 
@@ -41,7 +39,7 @@ export const ActionsHistory = ({ actionNamesById }: ActionsHistoryProps) => {
                 {runsQuery.data?.length === 0 && <EmptyState>No runs yet.</EmptyState>}
                 {runsQuery.data?.map(run => {
                     const actionName =
-                        actionNamesById.get(run.actionId) ?? 'Archived action';
+                        actionNamesById.get(run.actionId) ?? 'Deleted action';
 
                     return (
                         <WorkspaceLeftPanelItem

@@ -1,6 +1,6 @@
 import { Database, X } from 'lucide-react';
 
-import { configToBuilderFields, DatasetChartBuilder } from '@/features/buildChart';
+import { DatasetChartBuilder, type ChartBuilderFields } from '@/features/buildChart';
 
 import type { Chart } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
@@ -23,7 +23,9 @@ type EditChartBuilderSectionProps = {
     orgId: string;
     chart: Chart;
     dataset: DatasetMetadata;
-    onChartUpdated: () => void;
+    fields: ChartBuilderFields;
+    onFieldsChange: (fields: ChartBuilderFields) => void;
+    onChartUpdated: (chartId: string) => void;
 };
 
 export const CreateChartBuilderSection = ({
@@ -69,6 +71,8 @@ export const EditChartBuilderSection = ({
     orgId,
     chart,
     dataset,
+    fields,
+    onFieldsChange,
     onChartUpdated,
 }: EditChartBuilderSectionProps) => (
     <DatasetChartBuilder
@@ -76,12 +80,8 @@ export const EditChartBuilderSection = ({
         orgId={orgId}
         selectedDataset={dataset}
         editChartId={chart.id}
-        // pass chart.name explicitly: builder state defaults to a per-dataset LS entry
-        // which is shared across charts and would otherwise clobber the saved name on save
-        initialFields={{
-            ...configToBuilderFields(chart.config, chart.chartType),
-            chartName: chart.name,
-        }}
+        value={fields}
+        onChange={onFieldsChange}
         onChartUpdated={onChartUpdated}
     />
 );

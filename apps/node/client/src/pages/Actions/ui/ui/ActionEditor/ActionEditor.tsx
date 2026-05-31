@@ -8,7 +8,7 @@ import {
     usePatchActionMutation,
 } from '@/features/manageActions';
 
-import { useArchiveActionMutation, type Action } from '@/entities/action';
+import type { Action } from '@/entities/action';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
@@ -68,15 +68,11 @@ export const ActionEditor = ({
     );
     const [error, setError] = useState('');
     const [lastRunMessage, setLastRunMessage] = useState('');
-    const [archiveConfirmationId, setArchiveConfirmationId] = useState<string | null>(
-        null
-    );
 
     const datasetsQuery = useListDatasetsQuery(orgId ?? skipToken);
     const editable = canMutate(orgRole);
     const [createAction, createState] = useCreateActionMutation();
     const [patchAction, patchState] = usePatchActionMutation();
-    const [archiveAction, archiveState] = useArchiveActionMutation();
     const [executeAction, executeState] = useExecuteActionMutation();
     const { updateEffect, updateMapping, updateParameter } =
         useActionDraftUpdaters(setDraft);
@@ -123,35 +119,6 @@ export const ActionEditor = ({
             selectedAction,
         ]
     );
-
-    const handleArchive = useCallback(async () => {
-        if (!selectedAction || !editable) {
-            return;
-        }
-
-        if (archiveConfirmationId !== selectedAction.id) {
-            setArchiveConfirmationId(selectedAction.id);
-
-            return;
-        }
-
-        try {
-            setError('');
-            await archiveAction(selectedAction.id).unwrap();
-            dispatch(selectAction(null));
-            setArchiveConfirmationId(null);
-            await refetchActions();
-        } catch (archiveError) {
-            setError(getApiErrorMessage(archiveError, 'Unable to archive this action.'));
-        }
-    }, [
-        archiveAction,
-        archiveConfirmationId,
-        dispatch,
-        editable,
-        refetchActions,
-        selectedAction,
-    ]);
 
     const handleRename = useCallback(
         async (name: string) => {
@@ -239,7 +206,6 @@ export const ActionEditor = ({
             className={styles['workspace']}
             data-stack="v"
             data-gap="md"
-            data-p="md"
             data-flex
             data-test-id={actionsTestIds.workspace}
             aria-label="Action details"
@@ -247,9 +213,6 @@ export const ActionEditor = ({
             <WorkspaceHeader
                 title={isCreatingAction ? draft.name : (selectedAction?.name ?? '')}
                 isCreatingAction={isCreatingAction}
-                selectedActionId={selectedAction?.id}
-                archiveConfirmationId={archiveConfirmationId}
-                archiveDisabled={!editable || archiveState.isLoading}
                 editable={editable && isCreatingAction}
                 saveDisabled={!editable || saving}
                 saveFormId={
@@ -261,7 +224,6 @@ export const ActionEditor = ({
                 renaming={patchState.isLoading}
                 onRename={handleRename}
                 onCancelCreate={() => dispatch(cancelCreateAction())}
-                onArchive={() => void handleArchive()}
             />
 
             <WorkspaceTabs

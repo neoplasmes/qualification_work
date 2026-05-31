@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { chartsPageInitialState } from '@/pages/Charts';
+
 import { panelLayoutPersistence } from '@/widgets/WorkspaceGrid';
 
 import { createStore } from './store';
@@ -32,5 +34,16 @@ describe('createStore', () => {
             isLeftCollapsed: true,
             isRightCollapsed: false,
         });
+    });
+
+    it('does not hydrate charts page from localStorage', () => {
+        localStorage.setItem(
+            'chartsPage_v1',
+            JSON.stringify({ selectedChartId: 'chart-1' })
+        );
+
+        const store = createStore();
+
+        expect(store.getState().chartsPage).toEqual(chartsPageInitialState);
     });
 });

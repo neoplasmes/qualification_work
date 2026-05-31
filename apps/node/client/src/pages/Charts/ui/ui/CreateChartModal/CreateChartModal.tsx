@@ -1,12 +1,14 @@
+import { Sheet } from 'lucide-react';
+
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import {
     EmptyState,
-    FilterChip,
     Modal,
     SelectableList,
     StatusMessage,
+    WorkspaceLeftPanelItem,
 } from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
@@ -35,17 +37,16 @@ export const CreateChartModal = ({
                 <EmptyState>No datasets. Upload one first.</EmptyState>
             )}
             {datasets?.map(item => (
-                <FilterChip
+                <WorkspaceLeftPanelItem
                     key={item.dataset.id}
-                    data-test-id={chartsTestIds.modalDatasetItem}
-                    label={item.dataset.name}
-                    meta={
-                        <>
-                            <span>{item.totalRows} rows</span>
-                            <span>{item.columns.length} columns</span>
-                            <span>{formatDate(item.dataset.createdAt)}</span>
-                        </>
-                    }
+                    testId={chartsTestIds.modalDatasetItem}
+                    header={item.dataset.name}
+                    details={[
+                        `${item.totalRows} rows`,
+                        `${item.columns.length} columns`,
+                        formatDate(item.dataset.createdAt),
+                    ]}
+                    iconElement={<Sheet size={18} />}
                     onClick={() => onSelect(item)}
                 />
             ))}

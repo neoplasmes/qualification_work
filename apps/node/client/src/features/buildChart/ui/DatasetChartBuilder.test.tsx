@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type * as ChartEntity from '@/entities/chart';
 
+import { createChartBuilderFields } from '../lib';
 import { DatasetChartBuilder } from './DatasetChartBuilder';
 
 const previewChart = vi.fn();
@@ -88,7 +89,6 @@ describe('DatasetChartBuilder', () => {
             dataset: { ...dataset.dataset, id: datasetId },
             columns: dataset.columns.map(column => ({ ...column, datasetId })),
         };
-        localStorage.clear();
         previewChart.mockReset();
         createChart.mockReset();
         updateChart.mockReset();
@@ -375,5 +375,30 @@ describe('DatasetChartBuilder', () => {
             })
         );
         expect(onChartUpdated).toHaveBeenCalledWith('chart-1');
+    });
+
+    it('emits controlled field changes without writing localStorage', async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const setItem = vi.spyOn(Storage.prototype, 'setItem');
+
+        render(
+            <MemoryRouter>
+                <DatasetChartBuilder
+                    orgId="org-1"
+                    selectedDataset={testDataset}
+                    value={createChartBuilderFields()}
+                    onChange={onChange}
+                />
+            </MemoryRouter>
+        );
+
+        await user.selectOptions(screen.getByLabelText('Chart type'), 'line');
+
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({ chartType: 'line' })
+        );
+        expect(setItem).not.toHaveBeenCalled();
+        setItem.mockRestore();
     });
 });

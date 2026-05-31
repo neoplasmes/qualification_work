@@ -74,20 +74,12 @@ const defaultFields = ((): ChartBuilderFields => ({
     filterValue: '',
 }))();
 
-const lsKey = (datasetId: string) => `chartBuilder_${datasetId}`;
-
-const loadFields = (datasetId: string): ChartBuilderFields => {
-    try {
-        const raw = localStorage.getItem(lsKey(datasetId));
-        if (!raw) {
-            return { ...defaultFields };
-        }
-
-        return { ...defaultFields, ...(JSON.parse(raw) as Partial<ChartBuilderFields>) };
-    } catch {
-        return { ...defaultFields };
-    }
-};
+export const createChartBuilderFields = (
+    initialOverrides?: Partial<ChartBuilderFields>
+): ChartBuilderFields => ({
+    ...defaultFields,
+    ...initialOverrides,
+});
 
 type Setters = {
     setChartName(v: string): void;
@@ -120,46 +112,46 @@ type Setters = {
     setFilterValue(v: string): void;
 };
 
-export const useChartBuilderState = (
-    datasetId: string,
-    initialOverrides?: Partial<ChartBuilderFields>
-): ChartBuilderFields & Setters => {
-    const [fields, setFields] = useState<ChartBuilderFields>(() => {
-        const loaded = loadFields(datasetId);
+type UseChartBuilderStateParams = {
+    datasetId: string;
+    initialOverrides?: Partial<ChartBuilderFields>;
+    value?: ChartBuilderFields;
+    onChange?: (fields: ChartBuilderFields) => void;
+};
 
-        return initialOverrides ? { ...loaded, ...initialOverrides } : loaded;
-    });
+export const useChartBuilderState = ({
+    datasetId,
+    initialOverrides,
+    value,
+    onChange,
+}: UseChartBuilderStateParams): ChartBuilderFields & Setters => {
+    const [localFields, setLocalFields] = useState<ChartBuilderFields>(() =>
+        createChartBuilderFields(initialOverrides)
+    );
     const prevDatasetId = useRef(datasetId);
-    const writeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const controlled = value !== undefined;
+    const fields = value ?? localFields;
 
-    // reset when a different dataset is picked
     useEffect(() => {
         if (prevDatasetId.current === datasetId) {
             return;
         }
+
         prevDatasetId.current = datasetId;
-        setFields(loadFields(datasetId));
-    }, [datasetId]);
+        setLocalFields(createChartBuilderFields(initialOverrides));
+    }, [datasetId, initialOverrides]);
 
     const patch = useCallback(
         (partial: Partial<ChartBuilderFields>) => {
-            setFields(prev => {
-                const next = { ...prev, ...partial };
-                if (writeTimer.current !== null) {
-                    clearTimeout(writeTimer.current);
-                }
-                writeTimer.current = setTimeout(() => {
-                    try {
-                        localStorage.setItem(lsKey(datasetId), JSON.stringify(next));
-                    } catch {
-                        // ignore quota errors
-                    }
-                }, 300);
+            const next = { ...fields, ...partial };
 
-                return next;
-            });
+            if (controlled) {
+                onChange?.(next);
+            } else {
+                setLocalFields(next);
+            }
         },
-        [datasetId]
+        [controlled, fields, onChange]
     );
 
     return {

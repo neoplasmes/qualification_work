@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 
 import type { Action } from '@/entities/action';
 
-import { Button, Card, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
+import { Button, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { getRunValuePlaceholder, isRunValueInputAllowed } from '../../../lib';
@@ -53,12 +53,10 @@ export const RunForm = ({
     }
 
     return (
-        <Card
-            as="form"
-            className={styles['card']}
+        <form
+            className={styles['form']}
             data-display="grid"
             data-gap="md"
-            data-p="md"
             data-test-id={actionsTestIds.runForm}
             onSubmit={onSubmit}
         >
@@ -129,6 +127,6 @@ export const RunForm = ({
             {lastRunMessage && (
                 <StatusMessage tone="success">{lastRunMessage}</StatusMessage>
             )}
-        </Card>
+        </form>
     );
 };

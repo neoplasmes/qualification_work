@@ -3,7 +3,7 @@ import { LayoutDashboard, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { WorkspaceLeftPanel, WorkspaceLeftPanelItem } from '@/widgets/WorkspaceLeftPanel';
+import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
@@ -17,7 +17,7 @@ import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { StatusMessage } from '@/shared/ui';
+import { StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
 import { selectDashboard, selectSelectedDashboardId } from '../model';

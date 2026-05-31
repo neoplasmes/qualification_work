@@ -22,7 +22,7 @@ export const Layout = () => {
         <LazyMotion features={motionFeatures} strict>
             <div
                 data-stack="v"
-                data-gap="sm"
+                data-gap="xs"
                 data-px="sm"
                 data-py="xs"
                 style={{ height: '100vh', overflow: 'hidden' }}

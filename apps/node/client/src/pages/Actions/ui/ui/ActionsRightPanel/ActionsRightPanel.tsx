@@ -23,8 +23,8 @@ import { ActionsHistory } from '../ActionsHistory';
 import { ActionsProperties } from '../ActionsProperties';
 
 const ACTIONS_RIGHT_PANEL_TABS = [
-    'history',
     'properties',
+    'history',
     'filters',
 ] as const satisfies readonly ActionsRightPanelTab[];
 
@@ -84,7 +84,6 @@ export const ActionsRightPanel = () => {
                         tabs: {
                             datasets: actionsTestIds.filterTabDatasets,
                             effects: actionsTestIds.filterTabEffects,
-                            runs: actionsTestIds.filterTabRuns,
                         },
                     }}
                 />

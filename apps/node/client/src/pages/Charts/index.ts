@@ -4,5 +4,17 @@ export {
     ChartsWorkspace,
     ChartsWorkspaceRightPanel,
 } from './ui';
-export { chartsPageSlice, chartsPageInitialState, chartsPagePersistence } from './model';
-export type { ChartsPageState } from './model';
+export {
+    chartsWorkspaceIndexPath,
+    getChartWorkspaceUrl,
+    getChartWorkspaceModeFromPath,
+    getChartsWorkspaceBasePath,
+    isChartsWorkspacePath,
+} from './lib';
+export {
+    chartsPageSlice,
+    chartsPageInitialState,
+    selectChartsWorkspaceMode,
+    selectSelectedChartId,
+} from './model';
+export type { ChartsPageState, ChartsWorkspaceMode } from './model';

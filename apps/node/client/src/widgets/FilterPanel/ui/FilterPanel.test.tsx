@@ -83,12 +83,11 @@ const testIds = {
         dashboards: 'tab-dashboards',
         datasets: 'tab-datasets',
         effects: 'tab-effects',
-        runs: 'tab-runs',
     },
 } satisfies {
     chip: string;
     clearButton: string;
-    tabs: Record<FilterApplicationEntity, string>;
+    tabs: Partial<Record<FilterApplicationEntity, string>>;
 };
 
 const getByDataTestId = <T extends HTMLElement>(
@@ -120,24 +119,21 @@ const renderPanel = (scope: FilterApplicationScope) => {
 };
 
 describe('FilterPanel', () => {
-    it('toggles action dataset, effect and run filters', async () => {
+    it('toggles action dataset and effect filters', async () => {
         const user = userEvent.setup();
         const { container, store } = renderPanel('actions');
 
         await user.click(getByDataTestId(container, testIds.chip));
         await user.click(getByDataTestId(container, testIds.tabs.effects));
         await user.click(getByDataTestId(container, testIds.chip));
-        await user.click(getByDataTestId(container, testIds.tabs.runs));
-        await user.click(getByDataTestId(container, testIds.chip));
 
         expect(selectFilterApplicationValues('actions')(store.getState())).toMatchObject({
             datasets: ['dataset-1'],
             effects: ['insertRow'],
-            runs: ['success'],
         });
     });
 
-    it('toggles and clears chart filters', async () => {
+    it('toggles and clears all chart filters', async () => {
         const user = userEvent.setup();
         const { container, store } = renderPanel('charts');
 
@@ -147,7 +143,7 @@ describe('FilterPanel', () => {
         await user.click(getByDataTestId(container, testIds.clearButton));
 
         expect(selectFilterApplicationValues('charts')(store.getState())).toMatchObject({
-            datasets: ['dataset-1'],
+            datasets: [],
             dashboards: [],
         });
     });

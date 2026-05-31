@@ -35,7 +35,6 @@ export const ActionsWorkspace = () => {
                 className={styles['workspace']}
                 data-stack="v"
                 data-gap="md"
-                data-p="md"
                 data-flex
                 data-test-id={actionsTestIds.workspace}
                 aria-label="Action details"

@@ -1,5 +1,3 @@
-import type { ActionRunStatus } from '@/entities/action';
-
 import type {
     FilterApplicationEffectKind,
     FilterApplicationScope,
@@ -15,7 +13,6 @@ export const filterApplicationEntityConfigs = {
         tabs: [
             { entity: 'datasets', label: 'Datasets' },
             { entity: 'effects', label: 'Effects' },
-            { entity: 'runs', label: 'Runs' },
         ],
     },
     charts: {
@@ -42,8 +39,3 @@ export const filterApplicationEffectKinds = [
     'insertRow',
     'updateRowsByMatch',
 ] as const satisfies readonly FilterApplicationEffectKind[];
-
-export const filterApplicationRunStatuses = [
-    'success',
-    'failed',
-] as const satisfies readonly ActionRunStatus[];

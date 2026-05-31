@@ -10,6 +10,7 @@ export {
     isChartColor,
     normalizeChartColor,
     formatChartCell,
+    CHART_KIND_ICONS,
 } from './lib';
 export { BAR_CHART_ROWS_LIMIT } from './const';
 export { ChartCard, ChartConfigSummary, ChartResult } from './ui';

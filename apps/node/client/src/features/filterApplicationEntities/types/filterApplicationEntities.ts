@@ -1,15 +1,9 @@
-import type { Action, ActionRunStatus } from '@/entities/action';
+import type { Action } from '@/entities/action';
 
 export type FilterApplicationScope = 'actions' | 'charts' | 'dashboards' | 'datasets';
-export type FilterApplicationEntity =
-    | 'charts'
-    | 'dashboards'
-    | 'datasets'
-    | 'effects'
-    | 'runs';
+export type FilterApplicationEntity = 'charts' | 'dashboards' | 'datasets' | 'effects';
 
 export type FilterApplicationEffectKind = Action['effects'][number]['kind'];
-export type FilterApplicationRunStatus = ActionRunStatus;
 
 export type FilterApplicationEntityValues = Record<FilterApplicationEntity, string[]>;
 

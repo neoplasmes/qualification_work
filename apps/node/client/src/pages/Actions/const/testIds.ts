@@ -44,7 +44,6 @@ export const actionsTestIds = {
     filtersTab: 'actions-filters-tab',
     filterTabDatasets: 'actions-filter-tab-datasets',
     filterTabEffects: 'actions-filter-tab-effects',
-    filterTabRuns: 'actions-filter-tab-runs',
     filterChip: 'actions-filter-chip',
     clearFiltersButton: 'actions-clear-filters-button',
 } as const;

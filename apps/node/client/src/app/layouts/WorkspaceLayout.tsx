@@ -2,6 +2,8 @@ import { lazy, useMemo, type ComponentType, type LazyExoticComponent } from 'rea
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 
+import { getChartsWorkspaceBasePath } from '@/pages/Charts';
+
 import {
     selectIsLeftCollapsed,
     selectIsRightCollapsed,
@@ -149,7 +151,7 @@ export const WorkspaceLayout = () => {
         };
     }, [isLeftCollapsed, isRightCollapsed, dispatch]);
 
-    const slots = WORKSPACE_SLOTS[pathname];
+    const slots = WORKSPACE_SLOTS[getChartsWorkspaceBasePath(pathname)];
 
     if (!slots) {
         return null;

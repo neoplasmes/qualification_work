@@ -2,7 +2,10 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ChartBuilderFields } from '@/features/buildChart';
 
 import type { Chart, ChartResponse } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
@@ -23,6 +26,7 @@ const mocks = vi.hoisted(() => ({
     deleteChart: vi.fn(),
     patchChart: vi.fn(),
     refetchCharts: vi.fn(),
+    refetchSelectedChart: vi.fn(),
 }));
 
 const chart = vi.hoisted(
@@ -90,6 +94,12 @@ vi.mock('@/entities/chart', () => ({
     ),
     ChartConfigSummary: () => <p data-testid="chart-summary" />,
     getChartColorFromConfig: () => '#8a6cff',
+    useGetChartQuery: (chartId: unknown) => ({
+        data: typeof chartId === 'string' ? chart : undefined,
+        isLoading: false,
+        isError: false,
+        refetch: mocks.refetchSelectedChart,
+    }),
     useListChartsQuery: () => ({
         data: [chart],
         isLoading: false,
@@ -110,17 +120,81 @@ vi.mock('@/entities/dataset', () => ({
 }));
 
 vi.mock('@/features/buildChart', () => ({
-    configToBuilderFields: () => ({}),
+    configToBuilderFields: () => ({
+        chartType: 'bar',
+        dimensionColumnId: 'column-1',
+    }),
+    createChartBuilderFields: (overrides: Partial<ChartBuilderFields> = {}) => ({
+        chartName: '',
+        chartColor: '#8a6cff',
+        chartType: 'bar',
+        dimensionColumnId: '',
+        dimensionGroupingMode: 'none',
+        dimensionGranularity: 'month',
+        dimensionStep: 10,
+        heatmapYColumnId: '',
+        heatmapYGroupingMode: 'none',
+        heatmapYGranularity: 'month',
+        heatmapYStep: 10,
+        aggregate: 'count',
+        valueFormat: 'number',
+        measureColumnId: '',
+        secondMeasureEnabled: false,
+        secondAggregate: 'avg',
+        secondValueFormat: 'number',
+        secondMeasureColumnId: '',
+        limit: 24,
+        topN: 12,
+        seriesEnabled: false,
+        seriesColumnId: '',
+        seriesTopN: 8,
+        seriesOtherBucket: true,
+        filterEnabled: false,
+        filterColumnId: '',
+        filterOperation: 'eq',
+        filterValue: '',
+        ...overrides,
+    }),
     usePatchChartMutation: () => [mocks.patchChart, { isLoading: false }],
     DatasetChartBuilder: ({
         selectedDataset,
         onChartCreated,
+        editChartId,
+        value,
+        onChange,
+        onChartUpdated,
     }: {
         selectedDataset: DatasetMetadata;
+        editChartId?: string;
+        value?: ChartBuilderFields;
+        onChange?: (fields: ChartBuilderFields) => void;
         onChartCreated?: (chartId: string) => void;
+        onChartUpdated?: (chartId: string) => void;
     }) => (
         <div data-testid="chart-builder">
             Builder for {selectedDataset.dataset.name}
+            <span data-testid="builder-mode">{editChartId ? 'edit' : 'create'}</span>
+            <span data-testid="builder-name">{value?.chartName ?? ''}</span>
+            <span data-testid="builder-type">{value?.chartType ?? ''}</span>
+            <button
+                type="button"
+                onClick={() =>
+                    value &&
+                    onChange?.({
+                        ...value,
+                        chartName: 'Unsaved Revenue',
+                        chartType: 'line',
+                    })
+                }
+            >
+                Change builder
+            </button>
+            <button
+                type="button"
+                onClick={() => onChartUpdated?.(editChartId ?? 'chart-1')}
+            >
+                Save edit
+            </button>
             <button type="button" onClick={() => onChartCreated?.('chart-new')}>
                 Save chart
             </button>
@@ -128,7 +202,10 @@ vi.mock('@/features/buildChart', () => ({
     ),
 }));
 
-const renderWorkspace = (preloadedState: Partial<ChartsPageState>) => {
+const renderWorkspace = (
+    preloadedState: Partial<ChartsPageState>,
+    initialRoute = '/charts'
+) => {
     const store = configureStore({
         reducer: combineReducers({ [chartsPageSlice.name]: chartsPageSlice.reducer }),
         preloadedState: {
@@ -143,7 +220,9 @@ const renderWorkspace = (preloadedState: Partial<ChartsPageState>) => {
         store,
         ...render(
             <Provider store={store}>
-                <ChartsWorkspace />
+                <MemoryRouter initialEntries={[initialRoute]}>
+                    <ChartsWorkspace />
+                </MemoryRouter>
             </Provider>
         ),
     };
@@ -162,13 +241,55 @@ describe('ChartsWorkspace', () => {
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
         mocks.refetchCharts.mockResolvedValue(undefined);
+        mocks.refetchSelectedChart.mockResolvedValue({ data: chart });
     });
 
-    it('loads chart data when a chart is selected', async () => {
-        renderWorkspace({ selectedChartId: 'chart-1' });
+    it('syncs the view route to selected chart and loads chart data', async () => {
+        const { store } = renderWorkspace({}, '/charts/view?id=chart-1');
 
         await screen.findByTestId('chart-result');
+        expect(selectSelectedChartId(store.getState())).toBe('chart-1');
         expect(mocks.getChartData).toHaveBeenCalledWith('chart-1', false);
+    });
+
+    it('syncs the edit route and shows the builder with saved config', async () => {
+        const { store } = renderWorkspace({}, '/charts/edit?id=chart-1');
+
+        await screen.findByTestId('chart-builder');
+        expect(store.getState().chartsPage.workspaceMode).toBe('edit');
+        expect(screen.getByTestId('builder-mode')).toHaveTextContent('edit');
+        expect(screen.getByTestId('builder-name')).toHaveTextContent('Revenue');
+        expect(screen.getByTestId('builder-type')).toHaveTextContent('bar');
+        expect(mocks.getChartData).not.toHaveBeenCalled();
+    });
+
+    it('keeps edit draft when switching view and edit for the same chart', async () => {
+        const user = userEvent.setup();
+        const { store } = renderWorkspace({}, '/charts/edit?id=chart-1');
+
+        await user.click(await screen.findByRole('button', { name: 'Change builder' }));
+        expect(store.getState().chartsPage.editDraft?.fields.chartName).toBe(
+            'Unsaved Revenue'
+        );
+
+        await user.click(screen.getByRole('tab', { name: /View/i }));
+        await user.click(screen.getByRole('tab', { name: /Edit/i }));
+
+        expect(await screen.findByTestId('builder-name')).toHaveTextContent(
+            'Unsaved Revenue'
+        );
+        expect(screen.getByTestId('builder-type')).toHaveTextContent('line');
+    });
+
+    it('clears edit draft after saving edited chart', async () => {
+        const user = userEvent.setup();
+        const { store } = renderWorkspace({}, '/charts/edit?id=chart-1');
+
+        await user.click(await screen.findByRole('button', { name: 'Change builder' }));
+        await user.click(screen.getByRole('button', { name: 'Save edit' }));
+
+        await waitFor(() => expect(store.getState().chartsPage.editDraft).toBeNull());
+        expect(mocks.refetchSelectedChart).toHaveBeenCalled();
     });
 
     it('selects a dataset from modal and finishes builder creation', async () => {

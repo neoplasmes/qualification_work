@@ -7,7 +7,6 @@ export type { ClientOnlyDefferedProps } from './ClientOnlyDeffered/ui/ClientOnly
 export { ContextMenu } from './ContextMenu';
 export { Dropzone } from './Dropzone';
 export { EmptyState } from './EmptyState';
-export { FilterChip } from './FilterChip';
 export { FormField } from './FormField';
 export { Logo } from './Logo';
 export type { LogoProps } from './Logo';
@@ -24,3 +23,4 @@ export { Table, type TableRow } from './Table';
 export { Textarea } from './Textarea';
 export { TextInput } from './TextInput';
 export { Tooltip, type TooltipProps } from './Tooltip';
+export { WorkspaceLeftPanelItem } from './WorkspaceLeftPanelItem';

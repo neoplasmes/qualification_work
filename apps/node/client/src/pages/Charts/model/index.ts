@@ -1,25 +1,24 @@
 export {
+    clearChartEditDraft,
     chartsPageInitialState,
     chartsPageSlice,
-    initWorkspaceDraft,
-    resetWorkspaceDraft,
+    openChartRoute,
     selectBuilderDatasetId,
     selectChart,
+    selectChartEditDraft,
     selectChartsRightPanelTab,
+    selectChartsWorkspaceMode,
     selectSelectedChartId,
     selectShowDatasetPicker,
-    selectWorkspaceDraftChartId,
-    selectWorkspaceDraftChartType,
-    selectWorkspaceDraftConfigText,
-    selectWorkspaceDraftName,
-    selectWorkspaceFilterOverrideText,
     setBuilderDatasetId,
+    setChartEditDraft,
     setChartsRightPanelTab,
+    setChartsWorkspaceMode,
     setShowDatasetPicker,
-    setWorkspaceDraftChartType,
-    setWorkspaceDraftConfigText,
-    setWorkspaceDraftName,
-    setWorkspaceFilterOverrideText,
 } from './chartsPageSlice';
-export type { ChartsPageState, ChartsRightPanelTab } from './chartsPageSlice';
-export { chartsPagePersistence } from './chartsPagePersistence';
+export type {
+    ChartsEditDraft,
+    ChartsPageState,
+    ChartsRightPanelTab,
+    ChartsWorkspaceMode,
+} from './chartsPageSlice';

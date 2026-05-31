@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-    clearFilterApplicationValues,
+    clearFilterApplicationScopeValues,
     filterApplicationEntitiesInitialState,
     filterApplicationEntitiesPersistence,
     filterApplicationEntitiesSlice,
@@ -42,7 +42,7 @@ describe('filterApplicationEntitiesSlice', () => {
         expect(state.values.charts.dashboards).toEqual([]);
     });
 
-    it('clears only selected entity values', () => {
+    it('clears all values in selected scope', () => {
         let state = filterApplicationEntitiesSlice.reducer(
             filterApplicationEntitiesInitialState,
             toggleFilterApplicationValue({
@@ -61,14 +61,11 @@ describe('filterApplicationEntitiesSlice', () => {
         );
         state = filterApplicationEntitiesSlice.reducer(
             state,
-            clearFilterApplicationValues({
-                scope: 'dashboards',
-                entity: 'charts',
-            })
+            clearFilterApplicationScopeValues('dashboards')
         );
 
         expect(state.values.dashboards.charts).toEqual([]);
-        expect(state.values.dashboards.datasets).toEqual(['dataset-1']);
+        expect(state.values.dashboards.datasets).toEqual([]);
     });
 
     it('hydrates the current persisted schema without patching it', () => {

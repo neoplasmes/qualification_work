@@ -1,5 +1,5 @@
 export {
-    clearFilterApplicationValues,
+    clearFilterApplicationScopeValues,
     filterApplicationEntitiesInitialState,
     filterApplicationEntitiesSlice,
     selectFilterApplicationActiveTab,

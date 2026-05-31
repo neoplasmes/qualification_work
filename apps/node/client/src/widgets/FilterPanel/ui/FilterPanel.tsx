@@ -1,8 +1,10 @@
-import { X } from 'lucide-react';
+import { Eraser, LayoutDashboard, Sheet, Workflow } from 'lucide-react';
+import { m } from 'motion/react';
+import type { CSSProperties } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
-    clearFilterApplicationValues,
+    clearFilterApplicationScopeValues,
     filterApplicationEntityConfigs,
     selectFilterApplicationActiveTab,
     selectFilterApplicationValues,
@@ -12,16 +14,20 @@ import {
 } from '@/features/filterApplicationEntities';
 
 import {
+    Badge,
     EmptyState,
-    FilterChip,
     IconButton,
-    SegmentedTabs,
     SelectableList,
     StatusMessage,
+    WorkspaceLeftPanelItem,
 } from '@/shared/ui';
 
 import { createFilterPanelItems } from '../lib';
-import { useFilterPanelSources, type FilterPanelProps } from '../model';
+import {
+    useFilterPanelSources,
+    type FilterPanelItem,
+    type FilterPanelProps,
+} from '../model';
 
 import styles from './FilterPanel.module.scss';
 
@@ -30,8 +36,32 @@ const emptyTextByEntity = {
     dashboards: 'No dashboards yet.',
     datasets: 'No datasets yet.',
     effects: 'No effects yet.',
-    runs: 'No runs yet.',
 } satisfies Record<FilterApplicationEntity, string>;
+
+const filterPanelTabTransition = { duration: 0.2 };
+
+type FilterPanelTabsStyle = CSSProperties & {
+    '--filter-tabs-count': number;
+};
+
+const getFilterPanelItemIcon = (
+    entity: FilterApplicationEntity,
+    item: FilterPanelItem
+) => {
+    if (entity === 'charts') {
+        return <Badge>{item.meta[0]}</Badge>;
+    }
+
+    if (entity === 'dashboards') {
+        return <LayoutDashboard size={18} />;
+    }
+
+    if (entity === 'datasets') {
+        return <Sheet size={18} />;
+    }
+
+    return <Workflow size={18} />;
+};
 
 export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
     const dispatch = useDispatch();
@@ -43,7 +73,12 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
     const activeEntity = config.tabs.some(tab => tab.entity === activeTab)
         ? activeTab
         : fallbackTab;
+    const activeTabIndex = Math.max(
+        config.tabs.findIndex(tab => tab.entity === activeEntity),
+        0
+    );
     const selectedIds = values[activeEntity];
+    const hasSelectedValues = config.tabs.some(tab => values[tab.entity].length > 0);
     const items = createFilterPanelItems({
         scope,
         entity: activeEntity,
@@ -58,14 +93,13 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
         content = <EmptyState>{emptyTextByEntity[activeEntity]}</EmptyState>;
     } else {
         content = items.map(item => (
-            <FilterChip
+            <WorkspaceLeftPanelItem
                 key={item.id}
-                data-test-id={testIds?.chip}
+                testId={testIds?.chip}
                 selected={selectedIds.includes(item.id)}
-                label={item.label}
-                meta={item.meta.map(meta => (
-                    <span key={meta}>{meta}</span>
-                ))}
+                header={item.label}
+                details={item.meta}
+                iconElement={getFilterPanelItemIcon(activeEntity, item)}
                 onClick={() =>
                     dispatch(
                         toggleFilterApplicationValue({
@@ -87,36 +121,65 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
             data-flex
             data-test-id={testIds?.panel}
         >
-            <div data-stack="h" data-gap="xs" data-align="center">
-                <div data-flex>
-                    <SegmentedTabs
-                        columns={config.tabs.length === 3 ? 3 : 2}
-                        value={activeEntity}
-                        options={config.tabs.map(tab => ({
-                            value: tab.entity,
-                            label: tab.label,
-                            count: values[tab.entity].length,
-                            testId: testIds?.tabs?.[tab.entity],
-                        }))}
-                        onChange={entity =>
-                            dispatch(setFilterApplicationActiveTab({ scope, entity }))
-                        }
-                    />
-                </div>
-                <IconButton
-                    data-test-id={testIds?.clearButton}
-                    aria-label="Clear filter"
-                    disabled={selectedIds.length === 0}
-                    onClick={() =>
-                        dispatch(
-                            clearFilterApplicationValues({
-                                scope,
-                                entity: activeEntity,
-                            })
-                        )
+            <div className={styles['toolbar']}>
+                <div
+                    className={styles['entity-tabs']}
+                    role="tablist"
+                    aria-label="Filter section"
+                    style={
+                        {
+                            '--filter-tabs-count': config.tabs.length,
+                        } as FilterPanelTabsStyle
                     }
                 >
-                    <X size={16} />
+                    <m.div
+                        aria-hidden
+                        className={styles['active-tab-bg']}
+                        initial={false}
+                        animate={{ x: `${activeTabIndex * 100}%` }}
+                        transition={filterPanelTabTransition}
+                    />
+                    {config.tabs.map(tab => {
+                        const active = activeEntity === tab.entity;
+                        const selectedCount = values[tab.entity].length;
+
+                        return (
+                            <button
+                                key={tab.entity}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                data-test-id={testIds?.tabs?.[tab.entity]}
+                                className={`${styles['entity-tab']} ${
+                                    active ? styles['active'] : ''
+                                }`}
+                                onClick={() =>
+                                    dispatch(
+                                        setFilterApplicationActiveTab({
+                                            scope,
+                                            entity: tab.entity,
+                                        })
+                                    )
+                                }
+                            >
+                                <span className={styles['tab-label']}>{tab.label}</span>
+                                {selectedCount > 0 ? (
+                                    <span className={styles['tab-count']}>
+                                        {selectedCount}
+                                    </span>
+                                ) : null}
+                            </button>
+                        );
+                    })}
+                </div>
+                <IconButton
+                    tone="nav"
+                    data-test-id={testIds?.clearButton}
+                    aria-label="Clear all filters"
+                    disabled={!hasSelectedValues}
+                    onClick={() => dispatch(clearFilterApplicationScopeValues(scope))}
+                >
+                    <Eraser size={18} />
                 </IconButton>
             </div>
 

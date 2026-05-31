@@ -4,6 +4,7 @@ export {
     usePreviewChartDataMutation,
     useUpdateChartMutation,
 } from './api';
+export { createChartBuilderFields, type ChartBuilderFields } from './lib';
 export type {
     Aggregate,
     AxisGrouping,

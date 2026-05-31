@@ -1,4 +1,4 @@
-import type { Action, ActionRun } from '@/entities/action';
+import type { Action } from '@/entities/action';
 import type { Chart } from '@/entities/chart';
 import type { Dashboard } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
@@ -12,7 +12,6 @@ import { filterDatasets } from './filterDatasets';
 type FilterActionsApplicationParams = {
     scope: 'actions';
     actions: Action[] | undefined;
-    runs: ActionRun[] | undefined;
     values: FilterApplicationEntityValues;
 };
 
@@ -62,8 +61,6 @@ export function filterApplicationEntities(params: FilterApplicationEntitiesParam
             actions: params.actions,
             datasetIds: params.values.datasets,
             effectKinds: params.values.effects,
-            runStatuses: params.values.runs,
-            runs: params.runs,
         });
     }
 

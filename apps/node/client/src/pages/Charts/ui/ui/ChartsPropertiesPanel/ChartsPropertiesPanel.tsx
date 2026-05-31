@@ -2,40 +2,38 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import { WorkspaceTitleEditor } from '@/widgets/WorkspaceTitleEditor';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { usePatchChartMutation } from '@/features/buildChart';
 
-import { useDeleteChartMutation, useListChartsQuery } from '@/entities/chart';
+import { useDeleteChartMutation, useGetChartQuery } from '@/entities/chart';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { getSelected } from '@/shared/lib/getSelected';
 import { Button, PanelPlaceholder, StatusMessage, Table } from '@/shared/ui';
 
 import { chartsTestIds } from '../../../const';
+import { chartsWorkspaceIndexPath } from '../../../lib';
 import { selectChart, selectSelectedChartId } from '../../../model';
 
 export const ChartsPropertiesPanel = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
     const [error, setError] = useState('');
 
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [patchChart, patchChartState] = usePatchChartMutation();
     const [deleteChart, deleteChartState] = useDeleteChartMutation();
     const selectedChartId = useSelector(selectSelectedChartId);
-
-    const selectedChart = useMemo(
-        () => getSelected(chartsQuery.data, selectedChartId),
-        [chartsQuery.data, selectedChartId]
-    );
+    const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);
+    const selectedChart = selectedChartQuery.data ?? null;
     const selectedDatasetName = useMemo(
         () =>
             selectedChart
@@ -60,8 +58,8 @@ export const ChartsPropertiesPanel = () => {
         try {
             await deleteChart(selectedChart.id).unwrap();
             dispatch(selectChart(null));
+            navigate(chartsWorkspaceIndexPath, { replace: true });
             setDeleteConfirmationId(null);
-            await chartsQuery.refetch();
         } catch (deleteError) {
             setError(getApiErrorMessage(deleteError, 'Unable to delete this chart.'));
         }
@@ -77,7 +75,7 @@ export const ChartsPropertiesPanel = () => {
         try {
             setError('');
             await patchChart({ chartId: selectedChart.id, name }).unwrap();
-            await chartsQuery.refetch();
+            await selectedChartQuery.refetch();
         } catch (renameError) {
             const message = getApiErrorMessage(
                 renameError,
@@ -90,6 +88,18 @@ export const ChartsPropertiesPanel = () => {
     };
 
     if (!selectedChart) {
+        if (selectedChartId && selectedChartQuery.isLoading) {
+            return <StatusMessage>Loading chart properties...</StatusMessage>;
+        }
+
+        if (selectedChartId && selectedChartQuery.isError) {
+            return (
+                <StatusMessage tone="error">
+                    Unable to load this chart properties.
+                </StatusMessage>
+            );
+        }
+
         return <PanelPlaceholder>Select a chart to view properties.</PanelPlaceholder>;
     }
 

@@ -1,7 +1,8 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Eye, PencilLine } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import {
     WorkspaceModeTabs,
@@ -9,29 +10,35 @@ import {
 } from '@/widgets/WorkspaceModeTabs';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
-
 import {
-    useLazyGetChartDataQuery,
-    useListChartsQuery,
-    type ChartResponse,
-    type FilterClause,
-} from '@/entities/chart';
+    configToBuilderFields,
+    createChartBuilderFields,
+    type ChartBuilderFields,
+} from '@/features/buildChart';
+
+import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
-import { getApiErrorMessage } from '@/shared/api';
-import { getSelected } from '@/shared/lib/getSelected';
 import { useHasOverflow } from '@/shared/lib/useHasOverflow';
-import { PanelPlaceholder } from '@/shared/ui';
+import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
+import { chartsWorkspaceIndexPath, getChartWorkspaceUrl } from '../lib';
 import {
+    clearChartEditDraft,
     selectBuilderDatasetId,
     selectChart,
+    selectChartEditDraft,
+    selectChartsWorkspaceMode,
     selectSelectedChartId,
     selectShowDatasetPicker,
     setBuilderDatasetId,
+    setChartEditDraft,
+    setChartsWorkspaceMode,
     setShowDatasetPicker,
+    type ChartsWorkspaceMode,
 } from '../model';
+import { useChartDataResult, useChartsWorkspaceRouteSync } from './lib';
 import {
     CreateChartBuilderSection,
     EditChartBuilderSection,
@@ -40,8 +47,6 @@ import { CreateChartModal } from './ui/CreateChartModal';
 import { SavedChartDetails } from './ui/SavedChartDetails';
 
 import styles from './ChartsPage.module.scss';
-
-type WorkspaceMode = 'view' | 'edit';
 
 const CHARTS_WORKSPACE_MODE_TABS = [
     {
@@ -56,35 +61,35 @@ const CHARTS_WORKSPACE_MODE_TABS = [
         icon: PencilLine,
         testId: chartsTestIds.workspaceEditTab,
     },
-] as const satisfies readonly WorkspaceModeTabOption<WorkspaceMode>[];
+] as const satisfies readonly WorkspaceModeTabOption<ChartsWorkspaceMode>[];
 
 export const ChartsWorkspace = () => {
     const dispatch = useDispatch();
-    const [error, setError] = useState('');
-    const [isEditing, setIsEditing] = useState(false);
+    const navigate = useNavigate();
     const workspaceRef = useRef<HTMLElement>(null);
-    const [chartResult, setChartResult] = useState<{
-        chartId: string;
-        data: ChartResponse;
-    } | null>(null);
-    const chartDataRequestRef = useRef(0);
 
     const selectedChartId = useSelector(selectSelectedChartId);
     const builderDatasetId = useSelector(selectBuilderDatasetId);
     const showDatasetPicker = useSelector(selectShowDatasetPicker);
+    const workspaceMode = useSelector(selectChartsWorkspaceMode);
+    const editDraft = useSelector(selectChartEditDraft);
 
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
+    const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
-    const [getChartData, chartDataQuery] = useLazyGetChartDataQuery();
 
     useHasOverflow(workspaceRef);
+    useChartsWorkspaceRouteSync({
+        selectedChartId,
+        builderDatasetId,
+        showDatasetPicker,
+        workspaceMode,
+    });
 
-    const selectedChart = useMemo(
-        () => getSelected(chartsQuery.data, selectedChartId),
-        [chartsQuery.data, selectedChartId]
-    );
+    const selectedChart = selectedChartQuery.data ?? null;
+    const chartData = useChartDataResult(selectedChart?.id ?? null, workspaceMode);
 
     const builderDataset = useMemo(
         () => datasetsQuery.data?.find(d => d.dataset.id === builderDatasetId) ?? null,
@@ -101,49 +106,26 @@ export const ChartsWorkspace = () => {
         [datasetsQuery.data, selectedChart]
     );
 
-    const loadChartData = async (chartId: string, filterOverrides?: FilterClause[]) => {
-        const requestId = chartDataRequestRef.current + 1;
-        chartDataRequestRef.current = requestId;
-
-        let data: ChartResponse;
-
-        try {
-            data = await getChartData(
-                filterOverrides ? { chartId, filterOverrides } : chartId,
-                false
-            ).unwrap();
-        } catch (loadError) {
-            if (chartDataRequestRef.current !== requestId) {
-                return undefined;
-            }
-
-            throw loadError;
-        }
-
-        if (chartDataRequestRef.current === requestId) {
-            setChartResult({ chartId, data });
-        }
-
-        return data;
-    };
-
-    useEffect(() => {
-        if (!selectedChart) {
-            setChartResult(null);
-            setIsEditing(false);
-
-            return;
-        }
-
-        setError('');
-        setChartResult(null);
-        setIsEditing(false);
-        void loadChartData(selectedChart.id).catch(loadError => {
-            setError(getApiErrorMessage(loadError, 'Unable to load chart data.'));
-        });
-    }, [selectedChart?.id]);
+    const savedEditFields = useMemo(
+        () =>
+            selectedChart
+                ? createChartBuilderFields({
+                      ...configToBuilderFields(
+                          selectedChart.config,
+                          selectedChart.chartType
+                      ),
+                      chartName: selectedChart.name,
+                  })
+                : null,
+        [selectedChart]
+    );
+    const editFields =
+        selectedChart && editDraft?.chartId === selectedChart.id
+            ? editDraft.fields
+            : savedEditFields;
 
     const handleDatasetSelect = (dataset: DatasetMetadata) => {
+        navigate(chartsWorkspaceIndexPath);
         dispatch(setBuilderDatasetId(dataset.dataset.id));
     };
 
@@ -151,24 +133,31 @@ export const ChartsWorkspace = () => {
         await chartsQuery.refetch();
         dispatch(setBuilderDatasetId(null));
         dispatch(selectChart(chartId));
+        navigate(getChartWorkspaceUrl(chartId, 'view'));
     };
 
-    const handleChartUpdated = async () => {
+    const handleWorkspaceModeChange = (mode: ChartsWorkspaceMode) => {
+        if (!selectedChartId) {
+            return;
+        }
+
+        dispatch(setChartsWorkspaceMode(mode));
+        navigate(getChartWorkspaceUrl(selectedChartId, mode));
+    };
+
+    const handleEditFieldsChange = (fields: ChartBuilderFields) => {
         if (!selectedChart) {
             return;
         }
 
-        await chartsQuery.refetch();
-        setIsEditing(false);
-        void loadChartData(selectedChart.id).catch(loadError => {
-            setError(getApiErrorMessage(loadError, 'Unable to load chart data.'));
-        });
+        dispatch(setChartEditDraft({ chartId: selectedChart.id, fields }));
     };
 
-    const selectedChartResult =
-        selectedChart && chartResult?.chartId === selectedChart.id
-            ? chartResult.data
-            : null;
+    const handleChartUpdated = async (chartId: string) => {
+        await selectedChartQuery.refetch();
+        await chartsQuery.refetch();
+        dispatch(clearChartEditDraft(chartId));
+    };
 
     return (
         <>
@@ -181,10 +170,18 @@ export const ChartsWorkspace = () => {
                 data-test-id={chartsTestIds.workspace}
                 aria-label="Chart details"
             >
-                {!selectedChart && !builderDataset && (
+                {!selectedChartId && !builderDataset && (
                     <PanelPlaceholder>
                         Select a chart or create a new one.
                     </PanelPlaceholder>
+                )}
+
+                {selectedChartId && selectedChartQuery.isLoading && (
+                    <StatusMessage>Loading chart...</StatusMessage>
+                )}
+
+                {selectedChartId && selectedChartQuery.isError && (
+                    <StatusMessage tone="error">Unable to load this chart.</StatusMessage>
                 )}
 
                 {builderDataset && org && (
@@ -200,28 +197,36 @@ export const ChartsWorkspace = () => {
                 {selectedChart && !builderDataset && (
                     <>
                         <WorkspaceModeTabs
-                            value={isEditing ? 'edit' : 'view'}
+                            value={workspaceMode}
                             options={CHARTS_WORKSPACE_MODE_TABS}
                             layoutId="charts-workspace-mode"
-                            onChange={mode => setIsEditing(mode === 'edit')}
+                            onChange={handleWorkspaceModeChange}
                         />
 
-                        {!isEditing && (
+                        {workspaceMode === 'view' && (
                             <SavedChartDetails
                                 chart={selectedChart}
                                 columns={editDataset?.columns ?? []}
-                                chartResult={selectedChartResult}
-                                error={error}
-                                isLoadingData={chartDataQuery.isFetching}
+                                chartResult={chartData.chartResult}
+                                error={chartData.error}
+                                isLoadingData={chartData.isFetching}
                             />
                         )}
 
-                        {isEditing && editDataset && org && (
+                        {workspaceMode === 'edit' && !editDataset && (
+                            <StatusMessage>Loading dataset...</StatusMessage>
+                        )}
+
+                        {workspaceMode === 'edit' && editDataset && org && editFields && (
                             <EditChartBuilderSection
                                 orgId={org.id}
                                 chart={selectedChart}
                                 dataset={editDataset}
-                                onChartUpdated={() => void handleChartUpdated()}
+                                fields={editFields}
+                                onFieldsChange={handleEditFieldsChange}
+                                onChartUpdated={chartId =>
+                                    void handleChartUpdated(chartId)
+                                }
                             />
                         )}
                     </>

@@ -1,1 +1,0 @@
-export { AddMetricModal } from './AddMetricModal';

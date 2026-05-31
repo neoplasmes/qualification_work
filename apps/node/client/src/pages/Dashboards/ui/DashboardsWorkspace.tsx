@@ -16,7 +16,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
 import { useHasOverflow } from '@/shared/lib/useHasOverflow';
-import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
+import { Modal, PanelPlaceholder, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
 import { getDashboardItemsOrder, moveDashboardItem } from '../lib';
@@ -29,7 +29,7 @@ import {
 import { useDashboardMetricModal } from './lib';
 import {
     AddChartModal,
-    AddMetricModal,
+    AddMetricForm,
     DashboardWidgets,
     DashboardWorkspaceHeading,
 } from './ui';
@@ -226,31 +226,37 @@ export const DashboardsWorkspace = () => {
                     )}
 
                     {activeModal === 'metric' && (
-                        <AddMetricModal
-                            datasets={datasetsQuery.data}
-                            datasetId={metricModal.datasetId}
-                            metricName={metricModal.name}
-                            metricExpression={metricModal.expression}
-                            metricFormat={metricModal.format}
-                            error={metricModal.error}
-                            disabled={metricModal.disabled}
-                            editing={metricModal.editing}
-                            onDatasetChange={metricModal.setDatasetId}
-                            onNameChange={metricModal.setName}
-                            onExpressionChange={metricModal.setExpression}
-                            onFormatChange={metricModal.setFormat}
-                            onSubmit={event => {
-                                void metricModal.submit(event).then(saved => {
-                                    if (saved) {
-                                        setActiveModal(null);
-                                    }
-                                });
-                            }}
+                        <Modal
+                            title={metricModal.editing ? 'Edit metric' : 'Add metric'}
+                            testId={dashboardsTestIds.addMetricModal}
+                            size="md"
                             onClose={() => {
                                 metricModal.close();
                                 setActiveModal(null);
                             }}
-                        />
+                        >
+                            <AddMetricForm
+                                datasets={datasetsQuery.data}
+                                datasetId={metricModal.datasetId}
+                                metricName={metricModal.name}
+                                metricExpression={metricModal.expression}
+                                metricFormat={metricModal.format}
+                                error={metricModal.error}
+                                disabled={metricModal.disabled}
+                                editing={metricModal.editing}
+                                onDatasetChange={metricModal.setDatasetId}
+                                onNameChange={metricModal.setName}
+                                onExpressionChange={metricModal.setExpression}
+                                onFormatChange={metricModal.setFormat}
+                                onSubmit={event => {
+                                    void metricModal.submit(event).then(saved => {
+                                        if (saved) {
+                                            setActiveModal(null);
+                                        }
+                                    });
+                                }}
+                            />
+                        </Modal>
                     )}
                 </>
             )}

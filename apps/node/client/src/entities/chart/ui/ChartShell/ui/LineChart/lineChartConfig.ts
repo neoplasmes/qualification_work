@@ -14,7 +14,6 @@ export const C = {
 } as const;
 
 export const CHART_HEIGHT = 360;
-export const MIN_CHART_WIDTH = 180;
 export const GLYPH_SERIES_SUFFIX = ':glyphs';
 export const SERIES_COLORS = [
     DEFAULT_CHART_COLOR,

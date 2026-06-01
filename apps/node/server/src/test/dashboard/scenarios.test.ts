@@ -42,7 +42,8 @@ describe('сквозной сценарий жизни дашборда', () => 
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
+                valueMultiplier: 1,
             }),
         });
         const metricItemId = ((await metricRes.json()) as { itemId: string }).itemId;

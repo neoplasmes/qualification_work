@@ -32,6 +32,7 @@ SELECT
 						'name',            im.name,
 						'expression',      im.expression,
 						'format',          im.format,
+						'valueMultiplier', im.value_multiplier,
 						'target',          im.target,
 						'targetDirection', im.target_direction,
 						'showTrend',       im.show_trend,

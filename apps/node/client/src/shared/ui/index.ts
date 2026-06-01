@@ -20,6 +20,7 @@ export { EntityHeader, SectionHeader } from './SectionHeader';
 export { Separator } from './Separator';
 export { SegmentedControl, type SegmentedControlOption } from './SegmentedControl';
 export { SegmentedTabs, type SegmentedTabOption } from './SegmentedTabs';
+export { Slider } from './Slider';
 export { Sparkline } from './Sparkline';
 export { StatusMessage } from './StatusMessage';
 export { Switch } from './Switch';

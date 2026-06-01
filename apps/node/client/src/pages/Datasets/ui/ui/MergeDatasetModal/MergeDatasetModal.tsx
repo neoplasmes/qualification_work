@@ -1,4 +1,4 @@
-import { GitMerge, Upload } from 'lucide-react';
+import { GitMerge } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -16,18 +16,12 @@ import {
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import {
-    Button,
-    Checkbox,
-    FormField,
-    Modal,
-    StatusMessage,
-    TextInput,
-} from '@/shared/ui';
+import { Button, Modal, StatusMessage } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../../const';
 
 import { MergePreviewStep } from './MergePreviewStep';
+import { CreateNewDatasetSection, MergeFilesSection, MergeKeyChips } from './ui';
 
 import styles from './MergeDatasetModal.module.scss';
 
@@ -135,13 +129,34 @@ export const MergeDatasetModal = ({
         );
     };
 
+    const previewAction =
+        step === 'setup' ? (
+            <Button
+                data-px="sm"
+                data-py="xs"
+                data-test-id={datasetsTestIds.mergePreviewButton}
+                disabled={!canPreview || previewState.isLoading}
+                isLoading={previewState.isLoading}
+                onClick={() => void handlePreview()}
+            >
+                <GitMerge size={18} />
+                Preview
+            </Button>
+        ) : null;
+
     return (
-        <Modal title="Merge data" size="md" height={560} onClose={handleClose}>
+        <Modal
+            title="Merge data"
+            size="md"
+            padding="md"
+            height={560}
+            actions={previewAction}
+            onClose={handleClose}
+        >
             {step === 'setup' && (
                 <div className={styles['content']} data-stack="v" data-gap="md">
                     {selectedDataset && (
-                        <div data-stack="v" data-gap="xs">
-                            <span className={styles['section-title']}>Mode</span>
+                        <div>
                             <WorkspaceModeTabs
                                 value={mode}
                                 columns={2}
@@ -152,86 +167,25 @@ export const MergeDatasetModal = ({
                         </div>
                     )}
 
-                    <Checkbox
-                        label="Create new dataset"
-                        description="Copy current rows first, then apply imported rows."
-                        inline
-                        checked={createNew}
-                        onChange={event => setCreateNew(event.currentTarget.checked)}
-                    />
-
-                    {createNew && (
-                        <FormField
-                            label="Dataset name"
-                            hint={`Leave empty to use "${selectedDataset?.dataset.name ?? 'Dataset'} copy".`}
-                        >
-                            <TextInput
-                                data-test-id={datasetsTestIds.mergeDatasetNameInput}
-                                type="text"
-                                placeholder={`${selectedDataset?.dataset.name ?? 'Dataset'} copy`}
-                                value={newDatasetName}
-                                onChange={e => setNewDatasetName(e.target.value)}
-                            />
-                        </FormField>
-                    )}
+                    <MergeFilesSection files={files} onFilesChange={setFiles} />
 
                     {mode === 'merge' && availableColumns.length > 0 && (
-                        <div className={styles['merge-keys-section']}>
-                            <span className={styles['section-title']}>Merge keys</span>
-                            <div className={styles['merge-keys-list']}>
-                                {availableColumns.map(col => (
-                                    <Checkbox
-                                        key={col.id}
-                                        className={styles['merge-key-option']}
-                                        label={col.displayName}
-                                        checked={selectedMergeKeys.includes(col.key)}
-                                        onChange={() => toggleMergeKey(col.key)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
+                        <MergeKeyChips
+                            columns={availableColumns}
+                            selectedKeys={selectedMergeKeys}
+                            onToggle={toggleMergeKey}
+                        />
                     )}
-
-                    <div className={styles['file-picker']}>
-                        <span className={styles['section-title']}>Files</span>
-                        <label className={styles['file-picker-control']}>
-                            <Upload size={20} />
-                            <span>Choose CSV or XLSX files</span>
-                            <small>Multiple files can be selected at once.</small>
-                            <input
-                                data-test-id={datasetsTestIds.mergeFileInput}
-                                type="file"
-                                multiple
-                                accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                className={styles['file-picker-input']}
-                                onChange={e =>
-                                    setFiles(Array.from(e.currentTarget.files ?? []))
-                                }
-                            />
-                        </label>
-                        {files.length > 0 && (
-                            <div className={styles['file-names']}>
-                                {files.map(file => (
-                                    <span key={`${file.name}-${file.size}`}>
-                                        {file.name}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                    </div>
 
                     {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-                    <Button
-                        data-test-id={datasetsTestIds.mergePreviewButton}
-                        disabled={!canPreview || previewState.isLoading}
-                        isLoading={previewState.isLoading}
-                        className={styles['primary-action']}
-                        onClick={() => void handlePreview()}
-                    >
-                        <GitMerge size={18} />
-                        Preview
-                    </Button>
+                    <CreateNewDatasetSection
+                        checked={createNew}
+                        datasetName={newDatasetName}
+                        placeholderName={selectedDataset?.dataset.name ?? 'Dataset'}
+                        onCheckedChange={setCreateNew}
+                        onDatasetNameChange={setNewDatasetName}
+                    />
                 </div>
             )}
 

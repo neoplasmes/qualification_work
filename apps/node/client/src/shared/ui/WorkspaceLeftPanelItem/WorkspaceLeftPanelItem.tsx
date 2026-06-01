@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import { Tooltip } from '../Tooltip';
+import { applyPointerTooltipPosition, getPointerTooltipPosition } from '../Tooltip/lib';
 
 import styles from './WorkspaceLeftPanelItem.module.scss';
 
@@ -51,15 +52,14 @@ export const WorkspaceLeftPanelItem = ({
     };
 
     const updateTooltipPosition = (clientX: number, clientY: number) => {
-        const left = Math.max(
-            tooltipMargin,
-            Math.min(
-                clientX + tooltipGap,
-                window.innerWidth - tooltipMaxWidth - tooltipMargin
-            )
-        );
-        const top = Math.max(tooltipMargin, clientY + tooltipGap);
-        const transform = `translateX(${left}px) translateY(${top}px)`;
+        const position = getPointerTooltipPosition({
+            clientX,
+            clientY,
+            viewportWidth: window.innerWidth,
+            gap: tooltipGap,
+            margin: tooltipMargin,
+            maxWidth: tooltipMaxWidth,
+        });
 
         if (tooltipFrameRef.current !== null) {
             window.cancelAnimationFrame(tooltipFrameRef.current);
@@ -67,7 +67,7 @@ export const WorkspaceLeftPanelItem = ({
 
         tooltipFrameRef.current = window.requestAnimationFrame(() => {
             tooltipFrameRef.current = null;
-            tooltipRef.current?.style.setProperty('transform', transform);
+            applyPointerTooltipPosition(tooltipRef.current, position);
         });
     };
 

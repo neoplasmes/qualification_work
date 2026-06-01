@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getSeriesColor } from './barChartConfig';
+import { getSeriesColor, shouldHideGroupedBarXAxisLabels } from './barChartConfig';
 
 type Rgb = {
     r: number;
@@ -56,5 +56,22 @@ describe('getSeriesColor', () => {
         expect(colors.every(color => getHueDistance(getHue(color), baseHue) < 1)).toBe(
             true
         );
+    });
+});
+
+describe('shouldHideGroupedBarXAxisLabels', () => {
+    it('hides rotated grouped bar x labels when the chart is too short', () => {
+        expect(
+            shouldHideGroupedBarXAxisLabels(
+                ['Long campaign label', 'Another long campaign label'],
+                220,
+                256,
+                88
+            )
+        ).toBe(true);
+    });
+
+    it('keeps compact labels when they fit without rotation', () => {
+        expect(shouldHideGroupedBarXAxisLabels(['A', 'B'], 640, 320, 48)).toBe(false);
     });
 });

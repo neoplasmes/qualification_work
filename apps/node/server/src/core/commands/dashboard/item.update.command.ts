@@ -31,6 +31,7 @@ export class UpdateDashboardItemCommand implements Executable<
                 'name',
                 'expression',
                 'format',
+                'valueMultiplier',
                 'target',
                 'targetDirection',
                 'showTrend',

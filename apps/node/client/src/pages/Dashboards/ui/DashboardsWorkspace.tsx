@@ -3,7 +3,7 @@ import {
     type DashboardItemLayoutInput,
 } from '@qualification-work/types';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Plus } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -38,6 +38,8 @@ import {
 import { AddChartModal, AddMetricForm, DashboardWidgets } from './ui';
 
 import styles from './DashboardsPage.module.scss';
+
+const dashboardMetricFormId = 'dashboard-metric-form';
 
 export const DashboardsWorkspace = () => {
     const dispatch = useDispatch();
@@ -78,6 +80,16 @@ export const DashboardsWorkspace = () => {
             ),
         [datasetsQuery.data]
     );
+    const datasetNamesById = useMemo(
+        () =>
+            new Map(
+                (datasetsQuery.data ?? []).map(dataset => [
+                    dataset.dataset.id,
+                    dataset.dataset.name,
+                ])
+            ),
+        [datasetsQuery.data]
+    );
 
     const [addDashboardChart, addChartState] = useAddDashboardChartMutation();
     const [updateDashboardLayout] = useUpdateDashboardLayoutMutation();
@@ -88,6 +100,23 @@ export const DashboardsWorkspace = () => {
         refetchDashboard: dashboardQuery.refetch,
         refetchDashboards: dashboardsQuery.refetch,
     });
+    const isMetricSaveDisabled =
+        !metricModal.datasetId || !metricModal.expression.trim() || metricModal.disabled;
+    const metricModalActions = (
+        <Button
+            type="submit"
+            form={dashboardMetricFormId}
+            data-px="sm"
+            data-py="xs"
+            data-pr="none"
+            data-test-id={dashboardsTestIds.addMetricButton}
+            disabled={isMetricSaveDisabled}
+            isLoading={metricModal.disabled}
+        >
+            <Save size={18} />
+            Save
+        </Button>
+    );
 
     useHasOverflow(workspaceRef);
     useDashboardsWorkspaceRouteSync(selectedDashboardId);
@@ -259,6 +288,7 @@ export const DashboardsWorkspace = () => {
                             items={dashboardItems}
                             chartsById={chartsById}
                             datasetColumnsById={datasetColumnsById}
+                            datasetNamesById={datasetNamesById}
                             removing={removeItemState.isLoading}
                             onLayoutChange={layout => void handleLayoutChange(layout)}
                             onRemoveItem={itemId => void handleRemoveItem(itemId)}
@@ -286,28 +316,32 @@ export const DashboardsWorkspace = () => {
                     {activeModal === 'metric' && (
                         <Modal
                             title={metricModal.editing ? 'Edit metric' : 'Add metric'}
+                            actions={metricModalActions}
                             testId={dashboardsTestIds.addMetricModal}
                             size="md"
                             padding="md"
+                            height={720}
                             onClose={() => {
                                 metricModal.close();
                                 setActiveModal(null);
                             }}
                         >
                             <AddMetricForm
+                                formId={dashboardMetricFormId}
                                 datasets={datasetsQuery.data}
                                 datasetId={metricModal.datasetId}
                                 metricName={metricModal.name}
                                 metricExpression={metricModal.expression}
                                 metricFormat={metricModal.format}
+                                metricValueMultiplier={metricModal.valueMultiplier}
                                 config={metricModal.config}
                                 error={metricModal.error}
-                                disabled={metricModal.disabled}
                                 editing={metricModal.editing}
                                 onDatasetChange={metricModal.setDatasetId}
                                 onNameChange={metricModal.setName}
                                 onExpressionChange={metricModal.setExpression}
                                 onFormatChange={metricModal.setFormat}
+                                onValueMultiplierChange={metricModal.setValueMultiplier}
                                 onConfigChange={metricModal.setConfig}
                                 onSubmit={event => {
                                     void metricModal.submit(event).then(saved => {

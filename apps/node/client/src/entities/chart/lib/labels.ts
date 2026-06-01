@@ -1,7 +1,6 @@
 import type {
     Aggregate,
     FilterOperation,
-    MeasureValueFormat,
     TimeGranularity,
 } from '@qualification-work/types';
 
@@ -14,13 +13,6 @@ export const AGGREGATE_LABELS: Record<Aggregate, string> = {
     min: 'Min',
     max: 'Max',
     count_distinct: 'Count unique',
-};
-
-export const VALUE_FORMAT_LABELS: Record<MeasureValueFormat, string> = {
-    number: 'Number',
-    rub: 'Ruble',
-    usd: 'Dollar',
-    percent: 'Percent',
 };
 
 export const GRANULARITY_LABELS: Record<TimeGranularity, string> = {

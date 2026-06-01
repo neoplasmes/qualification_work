@@ -4,7 +4,6 @@ import type {
     chartResultColumnRoles,
     chartTypes,
     filterOperations,
-    measureValueFormats,
     timeGranularities,
 } from './const.js';
 
@@ -23,7 +22,7 @@ export type AxisGrouping =
 
 export type Aggregate = (typeof aggregates)[number];
 
-export type MeasureValueFormat = (typeof measureValueFormats)[number];
+export type MeasureValueFormat = string;
 
 export type Measure = {
     columnId?: string;

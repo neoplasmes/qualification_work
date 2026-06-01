@@ -1,8 +1,4 @@
-import type {
-    metricFormats,
-    metricTargetDirections,
-    metricTimeBuckets,
-} from './const.js';
+import type { metricTargetDirections, metricTimeBuckets } from './const.js';
 
 export type DashboardItemLayout = {
     posX: number;
@@ -21,7 +17,7 @@ export type DashboardChartItem = DashboardBaseItem & {
     chartId: string;
 };
 
-export type MetricFormat = (typeof metricFormats)[number];
+export type MetricFormat = string;
 
 export type MetricTimeBucket = (typeof metricTimeBuckets)[number];
 
@@ -41,6 +37,7 @@ export type DashboardMetricItem = DashboardBaseItem & {
     name: string;
     expression: string;
     format: MetricFormat;
+    valueMultiplier: number;
     // goal: drives value color and the progress bar, null = no target
     target: number | null;
     // which direction counts as good relative to the target
@@ -93,7 +90,8 @@ export type AddDashboardMetricPayload = {
     datasetId: string;
     name: string;
     expression: string;
-    format: MetricFormat;
+    format?: MetricFormat;
+    valueMultiplier?: number;
     target?: number | null;
     targetDirection?: MetricTargetDirection | null;
     showTrend?: boolean;

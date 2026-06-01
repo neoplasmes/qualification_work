@@ -10,7 +10,7 @@ import type {
     ChartViewModel,
 } from '../../../../lib/parseChartData';
 
-import type { ChartFrameHeight } from '../../lib';
+import type { ChartAspectRatioConstraint, ChartFrameHeight } from '../../lib';
 import type { HeatmapCell } from '../HeatmapChart';
 
 import styles from '../../ChartShell.module.scss';
@@ -37,6 +37,7 @@ type CartesianChartProps = {
     valueFormat?: ChartResultColumn['valueFormat'];
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
 };
 
@@ -48,12 +49,14 @@ type PieChartProps = {
     data: ChartDataPoint[];
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
 };
 
 type HeatmapChartProps = {
     data: HeatmapCell[];
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
 };
 
@@ -61,6 +64,7 @@ type ChartRendererProps = {
     activeKind: ChartKind;
     chart: ChartViewModel;
     chartHeight?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     color?: string;
     hasBreakdown: boolean;
     heatmapCells: HeatmapCell[];
@@ -83,6 +87,7 @@ export const ChartRenderer = ({
     activeKind,
     chart,
     chartHeight,
+    aspectRatioConstraint,
     color,
     hasBreakdown,
     heatmapCells,
@@ -106,6 +111,7 @@ export const ChartRenderer = ({
                     data: heatmapCells,
                     color,
                     height: chartHeight,
+                    aspectRatioConstraint,
                     showAxisTickLabels,
                 }}
             />
@@ -132,6 +138,7 @@ export const ChartRenderer = ({
                     valueFormat: chart.valueFormat,
                     color,
                     height: chartHeight,
+                    aspectRatioConstraint,
                     showAxisTickLabels,
                     showLegend: showLegend && hasBreakdown,
                 }}
@@ -164,6 +171,7 @@ export const ChartRenderer = ({
                 valueFormat: chart.valueFormat,
                 color,
                 height: chartHeight,
+                aspectRatioConstraint,
                 showAxisTickLabels,
                 showLegend: showLegend && hasBreakdown,
             }}

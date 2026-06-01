@@ -30,7 +30,7 @@ type MeasureConfig = {
 
 const toMeasureField = (measure: MeasureConfig | undefined): MeasureField => ({
     aggregate: measure?.aggregate ?? 'count',
-    valueFormat: measure?.valueFormat ?? 'number',
+    valueFormat: measure?.valueFormat ?? '',
     columnId: measure?.columnId ?? '',
 });
 

@@ -55,8 +55,15 @@ export const buildGrouping = (
 
 const buildMeasure = ({ aggregate, columnId, valueFormat }: BuildMeasureInput) =>
     aggregate === 'count'
-        ? { aggregate, valueFormat }
-        : { aggregate, columnId, valueFormat };
+        ? {
+              aggregate,
+              ...(valueFormat.trim() ? { valueFormat: valueFormat.trim() } : {}),
+          }
+        : {
+              aggregate,
+              columnId,
+              ...(valueFormat.trim() ? { valueFormat: valueFormat.trim() } : {}),
+          };
 
 export const buildChartConfig = ({
     chartType,

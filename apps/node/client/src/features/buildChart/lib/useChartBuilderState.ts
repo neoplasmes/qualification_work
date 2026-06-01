@@ -46,7 +46,7 @@ export type ChartBuilderFields = {
 
 const createMeasure = (overrides?: Partial<MeasureField>): MeasureField => ({
     aggregate: 'count',
-    valueFormat: 'number',
+    valueFormat: '',
     columnId: '',
     ...overrides,
 });

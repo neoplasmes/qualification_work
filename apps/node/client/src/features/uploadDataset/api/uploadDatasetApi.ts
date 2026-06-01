@@ -75,6 +75,7 @@ export const uploadDatasetApi = api.injectEndpoints({
                           { type: 'Datasets', id: 'LIST' },
                           { type: 'Datasets', id: result.datasetId },
                           { type: 'DatasetRows', id: result.datasetId },
+                          { type: 'ChartData', id: 'LIST' },
                       ]
                     : [{ type: 'Datasets', id: 'LIST' }],
         }),

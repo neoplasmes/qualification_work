@@ -279,6 +279,26 @@ describe('WorkspaceGridGroup fit', () => {
         expect(panels[1]).toHaveStyle({ width: '600px' });
         expect(panels[2]).toHaveStyle({ width: '700px' });
     });
+
+    it('expands the configured grow panel when the left panel is collapsed', () => {
+        mockClientSize = 1400;
+
+        const { container } = renderGroup(
+            <WorkspaceGrid.Group
+                direction="row"
+                growPanelKey="center"
+                collapse={controllerFor(['left'])}
+            >
+                {[panel('left'), panel('center'), panel('right')]}
+            </WorkspaceGrid.Group>
+        );
+
+        const panels = panelsOf(groupOf(container));
+
+        expect(panels[0]).toHaveAttribute('data-hidden');
+        expect(panels[1]).toHaveStyle({ width: '752px' });
+        expect(panels[2]).toHaveStyle({ width: '200px' });
+    });
 });
 
 describe('WorkspaceGridGroup persistence', () => {

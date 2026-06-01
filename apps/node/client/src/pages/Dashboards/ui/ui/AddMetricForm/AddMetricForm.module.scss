@@ -59,11 +59,6 @@
     grid-column: 1 / -1;
 }
 
-.submit {
-    grid-column: 1 / -1;
-    justify-self: end;
-}
-
 @media (width <= 900px) {
     .form {
         grid-template-columns: 1fr;

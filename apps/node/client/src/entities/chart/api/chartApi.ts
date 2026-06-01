@@ -49,6 +49,7 @@ export const chartApi = api.injectEndpoints({
             invalidatesTags: (_result, _error, chartId) => [
                 { type: 'Charts', id: chartId },
                 { type: 'Charts', id: 'LIST' },
+                { type: 'ChartData', id: chartId },
             ],
         }),
         getChartData: builder.query<ChartResponse, string | GetChartDataPayload>({
@@ -57,9 +58,11 @@ export const chartApi = api.injectEndpoints({
 
                 return `/data/charts/${payload.chartId}/data${encodeFilterOverrides(payload.filterOverrides)}`;
             },
+            keepUnusedDataFor: 300,
             providesTags: (_result, _error, arg) => [
+                { type: 'ChartData', id: 'LIST' },
                 {
-                    type: 'Charts',
+                    type: 'ChartData',
                     id: typeof arg === 'string' ? arg : arg.chartId,
                 },
             ],

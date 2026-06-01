@@ -167,19 +167,17 @@
 }
 
 .run-status-dot {
-    width: 12px;
-    height: 12px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
 }
 
 .run-status-success {
-    background-color: rgb(79 190 125);
-    box-shadow: 0 0 0 4px rgb(79 190 125 / 16%);
+    background-color: rgb(10 130 36);
 }
 
 .run-status-failed {
     background-color: var(--color-error);
-    box-shadow: 0 0 0 4px rgb(140 0 0 / 18%);
 }
 
 .card {

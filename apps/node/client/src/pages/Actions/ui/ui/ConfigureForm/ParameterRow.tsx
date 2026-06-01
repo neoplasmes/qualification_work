@@ -91,7 +91,7 @@ export const ParameterRow = ({
                 data-test-id={actionsTestIds.removeParameterButton}
                 aria-label="Remove parameter"
                 disabled={disabled || parametersCount === 1}
-                tone="transparent"
+                tone="nav"
                 onClick={() =>
                     onDraftChange(current => ({
                         ...current,
@@ -101,7 +101,7 @@ export const ParameterRow = ({
                     }))
                 }
             >
-                <X />
+                <X size={20} />
             </IconButton>
         </div>
         <div

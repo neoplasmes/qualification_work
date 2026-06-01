@@ -9,6 +9,7 @@ import styles from './Modal.module.scss';
 type ModalProps = {
     title: string;
     ariaLabel?: string;
+    actions?: ReactNode;
     closeButtonTestId?: string;
     testId?: string;
     footer?: ReactNode;
@@ -35,6 +36,7 @@ type ModalProps = {
 export const Modal = ({
     title,
     ariaLabel,
+    actions,
     closeButtonTestId,
     testId,
     footer,
@@ -81,17 +83,25 @@ export const Modal = ({
                 style={height !== undefined ? { height: `${height}px` } : undefined}
                 onClick={e => e.stopPropagation()}
             >
-                <div data-stack="h" data-align="center" data-justify="between">
+                <div className={styles['header']} data-stack="h" data-align="center">
                     <span className={styles['title']}>{title}</span>
-                    <IconButton
-                        data-p="xs"
-                        tone="nav"
-                        data-test-id={closeButtonTestId}
-                        aria-label="Close modal"
-                        onClick={onClose}
+                    <div
+                        className={styles['header-actions']}
+                        data-stack="h"
+                        data-gap="xs"
+                        data-align="center"
                     >
-                        <X size={20} strokeWidth={2.6} />
-                    </IconButton>
+                        {actions}
+                        <IconButton
+                            data-p="xs"
+                            tone="nav"
+                            data-test-id={closeButtonTestId}
+                            aria-label="Close modal"
+                            onClick={onClose}
+                        >
+                            <X size={20} strokeWidth={2.6} />
+                        </IconButton>
+                    </div>
                 </div>
                 <div data-display="grid" data-gap="md" className={styles['body-scroll']}>
                     {children}

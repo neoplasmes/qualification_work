@@ -1,0 +1,1 @@
+export { MergeFilesSection } from './MergeFilesSection';

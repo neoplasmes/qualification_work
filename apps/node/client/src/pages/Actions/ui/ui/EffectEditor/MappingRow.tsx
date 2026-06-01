@@ -119,9 +119,7 @@ export const MappingRow = ({
             )}
         </div>
         <IconButton
-            className={styles['value-icon-button']}
-            tone="transparent"
-            iconStrokeWidth={2.6}
+            tone="nav"
             data-test-id={actionsTestIds.removeValueButton}
             aria-label="Remove value"
             disabled={disabled || effect.values.length === 1}
@@ -131,7 +129,7 @@ export const MappingRow = ({
                 })
             }
         >
-            <X size={22} />
+            <X size={20} />
         </IconButton>
     </div>
 );

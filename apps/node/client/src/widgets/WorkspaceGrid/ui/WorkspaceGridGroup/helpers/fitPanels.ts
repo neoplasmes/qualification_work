@@ -7,7 +7,8 @@ import type { WorkspaceGridPanelModel } from '../../../model';
  */
 export const fitPanels = (
     availableSize: number,
-    panelModels: Map<unknown, WorkspaceGridPanelModel>
+    panelModels: Map<unknown, WorkspaceGridPanelModel>,
+    preferredModel?: WorkspaceGridPanelModel
 ) => {
     if (availableSize <= 0 || panelModels.size === 0) {
         return;
@@ -50,9 +51,15 @@ export const fitPanels = (
             model.setFittedSizePx(minSizes[i] + share);
         });
     } else if (totalSize < availableSize) {
-        // expand the second-to-last panel (center content area) so edge panels stay near their
-        // initial size and remain freely resizable; fall back to last panel for <= 2 panels
-        const targetIdx = models.length > 2 ? models.length - 2 : models.length - 1;
+        const preferredIdx = preferredModel ? models.indexOf(preferredModel) : -1;
+        // Expand the explicit content panel when provided. Fallback keeps legacy behaviour
+        // for callers that do not mark a grow target.
+        const targetIdx =
+            preferredIdx >= 0
+                ? preferredIdx
+                : models.length > 2
+                  ? models.length - 2
+                  : models.length - 1;
         models[targetIdx].setFittedSizePx(sizes[targetIdx] + availableSize - totalSize);
     }
 };

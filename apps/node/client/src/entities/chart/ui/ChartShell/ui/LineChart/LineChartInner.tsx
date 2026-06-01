@@ -12,7 +12,7 @@ import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
 import { formatAxisNumber, formatChartCell } from '../../../../lib/formatChartCell';
 import type { ChartSeries } from '../../../../lib/parseChartData';
 
-import { getChartTooltipPoint } from '../../lib';
+import { getAdaptiveAxisTickLabels, getChartTooltipPoint } from '../../lib';
 import {
     CartesianChartTooltip,
     type HoveredCartesianPoint,
@@ -75,6 +75,13 @@ export const LineChartInner = ({
     const minValue = values.length ? Math.min(...values, 0) : 0;
     const maxValue = values.length ? Math.max(...values, 1) : 1;
     const margin = getLineChartMargin(rotateLabels, height, showAxisTickLabels);
+    const xAxisTickLabels = showAxisTickLabels
+        ? getAdaptiveAxisTickLabels({
+              labels,
+              availableSpace: Math.max(0, width - margin.left - margin.right),
+              minSpacing: rotateLabels ? 48 : 72,
+          })
+        : [];
 
     const handlePointerMove = ({
         datum,
@@ -115,7 +122,8 @@ export const LineChartInner = ({
                 />
                 <Axis
                     orientation="bottom"
-                    numTicks={labels.length}
+                    numTicks={xAxisTickLabels.length}
+                    tickValues={xAxisTickLabels}
                     tickFormat={v =>
                         showAxisTickLabels
                             ? formatChartCell(v, {

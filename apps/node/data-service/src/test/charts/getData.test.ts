@@ -55,7 +55,7 @@ describe('GET /api/charts/:id/data - bar', () => {
         const chartId = await createChart(orgId, datasetId, {
             kind: 'bar',
             dimension: { columnId: cityId },
-            measures: [{ columnId: scoreId, aggregate: 'avg', valueFormat: 'rub' }],
+            measures: [{ columnId: scoreId, aggregate: 'avg', valueFormat: '₽' }],
         });
 
         const res = await api(`/api/charts/${chartId}/data`);
@@ -73,7 +73,7 @@ describe('GET /api/charts/:id/data - bar', () => {
         expect(body.columns[1]).toMatchObject({
             name: 'm0',
             role: 'measure',
-            valueFormat: 'rub',
+            valueFormat: '₽',
         });
         expect(body.rows.length).toBeGreaterThan(0);
         expect(body.truncated).toBe(false);

@@ -3,7 +3,7 @@ import {
     type DashboardItemLayoutInput,
 } from '@qualification-work/types';
 import { GridStack, type GridItemHTMLElement, type GridStackOptions } from 'gridstack';
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useRafThrottle } from '@/shared/lib/useRafThrottle';
 
@@ -31,14 +31,20 @@ export type DashboardGridItem = {
     minH: number;
 };
 
-const gridOptions: GridStackOptions = {
+const getInitialCellHeight = (container: HTMLElement) => {
+    const width = container.clientWidth;
+
+    return width > 0 ? getResponsiveCellHeight(width) : BASE_CELL_HEIGHT;
+};
+
+const createGridOptions = (cellHeight: number): GridStackOptions => ({
     column: dashboardGridColumns,
-    cellHeight: BASE_CELL_HEIGHT,
+    cellHeight,
     margin: 0,
     float: false,
     // the whole cell drags, except interactive controls
     draggable: { cancel: 'button, a, input, select, textarea, .no-drag' },
-};
+});
 
 const getGridElement = (content: HTMLElement) =>
     content.closest('.grid-stack-item') as GridItemHTMLElement | null;
@@ -95,13 +101,16 @@ export const useDashboardGrid = (
         grid.cellHeight(next);
     });
 
-    useEffect(() => {
-        if (!containerRef.current) {
+    useLayoutEffect(() => {
+        const container = containerRef.current;
+        if (!container) {
             return;
         }
 
-        const grid = GridStack.init(gridOptions, containerRef.current);
+        const initialCellHeight = getInitialCellHeight(container);
+        const grid = GridStack.init(createGridOptions(initialCellHeight), container);
         gridRef.current = grid;
+        cellHeightRef.current = initialCellHeight;
 
         const handleLayoutStop = () => {
             if (applyingRef.current) {
@@ -115,8 +124,7 @@ export const useDashboardGrid = (
         grid.on('resizestop', handleLayoutStop);
 
         const resizeObserver = new ResizeObserver(() => applyResponsiveCellHeight());
-        resizeObserver.observe(containerRef.current);
-        applyResponsiveCellHeight();
+        resizeObserver.observe(container);
 
         return () => {
             resizeObserver.disconnect();
@@ -129,7 +137,7 @@ export const useDashboardGrid = (
         };
     }, [applyResponsiveCellHeight]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const grid = gridRef.current;
         if (!grid) {
             return;

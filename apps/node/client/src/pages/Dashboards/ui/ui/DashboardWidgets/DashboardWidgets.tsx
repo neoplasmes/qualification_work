@@ -27,6 +27,7 @@ type DashboardWidgetsProps = {
     items: DashboardItem[];
     chartsById: Map<string, Chart>;
     datasetColumnsById: Map<string, DatasetColumn[]>;
+    datasetNamesById: Map<string, string>;
     removing: boolean;
     onRemoveItem: (itemId: string) => void;
     onEditMetric: (item: Extract<DashboardItem, { kind: 'metric' }>) => void;
@@ -54,6 +55,7 @@ export const DashboardWidgets = ({
     items,
     chartsById,
     datasetColumnsById,
+    datasetNamesById,
     removing,
     onRemoveItem,
     onEditMetric,
@@ -69,6 +71,8 @@ export const DashboardWidgets = ({
             return (
                 <MetricWidget
                     item={item}
+                    columns={datasetColumnsById.get(item.datasetId) ?? []}
+                    sourceName={datasetNamesById.get(item.datasetId)}
                     removing={removing}
                     onRemoveItem={onRemoveItem}
                     onEditItem={onEditMetric}
@@ -83,6 +87,11 @@ export const DashboardWidgets = ({
                 item={item}
                 chart={chart}
                 columns={datasetColumnsById.get(chart?.datasetId ?? '') ?? []}
+                sourceName={
+                    chart
+                        ? (datasetNamesById.get(chart.datasetId) ?? chart.datasetId)
+                        : undefined
+                }
                 removing={removing}
                 onRemoveItem={onRemoveItem}
             />

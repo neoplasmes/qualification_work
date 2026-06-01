@@ -1,0 +1,1 @@
+export { MetricTrendDescription } from './MetricTrendDescription';

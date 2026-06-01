@@ -1,4 +1,3 @@
-import { ParentSize } from '@visx/responsive';
 import {
     Axis,
     BarGroup,
@@ -10,14 +9,19 @@ import {
 import { useMemo, useState } from 'react';
 
 import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
-import { DEFAULT_CHART_COLOR, mixChartColors } from '../../../../lib';
+import { DEFAULT_CHART_COLOR } from '../../../../lib';
 import { formatAxisNumber } from '../../../../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../../../../lib/parseChartData';
 
 import {
+    getAdaptiveAxisTickLabels,
+    getChartAspectFrameStyle,
     getChartFrameStyle,
     getChartTooltipPoint,
+    getConstrainedChartFrameSize,
     getResolvedChartFrameHeight,
+    useRafChartSize,
+    type ChartAspectRatioConstraint,
     type ChartFrameHeight,
 } from '../../lib';
 import {
@@ -32,7 +36,7 @@ import {
     getSeriesColor,
     getValues,
     GROUP_PADDING,
-    MIN_CHART_WIDTH,
+    shouldHideGroupedBarXAxisLabels,
     shouldRotateBarAxisLabels,
 } from './barChartConfig';
 import { ReferenceLine, ValueLabels } from './BarChartLayers';
@@ -54,7 +58,8 @@ type BarChartGroupedInnerProps = {
 const getBarChartMargin = (
     rotateLabels: boolean,
     height: number,
-    showAxisTickLabels: boolean
+    showAxisTickLabels: boolean,
+    showXAxisTickLabels = showAxisTickLabels
 ) => {
     if (!showAxisTickLabels) {
         return { top: 12, right: 8, bottom: 12, left: 12 };
@@ -65,9 +70,11 @@ const getBarChartMargin = (
     return {
         top: compact ? 16 : 32,
         right: 16,
-        bottom: rotateLabels
-            ? Math.min(112, Math.max(56, height * 0.34))
-            : Math.min(48, Math.max(32, height * 0.2)),
+        bottom: showXAxisTickLabels
+            ? rotateLabels
+                ? Math.min(112, Math.max(56, height * 0.34))
+                : Math.min(48, Math.max(32, height * 0.2))
+            : 16,
         left: compact ? 52 : 64,
     };
 };
@@ -86,11 +93,34 @@ const BarChartGroupedInner = ({
     const rotateLabels =
         showAxisTickLabels &&
         shouldRotateBarAxisLabels(labels, width, labelTimeGranularity);
+    const initialMargin = getBarChartMargin(rotateLabels, height, showAxisTickLabels);
+    const showXAxisTickLabels =
+        showAxisTickLabels &&
+        !shouldHideGroupedBarXAxisLabels(
+            labels,
+            width,
+            height,
+            initialMargin.bottom,
+            labelTimeGranularity
+        );
+    const effectiveRotateLabels = showXAxisTickLabels && rotateLabels;
     const values = useMemo(() => getValues(series), [series]);
     const minValue = values.length ? Math.min(...values) : 0;
     const maxValue = values.length ? Math.max(...values) : 1;
     const medianValue = getMedianValue(values);
-    const margin = getBarChartMargin(rotateLabels, height, showAxisTickLabels);
+    const margin = getBarChartMargin(
+        effectiveRotateLabels,
+        height,
+        showAxisTickLabels,
+        showXAxisTickLabels
+    );
+    const xAxisTickLabels = showXAxisTickLabels
+        ? getAdaptiveAxisTickLabels({
+              labels,
+              availableSpace: Math.max(0, width - margin.left - margin.right),
+              minSpacing: effectiveRotateLabels ? 48 : 72,
+          })
+        : [];
 
     const handlePointerMove = ({
         datum,
@@ -138,19 +168,24 @@ const BarChartGroupedInner = ({
                 />
                 <Axis
                     orientation="bottom"
-                    numTicks={labels.length}
+                    numTicks={xAxisTickLabels.length}
+                    tickValues={xAxisTickLabels}
                     tickFormat={v =>
-                        showAxisTickLabels
-                            ? formatBarAxisLabel(v, rotateLabels, labelTimeGranularity)
+                        showXAxisTickLabels
+                            ? formatBarAxisLabel(
+                                  v,
+                                  effectiveRotateLabels,
+                                  labelTimeGranularity
+                              )
                             : ''
                     }
                     tickLabelProps={() => ({
                         fill: C.muted,
                         fontSize: 11,
-                        textAnchor: rotateLabels ? 'end' : 'middle',
-                        angle: rotateLabels ? -45 : 0,
-                        dx: rotateLabels ? '-0.25em' : '0',
-                        dy: rotateLabels ? '0.25em' : '0.33em',
+                        textAnchor: effectiveRotateLabels ? 'end' : 'middle',
+                        angle: effectiveRotateLabels ? -45 : 0,
+                        dx: effectiveRotateLabels ? '-0.25em' : '0',
+                        dy: effectiveRotateLabels ? '0.25em' : '0.33em',
                     })}
                 />
                 <BarGroup
@@ -165,13 +200,7 @@ const BarChartGroupedInner = ({
                             data={seriesItem.points}
                             xAccessor={point => point.label}
                             yAccessor={point => point.value}
-                            colorAccessor={point => {
-                                const base = getSeriesColor(color, seriesIndex);
-
-                                return hovered && hovered.label !== point.label
-                                    ? mixChartColors(base, C.surface, 0.52)
-                                    : base;
-                            }}
+                            colorAccessor={() => getSeriesColor(color, seriesIndex)}
                             radius={4}
                             radiusTop
                         />
@@ -191,6 +220,7 @@ type BarChartGroupedProps = {
     valueFormat?: MeasureValueFormat;
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
     showLegend?: boolean;
 };
@@ -202,35 +232,46 @@ export const BarChartGrouped = ({
     valueFormat,
     color = DEFAULT_CHART_COLOR,
     height,
+    aspectRatioConstraint,
     showAxisTickLabels = true,
     showLegend = false,
-}: BarChartGroupedProps) => (
-    <div
-        className={[styles['root'], height === 'fill' ? styles['height-fill'] : '']
-            .filter(Boolean)
-            .join(' ')}
-    >
-        <ParentSize style={getChartFrameStyle(height)}>
-            {({ width, height: measuredHeight }) => {
-                const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+}: BarChartGroupedProps) => {
+    const { ref, width, height: measuredHeight } = useRafChartSize();
+    const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+    const frame = getConstrainedChartFrameSize(width, chartHeight, aspectRatioConstraint);
+    const chartContent = (
+        <BarChartGroupedInner
+            series={series}
+            labels={labels}
+            labelTimeGranularity={labelTimeGranularity}
+            valueFormat={valueFormat}
+            color={color}
+            width={frame.width}
+            height={frame.height}
+            showAxisTickLabels={showAxisTickLabels}
+        />
+    );
 
-                return width >= MIN_CHART_WIDTH && chartHeight > 0 ? (
-                    <BarChartGroupedInner
-                        series={series}
-                        labels={labels}
-                        labelTimeGranularity={labelTimeGranularity}
-                        valueFormat={valueFormat}
-                        color={color}
-                        width={width}
-                        height={chartHeight}
-                        showAxisTickLabels={showAxisTickLabels}
-                    />
-                ) : width > 0 ? (
-                    <div style={{ height: chartHeight }} />
-                ) : null;
-            }}
-        </ParentSize>
+    let content = null;
+    if (width > 0 && chartHeight > 0) {
+        content = aspectRatioConstraint ? (
+            <div style={getChartAspectFrameStyle(chartHeight)}>{chartContent}</div>
+        ) : (
+            chartContent
+        );
+    }
 
-        {showLegend && <BarChartLegend series={series} color={color} />}
-    </div>
-);
+    return (
+        <div
+            className={[styles['root'], height === 'fill' ? styles['height-fill'] : '']
+                .filter(Boolean)
+                .join(' ')}
+        >
+            <div ref={ref} style={getChartFrameStyle(height)}>
+                {content}
+            </div>
+
+            {showLegend && <BarChartLegend series={series} color={color} />}
+        </div>
+    );
+};

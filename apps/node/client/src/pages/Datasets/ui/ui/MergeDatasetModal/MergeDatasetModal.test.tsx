@@ -123,10 +123,14 @@ describe('MergeDatasetModal', () => {
             />
         );
 
+        expect(screen.queryByText('Mode')).not.toBeInTheDocument();
         expect(screen.queryByText('Merge keys')).not.toBeInTheDocument();
 
         await user.click(screen.getByRole('tab', { name: 'Merge by key' }));
-        await user.click(screen.getByLabelText('ID'));
+        const idChip = screen.getByRole('button', { name: 'ID' });
+        expect(screen.queryByRole('checkbox', { name: 'ID' })).not.toBeInTheDocument();
+        await user.click(idChip);
+        expect(idChip).toHaveAttribute('aria-pressed', 'true');
         await user.upload(
             queryByDataTestId(
                 container,
@@ -156,8 +160,11 @@ describe('MergeDatasetModal', () => {
             />
         );
 
-        await user.click(screen.getByLabelText(/Create new dataset/));
+        await user.click(screen.getByRole('switch', { name: /Create new dataset/ }));
 
+        expect(screen.getByRole('tooltip')).toHaveTextContent(
+            'Copy current rows first, then apply imported rows.'
+        );
         expect(screen.getByText('Dataset name')).toBeInTheDocument();
     });
 });

@@ -177,7 +177,7 @@ export const UploadDatasetModal = ({
           : 'Upload dataset';
 
     return (
-        <Modal title="Upload dataset" onClose={onClose}>
+        <Modal title="Upload dataset" padding="md" onClose={onClose}>
             <Dropzone
                 accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 aria-label="Dataset file"

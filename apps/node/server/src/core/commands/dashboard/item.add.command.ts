@@ -47,6 +47,7 @@ export class AddDashboardItemCommand implements Executable<
                         'name',
                         'expression',
                         'format',
+                        'valueMultiplier',
                         'target',
                         'targetDirection',
                         'showTrend',

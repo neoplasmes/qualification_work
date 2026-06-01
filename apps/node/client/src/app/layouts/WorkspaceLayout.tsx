@@ -165,7 +165,12 @@ export const WorkspaceLayout = () => {
 
     return (
         <WorkspaceGrid resizerSize={4}>
-            <WorkspaceGrid.Group direction="row" pageKey="workspace" collapse={collapse}>
+            <WorkspaceGrid.Group
+                direction="row"
+                pageKey="workspace"
+                growPanelKey="center"
+                collapse={collapse}
+            >
                 <WorkspaceGrid.Panel
                     panelKey="left"
                     initialSize="320px"
@@ -177,7 +182,12 @@ export const WorkspaceLayout = () => {
                         LazyComponent={Left}
                     />
                 </WorkspaceGrid.Panel>
-                <WorkspaceGrid.Panel initialSize="800px" minSize="600px" maxSize="9999px">
+                <WorkspaceGrid.Panel
+                    panelKey="center"
+                    initialSize="800px"
+                    minSize="600px"
+                    maxSize="9999px"
+                >
                     <ClientOnlyDeffered
                         fallback={workspaceFallback}
                         LazyComponent={Center}

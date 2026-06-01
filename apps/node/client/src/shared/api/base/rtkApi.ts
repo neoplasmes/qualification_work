@@ -10,7 +10,16 @@ const apiBaseUrl = typeof window === 'undefined' ? serverApiBaseUrl : browserApi
 
 export const api = createApi({
     reducerPath: 'rtkApi',
-    tagTypes: ['Auth', 'Actions', 'ActionRuns', 'Charts', 'Dashboards', 'Datasets', 'DatasetRows'],
+    tagTypes: [
+        'Auth',
+        'Actions',
+        'ActionRuns',
+        'Charts',
+        'ChartData',
+        'Dashboards',
+        'Datasets',
+        'DatasetRows',
+    ],
     baseQuery: fetchBaseQuery({
         baseUrl: apiBaseUrl,
         credentials: 'include',

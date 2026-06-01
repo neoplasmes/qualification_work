@@ -69,8 +69,18 @@
     left: 0;
     z-index: 60;
 
-    max-width: 260px;
+    --tooltip-x: 0;
+    --tooltip-y: 0;
+    --tooltip-gap: var(--spacing-sm);
+
+    max-width: min(260px, calc(100vw - 16px));
     overflow-wrap: break-word;
-    transform: translateX(var(--spacing-sm)) translateY(var(--spacing-sm));
+    transform: translateX(var(--tooltip-x)) translateY(var(--tooltip-y))
+        translateX(var(--tooltip-gap));
     will-change: transform;
+
+    &[data-placement='left'] {
+        transform: translateX(var(--tooltip-x)) translateY(var(--tooltip-y))
+            translateX(calc(-100% - var(--tooltip-gap)));
+    }
 }

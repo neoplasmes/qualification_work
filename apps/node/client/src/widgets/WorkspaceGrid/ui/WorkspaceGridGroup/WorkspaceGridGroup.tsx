@@ -23,6 +23,10 @@ type WorkspaceGridGroupProps<K extends string = string> = {
     direction: WorkspaceGridGroupDirection;
     pageKey?: string;
     /**
+     * visible panel that receives extra free space when the group grows
+     */
+    growPanelKey?: string;
+    /**
      * external collapse control, panels are addressed by their panelKey
      */
     collapse?: WorkspaceGridCollapseController<K>;
@@ -43,6 +47,7 @@ export const WorkspaceGridGroup = <K extends string = string>({
     direction,
     children,
     pageKey,
+    growPanelKey,
     collapse,
 }: WorkspaceGridGroupProps<K>) => {
     const groupRef = useRef<HTMLDivElement>(null);
@@ -60,7 +65,7 @@ export const WorkspaceGridGroup = <K extends string = string>({
 
     const onResizeEndRef = useRef<() => void>(() => {});
 
-    const { linked, orderedModels, hidden } = useMemo(() => {
+    const { growPanelModel, linked, orderedModels, hidden } = useMemo(() => {
         const childrenArray = Children.toArray(children).filter(
             isPanelElement
         ) as WorkspaceGridPanelElementType[];
@@ -74,6 +79,7 @@ export const WorkspaceGridGroup = <K extends string = string>({
 
         const orderedModels: WorkspaceGridPanelModel[] = [];
         const hidden: boolean[] = [];
+        let growPanelModel: WorkspaceGridPanelModel | undefined;
 
         childrenArray.forEach((child, i) => {
             const { initialSize, minSize, maxSize, panelKey } = child.props;
@@ -97,6 +103,9 @@ export const WorkspaceGridGroup = <K extends string = string>({
             }
 
             orderedModels.push(model);
+            if (panelKey === growPanelKey) {
+                growPanelModel = model;
+            }
             hidden.push(
                 panelKey != null && (collapse?.isCollapsed(panelKey as K) ?? false)
             );
@@ -141,8 +150,8 @@ export const WorkspaceGridGroup = <K extends string = string>({
             }
         });
 
-        return { linked, orderedModels, hidden };
-    }, [children, direction, collapse?.collapsed]);
+        return { growPanelModel, linked, orderedModels, hidden };
+    }, [children, direction, growPanelKey, collapse?.collapsed]);
 
     const orderedModelsRef = useRef(orderedModels);
     orderedModelsRef.current = orderedModels;
@@ -177,7 +186,7 @@ export const WorkspaceGridGroup = <K extends string = string>({
         const n = visible.size;
         const totalGapPx = n > 1 ? resizerSize * (n - 1) : 0;
 
-        fitPanels(fullSize - totalGapPx, visible);
+        fitPanels(fullSize - totalGapPx, visible, growPanelModel);
     };
 
     useLayoutEffect(() => {
@@ -203,7 +212,7 @@ export const WorkspaceGridGroup = <K extends string = string>({
     // refit when the panel composition, direction or resizer size changes
     useLayoutEffect(() => {
         applyFitRef.current();
-    }, [orderedModels, hidden, direction, resizerSize]);
+    }, [orderedModels, hidden, direction, resizerSize, growPanelModel]);
 
     return (
         <div

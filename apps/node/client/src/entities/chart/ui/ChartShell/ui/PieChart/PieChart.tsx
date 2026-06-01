@@ -1,5 +1,4 @@
 import { Group } from '@visx/group';
-import { ParentSize } from '@visx/responsive';
 import { scaleOrdinal } from '@visx/scale';
 import { Pie } from '@visx/shape';
 import { useState } from 'react';
@@ -10,6 +9,7 @@ import type { ChartDataPoint } from '../../../../lib/parseChartData';
 import {
     getChartFrameStyle,
     getResolvedChartFrameHeight,
+    useRafChartSize,
     type ChartFrameHeight,
 } from '../../lib';
 import { PieChartTooltip, type HoveredPieSlice } from '../PieChartTooltip';
@@ -28,8 +28,6 @@ const PIE_COLORS = [
     '#e090b8',
     '#6e1f47',
 ];
-
-const MIN_CHART_WIDTH = 180;
 
 // big slice gets a label in the slice itself; small slice gets a leader line outside
 const INLINE_PCT_THRESHOLD = 7;
@@ -236,21 +234,20 @@ export const PieChart = ({
     data,
     color = DEFAULT_CHART_COLOR,
     height,
-}: PieChartProps) => (
-    <ParentSize style={getChartFrameStyle(height)}>
-        {({ width, height: measuredHeight }) => {
-            const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+}: PieChartProps) => {
+    const { ref, width, height: measuredHeight } = useRafChartSize();
+    const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
 
-            return width >= MIN_CHART_WIDTH && chartHeight > 0 ? (
-                <PieChartInner
-                    data={data}
-                    color={color}
-                    width={width}
-                    height={chartHeight}
-                />
-            ) : width > 0 ? (
-                <div style={{ height: chartHeight }} />
-            ) : null;
-        }}
-    </ParentSize>
-);
+    let content = null;
+    if (width > 0 && chartHeight > 0) {
+        content = (
+            <PieChartInner data={data} color={color} width={width} height={chartHeight} />
+        );
+    }
+
+    return (
+        <div ref={ref} style={getChartFrameStyle(height)}>
+            {content}
+        </div>
+    );
+};

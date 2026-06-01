@@ -1,12 +1,12 @@
 import { Plus, X } from 'lucide-react';
 import { Fragment } from 'react';
 
-import { AGGREGATE_LABELS, VALUE_FORMAT_LABELS } from '@/entities/chart';
+import { AGGREGATE_LABELS } from '@/entities/chart';
 
 import { Button, IconButton, Select, TextInput } from '@/shared/ui';
 
-import type { Aggregate, MeasureValueFormat } from '../../../api';
-import { aggregates, valueFormats } from '../../../const';
+import type { Aggregate } from '../../../api';
+import { aggregates } from '../../../const';
 import { MAX_MEASURES, needsColumn } from '../../../lib';
 import type { ChartBuilderDerivedState, ChartBuilderState } from '../../../model';
 
@@ -16,6 +16,8 @@ import styles from '../../DatasetChartBuilder.module.scss';
 
 const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(max, value));
+
+const measureFormatMaxLength = 24;
 
 type MeasureSettingsSectionProps = {
     derived: ChartBuilderDerivedState;
@@ -96,28 +98,20 @@ export const MeasureSettingsSection = ({
 
                     <label className={styles['control']} data-stack="v" data-gap="xs">
                         <span>Value format</span>
-                        <Select
+                        <TextInput
                             value={measure.valueFormat}
+                            maxLength={measureFormatMaxLength}
+                            placeholder="%, ₽, шт"
                             onChange={event =>
-                                fields.setMeasureValueFormat(
-                                    index,
-                                    event.target.value as MeasureValueFormat
-                                )
+                                fields.setMeasureValueFormat(index, event.target.value)
                             }
-                        >
-                            {valueFormats.map(item => (
-                                <option key={item} value={item}>
-                                    {VALUE_FORMAT_LABELS[item]}
-                                </option>
-                            ))}
-                        </Select>
+                        />
                     </label>
                 </Fragment>
             ))}
 
             {canAddMeasure && (
                 <Button
-                    tone="ghost"
                     className={styles['add-measure']}
                     data-pl="none"
                     onClick={fields.addMeasure}

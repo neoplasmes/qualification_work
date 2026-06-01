@@ -21,6 +21,7 @@ import {
     selectWorkspaceMetricTargetDirection,
     selectWorkspaceMetricTimeBucket,
     selectWorkspaceMetricTimeColumn,
+    selectWorkspaceMetricValueMultiplier,
     setWorkspaceMetricExpression,
     setWorkspaceMetricForm,
     setWorkspaceMetricFormat,
@@ -30,6 +31,7 @@ import {
     setWorkspaceMetricTargetDirection,
     setWorkspaceMetricTimeBucket,
     setWorkspaceMetricTimeColumn,
+    setWorkspaceMetricValueMultiplier,
     type WorkspaceMetricForm,
 } from '../../model';
 
@@ -53,10 +55,27 @@ export type MetricConfigForm = Pick<
 const getFirstDatasetId = (datasets: DatasetMetadata[] | undefined) =>
     datasets?.[0]?.dataset.id ?? '';
 
+const getLegacyMetricFormat = (format: DashboardMetricItem['format']) => {
+    if (format === 'currency') {
+        return '₽';
+    }
+    if (format === 'percent') {
+        return '%';
+    }
+    if (format === 'number') {
+        return '';
+    }
+
+    return format;
+};
+
 const itemToForm = (item: DashboardMetricItem): WorkspaceMetricForm => ({
     name: item.name,
     expression: item.expression,
-    format: item.format,
+    format: getLegacyMetricFormat(item.format),
+    valueMultiplier: String(
+        item.valueMultiplier ?? (item.format === 'percent' ? 100 : 1)
+    ),
     target: item.target === null ? '' : String(item.target),
     targetDirection: item.targetDirection ?? 'higher',
     showTrend: item.showTrend,
@@ -78,6 +97,7 @@ export const useDashboardMetricModal = ({
     const name = useSelector(selectWorkspaceMetricName);
     const expression = useSelector(selectWorkspaceMetricExpression);
     const format = useSelector(selectWorkspaceMetricFormat);
+    const valueMultiplier = useSelector(selectWorkspaceMetricValueMultiplier);
     const target = useSelector(selectWorkspaceMetricTarget);
     const targetDirection = useSelector(selectWorkspaceMetricTargetDirection);
     const showTrend = useSelector(selectWorkspaceMetricShowTrend);
@@ -165,6 +185,13 @@ export const useDashboardMetricModal = ({
         [dispatch]
     );
 
+    const setValueMultiplier = useCallback(
+        (value: string) => {
+            dispatch(setWorkspaceMetricValueMultiplier(value));
+        },
+        [dispatch]
+    );
+
     const submit = useCallback(
         async (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
@@ -189,6 +216,15 @@ export const useDashboardMetricModal = ({
                 return false;
             }
 
+            const trimmedValueMultiplier = valueMultiplier.trim();
+            const parsedValueMultiplier =
+                trimmedValueMultiplier === '' ? 1 : Number(trimmedValueMultiplier);
+            if (!Number.isFinite(parsedValueMultiplier)) {
+                setError('Multiplier must be a number.');
+
+                return false;
+            }
+
             const configPayload = {
                 target: parsedTarget,
                 targetDirection: parsedTarget === null ? null : targetDirection,
@@ -206,7 +242,8 @@ export const useDashboardMetricModal = ({
                         datasetId: selectedDatasetId,
                         name: nextName,
                         expression: nextExpression,
-                        format,
+                        format: format.trim(),
+                        valueMultiplier: parsedValueMultiplier,
                         ...configPayload,
                     }).unwrap();
                 } else {
@@ -215,7 +252,8 @@ export const useDashboardMetricModal = ({
                         datasetId: selectedDatasetId,
                         name: nextName,
                         expression: nextExpression,
-                        format,
+                        format: format.trim(),
+                        valueMultiplier: parsedValueMultiplier,
                         ...configPayload,
                     }).unwrap();
                 }
@@ -252,6 +290,7 @@ export const useDashboardMetricModal = ({
             timeBucket,
             timeColumn,
             updateDashboardMetric,
+            valueMultiplier,
         ]
     );
 
@@ -262,6 +301,7 @@ export const useDashboardMetricModal = ({
         error,
         expression,
         format,
+        valueMultiplier,
         name,
         config,
         close,
@@ -270,6 +310,7 @@ export const useDashboardMetricModal = ({
         setDatasetId: setSelectedDatasetId,
         setExpression,
         setFormat,
+        setValueMultiplier,
         setName,
         setConfig,
         submit,

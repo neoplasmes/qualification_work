@@ -4,6 +4,12 @@
     container-type: inline-size;
 }
 
+.widgets::after {
+    display: block;
+    height: 200px;
+    content: '';
+}
+
 .grid {
     width: 100%;
     min-height: 144px;

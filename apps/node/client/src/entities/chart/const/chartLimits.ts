@@ -1,1 +1,1 @@
-export const BAR_CHART_ROWS_LIMIT = 20;
+export const BAR_CHART_ROWS_LIMIT = 100;

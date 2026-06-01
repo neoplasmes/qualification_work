@@ -7,6 +7,8 @@ import type { DatasetColumn } from '@/entities/dataset';
 
 import { Card, IconButton, StatusMessage } from '@/shared/ui';
 
+import { WidgetSourceLabel } from '../DashboardWidgets/ui/WidgetSourceLabel';
+
 import styles from './DashboardChartCard.module.scss';
 
 type DashboardChartCardProps = {
@@ -14,6 +16,7 @@ type DashboardChartCardProps = {
     chart: Chart | undefined;
     columns: DatasetColumn[];
     removing: boolean;
+    sourceName?: string;
     showDescription: boolean;
     showAxisTickLabels: boolean;
     onRemove: (itemId: string) => void;
@@ -25,6 +28,7 @@ export const DashboardChartCard = ({
     chart,
     columns,
     removing,
+    sourceName,
     showDescription,
     showAxisTickLabels,
     onRemove,
@@ -32,6 +36,9 @@ export const DashboardChartCard = ({
 }: DashboardChartCardProps) => {
     const navigate = useNavigate();
     const chartDataQuery = useGetChartDataQuery(item.chartId);
+    const chartData = chartDataQuery.currentData ?? null;
+    const isLoadingChartData =
+        !chartData && (chartDataQuery.isLoading || chartDataQuery.isFetching);
     const chartName = chart?.name ?? item.chartId;
     const handleEdit = () => {
         navigate(`/charts/edit?id=${encodeURIComponent(item.chartId)}`);
@@ -79,25 +86,30 @@ export const DashboardChartCard = ({
                 </div>
             </div>
 
-            {chartDataQuery.isLoading && (
-                <StatusMessage>Loading chart data...</StatusMessage>
+            {isLoadingChartData && <StatusMessage>Loading chart data...</StatusMessage>}
+
+            {chartDataQuery.isError && !chartData && (
+                <StatusMessage tone="error">Unable to load chart data.</StatusMessage>
             )}
 
-            {chartDataQuery.data && (
+            {chartData && (
                 <div className={styles['chart-area']}>
                     <ChartCard
                         chart={chart}
                         columns={columns}
-                        data={chartDataQuery.data}
+                        data={chartData}
                         ariaLabel={`${chart?.name ?? item.chartId} dashboard chart`}
                         chartHeight="fill"
                         descriptionSize="small"
+                        constrainAspectRatio
                         showDescription={showDescription}
                         showAxisTickLabels={showAxisTickLabels}
                         showLegend={false}
                     />
                 </div>
             )}
+
+            <WidgetSourceLabel sourceName={sourceName} />
         </Card>
     );
 };

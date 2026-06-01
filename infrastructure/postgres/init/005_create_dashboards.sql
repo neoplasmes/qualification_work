@@ -5,11 +5,6 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
-DO $$ BEGIN
-    CREATE TYPE dashboards.metric_format AS ENUM ('currency', 'percent', 'number');
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
 ------------------------------------------------------------------------------------------------------------------
 -- Инстанс дашборда
 CREATE TABLE IF NOT EXISTS dashboards.dashboards (
@@ -68,7 +63,9 @@ CREATE TABLE IF NOT EXISTS dashboards.item_metrics (
 
     expression              TEXT NOT NULL,
 
-    format                  dashboards.metric_format NOT NULL
+    format                  TEXT NOT NULL DEFAULT '',
+
+    value_multiplier        NUMERIC NOT NULL DEFAULT 1
 );
 
 CREATE INDEX IF NOT EXISTS item_metrics_dataset_id_idx ON dashboards.item_metrics (dataset_id);

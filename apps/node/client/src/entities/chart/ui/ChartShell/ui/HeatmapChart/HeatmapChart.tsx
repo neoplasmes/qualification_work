@@ -1,4 +1,3 @@
-import { useParentSize } from '@visx/responsive';
 import { useMemo } from 'react';
 
 import { compareCategoryLabels } from '@/shared/lib/dayOfWeek';
@@ -7,8 +6,12 @@ import type { ChartResultColumn } from '../../../../api';
 import { DEFAULT_CHART_COLOR } from '../../../../lib';
 
 import {
+    getChartAspectFrameStyle,
     getChartFrameStyle,
+    getConstrainedChartFrameSize,
     getResolvedChartFrameHeight,
+    useRafChartSize,
+    type ChartAspectRatioConstraint,
     type ChartFrameHeight,
 } from '../../lib';
 import {
@@ -17,7 +20,6 @@ import {
     HEATMAP_GAP,
     HEATMAP_MARGIN,
     HEATMAP_MAX_CELL_SIZE,
-    HEATMAP_MIN_WIDTH,
     type HeatmapMargin,
 } from './heatmapChartConfig';
 import { HeatmapChartInner } from './HeatmapChartInner';
@@ -27,6 +29,7 @@ type HeatmapChartProps = {
     data: HeatmapCell[];
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
 };
 
@@ -71,16 +74,17 @@ export const HeatmapChart = ({
     data,
     color = DEFAULT_CHART_COLOR,
     height,
+    aspectRatioConstraint,
     showAxisTickLabels = true,
 }: HeatmapChartProps) => {
     const fillHeight = height === 'fill';
     const margin = showAxisTickLabels ? HEATMAP_MARGIN : HEATMAP_COMPACT_MARGIN;
     const {
-        parentRef,
+        ref,
         width,
         height: measuredHeight,
-    } = useParentSize({
-        ignoreDimensions: fillHeight ? undefined : 'height',
+    } = useRafChartSize({
+        ignoreHeight: !fillHeight,
     });
     const xType = data[0]?.xType;
     const yType = data[0]?.yType;
@@ -112,39 +116,45 @@ export const HeatmapChart = ({
 
     let content = null;
 
-    if (width > 0 && width < HEATMAP_MIN_WIDTH) {
-        content = <div style={{ height: availableHeight ?? baseHeight }} />;
-    }
-
-    if (width >= HEATMAP_MIN_WIDTH && (!fillHeight || availableHeight)) {
-        const cellSize = getHeatmapCellSize(
+    if (width > 0 && (!fillHeight || availableHeight)) {
+        const chartHeight =
+            availableHeight ??
+            getHeatmapHeight(yValues.length, HEATMAP_DEFAULT_CELL_SIZE, margin);
+        const frame = getConstrainedChartFrameSize(
             width,
+            chartHeight,
+            aspectRatioConstraint
+        );
+        const cellSize = getHeatmapCellSize(
+            frame.width,
             xValues.length,
-            availableHeight,
+            frame.height,
             yValues.length,
             margin
         );
-        const chartHeight =
-            availableHeight ?? getHeatmapHeight(yValues.length, cellSize, margin);
-
-        content = (
+        const innerContent = (
             <HeatmapChartInner
                 data={data}
                 xValues={xValues}
                 yValues={yValues}
                 cellMap={cellMap}
-                width={width}
-                height={chartHeight}
+                width={frame.width}
+                height={frame.height}
                 cellSize={cellSize}
                 color={color}
                 margin={margin}
                 showAxisTickLabels={showAxisTickLabels}
             />
         );
+        content = aspectRatioConstraint ? (
+            <div style={getChartAspectFrameStyle(chartHeight)}>{innerContent}</div>
+        ) : (
+            innerContent
+        );
     }
 
     return (
-        <div ref={parentRef} style={rootStyle}>
+        <div ref={ref} style={rootStyle}>
             {content}
         </div>
     );

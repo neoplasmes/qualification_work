@@ -6,5 +6,4 @@ export {
     filterOperations,
     groupingLabels,
     timeGranularities,
-    valueFormats,
 } from './chartBuilderOptions';

@@ -4,7 +4,7 @@ import type { ChartResultColumn } from '../../api';
 import { BAR_CHART_ROWS_LIMIT } from '../../const';
 import type { ChartKind } from '../../lib/chartKind';
 import { parseChartResult } from '../../lib/parseChartData';
-import type { ChartFrameHeight } from './lib';
+import type { ChartAspectRatioConstraint, ChartFrameHeight } from './lib';
 import { ChartRenderer } from './ui/ChartRenderer';
 import type { HeatmapCell } from './ui/HeatmapChart';
 
@@ -25,6 +25,7 @@ type ChartShellProps = {
     transparentBackground?: boolean;
     color?: string;
     chartHeight?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
     showResultSummary?: boolean;
     showLegend?: boolean;
@@ -46,6 +47,7 @@ export const ChartShell = ({
     children,
     color,
     chartHeight,
+    aspectRatioConstraint,
     showAxisTickLabels = true,
     showResultSummary = true,
     showLegend = true,
@@ -104,6 +106,7 @@ export const ChartShell = ({
                     activeKind={activeKind}
                     chart={chart}
                     chartHeight={chartHeight}
+                    aspectRatioConstraint={aspectRatioConstraint}
                     color={color}
                     hasBreakdown={hasBreakdown}
                     heatmapCells={heatmapCells}

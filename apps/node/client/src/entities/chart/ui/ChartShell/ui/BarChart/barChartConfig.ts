@@ -32,6 +32,10 @@ export const MAX_VALUE_LABEL_BARS = 12;
 export const MAX_LABEL_CHARS = 18;
 const AXIS_LABEL_CHAR_WIDTH = 8;
 const AXIS_LABEL_WIDTH_RATIO = 0.5;
+const ROTATED_LABEL_CHAR_WIDTH = 7;
+const ROTATED_LABEL_VERTICAL_RATIO = 0.7;
+const ROTATED_LABEL_VERTICAL_PADDING = 18;
+const MIN_GROUPED_BAR_PLOT_HEIGHT = 112;
 
 export const truncate = (s: string, max = MAX_LABEL_CHARS) =>
     s.length > max ? `${s.slice(0, max - 1)}…` : s;
@@ -114,4 +118,33 @@ export const shouldRotateBarAxisLabels = (
     }, 0);
 
     return longestLabel * AXIS_LABEL_CHAR_WIDTH > availableWidth * AXIS_LABEL_WIDTH_RATIO;
+};
+
+export const shouldHideGroupedBarXAxisLabels = (
+    labels: string[],
+    width: number,
+    height: number,
+    bottomMargin: number,
+    timeGranularity?: ChartDataPoint['labelTimeGranularity']
+) => {
+    const rotateLabels = shouldRotateBarAxisLabels(labels, width, timeGranularity);
+    if (!rotateLabels || height <= 0) {
+        return false;
+    }
+
+    const longestVisibleLabel = labels.reduce((max, label) => {
+        const formatted = formatBarAxisLabel(label, true, timeGranularity);
+
+        return Math.max(max, formatted.length);
+    }, 0);
+    const requiredLabelHeight = Math.ceil(
+        longestVisibleLabel * ROTATED_LABEL_CHAR_WIDTH * ROTATED_LABEL_VERTICAL_RATIO +
+            ROTATED_LABEL_VERTICAL_PADDING
+    );
+    const availablePlotHeight = height - bottomMargin;
+
+    return (
+        requiredLabelHeight > bottomMargin ||
+        availablePlotHeight < MIN_GROUPED_BAR_PLOT_HEIGHT
+    );
 };

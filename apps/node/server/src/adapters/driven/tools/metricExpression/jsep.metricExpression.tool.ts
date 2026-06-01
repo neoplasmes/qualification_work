@@ -178,14 +178,18 @@ export class JsepMetricExpressionTool implements MetricExpressionTool {
         }
 
         const arg = raw.arguments[0] as unknown as RawNode;
-        if (arg.type !== 'Identifier') {
-            throw new ValidationError(
-                ['expression'],
-                'Aggregate argument must be a column name'
-            );
+        if (arg.type === 'Identifier') {
+            return { kind: 'agg', aggregate: name, column: arg.name };
         }
 
-        return { kind: 'agg', aggregate: name, column: arg.name };
+        if (arg.type === 'Literal' && typeof arg.value === 'string') {
+            return { kind: 'agg', aggregate: name, column: arg.value };
+        }
+
+        throw new ValidationError(
+            ['expression'],
+            'Aggregate argument must be a column name'
+        );
     }
 
     private binaryToAst(

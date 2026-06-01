@@ -14,6 +14,7 @@ export type WorkspaceMetricForm = {
     name: string;
     expression: string;
     format: MetricFormat;
+    valueMultiplier: string;
     target: string;
     targetDirection: MetricTargetDirection;
     showTrend: boolean;
@@ -29,6 +30,7 @@ export type DashboardsPageState = {
     workspaceMetricName: string;
     workspaceMetricExpression: string;
     workspaceMetricFormat: MetricFormat;
+    workspaceMetricValueMultiplier: string;
     workspaceMetricTarget: string;
     workspaceMetricTargetDirection: MetricTargetDirection;
     workspaceMetricShowTrend: boolean;
@@ -40,6 +42,7 @@ type StateWithDashboardsPage = { dashboardsPage: DashboardsPageState };
 
 const emptyMetricExtras = {
     workspaceMetricTarget: '',
+    workspaceMetricValueMultiplier: '1',
     workspaceMetricTargetDirection: 'higher',
     workspaceMetricShowTrend: false,
     workspaceMetricTimeColumn: '',
@@ -53,7 +56,7 @@ export const dashboardsPageInitialState: DashboardsPageState = {
     workspaceDraftName: '',
     workspaceMetricName: '',
     workspaceMetricExpression: '',
-    workspaceMetricFormat: 'number',
+    workspaceMetricFormat: '',
     ...emptyMetricExtras,
 };
 
@@ -93,6 +96,9 @@ export const dashboardsPageSlice = createSlice({
         setWorkspaceMetricFormat(state, action: PayloadAction<MetricFormat>) {
             state.workspaceMetricFormat = action.payload;
         },
+        setWorkspaceMetricValueMultiplier(state, action: PayloadAction<string>) {
+            state.workspaceMetricValueMultiplier = action.payload;
+        },
         setWorkspaceMetricTarget(state, action: PayloadAction<string>) {
             state.workspaceMetricTarget = action.payload;
         },
@@ -117,13 +123,14 @@ export const dashboardsPageSlice = createSlice({
         clearWorkspaceMetricForm(state) {
             state.workspaceMetricName = '';
             state.workspaceMetricExpression = '';
-            state.workspaceMetricFormat = 'number';
+            state.workspaceMetricFormat = '';
             Object.assign(state, emptyMetricExtras);
         },
         setWorkspaceMetricForm(state, action: PayloadAction<WorkspaceMetricForm>) {
             state.workspaceMetricName = action.payload.name;
             state.workspaceMetricExpression = action.payload.expression;
             state.workspaceMetricFormat = action.payload.format;
+            state.workspaceMetricValueMultiplier = action.payload.valueMultiplier;
             state.workspaceMetricTarget = action.payload.target;
             state.workspaceMetricTargetDirection = action.payload.targetDirection;
             state.workspaceMetricShowTrend = action.payload.showTrend;
@@ -142,6 +149,7 @@ export const {
     setWorkspaceMetricName,
     setWorkspaceMetricExpression,
     setWorkspaceMetricFormat,
+    setWorkspaceMetricValueMultiplier,
     setWorkspaceMetricTarget,
     setWorkspaceMetricTargetDirection,
     setWorkspaceMetricShowTrend,
@@ -165,6 +173,8 @@ export const selectWorkspaceMetricExpression = (state: StateWithDashboardsPage) 
     state.dashboardsPage.workspaceMetricExpression;
 export const selectWorkspaceMetricFormat = (state: StateWithDashboardsPage) =>
     state.dashboardsPage.workspaceMetricFormat;
+export const selectWorkspaceMetricValueMultiplier = (state: StateWithDashboardsPage) =>
+    state.dashboardsPage.workspaceMetricValueMultiplier;
 export const selectWorkspaceMetricTarget = (state: StateWithDashboardsPage) =>
     state.dashboardsPage.workspaceMetricTarget;
 export const selectWorkspaceMetricTargetDirection = (state: StateWithDashboardsPage) =>

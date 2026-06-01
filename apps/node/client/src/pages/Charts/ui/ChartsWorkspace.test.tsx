@@ -22,7 +22,7 @@ import {
 import { ChartsWorkspace } from './ChartsWorkspace';
 
 const mocks = vi.hoisted(() => ({
-    getChartData: vi.fn(),
+    getChartDataQuery: vi.fn(),
     deleteChart: vi.fn(),
     patchChart: vi.fn(),
     refetchCharts: vi.fn(),
@@ -106,7 +106,7 @@ vi.mock('@/entities/chart', () => ({
         isFetching: false,
         refetch: mocks.refetchCharts,
     }),
-    useLazyGetChartDataQuery: () => [mocks.getChartData, { isFetching: false }],
+    useGetChartDataQuery: (arg: unknown) => mocks.getChartDataQuery(arg),
     useDeleteChartMutation: () => [mocks.deleteChart, { isLoading: false }],
 }));
 
@@ -136,7 +136,7 @@ vi.mock('@/features/buildChart', () => ({
         heatmapYGroupingMode: 'none',
         heatmapYGranularity: 'month',
         heatmapYStep: 10,
-        measures: [{ aggregate: 'count', valueFormat: 'number', columnId: '' }],
+        measures: [{ aggregate: 'count', valueFormat: '', columnId: '' }],
         limit: 24,
         topN: 12,
         seriesEnabled: false,
@@ -225,9 +225,12 @@ const renderWorkspace = (
 describe('ChartsWorkspace', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.getChartData.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(chartResponse),
-        });
+        mocks.getChartDataQuery.mockImplementation((arg: unknown) => ({
+            currentData: typeof arg === 'string' ? chartResponse : undefined,
+            isLoading: false,
+            isFetching: false,
+            error: undefined,
+        }));
         mocks.deleteChart.mockReturnValue({
             unwrap: vi.fn().mockResolvedValue(undefined),
         });
@@ -243,7 +246,7 @@ describe('ChartsWorkspace', () => {
 
         await screen.findByTestId('chart-result');
         expect(selectSelectedChartId(store.getState())).toBe('chart-1');
-        expect(mocks.getChartData).toHaveBeenCalledWith('chart-1', false);
+        expect(mocks.getChartDataQuery).toHaveBeenCalledWith('chart-1');
     });
 
     it('syncs the edit route and shows the builder with saved config', async () => {
@@ -254,7 +257,7 @@ describe('ChartsWorkspace', () => {
         expect(screen.getByTestId('builder-mode')).toHaveTextContent('edit');
         expect(screen.getByTestId('builder-name')).toHaveTextContent('Revenue');
         expect(screen.getByTestId('builder-type')).toHaveTextContent('bar');
-        expect(mocks.getChartData).not.toHaveBeenCalled();
+        expect(mocks.getChartDataQuery).not.toHaveBeenCalledWith('chart-1');
     });
 
     it('keeps edit draft when switching view and edit for the same chart', async () => {

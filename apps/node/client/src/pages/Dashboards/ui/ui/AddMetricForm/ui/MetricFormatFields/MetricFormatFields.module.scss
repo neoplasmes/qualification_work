@@ -1,0 +1,28 @@
+.multiplier-row {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    min-width: 0;
+}
+
+.multiplier-input {
+    flex: 0 0 88px;
+    width: 88px;
+}
+
+.multiplier-slider {
+    flex: 1 1 auto;
+    min-width: 96px;
+}
+
+@media (width <= 640px) {
+    .multiplier-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .multiplier-input {
+        width: 100%;
+        flex-basis: auto;
+    }
+}

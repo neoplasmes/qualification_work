@@ -1,15 +1,16 @@
-import { ParentSize } from '@visx/responsive';
-
 import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
 import { DEFAULT_CHART_COLOR } from '../../../../lib';
 import type { ChartSeries } from '../../../../lib/parseChartData';
 
 import {
+    getChartAspectFrameStyle,
     getChartFrameStyle,
+    getConstrainedChartFrameSize,
     getResolvedChartFrameHeight,
+    useRafChartSize,
+    type ChartAspectRatioConstraint,
     type ChartFrameHeight,
 } from '../../lib';
-import { MIN_CHART_WIDTH } from './lineChartConfig';
 import { LineChartInner } from './LineChartInner';
 import { LineChartLegend } from './LineChartLegend';
 
@@ -22,6 +23,7 @@ type LineChartProps = {
     valueFormat?: MeasureValueFormat;
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
     showLegend?: boolean;
 };
@@ -33,35 +35,46 @@ export const LineChart = ({
     valueFormat,
     color = DEFAULT_CHART_COLOR,
     height,
+    aspectRatioConstraint,
     showAxisTickLabels = true,
     showLegend = false,
-}: LineChartProps) => (
-    <div
-        className={[styles['root'], height === 'fill' ? styles['height-fill'] : '']
-            .filter(Boolean)
-            .join(' ')}
-    >
-        <ParentSize style={getChartFrameStyle(height)}>
-            {({ width, height: measuredHeight }) => {
-                const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+}: LineChartProps) => {
+    const { ref, width, height: measuredHeight } = useRafChartSize();
+    const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+    const frame = getConstrainedChartFrameSize(width, chartHeight, aspectRatioConstraint);
+    const chartContent = (
+        <LineChartInner
+            series={series}
+            labels={labels}
+            labelTimeGranularity={labelTimeGranularity}
+            valueFormat={valueFormat}
+            color={color}
+            width={frame.width}
+            height={frame.height}
+            showAxisTickLabels={showAxisTickLabels}
+        />
+    );
 
-                return width >= MIN_CHART_WIDTH && chartHeight > 0 ? (
-                    <LineChartInner
-                        series={series}
-                        labels={labels}
-                        labelTimeGranularity={labelTimeGranularity}
-                        valueFormat={valueFormat}
-                        color={color}
-                        width={width}
-                        height={chartHeight}
-                        showAxisTickLabels={showAxisTickLabels}
-                    />
-                ) : width > 0 ? (
-                    <div style={{ height: chartHeight }} />
-                ) : null;
-            }}
-        </ParentSize>
+    let content = null;
+    if (width > 0 && chartHeight > 0) {
+        content = aspectRatioConstraint ? (
+            <div style={getChartAspectFrameStyle(chartHeight)}>{chartContent}</div>
+        ) : (
+            chartContent
+        );
+    }
 
-        {showLegend && <LineChartLegend series={series} color={color} />}
-    </div>
-);
+    return (
+        <div
+            className={[styles['root'], height === 'fill' ? styles['height-fill'] : '']
+                .filter(Boolean)
+                .join(' ')}
+        >
+            <div ref={ref} style={getChartFrameStyle(height)}>
+                {content}
+            </div>
+
+            {showLegend && <LineChartLegend series={series} color={color} />}
+        </div>
+    );
+};

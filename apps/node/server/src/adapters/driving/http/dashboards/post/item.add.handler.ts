@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { parseWithZod } from '@qualification-work/microservice-utils';
 import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
-import { metricFormats } from '@qualification-work/types';
 
 import type { AddDashboardItemCommand } from '@/core/commands';
 
@@ -11,6 +10,8 @@ import { metricConfigSchema } from '@/adapters/driving/http/dashboards/shared';
 import type { RequestHandlerType } from '@/shared/appState';
 
 const heightSchema = z.number().int().min(1).max(64).optional();
+const metricFormatSchema = z.string().trim().max(24).default('');
+const valueMultiplierSchema = z.number().finite().default(1);
 
 const addItemSchema = z.discriminatedUnion('kind', [
     z.object({
@@ -23,7 +24,8 @@ const addItemSchema = z.discriminatedUnion('kind', [
         datasetId: z.uuid(),
         name: z.string().trim().min(1).max(255),
         expression: z.string().trim().min(1),
-        format: z.enum(metricFormats),
+        format: metricFormatSchema,
+        valueMultiplier: valueMultiplierSchema,
         height: heightSchema,
         ...metricConfigSchema,
     }),

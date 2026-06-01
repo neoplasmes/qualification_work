@@ -1,4 +1,3 @@
-import { ParentSize } from '@visx/responsive';
 import { Axis, BarSeries, Grid, XYChart, type EventHandlerParams } from '@visx/xychart';
 import { useMemo, useState } from 'react';
 
@@ -8,9 +7,14 @@ import { formatAxisNumber } from '../../../../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../../../../lib/parseChartData';
 
 import {
+    getAdaptiveAxisTickLabels,
+    getChartAspectFrameStyle,
     getChartFrameStyle,
     getChartTooltipPoint,
+    getConstrainedChartFrameSize,
     getResolvedChartFrameHeight,
+    useRafChartSize,
+    type ChartAspectRatioConstraint,
     type ChartFrameHeight,
 } from '../../lib';
 import {
@@ -24,7 +28,6 @@ import {
     getMedianValue,
     getSeriesColor,
     getValues,
-    MIN_CHART_WIDTH,
     shouldRotateBarAxisLabels,
     type BarFillVariant,
 } from './barChartConfig';
@@ -129,6 +132,13 @@ const BarChartSingleInner = ({
     const margin = getBarChartMargin(rotateLabels, height, showAxisTickLabels);
     const seriesArr = useMemo(() => [series], [series]);
     const baseColor = getSeriesColor(color, 0);
+    const xAxisTickLabels = showAxisTickLabels
+        ? getAdaptiveAxisTickLabels({
+              labels,
+              availableSpace: Math.max(0, width - margin.left - margin.right),
+              minSpacing: rotateLabels ? 48 : 72,
+          })
+        : [];
 
     const handlePointerMove = ({
         datum,
@@ -172,7 +182,8 @@ const BarChartSingleInner = ({
                 />
                 <Axis
                     orientation="bottom"
-                    numTicks={labels.length}
+                    numTicks={xAxisTickLabels.length}
+                    tickValues={xAxisTickLabels}
                     tickFormat={v =>
                         showAxisTickLabels
                             ? formatBarAxisLabel(v, rotateLabels, labelTimeGranularity)
@@ -225,6 +236,7 @@ type BarChartSingleProps = {
     valueFormat?: MeasureValueFormat;
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
 };
 
@@ -235,26 +247,37 @@ export const BarChartSingle = ({
     valueFormat,
     color = DEFAULT_CHART_COLOR,
     height,
+    aspectRatioConstraint,
     showAxisTickLabels = true,
-}: BarChartSingleProps) => (
-    <ParentSize style={getChartFrameStyle(height)}>
-        {({ width, height: measuredHeight }) => {
-            const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+}: BarChartSingleProps) => {
+    const { ref, width, height: measuredHeight } = useRafChartSize();
+    const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+    const frame = getConstrainedChartFrameSize(width, chartHeight, aspectRatioConstraint);
+    const chartContent = (
+        <BarChartSingleInner
+            series={series}
+            labels={labels}
+            labelTimeGranularity={labelTimeGranularity}
+            valueFormat={valueFormat}
+            color={color}
+            width={frame.width}
+            height={frame.height}
+            showAxisTickLabels={showAxisTickLabels}
+        />
+    );
 
-            return width >= MIN_CHART_WIDTH && chartHeight > 0 ? (
-                <BarChartSingleInner
-                    series={series}
-                    labels={labels}
-                    labelTimeGranularity={labelTimeGranularity}
-                    valueFormat={valueFormat}
-                    color={color}
-                    width={width}
-                    height={chartHeight}
-                    showAxisTickLabels={showAxisTickLabels}
-                />
-            ) : width > 0 ? (
-                <div style={{ height: chartHeight }} />
-            ) : null;
-        }}
-    </ParentSize>
-);
+    let content = null;
+    if (width > 0 && chartHeight > 0) {
+        content = aspectRatioConstraint ? (
+            <div style={getChartAspectFrameStyle(chartHeight)}>{chartContent}</div>
+        ) : (
+            chartContent
+        );
+    }
+
+    return (
+        <div ref={ref} style={getChartFrameStyle(height)}>
+            {content}
+        </div>
+    );
+};

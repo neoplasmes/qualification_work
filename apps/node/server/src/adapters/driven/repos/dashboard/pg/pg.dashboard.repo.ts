@@ -47,6 +47,14 @@ const timeBucketUnits: Record<MetricTimeBucket, string> = {
     week: 'week',
     month: 'month',
 };
+// mirrors chart date grouping: stored date strings may be ISO or DD.MM.YYYY
+const buildMetricDateValueExpression = (valueSql: string) =>
+    `CASE` +
+    ` WHEN ${valueSql} ~ '^\\d{1,2}\\.\\d{1,2}\\.\\d{4}$'` +
+    ` THEN to_timestamp(${valueSql}, 'DD.MM.YYYY')` +
+    ` WHEN ${valueSql} ~ '^\\d{4}-\\d{2}-\\d{2}'` +
+    ` THEN ${valueSql}::timestamptz` +
+    ` ELSE NULL END`;
 
 const scriptsDir = join(dirname(fileURLToPath(import.meta.url)), 'scripts');
 
@@ -252,6 +260,7 @@ export class PgDashboardRepo implements DashboardRepo {
                 metric.timeBucket,
                 metric.target,
                 metric.targetDirection,
+                metric.valueMultiplier ?? 1,
             ]);
 
             if (rows.length === 0) {
@@ -290,6 +299,7 @@ export class PgDashboardRepo implements DashboardRepo {
                 metric.timeBucket,
                 metric.target,
                 metric.targetDirection,
+                metric.valueMultiplier ?? 1,
             ]);
 
             return Boolean(rowCount);
@@ -391,7 +401,8 @@ export class PgDashboardRepo implements DashboardRepo {
             datasetId: metric.datasetId,
             name: 'Preview',
             expression: metric.expression,
-            format: 'number',
+            format: '',
+            valueMultiplier: 1,
             target: null,
             targetDirection: null,
             showTrend: false,
@@ -589,11 +600,13 @@ export class PgDashboardRepo implements DashboardRepo {
         const bucketUnit = timeBucketUnits[metric.item.timeBucket ?? defaultTimeBucket];
         const terms = this.expressionTool.collectTerms(metric.ast);
         const built = this.buildAggregateSelect(terms, 3);
+        const dateValueExpr = `NULLIF(btrim(data->>$2), '')`;
+        const dateExpr = buildMetricDateValueExpression(dateValueExpr);
         const sql = `SELECT
-                date_trunc('${bucketUnit}', (NULLIF(data->>$2, ''))::timestamptz) AS bucket,
+                date_trunc('${bucketUnit}', ${dateExpr}) AS bucket,
                 ${built.selects.join(', ')}
             FROM data.dataset_rows
-            WHERE dataset_id = $1 AND NULLIF(data->>$2, '') IS NOT NULL
+            WHERE dataset_id = $1 AND ${dateValueExpr} IS NOT NULL
             GROUP BY bucket
             ORDER BY bucket`;
 

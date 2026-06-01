@@ -12,6 +12,7 @@ import {
 import { IconButton } from '../Button';
 import { TextInput } from '../TextInput';
 import { Tooltip } from '../Tooltip';
+import { applyPointerTooltipPosition, getPointerTooltipPosition } from '../Tooltip/lib';
 
 import styles from './EditableText.module.scss';
 
@@ -110,15 +111,14 @@ export const EditableText = ({
     };
 
     const updateTooltipPosition = (clientX: number, clientY: number) => {
-        const left = Math.max(
-            tooltipMargin,
-            Math.min(
-                clientX + tooltipGap,
-                window.innerWidth - tooltipMaxWidth - tooltipMargin
-            )
-        );
-        const top = Math.max(tooltipMargin, clientY + tooltipGap);
-        const transform = `translateX(${left}px) translateY(${top}px)`;
+        const position = getPointerTooltipPosition({
+            clientX,
+            clientY,
+            viewportWidth: window.innerWidth,
+            gap: tooltipGap,
+            margin: tooltipMargin,
+            maxWidth: tooltipMaxWidth,
+        });
 
         if (tooltipFrameRef.current !== null) {
             window.cancelAnimationFrame(tooltipFrameRef.current);
@@ -126,7 +126,7 @@ export const EditableText = ({
 
         tooltipFrameRef.current = window.requestAnimationFrame(() => {
             tooltipFrameRef.current = null;
-            tooltipRef.current?.style.setProperty('transform', transform);
+            applyPointerTooltipPosition(tooltipRef.current, position);
         });
     };
 
@@ -182,22 +182,24 @@ export const EditableText = ({
                     onKeyDown={handleKeyDown}
                 />
                 <IconButton
-                    data-p="xs"
+                    data-py="xs"
+                    data-px="none"
                     aria-label="Save name"
                     disabled={saving}
                     onMouseDown={event => event.preventDefault()}
                     onClick={() => void commit()}
                 >
-                    <Check size={16} />
+                    <Check size={20} />
                 </IconButton>
                 <IconButton
-                    data-p="xs"
+                    data-py="xs"
+                    data-px="none"
                     aria-label="Cancel rename"
                     disabled={saving}
                     onMouseDown={event => event.preventDefault()}
                     onClick={cancel}
                 >
-                    <X size={16} />
+                    <X size={20} />
                 </IconButton>
             </div>
         );

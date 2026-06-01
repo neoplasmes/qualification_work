@@ -29,10 +29,25 @@
     width: min(960px, 94vw);
 }
 
+.header {
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.header-actions {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
 .title {
+    min-width: 0;
+    overflow: hidden;
+
     font-family: var(--font-headline);
     font-size: var(--font-size-xl);
     font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .body-scroll {

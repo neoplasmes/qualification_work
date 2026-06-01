@@ -1,5 +1,3 @@
-export const metricFormats = ['currency', 'percent', 'number'] as const;
-
 export const metricTimeBuckets = ['day', 'week', 'month'] as const;
 
 export const metricTargetDirections = ['higher', 'lower'] as const;
@@ -12,7 +10,7 @@ export const dashboardMetricDefaultWidth = 3;
 
 export const dashboardMetricDefaultHeight = 2;
 
-export const dashboardMetricMinWidth = 3;
+export const dashboardMetricMinWidth = 2;
 
 export const dashboardMetricMinHeight = 2;
 

@@ -43,24 +43,6 @@
     }
 }
 
-.value-icon-button {
-    color: var(--color-on-surface-muted);
-    transition:
-        color 0.2s ease,
-        transform 0.2s ease;
-
-    &:hover,
-    &:focus-visible {
-        color: var(--color-on-surface);
-        transform: scale(1.04);
-    }
-
-    &:disabled {
-        color: var(--color-on-surface-disabled);
-        transform: none;
-    }
-}
-
 .eyebrow {
     font-size: var(--font-size-xs);
     font-weight: 700;

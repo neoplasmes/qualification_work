@@ -63,7 +63,8 @@ describe('manageDashboardsApi', () => {
                 datasetId: 'dataset-1',
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
+                valueMultiplier: 1,
                 target: 1000,
                 targetDirection: 'higher',
                 showTrend: true,
@@ -76,6 +77,8 @@ describe('manageDashboardsApi', () => {
         expect(getPathname(requests[0])).toBe('/api/dashboards/dashboard-1/items');
         await expect(requests[0].json()).resolves.toMatchObject({
             kind: 'metric',
+            format: '₽',
+            valueMultiplier: 1,
             target: 1000,
             targetDirection: 'higher',
             showTrend: true,
@@ -95,7 +98,8 @@ describe('manageDashboardsApi', () => {
                 datasetId: 'dataset-1',
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'number',
+                format: '%',
+                valueMultiplier: 100,
                 target: null,
                 targetDirection: null,
                 showTrend: false,
@@ -108,6 +112,8 @@ describe('manageDashboardsApi', () => {
         expect(getPathname(requests[0])).toBe('/api/dashboards/dashboard-1/items/item-1');
         await expect(requests[0].json()).resolves.toMatchObject({
             kind: 'metric',
+            format: '%',
+            valueMultiplier: 100,
             target: null,
             targetDirection: null,
             showTrend: false,

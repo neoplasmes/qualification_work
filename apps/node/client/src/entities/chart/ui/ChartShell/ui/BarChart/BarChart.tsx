@@ -1,7 +1,7 @@
 import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
 import type { ChartSeries } from '../../../../lib/parseChartData';
 
-import type { ChartFrameHeight } from '../../lib';
+import type { ChartAspectRatioConstraint, ChartFrameHeight } from '../../lib';
 import { BarChartGrouped } from './BarChartGrouped';
 import { BarChartSingle } from './BarChartSingle';
 
@@ -12,6 +12,7 @@ type BarChartProps = {
     valueFormat?: MeasureValueFormat;
     color?: string;
     height?: ChartFrameHeight;
+    aspectRatioConstraint?: ChartAspectRatioConstraint;
     showAxisTickLabels?: boolean;
     showLegend?: boolean;
 };

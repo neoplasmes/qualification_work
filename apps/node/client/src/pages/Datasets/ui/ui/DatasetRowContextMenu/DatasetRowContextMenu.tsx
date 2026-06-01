@@ -106,18 +106,20 @@ export const DatasetRowContextMenu = ({
                     </div>
                     <div className={styles['confirm-actions']}>
                         <Button
+                            className={styles['confirm-delete-button']}
                             data-test-id={datasetsTestIds.confirmDeleteRowButton}
                             tone="danger"
                             size="sm"
                             isLoading={deleting}
                             onClick={onConfirmDelete}
                         >
-                            Delete
+                            <Trash2 size={14} />
+                            <span>Delete</span>
                         </Button>
                         <IconButton
+                            className={styles['confirm-cancel-button']}
                             data-test-id={datasetsTestIds.cancelDeleteRowButton}
                             tone="plain"
-                            data-p="xs"
                             aria-label="Cancel delete"
                             onClick={onCancel}
                         >

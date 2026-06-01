@@ -5,7 +5,10 @@ import { BAR_CHART_ROWS_LIMIT } from '../../const';
 import { getChartColorFromConfig } from '../../lib';
 import { ChartConfigSummary } from '../ChartConfigSummary';
 import { ChartShell } from '../ChartShell';
-import type { ChartFrameHeight } from '../ChartShell/lib';
+import {
+    dashboardChartAspectRatioConstraint,
+    type ChartFrameHeight,
+} from '../ChartShell/lib';
 
 import styles from './ChartCard.module.scss';
 
@@ -24,6 +27,7 @@ type ChartCardProps = {
     showAxisTickLabels?: boolean;
     showDescription?: boolean;
     showLegend?: boolean;
+    constrainAspectRatio?: boolean;
     transparentBackground?: boolean;
 };
 
@@ -37,6 +41,7 @@ export const ChartCard = ({
     showAxisTickLabels = true,
     showDescription = true,
     showLegend = true,
+    constrainAspectRatio = false,
     transparentBackground = false,
 }: ChartCardProps) => (
     <ChartShell
@@ -46,6 +51,9 @@ export const ChartCard = ({
         color={chart ? getChartColorFromConfig(chart.config) : undefined}
         barsLimit={BAR_CHART_ROWS_LIMIT}
         chartHeight={chartHeight}
+        aspectRatioConstraint={
+            constrainAspectRatio ? dashboardChartAspectRatioConstraint : undefined
+        }
         showAxisTickLabels={showAxisTickLabels}
         showResultSummary={false}
         showLegend={showLegend}

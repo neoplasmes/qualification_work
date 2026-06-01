@@ -85,6 +85,25 @@ describe('fitPanels', () => {
         expect(b.setFittedSizePx).toHaveBeenCalledWith(160);
     });
 
+    it('expands the preferred panel on underflow when it is visible', () => {
+        const center = fake(100, 100);
+        const right = fake(100, 100);
+        fitPanels(260, toMap(center, right), center.model);
+
+        expect(center.setFittedSizePx).toHaveBeenCalledWith(160);
+        expect(right.setFittedSizePx).not.toHaveBeenCalled();
+    });
+
+    it('falls back when the preferred panel is not visible', () => {
+        const hiddenCenter = fake(100, 100);
+        const left = fake(100, 100);
+        const right = fake(100, 100);
+        fitPanels(260, toMap(left, right), hiddenCenter.model);
+
+        expect(left.setFittedSizePx).not.toHaveBeenCalled();
+        expect(right.setFittedSizePx).toHaveBeenCalledWith(160);
+    });
+
     it('expands a single panel to fill the space', () => {
         const a = fake(100, 100);
         fitPanels(200, toMap(a));

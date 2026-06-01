@@ -4,7 +4,6 @@ export {
     FILTER_OP_LABELS,
     FILTER_OP_SHORT,
     GRANULARITY_LABELS,
-    VALUE_FORMAT_LABELS,
     DEFAULT_CHART_COLOR,
     getChartColorFromConfig,
     isChartColor,

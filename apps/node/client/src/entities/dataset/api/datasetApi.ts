@@ -50,6 +50,7 @@ export const datasetApi = api.injectEndpoints({
                 { type: 'Datasets', id: 'LIST' },
                 { type: 'Datasets', id: datasetId },
                 { type: 'DatasetRows', id: datasetId },
+                { type: 'ChartData', id: 'LIST' },
             ],
         }),
         patchDataset: builder.mutation<void, PatchDatasetMutationPayload>({
@@ -105,6 +106,7 @@ export const datasetApi = api.injectEndpoints({
             }),
             invalidatesTags: (_result, _error, arg) => [
                 { type: 'DatasetRows', id: arg.datasetId },
+                { type: 'ChartData', id: 'LIST' },
             ],
         }),
         insertRow: builder.mutation<
@@ -125,6 +127,7 @@ export const datasetApi = api.injectEndpoints({
                 { type: 'DatasetRows', id: arg.datasetId },
                 { type: 'Datasets', id: arg.datasetId },
                 { type: 'Datasets', id: 'LIST' },
+                { type: 'ChartData', id: 'LIST' },
             ],
         }),
         deleteRow: builder.mutation<
@@ -140,6 +143,7 @@ export const datasetApi = api.injectEndpoints({
                 { type: 'DatasetRows', id: arg.datasetId },
                 { type: 'Datasets', id: arg.datasetId },
                 { type: 'Datasets', id: 'LIST' },
+                { type: 'ChartData', id: 'LIST' },
             ],
         }),
     }),

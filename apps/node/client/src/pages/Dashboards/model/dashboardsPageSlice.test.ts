@@ -11,6 +11,7 @@ import {
     setWorkspaceMetricExpression,
     setWorkspaceMetricFormat,
     setWorkspaceMetricName,
+    setWorkspaceMetricValueMultiplier,
 } from './dashboardsPageSlice';
 
 describe('dashboardsPageSlice', () => {
@@ -51,16 +52,22 @@ describe('dashboardsPageSlice', () => {
             state,
             setWorkspaceMetricExpression('avg(score)')
         );
-        state = dashboardsPageSlice.reducer(state, setWorkspaceMetricFormat('percent'));
+        state = dashboardsPageSlice.reducer(state, setWorkspaceMetricFormat('%'));
+        state = dashboardsPageSlice.reducer(
+            state,
+            setWorkspaceMetricValueMultiplier('100')
+        );
 
         expect(state.workspaceMetricName).toBe('Average');
         expect(state.workspaceMetricExpression).toBe('avg(score)');
-        expect(state.workspaceMetricFormat).toBe('percent');
+        expect(state.workspaceMetricFormat).toBe('%');
+        expect(state.workspaceMetricValueMultiplier).toBe('100');
 
         state = dashboardsPageSlice.reducer(state, clearWorkspaceMetricForm());
 
         expect(state.workspaceMetricName).toBe('');
         expect(state.workspaceMetricExpression).toBe('');
-        expect(state.workspaceMetricFormat).toBe('number');
+        expect(state.workspaceMetricFormat).toBe('');
+        expect(state.workspaceMetricValueMultiplier).toBe('1');
     });
 });

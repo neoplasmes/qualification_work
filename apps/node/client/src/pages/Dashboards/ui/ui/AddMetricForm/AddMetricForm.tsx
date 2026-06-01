@@ -1,5 +1,4 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Save } from 'lucide-react';
 import {
     useEffect,
     useMemo,
@@ -15,7 +14,6 @@ import type { DashboardMetricItem } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import {
-    Button,
     Explain,
     FormField,
     SegmentedControl,
@@ -30,15 +28,17 @@ import { dashboardsTestIds } from '../../../const';
 import type { MetricConfigForm } from '../../lib';
 import { DashboardFormSection } from '../DashboardFormSection';
 import {
-    buildMetricExpression,
-    buildMetricName,
-    getMetricExpressionColumns,
     metricAggregateOptions,
     metricExpressionModeOptions,
+    useMetricExpressionBuilder,
     type MetricAggregate,
-    type MetricExpressionMode,
 } from './lib';
-import { MetricGoalFields, MetricPreview, MetricTrendFields } from './ui';
+import {
+    MetricFormatFields,
+    MetricGoalFields,
+    MetricPreview,
+    MetricTrendFields,
+} from './ui';
 
 import styles from './AddMetricForm.module.scss';
 
@@ -48,14 +48,16 @@ type AddMetricFormProps = {
     metricName: string;
     metricExpression: string;
     metricFormat: DashboardMetricItem['format'];
+    metricValueMultiplier: string;
     config: MetricConfigForm;
     error?: string;
-    disabled: boolean;
     editing?: boolean;
+    formId?: string;
     onDatasetChange: (value: string) => void;
     onNameChange: (value: string) => void;
     onExpressionChange: (value: string) => void;
     onFormatChange: (value: DashboardMetricItem['format']) => void;
+    onValueMultiplierChange: (value: string) => void;
     onConfigChange: (patch: Partial<MetricConfigForm>) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
@@ -66,20 +68,19 @@ export const AddMetricForm = ({
     metricName,
     metricExpression,
     metricFormat,
+    metricValueMultiplier,
     config,
     error,
-    disabled,
     editing,
+    formId,
     onDatasetChange,
     onNameChange,
     onExpressionChange,
     onFormatChange,
+    onValueMultiplierChange,
     onConfigChange,
     onSubmit,
 }: AddMetricFormProps) => {
-    const [expressionMode, setExpressionMode] = useState<MetricExpressionMode>('builder');
-    const [aggregate, setAggregate] = useState<MetricAggregate>('avg');
-    const [columnId, setColumnId] = useState('');
     const [isMetricNameDirty, setIsMetricNameDirty] = useState(false);
     const lastAutoMetricNameRef = useRef('');
 
@@ -87,23 +88,28 @@ export const AddMetricForm = ({
         () => datasets?.find(item => item.dataset.id === datasetId) ?? null,
         [datasets, datasetId]
     );
-    const expressionColumns = useMemo(
-        () => getMetricExpressionColumns(selectedDataset?.columns ?? [], aggregate),
-        [aggregate, selectedDataset?.columns]
-    );
+    const {
+        activeColumnId,
+        aggregate,
+        builtExpression,
+        builtMetricName,
+        expressionColumns,
+        expressionMode,
+        setAggregate,
+        setColumnId,
+        setExpressionMode,
+        setFormulaExpression,
+    } = useMetricExpressionBuilder({
+        selectedDataset,
+        datasetId,
+        metricExpression,
+        onExpressionChange,
+    });
     const dateColumns = useMemo(
         () =>
             (selectedDataset?.columns ?? []).filter(column => column.dataType === 'date'),
         [selectedDataset?.columns]
     );
-    const activeColumnId = expressionColumns.some(
-        column => column.id === columnId && column.isAnalyzable !== false
-    )
-        ? columnId
-        : (expressionColumns.find(column => column.isAnalyzable !== false)?.id ?? '');
-    const activeColumn = expressionColumns.find(column => column.id === activeColumnId);
-    const builtExpression = buildMetricExpression(aggregate, activeColumn);
-    const builtMetricName = buildMetricName(aggregate, activeColumn);
     const targetMetricName = metricName.trim() || builtMetricName;
     const previewExpression = (
         expressionMode === 'builder' ? builtExpression : metricExpression
@@ -114,12 +120,6 @@ export const AddMetricForm = ({
         [datasetId, previewEnabled, previewExpression]
     );
     const metricPreview = usePreviewDashboardMetricQuery(previewPayload);
-
-    useEffect(() => {
-        if (expressionMode === 'builder' && metricExpression !== builtExpression) {
-            onExpressionChange(builtExpression);
-        }
-    }, [builtExpression, expressionMode, metricExpression, onExpressionChange]);
 
     useEffect(() => {
         if (expressionMode !== 'builder') {
@@ -146,6 +146,7 @@ export const AddMetricForm = ({
                 error={metricPreview.error}
                 format={metricFormat}
                 isFetching={metricPreview.isFetching}
+                valueMultiplier={metricValueMultiplier}
                 value={metricPreview.data?.value}
             />
         </FormField>
@@ -215,7 +216,7 @@ export const AddMetricForm = ({
                         data-test-id={dashboardsTestIds.metricExpressionInput}
                         value={metricExpression}
                         placeholder="avg(score)"
-                        onChange={event => onExpressionChange(event.target.value)}
+                        onChange={event => setFormulaExpression(event.target.value)}
                     />
                 </FormField>
                 {metricPreviewContent}
@@ -225,6 +226,7 @@ export const AddMetricForm = ({
 
     return (
         <form
+            id={formId}
             className={styles['form']}
             data-test-id={dashboardsTestIds.addMetricForm}
             aria-label={editing ? 'Edit metric' : 'Add metric'}
@@ -255,21 +257,12 @@ export const AddMetricForm = ({
                     }}
                 />
             </FormField>
-            <FormField label="Format">
-                <Select
-                    data-test-id={dashboardsTestIds.metricFormatSelect}
-                    value={metricFormat}
-                    onChange={event =>
-                        onFormatChange(
-                            event.target.value as DashboardMetricItem['format']
-                        )
-                    }
-                >
-                    <option value="number">number</option>
-                    <option value="currency">currency</option>
-                    <option value="percent">percent</option>
-                </Select>
-            </FormField>
+            <MetricFormatFields
+                format={metricFormat}
+                valueMultiplier={metricValueMultiplier}
+                onFormatChange={onFormatChange}
+                onValueMultiplierChange={onValueMultiplierChange}
+            />
 
             <DashboardFormSection>Expression</DashboardFormSection>
             <FormField label="Mode" className={styles['mode-field']}>
@@ -323,17 +316,6 @@ export const AddMetricForm = ({
                     {error}
                 </StatusMessage>
             )}
-
-            <Button
-                type="submit"
-                className={styles['submit']}
-                data-pr="none"
-                data-test-id={dashboardsTestIds.addMetricButton}
-                disabled={!datasetId || !metricExpression.trim() || disabled}
-            >
-                <Save size={18} />
-                Save
-            </Button>
         </form>
     );
 };

@@ -15,7 +15,6 @@ export {
     FILTER_OP_LABELS,
     FILTER_OP_SHORT,
     GRANULARITY_LABELS,
-    VALUE_FORMAT_LABELS,
 } from './labels';
 export type { Aggregate } from './labels';
 export { parseChartResult } from './parseChartData';

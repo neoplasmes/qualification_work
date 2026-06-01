@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { metricProgress, metricTone } from './metricGoal';
+import { metricProgress, metricTargetDelta, metricTone } from './metricGoal';
 
 describe('metricTone', () => {
     it('is neutral without value, target or direction', () => {
@@ -34,5 +34,26 @@ describe('metricProgress', () => {
     it('fills as the value drops toward a lower target', () => {
         expect(metricProgress(200, 100, 'lower')).toBe(0.5);
         expect(metricProgress(50, 100, 'lower')).toBe(1);
+    });
+});
+
+describe('metricTargetDelta', () => {
+    it('formats a signed percentage difference from target', () => {
+        expect(metricTargetDelta(396.48, 350, 'higher')).toEqual({
+            label: '+13,3%',
+            tone: 'success',
+        });
+    });
+
+    it('keeps lower-is-better goal coloring independent from the sign', () => {
+        expect(metricTargetDelta(120, 100, 'lower')).toEqual({
+            label: '+20%',
+            tone: 'danger',
+        });
+    });
+
+    it('is null when target delta cannot be calculated', () => {
+        expect(metricTargetDelta(50, 0, 'higher')).toBeNull();
+        expect(metricTargetDelta(50, null, 'higher')).toBeNull();
     });
 });

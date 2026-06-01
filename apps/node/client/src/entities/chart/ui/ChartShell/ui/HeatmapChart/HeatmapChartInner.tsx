@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { DEFAULT_CHART_COLOR, mixChartColors } from '../../../../lib';
 import { formatChartCell } from '../../../../lib/formatChartCell';
 
+import { getAdaptiveAxisTickLabels } from '../../lib';
 import { HeatmapChartTooltip, type HoveredHeatmapCell } from '../HeatmapChartTooltip';
 import { HEATMAP_COLORS, HEATMAP_GAP, type HeatmapMargin } from './heatmapChartConfig';
 import type { HeatmapCell } from './heatmapChartTypes';
@@ -45,6 +46,14 @@ export const HeatmapChartInner = ({
     const gridWidth = xValues.length * step;
     const effectiveLeft = Math.max(margin.left, Math.floor((width - gridWidth) / 2));
     const gridHeight = yValues.length * step;
+    const visibleGridWidth = Math.max(
+        0,
+        Math.min(gridWidth, width - effectiveLeft - margin.right)
+    );
+    const visibleGridHeight = Math.max(
+        0,
+        Math.min(gridHeight, height - margin.top - margin.bottom)
+    );
 
     const columnData: ColumnDatum[] = useMemo(
         () =>
@@ -62,12 +71,11 @@ export const HeatmapChartInner = ({
     );
     const minValue = values.length ? Math.min(...values) : 0;
     const maxValue = values.length ? Math.max(...values, 1) : 1;
+    const lowValueColor = mixChartColors(color, HEATMAP_COLORS.lowValueTone, 0.62);
+    const highValueColor = mixChartColors(color, HEATMAP_COLORS.highValueTone, 0.52);
 
     const colorScale = scaleLinear<string>({
-        range: [
-            mixChartColors(color, HEATMAP_COLORS.cellLow, 0.85),
-            mixChartColors(color, HEATMAP_COLORS.cellHigh, 0.36),
-        ],
+        range: [lowValueColor, highValueColor],
         domain: [minValue, maxValue],
     });
 
@@ -79,6 +87,20 @@ export const HeatmapChartInner = ({
         range: [cellSize / 2, yValues.length * step - step / 2],
         domain: yValues,
     });
+    const xAxisTickValues = showAxisTickLabels
+        ? getAdaptiveAxisTickLabels({
+              labels: xValues,
+              availableSpace: visibleGridWidth,
+              minSpacing: 56,
+          })
+        : [];
+    const yAxisTickValues = showAxisTickLabels
+        ? getAdaptiveAxisTickLabels({
+              labels: yValues,
+              availableSpace: visibleGridHeight,
+              minSpacing: 28,
+          })
+        : [];
 
     return (
         <div style={{ position: 'relative' }}>
@@ -92,6 +114,7 @@ export const HeatmapChartInner = ({
                 <Group left={effectiveLeft} top={margin.top}>
                     <AxisLeft
                         scale={yAxisScale}
+                        tickValues={yAxisTickValues}
                         tickFormat={value =>
                             showAxisTickLabels
                                 ? formatChartCell(value, {
@@ -112,6 +135,7 @@ export const HeatmapChartInner = ({
                     <AxisBottom
                         top={gridHeight}
                         scale={xAxisScale}
+                        tickValues={xAxisTickValues}
                         tickFormat={value =>
                             showAxisTickLabels
                                 ? formatChartCell(value, {
@@ -151,7 +175,7 @@ export const HeatmapChartInner = ({
                                         width={cell.width}
                                         height={cell.height}
                                         rx={2}
-                                        fill={cell.color ?? HEATMAP_COLORS.cellLow}
+                                        fill={cell.color ?? lowValueColor}
                                         onMouseMove={event => {
                                             const source = sourceByCell.get(
                                                 `${cell.datum.x}:${cell.bin.y}`

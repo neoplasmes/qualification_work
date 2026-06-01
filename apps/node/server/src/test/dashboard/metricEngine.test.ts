@@ -85,6 +85,31 @@ describe('metric engine', () => {
         expect(changedBody.value).toBe(36);
     });
 
+    it('previews a metric that references a column key with spaces', async () => {
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index)
+            VALUES
+                ($1, 'Визитов за месяц', 'Визитов за месяц', 'number', 0)`,
+            [datasetId]
+        );
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES
+                ($1, 0, jsonb_build_object('Визитов за месяц', 10)),
+                ($1, 1, jsonb_build_object('Визитов за месяц', 5))`,
+            [datasetId]
+        );
+
+        const res = await previewMetric({
+            expression: 'sum("Визитов за месяц")',
+        });
+        const body = (await res.json()) as { value: number | null };
+
+        expect(res.status).toBe(200);
+        expect(body.value).toBe(15);
+    });
+
     it('evaluates an arithmetic ratio over aggregates', async () => {
         const dashboardId = await createDashboard(orgId);
 
@@ -107,7 +132,7 @@ describe('metric engine', () => {
         await addMetric(dashboardId, {
             name: 'Average check',
             expression: 'sum(revenue) / sum(orders)',
-            format: 'currency',
+            format: '₽',
         });
 
         const metric = await getMetric(dashboardId);
@@ -137,7 +162,7 @@ describe('metric engine', () => {
         await addMetric(dashboardId, {
             name: 'Monthly revenue',
             expression: 'sum(amount)',
-            format: 'currency',
+            format: '₽',
             showTrend: true,
             timeBucket: 'month',
         });
@@ -147,6 +172,40 @@ describe('metric engine', () => {
         expect(metric.trend?.map(point => point.value)).toEqual([15, 7]);
         const buckets = metric.trend?.map(point => point.bucket) ?? [];
         expect([...buckets].sort()).toEqual(buckets);
+    });
+
+    it('builds a trend series from dotted dates and quoted column keys', async () => {
+        const dashboardId = await createDashboard(orgId);
+
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index)
+            VALUES
+                ($1, 'Средний чек', 'Средний чек', 'number', 0),
+                ($1, 'Дата', 'Дата', 'date', 1)`,
+            [datasetId]
+        );
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES
+                ($1, 0, jsonb_build_object('Средний чек', 10, 'Дата', '02.01.2025')),
+                ($1, 1, jsonb_build_object('Средний чек', 20, 'Дата', '23.04.2025')),
+                ($1, 2, jsonb_build_object('Средний чек', 30, 'Дата', '2025-04-24T00:00:00.000Z'))`,
+            [datasetId]
+        );
+
+        await addMetric(dashboardId, {
+            name: 'Average check',
+            expression: 'avg("Средний чек")',
+            format: '₽',
+            showTrend: true,
+            timeColumn: 'Дата',
+            timeBucket: 'month',
+        });
+
+        const metric = await getMetric(dashboardId);
+        expect(metric.trend).toHaveLength(2);
+        expect(metric.trend?.map(point => point.value)).toEqual([10, 25]);
     });
 
     it('omits trend when no date column exists', async () => {
@@ -168,7 +227,7 @@ describe('metric engine', () => {
         await addMetric(dashboardId, {
             name: 'Revenue',
             expression: 'sum(amount)',
-            format: 'currency',
+            format: '₽',
             showTrend: true,
         });
 

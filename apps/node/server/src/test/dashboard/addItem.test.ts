@@ -63,7 +63,8 @@ describe('POST /api/dashboards/:id/items', () => {
                 datasetId,
                 name: 'AOV',
                 expression: 'avg(amount)',
-                format: 'currency',
+                format: '₽',
+                valueMultiplier: 1,
             }),
         });
         expect(res.status).toBe(201);
@@ -133,7 +134,7 @@ describe('POST /api/dashboards/:id/items', () => {
         expect(res.status).toBe(400);
     });
 
-    it('400 on broken metric format', async () => {
+    it('400 on too long metric format', async () => {
         const dashboardId = await createDashboard(orgId);
 
         const res = await api(`/api/dashboards/${dashboardId}/items`, {
@@ -143,7 +144,7 @@ describe('POST /api/dashboards/:id/items', () => {
                 datasetId,
                 name: 'x',
                 expression: '1',
-                format: 'string',
+                format: 'x'.repeat(25),
             }),
         });
         expect(res.status).toBe(400);
@@ -167,7 +168,7 @@ describe('POST /api/dashboards/:id/items', () => {
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
             }),
         });
 
@@ -193,7 +194,7 @@ describe('POST /api/dashboards/:id/items', () => {
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
             }),
         });
         const { itemId } = (await create.json()) as { itemId: string };
@@ -205,7 +206,7 @@ describe('POST /api/dashboards/:id/items', () => {
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(disabled_amount)',
-                format: 'currency',
+                format: '₽',
             }),
         });
 

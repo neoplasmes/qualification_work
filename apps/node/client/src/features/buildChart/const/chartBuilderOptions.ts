@@ -1,6 +1,6 @@
 import type { ChartType, FilterOperation } from '@/entities/chart';
 
-import type { Aggregate, MeasureValueFormat, TimeGranularity } from '../api';
+import type { Aggregate, TimeGranularity } from '../api';
 import type { GroupingMode } from '../types';
 
 export const chartTypes = ['bar', 'line', 'pie', 'heatmap'] as const;
@@ -13,13 +13,6 @@ export const aggregates = [
     'max',
     'count_distinct',
 ] as const satisfies readonly Aggregate[];
-
-export const valueFormats = [
-    'number',
-    'rub',
-    'usd',
-    'percent',
-] as const satisfies readonly MeasureValueFormat[];
 
 export const filterOperations = [
     'eq',

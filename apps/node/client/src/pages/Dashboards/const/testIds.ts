@@ -36,6 +36,7 @@ export const dashboardsTestIds = {
     metricExpressionInput: 'dashboards-metric-expression-input',
     metricPreviewValue: 'dashboards-metric-preview-value',
     metricFormatSelect: 'dashboards-metric-format-select',
+    metricValueMultiplierInput: 'dashboards-metric-value-multiplier-input',
     addMetricButton: 'dashboards-add-metric-button',
     widgetList: 'dashboards-widget-list',
     metricWidget: 'dashboards-metric-widget',

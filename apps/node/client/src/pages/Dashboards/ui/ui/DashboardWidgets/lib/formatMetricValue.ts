@@ -1,29 +1,26 @@
 import type { DashboardMetricItem } from '@/entities/dashboard';
 
+import { decorateFormattedNumber } from '@/shared/lib/formatNumberSuffix';
+
+const metricNumberFormatter = new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: 2,
+});
+
 export const formatMetricValue = (
     value: DashboardMetricItem['value'],
-    format: DashboardMetricItem['format']
+    format: DashboardMetricItem['format'],
+    valueMultiplier?: number
 ) => {
     if (value === null || value === undefined || !Number.isFinite(value)) {
         return 'No value';
     }
 
-    if (format === 'currency') {
-        return new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: 'RUB',
-            maximumFractionDigits: 0,
-        }).format(value);
-    }
+    const defaultMultiplier = format === 'percent' ? 100 : 1;
+    const multiplier =
+        typeof valueMultiplier === 'number' && Number.isFinite(valueMultiplier)
+            ? valueMultiplier
+            : defaultMultiplier;
+    const formatted = metricNumberFormatter.format(value * multiplier);
 
-    if (format === 'percent') {
-        return new Intl.NumberFormat('ru-RU', {
-            style: 'percent',
-            maximumFractionDigits: 2,
-        }).format(value);
-    }
-
-    return new Intl.NumberFormat('ru-RU', {
-        maximumFractionDigits: 2,
-    }).format(value);
+    return decorateFormattedNumber(formatted, format);
 };

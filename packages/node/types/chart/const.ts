@@ -18,8 +18,6 @@ export const aggregates = [
     'count_distinct',
 ] as const;
 
-export const measureValueFormats = ['number', 'rub', 'usd', 'percent'] as const;
-
 export const filterOperations = [
     'eq',
     'neq',

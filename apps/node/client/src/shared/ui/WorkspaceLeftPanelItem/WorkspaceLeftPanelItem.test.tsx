@@ -1,9 +1,31 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { WorkspaceLeftPanelItem } from './WorkspaceLeftPanelItem';
 
 const handleClick = vi.fn();
+
+const mockAnimationFrame = () => {
+    const callbacks: FrameRequestCallback[] = [];
+
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+        callbacks.push(callback);
+
+        return callbacks.length;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+
+    return () => {
+        callbacks.splice(0).forEach(callback => callback(0));
+    };
+};
+
+const setViewportWidth = (width: number) => {
+    Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        value: width,
+    });
+};
 
 const setHeaderSize = (
     element: HTMLElement,
@@ -20,6 +42,11 @@ const setHeaderSize = (
 };
 
 describe('WorkspaceLeftPanelItem', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.clearAllMocks();
+    });
+
     it('shows full header tooltip on pointer enter when header is truncated', () => {
         const title = 'Massively long action title that does not fit';
 
@@ -69,5 +96,26 @@ describe('WorkspaceLeftPanelItem', () => {
 
         expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
         expect(button).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('places tooltip to the left of the pointer near the viewport edge', () => {
+        const title = 'Massively long action title that does not fit near the edge';
+        const flushAnimationFrame = mockAnimationFrame();
+        setViewportWidth(400);
+
+        render(<WorkspaceLeftPanelItem header={title} onClick={handleClick} />);
+
+        const button = screen.getByRole('button', { name: title });
+        const header = screen.getByText(title);
+        setHeaderSize(header, { clientWidth: 120, scrollWidth: 260 });
+
+        fireEvent.pointerEnter(button, { clientX: 360, clientY: 40 });
+
+        const tooltip = screen.getByRole('tooltip');
+        flushAnimationFrame();
+
+        expect(tooltip).toHaveAttribute('data-placement', 'left');
+        expect(tooltip.style.getPropertyValue('--tooltip-x')).toBe('360px');
+        expect(tooltip.style.getPropertyValue('--tooltip-y')).toBe('48px');
     });
 });

@@ -62,7 +62,7 @@ describe('GET /api/dashboards/:id', () => {
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
             }),
         });
 
@@ -102,7 +102,8 @@ describe('GET /api/dashboards/:id', () => {
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
+                valueMultiplier: 1,
             }),
         });
 
@@ -113,6 +114,8 @@ describe('GET /api/dashboards/:id', () => {
         expect(metric).toMatchObject({
             kind: 'metric',
             value: 25,
+            format: '₽',
+            valueMultiplier: 1,
         });
     });
 
@@ -141,7 +144,7 @@ describe('GET /api/dashboards/:id', () => {
                 datasetId,
                 name: 'Revenue',
                 expression: 'sum(amount)',
-                format: 'currency',
+                format: '₽',
             }),
         });
 
@@ -185,7 +188,7 @@ describe('GET /api/dashboards/:id', () => {
                 datasetId,
                 name: 'SKU count',
                 expression: 'count(sku)',
-                format: 'number',
+                format: '',
             }),
         });
 

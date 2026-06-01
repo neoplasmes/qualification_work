@@ -1,62 +1,94 @@
+// clamp(min, min(width * wFactor, height * hFactor), max)
+$title-font: clamp(12px, min(8cqw, 10cqh), 26px);
+$value-font: clamp(14px, min(10.5cqw, 13.5cqh), 33px);
+
 .metric-card {
     display: flex;
     width: 100%;
     height: 100%;
-    min-width: 0;
-    min-height: 0;
-    padding: var(--spacing-xs) 0 var(--spacing-sm) var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-sm);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-xs);
     background-color: var(--color-surface-container-lowest);
+
+    container-type: size;
+}
+
+.metric-inner {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    gap: var(--spacing-xs);
 }
 
 .metric-title {
     flex: 1 1 auto;
-    min-width: 0;
     overflow: hidden;
     margin: 0;
 
-    font-size: var(--font-size-xs);
+    font-size: $title-font;
     font-weight: 800;
     line-height: 1.2;
-    color: var(--color-on-surface-variant);
+    color: var(--color-on-surface);
     text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+.metric-value-row {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: var(--spacing-xs);
+    align-items: baseline;
+    justify-content: center;
+}
+
 .metric-value {
+    min-width: 0;
     overflow-wrap: anywhere;
     font-family: var(--font-headline);
-    font-size: var(--font-size-lg);
+    font-size: $value-font;
     font-weight: 800;
     line-height: 1.05;
     color: var(--color-on-surface);
     text-align: center;
+    white-space: nowrap;
 }
 
 .metric-empty {
     font-size: var(--font-size-sm);
     font-weight: 600;
-    color: var(--color-on-surface-variant);
-}
-
-// tone color, inherited by the value, the progress fill and the sparkline stroke
-.tone-success {
-    color: rgb(173 235 196);
-}
-
-.tone-danger {
-    color: var(--color-on-error-container);
-}
-
-.tone-neutral {
     color: var(--color-on-surface);
+}
+
+.target-delta {
+    font-family: var(--font-body);
+    font-size: $value-font;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.delta-success {
+    color: var(--color-success);
+}
+
+.delta-danger {
+    color: var(--color-error);
+}
+
+.delta-neutral {
+    color: var(--color-on-surface-variant);
 }
 
 .progress {
     width: 90%;
     height: 4px;
+    margin-top: var(--spacing-sm);
     overflow: hidden;
     border-radius: var(--radius-xs);
     background-color: var(--color-outline-new);
@@ -65,5 +97,23 @@
 .progress-fill {
     height: 100%;
     border-radius: inherit;
-    background-color: currentcolor;
+    background-color: var(--color-on-surface);
+}
+
+.sparkline-block {
+    width: 100%;
+    min-width: 0;
+}
+
+.sparkline {
+    width: 100%;
+    color: var(--color-on-surface);
+}
+
+@container (width < 124px) {
+    .progress,
+    .sparkline-block,
+    .metric-value-row > :not(.metric-value) {
+        display: none;
+    }
 }

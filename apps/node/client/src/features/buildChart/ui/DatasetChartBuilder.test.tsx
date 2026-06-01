@@ -215,7 +215,7 @@ describe('DatasetChartBuilder', () => {
         await user.selectOptions(screen.getByLabelText('Y axis'), 'country');
         await user.selectOptions(screen.getByLabelText('Aggregation'), 'avg');
         await user.selectOptions(screen.getByLabelText('Column'), 'score');
-        await user.selectOptions(screen.getByLabelText('Value format'), 'rub');
+        await user.type(screen.getByLabelText('Value format'), 'kg');
         await user.click(screen.getByRole('switch', { name: 'Filter rows' }));
         await user.selectOptions(screen.getByLabelText('Filter column'), 'score');
         await user.selectOptions(screen.getByLabelText('Condition'), 'between');
@@ -230,10 +230,35 @@ describe('DatasetChartBuilder', () => {
                 kind: 'heatmap',
                 x: { columnId: 'city' },
                 y: { columnId: 'country' },
-                measure: { aggregate: 'avg', columnId: 'score', valueFormat: 'rub' },
+                measure: { aggregate: 'avg', columnId: 'score', valueFormat: 'kg' },
                 filters: [{ columnId: 'score', op: 'between', value: [10, 50] }],
             }),
         });
+    });
+
+    it('stores custom formats for each visible measure', async () => {
+        const user = userEvent.setup();
+
+        renderDatasetChartBuilder({ selectedDataset: testDataset });
+
+        await user.type(screen.getByLabelText('Value format'), 'rows');
+        await user.click(screen.getByRole('button', { name: 'Add measure' }));
+        await user.selectOptions(screen.getByLabelText('Column'), 'score');
+        await user.type(screen.getAllByLabelText('Value format')[1], 'pts');
+        await user.click(screen.getByRole('button', { name: 'Preview' }));
+
+        await waitFor(() => expect(previewChart).toHaveBeenCalledTimes(1));
+        expect(previewChart).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chartType: 'bar',
+                config: expect.objectContaining({
+                    measures: [
+                        { aggregate: 'count', valueFormat: 'rows' },
+                        { aggregate: 'avg', columnId: 'score', valueFormat: 'pts' },
+                    ],
+                }),
+            })
+        );
     });
 
     it('saves edited chart without requesting preview', async () => {
@@ -260,7 +285,6 @@ describe('DatasetChartBuilder', () => {
                         {
                             aggregate: 'avg',
                             columnId: 'score',
-                            valueFormat: 'number',
                         },
                     ],
                 }),

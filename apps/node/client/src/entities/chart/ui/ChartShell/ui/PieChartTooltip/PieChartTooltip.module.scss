@@ -33,7 +33,8 @@
 }
 
 .tooltip-pct {
-    @include typography.text-xs;
+    @include typography.text-xs-medium;
 
+    font-weight: 400;
     color: var(--color-on-surface-variant);
 }

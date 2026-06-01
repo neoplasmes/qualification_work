@@ -173,7 +173,6 @@ export const NavBar: FC = () => {
             <div
                 className={styles['workspace-controls']}
                 data-stack="h"
-                data-gap="xs"
                 data-align="center"
             >
                 <FormField
@@ -203,7 +202,9 @@ export const NavBar: FC = () => {
                     <>
                         <IconButton
                             tone="nav"
+                            className={styles['panel-toggle']}
                             iconStrokeWidth={2.6}
+                            data-px="xs"
                             aria-label={
                                 isLeftCollapsed ? 'Show left panel' : 'Hide left panel'
                             }
@@ -214,7 +215,9 @@ export const NavBar: FC = () => {
                         </IconButton>
                         <IconButton
                             tone="nav"
+                            className={styles['panel-toggle']}
                             iconStrokeWidth={2.6}
+                            data-px="xs"
                             aria-label={
                                 isRightCollapsed ? 'Show right panel' : 'Hide right panel'
                             }
@@ -229,6 +232,7 @@ export const NavBar: FC = () => {
                 <IconButton
                     tone="nav"
                     iconStrokeWidth={2.6}
+                    data-px="xs"
                     aria-label="Profile"
                     onClick={() => navigate('/profile')}
                 >
@@ -237,6 +241,7 @@ export const NavBar: FC = () => {
                 <IconButton
                     tone="nav"
                     iconStrokeWidth={2.6}
+                    data-px="xs"
                     aria-label="Sign out"
                     disabled={logoutState.isLoading}
                     onClick={() => void handleLogout()}

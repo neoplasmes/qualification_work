@@ -64,6 +64,7 @@ export const manageActionsApi = api.injectEndpoints({
             invalidatesTags: (result, _error, arg) => [
                 { type: 'ActionRuns', id: 'LIST' },
                 { type: 'ActionRuns', id: arg.actionId },
+                ...(result ? [{ type: 'ChartData' as const, id: 'LIST' }] : []),
                 ...getRunDatasetTags(result),
             ],
         }),

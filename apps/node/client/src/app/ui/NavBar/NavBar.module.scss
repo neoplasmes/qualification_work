@@ -38,8 +38,14 @@
 
 .workspace-controls {
     position: relative;
+}
 
-    min-width: 0;
+.panel-toggle {
+    &[aria-pressed='true'],
+    &[aria-pressed='true']:hover,
+    &[aria-pressed='true']:focus-visible {
+        color: var(--color-on-surface);
+    }
 }
 
 .workspace-select {

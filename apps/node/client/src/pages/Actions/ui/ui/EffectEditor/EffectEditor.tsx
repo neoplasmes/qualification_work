@@ -185,18 +185,14 @@ const EffectHeader = ({
         </div>
         <div data-stack="h" data-gap="xs">
             <IconButton
-                tone="transparent"
-                data-p="none"
-                iconStrokeWidth={2.6}
+                tone="nav"
                 aria-label={collapsed ? 'Expand effect' : 'Collapse effect'}
                 onClick={onToggleCollapse}
             >
                 {collapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
             </IconButton>
             <IconButton
-                tone="transparent"
-                data-p="none"
-                iconStrokeWidth={2.6}
+                tone="nav"
                 aria-label="Move effect up"
                 disabled={disabled || index === 0}
                 onClick={() =>
@@ -209,9 +205,7 @@ const EffectHeader = ({
                 <ArrowUp size={20} />
             </IconButton>
             <IconButton
-                tone="transparent"
-                data-p="none"
-                iconStrokeWidth={2.6}
+                tone="nav"
                 aria-label="Move effect down"
                 disabled={disabled || index === effectsCount - 1}
                 onClick={() =>
@@ -224,9 +218,7 @@ const EffectHeader = ({
                 <ArrowDown size={20} />
             </IconButton>
             <IconButton
-                tone="transparent"
-                data-p="none"
-                iconStrokeWidth={2.6}
+                tone="nav"
                 aria-label="Remove effect"
                 disabled={disabled || effectsCount === 1}
                 onClick={() =>

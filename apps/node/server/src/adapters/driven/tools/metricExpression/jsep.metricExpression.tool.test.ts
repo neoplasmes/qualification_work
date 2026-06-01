@@ -20,6 +20,14 @@ describe('JsepMetricExpressionTool', () => {
         });
     });
 
+    it('parses a quoted aggregate column name', () => {
+        expect(tool.parse('sum("Визитов за месяц")')).toEqual({
+            kind: 'agg',
+            aggregate: 'sum',
+            column: 'Визитов за месяц',
+        });
+    });
+
     it('parses count(*) as count over all rows', () => {
         expect(tool.parse('count(*)')).toEqual({
             kind: 'agg',

@@ -12,6 +12,7 @@ type MetricPreviewProps = {
     error?: unknown;
     format: DashboardMetricItem['format'];
     isFetching: boolean;
+    valueMultiplier: string;
     value: number | null | undefined;
 };
 
@@ -21,6 +22,7 @@ export const MetricPreview = ({
     error,
     format,
     isFetching,
+    valueMultiplier,
     value,
 }: MetricPreviewProps) => {
     let content = 'No preview';
@@ -31,7 +33,10 @@ export const MetricPreview = ({
     } else if (enabled && error) {
         content = getApiErrorMessage(error, 'Preview unavailable.');
     } else if (enabled) {
-        content = formatMetricValue(value, format);
+        const multiplier =
+            valueMultiplier.trim() === '' ? 1 : Number(valueMultiplier.trim());
+
+        content = formatMetricValue(value, format, multiplier);
         valueClassName = styles['preview-value'];
     }
 

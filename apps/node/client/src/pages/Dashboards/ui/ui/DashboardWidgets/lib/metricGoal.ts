@@ -1,8 +1,16 @@
 import type { DashboardMetricItem } from '@/entities/dashboard';
 
 export type MetricTone = 'success' | 'danger' | 'neutral';
+export type MetricTargetDelta = {
+    label: string;
+    tone: MetricTone;
+};
 
 type Direction = DashboardMetricItem['targetDirection'];
+const metricDeltaFormatter = new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: 1,
+    signDisplay: 'always',
+});
 
 /**
  * tone of the value relative to its target
@@ -53,4 +61,21 @@ export const metricProgress = (
     }
 
     return Math.min(1, Math.max(0, fill));
+};
+
+export const metricTargetDelta = (
+    value: number | null | undefined,
+    target: number | null,
+    direction: Direction
+): MetricTargetDelta | null => {
+    if (value == null || target == null || direction == null || target === 0) {
+        return null;
+    }
+
+    const percent = ((value - target) / Math.abs(target)) * 100;
+
+    return {
+        label: `${metricDeltaFormatter.format(percent)}%`,
+        tone: metricTone(value, target, direction),
+    };
 };

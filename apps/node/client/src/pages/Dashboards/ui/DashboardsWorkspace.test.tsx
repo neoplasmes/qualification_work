@@ -1,6 +1,6 @@
 import { dashboardChartDefaultHeight } from '@qualification-work/types';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
@@ -156,6 +156,12 @@ vi.mock('@/entities/chart', () => ({
         isLoading: false,
         isFetching: false,
         refetch: vi.fn(),
+    }),
+    useGetChartDataQuery: () => ({
+        currentData: undefined,
+        isLoading: false,
+        isFetching: false,
+        isError: false,
     }),
     useLazyGetChartDataQuery: () => [vi.fn(), { data: null, isFetching: false }],
 }));
@@ -358,10 +364,25 @@ describe('DashboardsWorkspace', () => {
         expect(
             getByDataTestId(container, dashboardsTestIds.metricPreviewValue)
         ).toHaveTextContent('12,5');
-        await user.selectOptions(
-            getByDataTestId(container, dashboardsTestIds.metricFormatSelect),
-            'percent'
+        const formatInput = getByDataTestId<HTMLInputElement>(
+            container,
+            dashboardsTestIds.metricFormatSelect
         );
+        const valueMultiplierInput = getByDataTestId<HTMLInputElement>(
+            container,
+            dashboardsTestIds.metricValueMultiplierInput
+        );
+        const valueMultiplierSlider = screen.getByRole('slider', {
+            name: 'Multiplier',
+        });
+        fireEvent.change(valueMultiplierSlider, { target: { value: '12.5' } });
+        expect(valueMultiplierInput).toHaveValue(12.5);
+        await user.clear(valueMultiplierInput);
+        await user.type(valueMultiplierInput, '1');
+        await user.clear(formatInput);
+        await user.type(formatInput, '%');
+        expect(valueMultiplierInput).toHaveValue(100);
+
         await user.click(getByDataTestId(container, dashboardsTestIds.addMetricButton));
 
         await waitFor(() => expect(mocks.addDashboardMetric).toHaveBeenCalledTimes(1));
@@ -380,7 +401,8 @@ describe('DashboardsWorkspace', () => {
             datasetId: 'dataset-1',
             name: 'Average Score',
             expression: 'avg(score)',
-            format: 'percent',
+            format: '%',
+            valueMultiplier: 100,
             target: null,
             targetDirection: null,
             showTrend: false,

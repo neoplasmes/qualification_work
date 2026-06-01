@@ -31,4 +31,19 @@ describe('Modal', () => {
         fireEvent.keyDown(document, { key: 'Escape' });
         expect(onClose).toHaveBeenCalledTimes(3);
     });
+
+    it('renders header actions next to the close button', () => {
+        render(
+            <Modal
+                title="Settings"
+                actions={<button type="button">Save</button>}
+                onClose={vi.fn()}
+            >
+                Content
+            </Modal>
+        );
+
+        expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Close modal' })).toBeInTheDocument();
+    });
 });

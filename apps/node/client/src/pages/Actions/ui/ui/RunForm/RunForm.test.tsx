@@ -9,6 +9,8 @@ import { actionsTestIds } from '../../../const';
 
 import { RunForm } from './RunForm';
 
+const runFormId = 'test-run-form';
+
 const action: Action = {
     id: 'action-1',
     orgId: 'org-1',
@@ -45,17 +47,27 @@ describe('RunForm', () => {
             const [runValues, setRunValues] = useState({ amount: '', paid: '' });
 
             return (
-                <RunForm
-                    action={action}
-                    runValues={runValues}
-                    disabled={false}
-                    lastRunMessage=""
-                    onRunValueChange={(key, value) => {
-                        onRunValueChange(key, value);
-                        setRunValues(current => ({ ...current, [key]: value }));
-                    }}
-                    onSubmit={onSubmit}
-                />
+                <>
+                    <button
+                        type="submit"
+                        form={runFormId}
+                        data-test-id={actionsTestIds.runButton}
+                    >
+                        Run
+                    </button>
+                    <RunForm
+                        action={action}
+                        formId={runFormId}
+                        runValues={runValues}
+                        disabled={false}
+                        lastRunMessage=""
+                        onRunValueChange={(key, value) => {
+                            onRunValueChange(key, value);
+                            setRunValues(current => ({ ...current, [key]: value }));
+                        }}
+                        onSubmit={onSubmit}
+                    />
+                </>
             );
         };
         const { container } = render(<TestRunForm />);
@@ -88,6 +100,7 @@ describe('RunForm', () => {
             return (
                 <RunForm
                     action={action}
+                    formId={runFormId}
                     runValues={runValues}
                     disabled={false}
                     lastRunMessage=""

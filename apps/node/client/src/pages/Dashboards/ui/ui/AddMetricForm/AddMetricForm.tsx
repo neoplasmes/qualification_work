@@ -1,10 +1,29 @@
+import { skipToken } from '@reduxjs/toolkit/query';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type FormEvent,
+    type ReactNode,
+} from 'react';
+
+import { usePreviewDashboardMetricQuery } from '@/features/manageDashboards';
 
 import type { DashboardMetricItem } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button, FormField, Select, StatusMessage, Switch, TextInput } from '@/shared/ui';
+import {
+    Button,
+    Explain,
+    FormField,
+    SegmentedControl,
+    Select,
+    StatusMessage,
+    Switch,
+    TextInput,
+} from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -19,7 +38,7 @@ import {
     type MetricAggregate,
     type MetricExpressionMode,
 } from './lib';
-import { MetricGoalFields, MetricTrendFields } from './ui';
+import { MetricGoalFields, MetricPreview, MetricTrendFields } from './ui';
 
 import styles from './AddMetricForm.module.scss';
 
@@ -85,6 +104,16 @@ export const AddMetricForm = ({
     const activeColumn = expressionColumns.find(column => column.id === activeColumnId);
     const builtExpression = buildMetricExpression(aggregate, activeColumn);
     const builtMetricName = buildMetricName(aggregate, activeColumn);
+    const targetMetricName = metricName.trim() || builtMetricName;
+    const previewExpression = (
+        expressionMode === 'builder' ? builtExpression : metricExpression
+    ).trim();
+    const previewEnabled = Boolean(datasetId && previewExpression);
+    const previewPayload = useMemo(
+        () => (previewEnabled ? { datasetId, expression: previewExpression } : skipToken),
+        [datasetId, previewEnabled, previewExpression]
+    );
+    const metricPreview = usePreviewDashboardMetricQuery(previewPayload);
 
     useEffect(() => {
         if (expressionMode === 'builder' && metricExpression !== builtExpression) {
@@ -108,6 +137,90 @@ export const AddMetricForm = ({
             onNameChange(builtMetricName);
         }
     }, [builtMetricName, expressionMode, isMetricNameDirty, metricName, onNameChange]);
+
+    const metricPreviewContent = (
+        <FormField label="Preview" className={styles['preview-field']}>
+            <MetricPreview
+                dataTestId={dashboardsTestIds.metricPreviewValue}
+                enabled={previewEnabled}
+                error={metricPreview.error}
+                format={metricFormat}
+                isFetching={metricPreview.isFetching}
+                value={metricPreview.data?.value}
+            />
+        </FormField>
+    );
+
+    let expressionContent: ReactNode;
+
+    if (expressionMode === 'builder') {
+        expressionContent = (
+            <>
+                <FormField label="Operation">
+                    <Select
+                        data-test-id={dashboardsTestIds.metricAggregateSelect}
+                        value={aggregate}
+                        onChange={event =>
+                            setAggregate(event.target.value as MetricAggregate)
+                        }
+                    >
+                        {metricAggregateOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </FormField>
+                <FormField label="Column">
+                    <Select
+                        data-test-id={dashboardsTestIds.metricColumnSelect}
+                        value={activeColumnId}
+                        onChange={event => setColumnId(event.target.value)}
+                        disabled={
+                            !expressionColumns.some(
+                                column => column.isAnalyzable !== false
+                            )
+                        }
+                    >
+                        {expressionColumns.map(column => (
+                            <option
+                                key={column.id}
+                                value={column.id}
+                                disabled={column.isAnalyzable === false}
+                            >
+                                {column.displayName}
+                            </option>
+                        ))}
+                    </Select>
+                </FormField>
+                <div className={styles['expression-row']}>
+                    <FormField label="Expression" className={styles['expression-field']}>
+                        <TextInput
+                            data-test-id={dashboardsTestIds.metricExpressionInput}
+                            value={builtExpression}
+                            placeholder="avg(score)"
+                            readOnly
+                        />
+                    </FormField>
+                    {metricPreviewContent}
+                </div>
+            </>
+        );
+    } else {
+        expressionContent = (
+            <div className={styles['expression-row']}>
+                <FormField label="Expression" className={styles['expression-field']}>
+                    <TextInput
+                        data-test-id={dashboardsTestIds.metricExpressionInput}
+                        value={metricExpression}
+                        placeholder="avg(score)"
+                        onChange={event => onExpressionChange(event.target.value)}
+                    />
+                </FormField>
+                {metricPreviewContent}
+            </div>
+        );
+    }
 
     return (
         <form
@@ -158,83 +271,26 @@ export const AddMetricForm = ({
             </FormField>
 
             <DashboardFormSection>Expression</DashboardFormSection>
-            <FormField label="Mode">
-                <Select
-                    data-test-id={dashboardsTestIds.metricExpressionModeSelect}
-                    value={expressionMode}
-                    onChange={event =>
-                        setExpressionMode(event.target.value as MetricExpressionMode)
-                    }
-                >
-                    {metricExpressionModeOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </Select>
+            <FormField label="Mode" className={styles['mode-field']}>
+                <div data-test-id={dashboardsTestIds.metricExpressionModeSelect}>
+                    <SegmentedControl
+                        className={styles['mode-control']}
+                        value={expressionMode}
+                        options={metricExpressionModeOptions}
+                        ariaLabel="Metric expression mode"
+                        onChange={setExpressionMode}
+                    />
+                </div>
             </FormField>
 
-            {expressionMode === 'builder' ? (
-                <>
-                    <FormField label="Operation">
-                        <Select
-                            data-test-id={dashboardsTestIds.metricAggregateSelect}
-                            value={aggregate}
-                            onChange={event =>
-                                setAggregate(event.target.value as MetricAggregate)
-                            }
-                        >
-                            {metricAggregateOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-                    </FormField>
-                    <FormField label="Column">
-                        <Select
-                            data-test-id={dashboardsTestIds.metricColumnSelect}
-                            value={activeColumnId}
-                            onChange={event => setColumnId(event.target.value)}
-                            disabled={
-                                !expressionColumns.some(
-                                    column => column.isAnalyzable !== false
-                                )
-                            }
-                        >
-                            {expressionColumns.map(column => (
-                                <option
-                                    key={column.id}
-                                    value={column.id}
-                                    disabled={column.isAnalyzable === false}
-                                >
-                                    {column.displayName}
-                                </option>
-                            ))}
-                        </Select>
-                    </FormField>
-                    <FormField label="Expression" className={styles['wide']}>
-                        <TextInput
-                            data-test-id={dashboardsTestIds.metricExpressionInput}
-                            value={builtExpression}
-                            placeholder="avg(score)"
-                            readOnly
-                        />
-                    </FormField>
-                </>
-            ) : (
-                <FormField label="Formula" className={styles['wide']}>
-                    <TextInput
-                        data-test-id={dashboardsTestIds.metricExpressionInput}
-                        value={metricExpression}
-                        placeholder="avg(score)"
-                        onChange={event => onExpressionChange(event.target.value)}
-                    />
-                </FormField>
-            )}
+            {expressionContent}
 
             <DashboardFormSection>Goal</DashboardFormSection>
-            <MetricGoalFields config={config} onConfigChange={onConfigChange} />
+            <MetricGoalFields
+                config={config}
+                metricName={targetMetricName}
+                onConfigChange={onConfigChange}
+            />
 
             <DashboardFormSection
                 action={
@@ -247,7 +303,13 @@ export const AddMetricForm = ({
                     />
                 }
             >
-                Trend
+                <span className={styles['section-label-with-explain']}>
+                    Trend
+                    <Explain
+                        label="Explain trend"
+                        description="Show a sparkline of the value over time."
+                    />
+                </span>
             </DashboardFormSection>
             <MetricTrendFields
                 config={config}
@@ -264,6 +326,7 @@ export const AddMetricForm = ({
             <Button
                 type="submit"
                 className={styles['submit']}
+                data-pr="none"
                 data-test-id={dashboardsTestIds.addMetricButton}
                 disabled={!datasetId || !metricExpression.trim() || disabled}
             >

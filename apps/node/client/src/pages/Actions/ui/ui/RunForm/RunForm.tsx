@@ -1,9 +1,8 @@
-import { Play } from 'lucide-react';
 import type { FormEvent } from 'react';
 
 import type { Action } from '@/entities/action';
 
-import { Button, FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
+import { FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { getRunValuePlaceholder, isRunValueInputAllowed } from '../../../lib';
@@ -12,6 +11,7 @@ import styles from './RunForm.module.scss';
 
 type RunFormProps = {
     action: Action | undefined;
+    formId: string;
     runValues: Record<string, string>;
     disabled: boolean;
     lastRunMessage: string;
@@ -32,6 +32,7 @@ const getRunInputMode = (type: Action['parameters'][number]['type']) => {
 
 export const RunForm = ({
     action,
+    formId,
     runValues,
     disabled,
     lastRunMessage,
@@ -54,6 +55,7 @@ export const RunForm = ({
 
     return (
         <form
+            id={formId}
             className={styles['form']}
             data-display="grid"
             data-gap="md"
@@ -65,14 +67,6 @@ export const RunForm = ({
                     <h3 className={styles['section-title']}>Run action</h3>
                     <p>Enter parameters and execute this business operation.</p>
                 </div>
-                <Button
-                    type="submit"
-                    data-test-id={actionsTestIds.runButton}
-                    disabled={disabled}
-                >
-                    <Play size={18} />
-                    Run
-                </Button>
             </div>
 
             {action.parameters.length === 0 ? (

@@ -2,6 +2,7 @@ import { lazy, useMemo, type ComponentType, type LazyExoticComponent } from 'rea
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 
+import { getActionsWorkspaceBasePath } from '@/pages/Actions';
 import { getChartsWorkspaceBasePath } from '@/pages/Charts';
 
 import {
@@ -89,7 +90,7 @@ type WorkspaceSlots = {
     Right: WorkspaceSlot;
 };
 
-const WORKSPACE_SLOTS: Record<string, WorkspaceSlots> = {
+const workspaceSlots: Record<string, WorkspaceSlots> = {
     '/actions': {
         Left: ActionsLeftPanel,
         Center: ActionsWorkspace,
@@ -151,7 +152,10 @@ export const WorkspaceLayout = () => {
         };
     }, [isLeftCollapsed, isRightCollapsed, dispatch]);
 
-    const slots = WORKSPACE_SLOTS[getChartsWorkspaceBasePath(pathname)];
+    const workspaceBasePath = getActionsWorkspaceBasePath(
+        getChartsWorkspaceBasePath(pathname)
+    );
+    const slots = workspaceSlots[workspaceBasePath];
 
     if (!slots) {
         return null;

@@ -21,15 +21,30 @@ const directionOptions = [
 
 type MetricGoalFieldsProps = {
     config: MetricConfigForm;
+    metricName: string;
     onConfigChange: (patch: Partial<MetricConfigForm>) => void;
 };
 
-export const MetricGoalFields = ({ config, onConfigChange }: MetricGoalFieldsProps) => {
+export const MetricGoalFields = ({
+    config,
+    metricName,
+    onConfigChange,
+}: MetricGoalFieldsProps) => {
     const hasTarget = config.target.trim() !== '';
+    const targetLabel = (
+        <span className={styles['target-label']}>
+            Target
+            {metricName && (
+                <span className={styles['target-metric']}>
+                    <span className={styles['target-metric-name']}>{metricName}</span>
+                </span>
+            )}
+        </span>
+    );
 
     return (
         <>
-            <FormField label="Target">
+            <FormField label={targetLabel}>
                 <TextInput
                     type="number"
                     inputMode="decimal"
@@ -54,12 +69,6 @@ export const MetricGoalFields = ({ config, onConfigChange }: MetricGoalFieldsPro
                     options={directionOptions}
                     ariaLabel="Goal direction"
                     className={styles['direction-tabs']}
-                    classNames={{
-                        indicator: styles['direction-indicator'],
-                        item: styles['direction-tab'],
-                        itemActive: styles['active'],
-                        label: styles['direction-label'],
-                    }}
                     disabled={!hasTarget}
                     onChange={value => onConfigChange({ targetDirection: value })}
                 />

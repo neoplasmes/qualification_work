@@ -9,8 +9,8 @@ describe('Modal', () => {
         const user = userEvent.setup();
         const onClose = vi.fn();
 
-        const { rerender, container } = render(
-            <Modal title="Settings" onClose={onClose}>
+        const { rerender } = render(
+            <Modal title="Settings" testId="settings-modal" onClose={onClose}>
                 Content
             </Modal>
         );
@@ -19,11 +19,13 @@ describe('Modal', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
 
         rerender(
-            <Modal title="Settings" onClose={onClose}>
+            <Modal title="Settings" testId="settings-modal" onClose={onClose}>
                 Content
             </Modal>
         );
-        fireEvent.click(container.firstElementChild as Element);
+        const backdrop = document.body.querySelector('[data-test-id="settings-modal"]');
+        expect(backdrop).not.toBeNull();
+        fireEvent.click(backdrop as Element);
         expect(onClose).toHaveBeenCalledTimes(2);
 
         fireEvent.keyDown(document, { key: 'Escape' });

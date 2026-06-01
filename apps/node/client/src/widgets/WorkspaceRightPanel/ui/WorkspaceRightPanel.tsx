@@ -2,6 +2,8 @@ import { ListFilter, ScrollText, Settings2, type LucideIcon } from 'lucide-react
 import { m } from 'motion/react';
 import type { CSSProperties, ReactNode } from 'react';
 
+import { Separator } from '@/shared/ui';
+
 import styles from './WorkspaceRightPanel.module.scss';
 
 export type WorkspaceRightPanelTabKind = 'history' | 'properties' | 'filters';
@@ -50,7 +52,7 @@ export const WorkspaceRightPanel = <T extends WorkspaceRightPanelTabKind>({
     <aside
         className={styles['right-panel']}
         data-stack="v"
-        data-gap="md"
+        data-gap="sm"
         data-flex
         data-test-id={testId}
     >
@@ -94,6 +96,8 @@ export const WorkspaceRightPanel = <T extends WorkspaceRightPanelTabKind>({
             })}
         </div>
 
-        {children}
+        <Separator />
+
+        <div className={styles['scroll-area']}>{children}</div>
     </aside>
 );

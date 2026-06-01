@@ -79,11 +79,6 @@ export const MappingRow = ({
                     options={mappingSourceOptions}
                     ariaLabel="Value source"
                     className={styles['source-toggle']}
-                    classNames={{
-                        indicator: styles['source-indicator'],
-                        item: styles['source-btn'],
-                        itemActive: styles['active'],
-                    }}
                     disabled={disabled}
                     onChange={sourceKind =>
                         onUpdateMapping(effect.id, mapping.id, { sourceKind })

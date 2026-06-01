@@ -6,6 +6,8 @@ import type {
     AddDashboardMetricPayload,
     CreateDashboardPayload,
     CreateDashboardResponse,
+    PreviewDashboardMetricPayload,
+    PreviewDashboardMetricResponse,
     RemoveDashboardItemPayload,
     RenameDashboardPayload,
     UpdateDashboardLayoutPayload,
@@ -65,6 +67,17 @@ export const manageDashboardsApi = api.injectEndpoints({
                 { type: 'Dashboards', id: 'LIST' },
             ],
         }),
+        previewDashboardMetric: builder.query<
+            PreviewDashboardMetricResponse,
+            PreviewDashboardMetricPayload
+        >({
+            query: body => ({
+                url: '/dashboards/metrics/preview',
+                method: 'POST',
+                body,
+            }),
+            keepUnusedDataFor: 30,
+        }),
         updateDashboardMetric: builder.mutation<void, UpdateDashboardMetricPayload>({
             query: ({ dashboardId, itemId, ...metric }) => ({
                 url: `/dashboards/${dashboardId}/items/${itemId}`,
@@ -107,6 +120,7 @@ export const {
     useAddDashboardChartMutation,
     useAddDashboardMetricMutation,
     useCreateDashboardMutation,
+    usePreviewDashboardMetricQuery,
     useRemoveDashboardItemMutation,
     useRenameDashboardMutation,
     useUpdateDashboardLayoutMutation,

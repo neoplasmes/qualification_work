@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 import { IconButton } from '../Button';
 
@@ -24,7 +25,6 @@ type ModalProps = {
         | '2xl'
         | '3xl'
         | 'none';
-    /** fixed modal height in px; content area scrolls within */
     height?: number;
     closeOnBackdrop?: boolean;
     closeOnEscape?: boolean;
@@ -61,7 +61,7 @@ export const Modal = ({
         return () => document.removeEventListener('keydown', handler);
     }, [closeOnEscape, onClose]);
 
-    return (
+    const content = (
         <div
             data-stack="h"
             data-align="center"
@@ -90,23 +90,21 @@ export const Modal = ({
                         aria-label="Close modal"
                         onClick={onClose}
                     >
-                        <X size={18} />
+                        <X size={20} strokeWidth={2.6} />
                     </IconButton>
                 </div>
                 <div data-display="grid" data-gap="md" className={styles['body-scroll']}>
                     {children}
                 </div>
-                {footer && (
-                    <div
-                        className={styles['footer']}
-                        data-display="grid"
-                        data-gap="md"
-                        data-pt="md"
-                    >
-                        {footer}
-                    </div>
-                )}
+                {/* {footer && <Separator />} */}
+                {footer}
             </div>
         </div>
     );
+
+    if (typeof document === 'undefined') {
+        return content;
+    }
+
+    return createPortal(content, document.body);
 };

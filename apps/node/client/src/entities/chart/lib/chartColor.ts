@@ -86,6 +86,10 @@ const hslToRgb = ({ h, s, l }: Hsl): Rgb => {
     };
 };
 
+const clampUnit = (value: number) => Math.min(1, Math.max(0, value));
+
+const monochromeLightnessOffsets = [0, 0.16, -0.08, 0.28, -0.18, 0.06, -0.28, 0.36];
+
 export const mixChartColors = (from: string, to: string, weight: number) => {
     const a = hexToRgb(normalizeChartColor(from));
     const b = hexToRgb(normalizeChartColor(to));
@@ -94,6 +98,30 @@ export const mixChartColors = (from: string, to: string, weight: number) => {
         r: a.r + (b.r - a.r) * weight,
         g: a.g + (b.g - a.g) * weight,
         b: a.b + (b.b - a.b) * weight,
+    });
+};
+
+export const buildMonochromeChartPalette = (baseColor: string, size: number) => {
+    const base = normalizeChartColor(baseColor);
+    const hsl = rgbToHsl(hexToRgb(base));
+
+    return Array.from({ length: Math.max(1, size) }, (_, index) => {
+        if (index === 0) {
+            return base;
+        }
+
+        const offset =
+            monochromeLightnessOffsets[index % monochromeLightnessOffsets.length];
+        const cycle = Math.floor(index / monochromeLightnessOffsets.length);
+        const cycleOffset = cycle * (offset >= 0 ? 0.04 : -0.04);
+
+        return rgbToHex(
+            hslToRgb({
+                h: hsl.h,
+                s: clampUnit(hsl.s + (index % 2 === 0 ? 0.04 : -0.06)),
+                l: Math.min(0.82, Math.max(0.22, hsl.l + offset + cycleOffset)),
+            })
+        );
     });
 };
 

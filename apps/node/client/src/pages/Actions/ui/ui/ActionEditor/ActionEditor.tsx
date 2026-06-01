@@ -1,7 +1,8 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Save, X } from 'lucide-react';
+import { Play, Save, X } from 'lucide-react';
 import { useCallback, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import {
     useCreateActionMutation,
@@ -22,16 +23,17 @@ import {
     coerceRunValues,
     createBlankActionDraft,
     draftToActionPayload,
+    getActionWorkspaceUrl,
     getDefaultRunValues,
     validateRunValues,
 } from '../../../lib';
 import {
     cancelCreateAction,
     selectAction,
-    selectActionsWorkspaceTab,
-    setActionsWorkspaceTab,
+    selectActionsWorkspaceMode,
+    setActionsWorkspaceMode,
     type ActionDraft,
-    type ActionsWorkspaceTab,
+    type ActionsWorkspaceMode,
 } from '../../../model';
 
 import { ConfigureForm } from '../ConfigureForm';
@@ -49,7 +51,8 @@ type ActionEditorProps = {
     refetchActions: () => unknown;
 };
 
-const CONFIGURE_FORM_ID = 'actions-configure-form';
+const configureFormId = 'actions-configure-form';
+const runFormId = 'actions-run-form';
 
 export const ActionEditor = ({
     selectedAction,
@@ -59,7 +62,8 @@ export const ActionEditor = ({
     refetchActions,
 }: ActionEditorProps) => {
     const dispatch = useDispatch();
-    const workspaceTab = useSelector(selectActionsWorkspaceTab);
+    const navigate = useNavigate();
+    const workspaceMode = useSelector(selectActionsWorkspaceMode);
     const [draft, setDraft] = useState<ActionDraft>(() =>
         selectedAction ? actionToDraft(selectedAction) : createBlankActionDraft()
     );
@@ -91,6 +95,7 @@ export const ActionEditor = ({
                     const created = await createAction({ orgId, ...payload }).unwrap();
                     dispatch(cancelCreateAction());
                     dispatch(selectAction(created.id));
+                    navigate(getActionWorkspaceUrl(created.id, 'view'));
                 } else if (selectedAction) {
                     await patchAction({
                         actionId: selectedAction.id,
@@ -113,6 +118,7 @@ export const ActionEditor = ({
             draft,
             editable,
             isCreatingAction,
+            navigate,
             orgId,
             patchAction,
             refetchActions,
@@ -166,13 +172,18 @@ export const ActionEditor = ({
     }, []);
 
     const handleTabChange = useCallback(
-        (tab: ActionsWorkspaceTab) => dispatch(setActionsWorkspaceTab(tab)),
-        [dispatch]
+        (mode: ActionsWorkspaceMode) => {
+            dispatch(setActionsWorkspaceMode(mode));
+
+            if (selectedAction) {
+                navigate(getActionWorkspaceUrl(selectedAction.id, mode));
+            }
+        },
+        [dispatch, navigate, selectedAction]
     );
 
     const saving = createState.isLoading || patchState.isLoading;
-    const saveFormId =
-        workspaceTab === 'configure' && editable ? CONFIGURE_FORM_ID : undefined;
+    const saveFormId = workspaceMode === 'edit' && editable ? configureFormId : undefined;
     const workspaceTitle =
         (isCreatingAction ? draft.name : (selectedAction?.name ?? '')).trim() ||
         'Untitled action';
@@ -207,6 +218,19 @@ export const ActionEditor = ({
                             Save
                         </Button>
                     ) : null}
+                    {workspaceMode === 'view' && selectedAction ? (
+                        <Button
+                            type="submit"
+                            form={runFormId}
+                            size="sm"
+                            data-test-id={actionsTestIds.runButton}
+                            disabled={!editable || executeState.isLoading}
+                            isLoading={executeState.isLoading}
+                        >
+                            <Play size={16} />
+                            Run
+                        </Button>
+                    ) : null}
                     {isCreatingAction ? (
                         <Button
                             data-test-id={actionsTestIds.cancelCreateButton}
@@ -222,7 +246,7 @@ export const ActionEditor = ({
             <Separator />
 
             <WorkspaceTabs
-                activeTab={workspaceTab}
+                activeTab={workspaceMode}
                 runDisabled={isCreatingAction}
                 onChange={handleTabChange}
             />
@@ -235,12 +259,12 @@ export const ActionEditor = ({
                 </StatusMessage>
             )}
 
-            {workspaceTab === 'configure' ? (
+            {workspaceMode === 'edit' ? (
                 <ConfigureForm
                     draft={draft}
                     datasets={datasetsQuery.data ?? []}
                     disabled={!editable || saving}
-                    formId={CONFIGURE_FORM_ID}
+                    formId={configureFormId}
                     onSubmit={handleSave}
                     onDraftChange={setDraft}
                     onUpdateParameter={updateParameter}
@@ -250,6 +274,7 @@ export const ActionEditor = ({
             ) : (
                 <RunForm
                     action={selectedAction}
+                    formId={runFormId}
                     runValues={runValues}
                     disabled={!editable || executeState.isLoading}
                     lastRunMessage={lastRunMessage}

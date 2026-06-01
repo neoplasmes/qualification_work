@@ -6,43 +6,43 @@ import {
 } from '@/widgets/WorkspaceModeTabs';
 
 import { actionsTestIds } from '../../../const';
-import type { ActionsWorkspaceTab } from '../../../model';
+import type { ActionsWorkspaceMode } from '../../../model';
 
-const ACTIONS_WORKSPACE_MODE_TABS = [
+const actionsWorkspaceModeTabs = [
     {
-        value: 'run',
+        value: 'view',
         label: 'View',
         icon: Eye,
         testId: actionsTestIds.workspaceViewTab,
     },
     {
-        value: 'configure',
+        value: 'edit',
         label: 'Edit',
         icon: PencilLine,
         testId: actionsTestIds.workspaceEditTab,
     },
-] as const satisfies readonly WorkspaceModeTabOption<ActionsWorkspaceTab>[];
+] as const satisfies readonly WorkspaceModeTabOption<ActionsWorkspaceMode>[];
 
-const ACTIONS_WORKSPACE_MODE_TABS_WITH_DISABLED_RUN = [
+const actionsWorkspaceModeTabsWithDisabledRun = [
     {
-        value: 'run',
+        value: 'view',
         label: 'View',
         icon: Eye,
         testId: actionsTestIds.workspaceViewTab,
         disabled: true,
     },
     {
-        value: 'configure',
+        value: 'edit',
         label: 'Edit',
         icon: PencilLine,
         testId: actionsTestIds.workspaceEditTab,
     },
-] as const satisfies readonly WorkspaceModeTabOption<ActionsWorkspaceTab>[];
+] as const satisfies readonly WorkspaceModeTabOption<ActionsWorkspaceMode>[];
 
 type WorkspaceTabsProps = {
-    activeTab: ActionsWorkspaceTab;
+    activeTab: ActionsWorkspaceMode;
     runDisabled: boolean;
-    onChange: (tab: ActionsWorkspaceTab) => void;
+    onChange: (tab: ActionsWorkspaceMode) => void;
 };
 
 export const WorkspaceTabs = ({
@@ -54,8 +54,8 @@ export const WorkspaceTabs = ({
         value={activeTab}
         options={
             runDisabled
-                ? ACTIONS_WORKSPACE_MODE_TABS_WITH_DISABLED_RUN
-                : ACTIONS_WORKSPACE_MODE_TABS
+                ? actionsWorkspaceModeTabsWithDisabledRun
+                : actionsWorkspaceModeTabs
         }
         layoutId="actions-workspace-mode"
         onChange={onChange}

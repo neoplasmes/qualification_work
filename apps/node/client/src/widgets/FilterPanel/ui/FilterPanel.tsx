@@ -1,5 +1,4 @@
 import { Eraser, LayoutDashboard, Sheet, Workflow } from 'lucide-react';
-import type { CSSProperties } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -40,12 +39,7 @@ const emptyTextByEntity = {
     effects: 'No effects yet.',
 } satisfies Record<FilterApplicationEntity, string>;
 
-const filterPanelTabTransition = { duration: 0.2 };
 const filterPanelIconSize = 18;
-
-type FilterPanelTabsStyle = CSSProperties & {
-    '--filter-tabs-count': number;
-};
 
 const getFilterPanelItemIcon = (
     entity: FilterApplicationEntity,
@@ -139,21 +133,9 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
                 <SegmentedControl
                     value={activeEntity}
                     options={tabOptions}
+                    data-py="sm"
                     ariaLabel="Filter section"
                     className={styles['entity-tabs']}
-                    classNames={{
-                        indicator: styles['active-tab-bg'],
-                        item: styles['entity-tab'],
-                        itemActive: styles['active'],
-                        label: styles['tab-label'],
-                        count: styles['tab-count'],
-                    }}
-                    style={
-                        {
-                            '--filter-tabs-count': config.tabs.length,
-                        } as FilterPanelTabsStyle
-                    }
-                    transition={filterPanelTabTransition}
                     onChange={entity =>
                         dispatch(
                             setFilterApplicationActiveTab({

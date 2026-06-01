@@ -7,8 +7,12 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useListActionsQuery } from '@/entities/action';
 
 import { actionsTestIds } from '../const';
-import { getSelectedAction } from '../lib';
-import { selectIsCreatingAction, selectSelectedActionId } from '../model';
+import {
+    selectActionsWorkspaceMode,
+    selectIsCreatingAction,
+    selectSelectedActionId,
+} from '../model';
+import { useActionsWorkspaceRouteSync } from './lib';
 import { ActionEditor } from './ui/ActionEditor';
 
 import styles from './ActionsPage.module.scss';
@@ -16,6 +20,7 @@ import styles from './ActionsPage.module.scss';
 export const ActionsWorkspace = () => {
     const selectedActionId = useSelector(selectSelectedActionId);
     const isCreatingAction = useSelector(selectIsCreatingAction);
+    const workspaceMode = useSelector(selectActionsWorkspaceMode);
 
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
@@ -23,13 +28,39 @@ export const ActionsWorkspace = () => {
 
     const selectedAction = useMemo(
         () =>
-            isCreatingAction
+            isCreatingAction || !selectedActionId
                 ? undefined
-                : getSelectedAction(actionsQuery.data, selectedActionId),
+                : actionsQuery.data?.find(action => action.id === selectedActionId),
         [actionsQuery.data, isCreatingAction, selectedActionId]
     );
 
+    useActionsWorkspaceRouteSync({
+        selectedActionId,
+        isCreatingAction,
+        workspaceMode,
+    });
+
     if (!selectedAction && !isCreatingAction) {
+        let content = (
+            <p
+                className={styles['placeholder']}
+                data-stack="h"
+                data-align="center"
+                data-justify="center"
+                data-flex
+            >
+                Select or create an action.
+            </p>
+        );
+
+        if (selectedActionId && actionsQuery.isLoading) {
+            content = <p className={styles['empty']}>Loading action...</p>;
+        }
+
+        if (selectedActionId && actionsQuery.isError) {
+            content = <p className={styles['empty']}>Unable to load this action.</p>;
+        }
+
         return (
             <section
                 className={styles['workspace']}
@@ -39,15 +70,7 @@ export const ActionsWorkspace = () => {
                 data-test-id={actionsTestIds.workspace}
                 aria-label="Action details"
             >
-                <p
-                    className={styles['placeholder']}
-                    data-stack="h"
-                    data-align="center"
-                    data-justify="center"
-                    data-flex
-                >
-                    Select or create an action.
-                </p>
+                {content}
             </section>
         );
     }

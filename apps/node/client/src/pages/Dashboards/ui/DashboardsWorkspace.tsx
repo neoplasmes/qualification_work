@@ -4,7 +4,7 @@ import {
 } from '@qualification-work/types';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -41,7 +41,7 @@ import styles from './DashboardsPage.module.scss';
 export const DashboardsWorkspace = () => {
     const dispatch = useDispatch();
     const workspaceRef = useRef<HTMLElement>(null);
-    const [selectedChartId, setSelectedChartId] = useState('');
+    const [selectedChartIds, setSelectedChartIds] = useState<string[]>([]);
     const [activeModal, setActiveModal] = useState<'chart' | 'metric' | null>(null);
     const [error, setError] = useState('');
 
@@ -113,29 +113,54 @@ export const DashboardsWorkspace = () => {
         setActiveModal(null);
     }, [dashboard?.id]);
 
-    useEffect(
-        () => setSelectedChartId(chartsQuery.data?.[0]?.id ?? ''),
-        [chartsQuery.data]
-    );
+    useEffect(() => {
+        if (!chartsQuery.data) {
+            return;
+        }
+
+        const availableChartIds = new Set(chartsQuery.data.map(chart => chart.id));
+        setSelectedChartIds(current => {
+            const next = current.filter(chartId => availableChartIds.has(chartId));
+
+            return next.length === current.length ? current : next;
+        });
+    }, [chartsQuery.data]);
 
     const handleAddChart = async () => {
-        if (!dashboard || !selectedChartId) {
+        if (!dashboard || selectedChartIds.length === 0) {
             return;
         }
 
         try {
-            await addDashboardChart({
-                dashboardId: dashboard.id,
-                chartId: selectedChartId,
-                height: dashboardChartDefaultHeight,
-            }).unwrap();
+            for (const chartId of selectedChartIds) {
+                await addDashboardChart({
+                    dashboardId: dashboard.id,
+                    chartId,
+                    height: dashboardChartDefaultHeight,
+                }).unwrap();
+            }
+            setSelectedChartIds([]);
             setActiveModal(null);
             await dashboardQuery.refetch();
             await dashboardsQuery.refetch();
         } catch (addError) {
-            setError(getApiErrorMessage(addError, 'Unable to add this chart.'));
+            setError(getApiErrorMessage(addError, 'Unable to add selected charts.'));
         }
     };
+
+    const toggleSelectedChart = useCallback((chartId: string) => {
+        setSelectedChartIds(current =>
+            current.includes(chartId)
+                ? current.filter(selectedChartId => selectedChartId !== chartId)
+                : [...current, chartId]
+        );
+    }, []);
+
+    const removeSelectedChart = useCallback((chartId: string) => {
+        setSelectedChartIds(current =>
+            current.filter(selectedChartId => selectedChartId !== chartId)
+        );
+    }, []);
 
     const handleLayoutChange = async (layout: DashboardItemLayoutInput[]) => {
         if (!dashboard || layout.length === 0) {
@@ -238,9 +263,12 @@ export const DashboardsWorkspace = () => {
                     {activeModal === 'chart' && (
                         <AddChartModal
                             charts={chartsQuery.data}
-                            value={selectedChartId}
+                            datasets={datasetsQuery.data}
+                            selectedChartIds={selectedChartIds}
                             disabled={addChartState.isLoading}
-                            onChange={setSelectedChartId}
+                            onToggleChart={toggleSelectedChart}
+                            onRemoveChart={removeSelectedChart}
+                            onClearSelection={() => setSelectedChartIds([])}
                             onAdd={() => void handleAddChart()}
                             onClose={() => setActiveModal(null)}
                         />

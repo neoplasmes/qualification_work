@@ -14,6 +14,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 
 import {
+    actionsWorkspaceIndexPath,
+    getActionWorkspaceUrl,
+    isActionsWorkspacePath,
+    selectActionsWorkspaceMode,
+    selectSelectedActionId,
+} from '@/pages/Actions';
+import {
     chartsWorkspaceIndexPath,
     getChartWorkspaceUrl,
     isChartsWorkspacePath,
@@ -47,14 +54,18 @@ const navLinks = [
         Icon: ChartNoAxesColumnIncreasing,
     },
     { to: '/dashboards', label: 'Dashboards', Icon: LayoutDashboard },
-    { to: '/actions', label: 'Actions', Icon: Workflow },
+    { to: actionsWorkspaceIndexPath, label: 'Actions', Icon: Workflow },
 ];
 
-const workspacePaths = new Set(['/datasets', '/dashboards', '/actions']);
+const workspacePaths = new Set(['/datasets', '/dashboards']);
 
 const isActiveNavPath = (pathname: string, linkPath: string) => {
     if (linkPath === chartsWorkspaceIndexPath) {
         return isChartsWorkspacePath(pathname);
+    }
+
+    if (linkPath === actionsWorkspaceIndexPath) {
+        return isActionsWorkspacePath(pathname);
     }
 
     return pathname === linkPath;
@@ -70,6 +81,8 @@ export const NavBar: FC = () => {
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
     const selectedChartId = useSelector(selectSelectedChartId);
     const chartsWorkspaceMode = useSelector(selectChartsWorkspaceMode);
+    const selectedActionId = useSelector(selectSelectedActionId);
+    const actionsWorkspaceMode = useSelector(selectActionsWorkspaceMode);
 
     const meQuery = useGetMeQuery();
     const { activeOrg, orgs, setActiveOrgId } = useActiveOrganization(meQuery.data);
@@ -88,8 +101,13 @@ export const NavBar: FC = () => {
     const chartsLink = selectedChartId
         ? getChartWorkspaceUrl(selectedChartId, chartsWorkspaceMode)
         : chartsWorkspaceIndexPath;
+    const actionsLink = selectedActionId
+        ? getActionWorkspaceUrl(selectedActionId, actionsWorkspaceMode)
+        : actionsWorkspaceIndexPath;
     const isWorkspacePage =
-        workspacePaths.has(pathname) || isChartsWorkspacePath(pathname);
+        workspacePaths.has(pathname) ||
+        isChartsWorkspacePath(pathname) ||
+        isActionsWorkspacePath(pathname);
     const workspaceOrgs = hasMounted ? orgs : [];
     const workspaceValue = hasMounted ? (activeOrg?.id ?? '') : '';
     const workspaceDisabled = hasMounted ? orgs.length === 0 : false;
@@ -100,7 +118,16 @@ export const NavBar: FC = () => {
             <nav aria-label="Main navigation">
                 <ul data-stack="h" data-gap="sm">
                     {navLinks.map(({ to, label, Icon }) => {
-                        const href = to === chartsWorkspaceIndexPath ? chartsLink : to;
+                        let href = to;
+
+                        if (to === chartsWorkspaceIndexPath) {
+                            href = chartsLink;
+                        }
+
+                        if (to === actionsWorkspaceIndexPath) {
+                            href = actionsLink;
+                        }
+
                         const active = isActiveNavPath(pathname, to);
 
                         return (

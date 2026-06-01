@@ -113,6 +113,15 @@ export type AddDashboardItemResponse = {
 
 export type UpdateDashboardMetricPayload = Omit<AddDashboardMetricPayload, 'height'>;
 
+export type PreviewDashboardMetricPayload = {
+    datasetId: string;
+    expression: string;
+};
+
+export type PreviewDashboardMetricResponse = {
+    value: number | null;
+};
+
 export type DashboardItemLayoutInput = {
     itemId: string;
     posX: number;

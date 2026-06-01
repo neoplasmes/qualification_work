@@ -10,10 +10,7 @@ import {
     C,
     GROUP_PADDING,
     MAX_VALUE_LABEL_BARS,
-    MIN_BAR_H_FOR_LABEL,
-    MIN_BAR_W_FOR_LABEL,
     MIN_VALUE_LABEL_W,
-    truncate,
 } from './barChartConfig';
 
 type ValueScale = (value: number) => number | undefined;
@@ -61,71 +58,6 @@ const useScales = () => {
         xBand: xScale as unknown as BandScale,
         yLinear: yScale as unknown as ValueScale,
     };
-};
-
-export const GroupedBarLabels = ({ series }: { series: ChartSeries[] }) => {
-    const scales = useScales();
-    if (!scales) {
-        return null;
-    }
-
-    const { bandwidth, xBand, yLinear } = scales;
-    const innerScale = scaleBand<string>({
-        domain: series.map(s => s.name),
-        range: [0, bandwidth],
-        padding: GROUP_PADDING,
-    });
-    const barWidth = innerScale.bandwidth();
-    if (barWidth < MIN_BAR_W_FOR_LABEL) {
-        return null;
-    }
-
-    const zeroY = Number(yLinear(0));
-
-    return (
-        <g pointerEvents="none">
-            {series.flatMap(s =>
-                s.points.map(p => {
-                    const x0 = xBand(p.label);
-                    const x1 = innerScale(s.name);
-                    const yV = yLinear(p.value);
-                    if (x0 == null || x1 == null || yV == null) {
-                        return null;
-                    }
-
-                    const yBottom = Math.max(yV, zeroY);
-                    if (yBottom - Math.min(yV, zeroY) < MIN_BAR_H_FOR_LABEL) {
-                        return null;
-                    }
-
-                    const cx = x0 + x1 + barWidth / 2;
-                    const ay = yBottom - 8;
-
-                    return (
-                        <text
-                            key={`${p.label}-${s.name}`}
-                            x={cx}
-                            y={ay}
-                            transform={`rotate(-90, ${cx}, ${ay})`}
-                            textAnchor="start"
-                            dominantBaseline="central"
-                            fontSize={11}
-                            fontWeight={600}
-                            fill={C.onSurface}
-                            style={{
-                                paintOrder: 'stroke',
-                                stroke: 'rgba(0, 0, 0, 0.6)',
-                                strokeLinejoin: 'round',
-                                strokeWidth: 3,
-                            }}
-                        >
-                            {truncate(s.name)}
-                        </text>
-                    );
-                })
-            )}
-        </g>
-    );
 };
 
 export const ValueLabels = ({

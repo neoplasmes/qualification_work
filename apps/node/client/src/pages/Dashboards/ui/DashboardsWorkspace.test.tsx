@@ -25,6 +25,8 @@ const mocks = vi.hoisted(() => ({
     refetchDashboard: vi.fn(),
 }));
 
+const chartIconMock = vi.hoisted(() => () => null);
+
 const chart = vi.hoisted(
     () =>
         ({
@@ -40,6 +42,24 @@ const chart = vi.hoisted(
             },
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
+        }) satisfies Chart
+);
+
+const secondChart = vi.hoisted(
+    () =>
+        ({
+            id: 'chart-2',
+            orgId: 'org-1',
+            datasetId: 'dataset-2',
+            name: 'Profit',
+            chartType: 'line',
+            config: {
+                kind: 'line',
+                dimension: { columnId: 'column-profit-date' },
+                measures: [{ aggregate: 'sum', columnId: 'column-profit' }],
+            },
+            createdAt: '2026-01-02T00:00:00.000Z',
+            updatedAt: '2026-01-02T00:00:00.000Z',
         }) satisfies Chart
 );
 
@@ -81,6 +101,41 @@ const dataset = vi.hoisted(
         }) satisfies DatasetMetadata
 );
 
+const secondDataset = vi.hoisted(
+    () =>
+        ({
+            dataset: {
+                id: 'dataset-2',
+                orgId: 'org-1',
+                name: 'Profit reports',
+                sourceType: 'manual',
+                createdAt: '2026-01-02T00:00:00.000Z',
+                updatedAt: '2026-01-02T00:00:00.000Z',
+            },
+            columns: [
+                {
+                    id: 'column-profit',
+                    datasetId: 'dataset-2',
+                    key: 'profit',
+                    displayName: 'Profit',
+                    dataType: 'number',
+                    orderIndex: 0,
+                    isAnalyzable: true,
+                },
+                {
+                    id: 'column-profit-date',
+                    datasetId: 'dataset-2',
+                    key: 'created_at',
+                    displayName: 'Created at',
+                    dataType: 'date',
+                    orderIndex: 1,
+                    isAnalyzable: true,
+                },
+            ],
+            totalRows: 5,
+        }) satisfies DatasetMetadata
+);
+
 vi.mock('@/features/authenticate', () => ({
     useGetMeQuery: () => ({ data: { id: 'user-1' } }),
     useActiveOrganization: () => ({
@@ -89,8 +144,14 @@ vi.mock('@/features/authenticate', () => ({
 }));
 
 vi.mock('@/entities/chart', () => ({
+    CHART_KIND_ICONS: {
+        bar: chartIconMock,
+        line: chartIconMock,
+        pie: chartIconMock,
+        heatmap: chartIconMock,
+    },
     useListChartsQuery: () => ({
-        data: [chart],
+        data: [chart, secondChart],
         isLoading: false,
         isFetching: false,
         refetch: vi.fn(),
@@ -100,7 +161,7 @@ vi.mock('@/entities/chart', () => ({
 
 vi.mock('@/entities/dataset', () => ({
     useListDatasetsQuery: () => ({
-        data: [dataset],
+        data: [dataset, secondDataset],
         isLoading: false,
         isFetching: false,
         refetch: vi.fn(),
@@ -127,6 +188,11 @@ vi.mock('@/features/manageDashboards', () => ({
     useRenameDashboardMutation: () => [mocks.renameDashboard, { isLoading: false }],
     useAddDashboardChartMutation: () => [mocks.addDashboardChart, { isLoading: false }],
     useAddDashboardMetricMutation: () => [mocks.addDashboardMetric, { isLoading: false }],
+    usePreviewDashboardMetricQuery: () => ({
+        data: { value: 12.5 },
+        isFetching: false,
+        error: undefined,
+    }),
     useUpdateDashboardMetricMutation: () => [
         mocks.updateDashboardMetric,
         { isLoading: false },
@@ -145,7 +211,9 @@ const getByDataTestId = <T extends HTMLElement>(
     container: HTMLElement,
     testId: string
 ) => {
-    const element = container.querySelector<T>(`[data-test-id="${testId}"]`);
+    const element =
+        container.querySelector<T>(`[data-test-id="${testId}"]`) ??
+        document.body.querySelector<T>(`[data-test-id="${testId}"]`);
     expect(element).not.toBeNull();
 
     return element as T;
@@ -258,9 +326,22 @@ describe('DashboardsWorkspace', () => {
             getByDataTestId(container, dashboardsTestIds.openAddChartModalButton)
         );
         expect(screen.getByRole('dialog', { name: 'Add chart' })).toBeInTheDocument();
+        expect(
+            getByDataTestId<HTMLSelectElement>(
+                document.body,
+                dashboardsTestIds.addChartDatasetSelect
+            )
+        ).toHaveValue('');
+        await user.click(screen.getByRole('button', { name: /Revenue/ }));
+        await user.selectOptions(
+            getByDataTestId(document.body, dashboardsTestIds.addChartDatasetSelect),
+            'dataset-2'
+        );
+        expect(screen.getByText('Revenue')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: /Profit/ }));
         await user.click(getByDataTestId(container, dashboardsTestIds.addChartButton));
 
-        await waitFor(() => expect(mocks.addDashboardChart).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mocks.addDashboardChart).toHaveBeenCalledTimes(2));
 
         await user.click(
             getByDataTestId(container, dashboardsTestIds.openAddMetricModalButton)
@@ -271,6 +352,9 @@ describe('DashboardsWorkspace', () => {
                 getByDataTestId(container, dashboardsTestIds.metricNameInput)
             ).toHaveValue('Average Score')
         );
+        expect(
+            getByDataTestId(container, dashboardsTestIds.metricPreviewValue)
+        ).toHaveTextContent('12,5');
         await user.selectOptions(
             getByDataTestId(container, dashboardsTestIds.metricFormatSelect),
             'percent'
@@ -278,9 +362,14 @@ describe('DashboardsWorkspace', () => {
         await user.click(getByDataTestId(container, dashboardsTestIds.addMetricButton));
 
         await waitFor(() => expect(mocks.addDashboardMetric).toHaveBeenCalledTimes(1));
-        expect(mocks.addDashboardChart).toHaveBeenCalledWith({
+        expect(mocks.addDashboardChart).toHaveBeenNthCalledWith(1, {
             dashboardId: 'dashboard-1',
             chartId: 'chart-1',
+            height: dashboardChartDefaultHeight,
+        });
+        expect(mocks.addDashboardChart).toHaveBeenNthCalledWith(2, {
+            dashboardId: 'dashboard-1',
+            chartId: 'chart-2',
             height: dashboardChartDefaultHeight,
         });
         expect(mocks.addDashboardMetric).toHaveBeenCalledWith({

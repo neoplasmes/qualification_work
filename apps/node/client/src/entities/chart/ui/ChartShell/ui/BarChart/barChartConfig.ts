@@ -1,6 +1,6 @@
 import { buildChartTheme } from '@visx/xychart';
 
-import { buildChartPalette, DEFAULT_CHART_COLOR } from '../../../../lib';
+import { buildMonochromeChartPalette, DEFAULT_CHART_COLOR } from '../../../../lib';
 import { formatChartCell } from '../../../../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../../../../lib/parseChartData';
 
@@ -27,8 +27,6 @@ export const SERIES_COLORS = [
     '#78a95a',
 ];
 export const GROUP_PADDING = 0.12;
-export const MIN_BAR_W_FOR_LABEL = 12;
-export const MIN_BAR_H_FOR_LABEL = 56;
 export const MIN_VALUE_LABEL_W = 32;
 export const MAX_VALUE_LABEL_BARS = 12;
 export const MAX_LABEL_CHARS = 18;
@@ -66,9 +64,10 @@ export const getMedianValue = (values: number[]) => {
 };
 
 export const getSeriesColor = (baseColor: string, seriesIndex: number) =>
-    buildChartPalette(baseColor, Math.max(seriesIndex + 1, SERIES_COLORS.length))[
-        seriesIndex
-    ];
+    buildMonochromeChartPalette(
+        baseColor,
+        Math.max(seriesIndex + 1, SERIES_COLORS.length)
+    )[seriesIndex];
 
 export type BarFillVariant = 'normal' | 'dim' | 'max' | 'min';
 

@@ -4,13 +4,21 @@ export {
     actionsPagePersistence,
     actionsPageSlice,
     cancelCreateAction,
+    openActionRoute,
     selectAction,
     selectActionsRightPanelTab,
-    selectActionsWorkspaceTab,
+    selectActionsWorkspaceMode,
     selectIsCreatingAction,
     selectSelectedActionId,
     setActionsRightPanelTab,
-    setActionsWorkspaceTab,
+    setActionsWorkspaceMode,
     startCreateAction,
 } from './model';
-export type { ActionsPageState } from './model';
+export {
+    actionsWorkspaceIndexPath,
+    getActionsWorkspaceBasePath,
+    getActionWorkspaceModeFromPath,
+    getActionWorkspaceUrl,
+    isActionsWorkspacePath,
+} from './lib';
+export type { ActionsPageState, ActionsWorkspaceMode } from './model';

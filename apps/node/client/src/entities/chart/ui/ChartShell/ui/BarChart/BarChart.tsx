@@ -13,11 +13,12 @@ type BarChartProps = {
     color?: string;
     height?: ChartFrameHeight;
     showAxisTickLabels?: boolean;
+    showLegend?: boolean;
 };
 
-export const BarChart = ({ series, ...rest }: BarChartProps) =>
+export const BarChart = ({ series, showLegend, ...rest }: BarChartProps) =>
     series.length === 1 ? (
         <BarChartSingle series={series[0]} {...rest} />
     ) : (
-        <BarChartGrouped series={series} {...rest} />
+        <BarChartGrouped series={series} showLegend={showLegend} {...rest} />
     );

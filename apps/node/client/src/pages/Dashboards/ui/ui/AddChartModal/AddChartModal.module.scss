@@ -1,0 +1,65 @@
+$border-width: 1px;
+$padding: var(--spacing-xs) var(--spacing-sm);
+
+.empty-selection {
+    display: inline-flex;
+    align-items: center;
+
+    padding: $padding;
+
+    border: $border-width solid transparent;
+
+    font-size: var(--font-size-sm);
+    color: var(--color-on-surface-variant);
+}
+
+.chart-chip {
+    display: inline-flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+
+    max-width: 100%;
+    padding: $padding;
+    border: $border-width solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    color: var(--color-on-surface);
+
+    background-color: var(--color-surface-container);
+}
+
+.chart-name {
+    overflow: hidden;
+
+    font-size: var(--font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remove-chart {
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+
+    color: var(--color-on-surface-variant);
+
+    background: transparent;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--color-on-surface);
+        outline: none;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        color: var(--color-outline);
+    }
+}

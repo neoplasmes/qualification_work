@@ -9,7 +9,11 @@ import type {
     UpdateDashboardItemCommand,
     UpdateDashboardLayoutCommand,
 } from '@/core/commands';
-import type { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
+import type {
+    GetDashboardQuery,
+    ListDashboardsQuery,
+    PreviewDashboardMetricQuery,
+} from '@/core/queries';
 
 import type { AppState } from '@/shared/appState';
 
@@ -20,7 +24,11 @@ import {
     createUpdateItemHandler,
     createUpdateItemsLayoutHandler,
 } from './patch';
-import { createAddItemHandler, createCreateDashboardHandler } from './post';
+import {
+    createAddItemHandler,
+    createCreateDashboardHandler,
+    createPreviewMetricHandler,
+} from './post';
 
 export type DashboardsRouterDeps = {
     createDashboard: CreateDashboardCommand;
@@ -32,12 +40,17 @@ export type DashboardsRouterDeps = {
     updateDashboardLayout: UpdateDashboardLayoutCommand;
     getDashboard: GetDashboardQuery;
     listDashboards: ListDashboardsQuery;
+    previewDashboardMetric: PreviewDashboardMetricQuery;
 };
 
 export function createDashboardsRouter(deps: DashboardsRouterDeps): Router<AppState> {
     const router = new Router<AppState>('/dashboards');
 
     router.post('/', createCreateDashboardHandler(deps.createDashboard));
+    router.post(
+        '/metrics/preview',
+        createPreviewMetricHandler(deps.previewDashboardMetric)
+    );
     router.get('/', createListDashboardsHandler(deps.listDashboards));
     router.get('/:id', createGetDashboardHandler(deps.getDashboard));
     router.patch('/:id', createRenameDashboardHandler(deps.renameDashboard));

@@ -2,19 +2,20 @@ export {
     actionsPageInitialState,
     actionsPageSlice,
     cancelCreateAction,
+    openActionRoute,
     selectAction,
     selectActionsRightPanelTab,
-    selectActionsWorkspaceTab,
+    selectActionsWorkspaceMode,
     selectIsCreatingAction,
     selectSelectedActionId,
     setActionsRightPanelTab,
-    setActionsWorkspaceTab,
+    setActionsWorkspaceMode,
     startCreateAction,
 } from './actionsPageSlice';
 export type {
     ActionsPageState,
     ActionsRightPanelTab,
-    ActionsWorkspaceTab,
+    ActionsWorkspaceMode,
 } from './actionsPageSlice';
 export { actionsPagePersistence } from './actionsPagePersistence';
 export type {

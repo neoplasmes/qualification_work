@@ -87,6 +87,8 @@ export const getRoutes = (_store: AppStore): RouteObject[] => [
                 },
                 children: [
                     { path: '/actions', element: <EmptyRoute /> },
+                    { path: '/actions/view', element: <EmptyRoute /> },
+                    { path: '/actions/edit', element: <EmptyRoute /> },
                     { path: '/charts', element: <EmptyRoute /> },
                     { path: '/charts/view', element: <EmptyRoute /> },
                     { path: '/charts/edit', element: <EmptyRoute /> },

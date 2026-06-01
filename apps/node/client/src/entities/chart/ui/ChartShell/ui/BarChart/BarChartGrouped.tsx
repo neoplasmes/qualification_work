@@ -35,7 +35,10 @@ import {
     MIN_CHART_WIDTH,
     shouldRotateBarAxisLabels,
 } from './barChartConfig';
-import { GroupedBarLabels, ReferenceLine, ValueLabels } from './BarChartLayers';
+import { ReferenceLine, ValueLabels } from './BarChartLayers';
+import { BarChartLegend } from './BarChartLegend';
+
+import styles from './BarChart.module.scss';
 
 type BarChartGroupedInnerProps = {
     series: ChartSeries[];
@@ -169,7 +172,6 @@ const BarChartGroupedInner = ({
                     ))}
                 </BarGroup>
                 <ValueLabels series={series} valueFormat={valueFormat} />
-                <GroupedBarLabels series={series} />
             </XYChart>
             <CartesianChartTooltip hovered={hovered} series={series} maxWidth={220} />
         </div>
@@ -184,6 +186,7 @@ type BarChartGroupedProps = {
     color?: string;
     height?: ChartFrameHeight;
     showAxisTickLabels?: boolean;
+    showLegend?: boolean;
 };
 
 export const BarChartGrouped = ({
@@ -194,25 +197,34 @@ export const BarChartGrouped = ({
     color = DEFAULT_CHART_COLOR,
     height,
     showAxisTickLabels = true,
+    showLegend = false,
 }: BarChartGroupedProps) => (
-    <ParentSize style={getChartFrameStyle(height)}>
-        {({ width, height: measuredHeight }) => {
-            const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
+    <div
+        className={[styles['root'], height === 'fill' ? styles['height-fill'] : '']
+            .filter(Boolean)
+            .join(' ')}
+    >
+        <ParentSize style={getChartFrameStyle(height)}>
+            {({ width, height: measuredHeight }) => {
+                const chartHeight = getResolvedChartFrameHeight(height, measuredHeight);
 
-            return width >= MIN_CHART_WIDTH && chartHeight > 0 ? (
-                <BarChartGroupedInner
-                    series={series}
-                    labels={labels}
-                    labelTimeGranularity={labelTimeGranularity}
-                    valueFormat={valueFormat}
-                    color={color}
-                    width={width}
-                    height={chartHeight}
-                    showAxisTickLabels={showAxisTickLabels}
-                />
-            ) : width > 0 ? (
-                <div style={{ height: chartHeight }} />
-            ) : null;
-        }}
-    </ParentSize>
+                return width >= MIN_CHART_WIDTH && chartHeight > 0 ? (
+                    <BarChartGroupedInner
+                        series={series}
+                        labels={labels}
+                        labelTimeGranularity={labelTimeGranularity}
+                        valueFormat={valueFormat}
+                        color={color}
+                        width={width}
+                        height={chartHeight}
+                        showAxisTickLabels={showAxisTickLabels}
+                    />
+                ) : width > 0 ? (
+                    <div style={{ height: chartHeight }} />
+                ) : null;
+            }}
+        </ParentSize>
+
+        {showLegend && <BarChartLegend series={series} color={color} />}
+    </div>
 );

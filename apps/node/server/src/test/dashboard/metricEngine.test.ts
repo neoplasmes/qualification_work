@@ -34,6 +34,12 @@ const addMetric = (dashboardId: string, body: Record<string, unknown>) =>
         body: JSON.stringify({ kind: 'metric', datasetId, ...body }),
     });
 
+const previewMetric = (body: Record<string, unknown>) =>
+    api('/api/dashboards/metrics/preview', {
+        method: 'POST',
+        body: JSON.stringify({ datasetId, ...body }),
+    });
+
 const getMetric = async (dashboardId: string): Promise<DashboardMetricItem> => {
     const res = await api(`/api/dashboards/${dashboardId}`);
     const body = (await res.json()) as Dashboard;
@@ -42,6 +48,43 @@ const getMetric = async (dashboardId: string): Promise<DashboardMetricItem> => {
 };
 
 describe('metric engine', () => {
+    it('previews an unsaved metric and keeps the preview briefly cached', async () => {
+        await dbQuery(
+            `INSERT INTO data.dataset_columns
+                (dataset_id, key, display_name, data_type, order_index)
+            VALUES
+                ($1, 'amount', 'Amount', 'number', 0)`,
+            [datasetId]
+        );
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES
+                ($1, 0, '{"amount": 10}'::jsonb),
+                ($1, 1, '{"amount": 5}'::jsonb)`,
+            [datasetId]
+        );
+
+        const first = await previewMetric({ expression: 'sum(amount)' });
+        const firstBody = (await first.json()) as { value: number | null };
+
+        expect(first.status).toBe(200);
+        expect(firstBody.value).toBe(15);
+
+        await dbQuery(
+            `INSERT INTO data.dataset_rows (dataset_id, row_index, data)
+            VALUES ($1, 2, '{"amount": 20}'::jsonb)`,
+            [datasetId]
+        );
+
+        const cached = await previewMetric({ expression: 'sum(amount)' });
+        const cachedBody = (await cached.json()) as { value: number | null };
+        const changed = await previewMetric({ expression: 'sum(amount) + 1' });
+        const changedBody = (await changed.json()) as { value: number | null };
+
+        expect(cachedBody.value).toBe(15);
+        expect(changedBody.value).toBe(36);
+    });
+
     it('evaluates an arithmetic ratio over aggregates', async () => {
         const dashboardId = await createDashboard(orgId);
 

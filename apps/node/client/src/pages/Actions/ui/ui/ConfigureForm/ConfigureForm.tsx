@@ -3,7 +3,7 @@ import { useState, type Dispatch, type FormEvent, type SetStateAction } from 're
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button, Card } from '@/shared/ui';
+import { Button, Card, FormField, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
 import { createBlankEffectDraft, createBlankParameterDraft } from '../../../lib';
@@ -78,6 +78,21 @@ export const ConfigureForm = ({
                 data-gap="md"
                 data-p="md"
             >
+                <FormField label="Name">
+                    <TextInput
+                        data-test-id={actionsTestIds.actionNameInput}
+                        value={draft.name}
+                        disabled={disabled}
+                        placeholder="Close invoice"
+                        onChange={event =>
+                            onDraftChange(current => ({
+                                ...current,
+                                name: event.target.value,
+                            }))
+                        }
+                    />
+                </FormField>
+
                 <div
                     data-stack="h"
                     data-gap="sm"

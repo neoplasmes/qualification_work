@@ -21,6 +21,8 @@ import {
     type DashboardMetricItem,
     type MetricTimeBucket,
     type MetricTrendPoint,
+    type PreviewDashboardMetricPayload,
+    type PreviewDashboardMetricResponse,
 } from '@qualification-work/types';
 
 import type { DashboardMetricSpec, DashboardRepo } from '@/core/ports/driven/repos';
@@ -150,6 +152,44 @@ export class PgDashboardRepo implements DashboardRepo {
         >(this.listByOrgSql, [orgId, userOrgIds]);
 
         return rows.map(row => this.toDashboardSummary(row));
+    }
+
+    async previewMetric(
+        metric: PreviewDashboardMetricPayload,
+        userOrgIds: string[]
+    ): Promise<PreviewDashboardMetricResponse | null> {
+        const isReadable = await this.datasetIsReadable(metric.datasetId, userOrgIds);
+        if (!isReadable) {
+            return null;
+        }
+
+        const ast = this.expressionTool.parse(metric.expression);
+        const terms = this.expressionTool.collectTerms(ast);
+        const columns = await this.loadDatasetColumns(metric.datasetId);
+
+        for (const term of terms) {
+            if (term.column === null) {
+                continue;
+            }
+
+            const meta = columns.byKey.get(term.column);
+            if (meta && !meta.isAnalyzable) {
+                throw new ValidationError(
+                    [term.column],
+                    `Column "${term.column}" is not included in analysis`
+                );
+            }
+        }
+
+        if (!this.termsAreValid(ast, columns.byKey)) {
+            return { value: null };
+        }
+
+        const values = await this.computeScalarValues(metric.datasetId, [
+            { item: this.toPreviewMetricItem(metric), ast },
+        ]);
+
+        return { value: this.expressionTool.evaluate(ast, values) };
     }
 
     async addChartItem(
@@ -323,6 +363,46 @@ export class PgDashboardRepo implements DashboardRepo {
             matchedCount: rows[0].matched_count,
             invalidSizeCount: rows[0].invalid_size_count,
             updatedCount: rows[0].updated_count,
+        };
+    }
+
+    private async datasetIsReadable(
+        datasetId: string,
+        userOrgIds: string[]
+    ): Promise<boolean> {
+        const { rows } = await this.pool.query<{ exists: boolean }>(
+            `SELECT EXISTS (
+                SELECT 1
+                FROM data.datasets
+                WHERE id = $1 AND org_id = ANY($2::uuid[])
+            ) AS exists`,
+            [datasetId, userOrgIds]
+        );
+
+        return rows[0]?.exists ?? false;
+    }
+
+    private toPreviewMetricItem(
+        metric: PreviewDashboardMetricPayload
+    ): DashboardMetricItem {
+        return {
+            id: 'preview',
+            kind: 'metric',
+            datasetId: metric.datasetId,
+            name: 'Preview',
+            expression: metric.expression,
+            format: 'number',
+            target: null,
+            targetDirection: null,
+            showTrend: false,
+            timeColumn: null,
+            timeBucket: null,
+            layout: {
+                posX: dashboardGridX,
+                posY: 0,
+                width: dashboardMetricDefaultWidth,
+                height: dashboardMetricDefaultHeight,
+            },
         };
     }
 

@@ -16,7 +16,11 @@ import {
     UpdateDashboardItemCommand,
     UpdateDashboardLayoutCommand,
 } from '@/core/commands';
-import { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
+import {
+    GetDashboardQuery,
+    ListDashboardsQuery,
+    PreviewDashboardMetricQuery,
+} from '@/core/queries';
 
 import { PgDashboardRepo, PgOrgRepo } from '@/adapters/driven/repos';
 import { JsepMetricExpressionTool } from '@/adapters/driven/tools';
@@ -37,6 +41,10 @@ export type CreateAppOptions = {
      */
     authHook?: AuthHook;
 };
+
+type PreviewDashboardMetricExecuteArgs = Parameters<
+    PreviewDashboardMetricQuery['execute']
+>;
 
 /**
  * createApp function to reuse in tests
@@ -113,6 +121,7 @@ export function createApp(
 
     const baseGetDashboard = new GetDashboardQuery(dashboardRepo);
     const baseListDashboards = new ListDashboardsQuery(dashboardRepo);
+    const basePreviewDashboardMetric = new PreviewDashboardMetricQuery(dashboardRepo);
 
     const createDashboard = {
         execute: async (...args: Parameters<CreateDashboardCommand['execute']>) => {
@@ -239,6 +248,25 @@ export function createApp(
         ],
         tags: (orgId: string) => [`org:${orgId}:dashboards`],
     }) as ListDashboardsQuery;
+    const previewDashboardMetric = {
+        execute: (
+            metric: PreviewDashboardMetricExecuteArgs[0],
+            orgs: PreviewDashboardMetricExecuteArgs[1]
+        ) =>
+            cache.rememberJson(
+                {
+                    key: [
+                        'dashboards',
+                        'metric-preview',
+                        metric.datasetId,
+                        metric.expression,
+                        accessFingerprint(orgs),
+                    ],
+                    ttlSeconds: 30,
+                },
+                () => basePreviewDashboardMetric.execute(metric, orgs)
+            ),
+    } as PreviewDashboardMetricQuery;
 
     const dashboardsRouter = createDashboardsRouter({
         createDashboard,
@@ -250,6 +278,7 @@ export function createApp(
         updateDashboardLayout,
         getDashboard,
         listDashboards,
+        previewDashboardMetric,
     });
     app.mount('/api', dashboardsRouter);
 

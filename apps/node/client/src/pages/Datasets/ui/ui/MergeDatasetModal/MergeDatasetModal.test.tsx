@@ -67,7 +67,8 @@ const previewResult = {
 const file = new File(['id,name\n1,Alice'], 'rows.csv', { type: 'text/csv' });
 
 const queryByDataTestId = (container: HTMLElement, testId: string) =>
-    container.querySelector<HTMLElement>(`[data-test-id="${testId}"]`);
+    container.querySelector<HTMLElement>(`[data-test-id="${testId}"]`) ??
+    document.body.querySelector<HTMLElement>(`[data-test-id="${testId}"]`);
 
 describe('MergeDatasetModal', () => {
     beforeEach(() => {

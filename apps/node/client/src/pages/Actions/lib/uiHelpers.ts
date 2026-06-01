@@ -1,19 +1,8 @@
-import type { Action, ActionRun } from '@/entities/action';
+import type { ActionRun } from '@/entities/action';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 export const canMutate = (role: string | undefined) =>
     role === 'owner' || role === 'editor';
-
-export const getSelectedAction = (
-    actions: Action[] | undefined,
-    selectedActionId: string | null
-) => {
-    if (!actions || actions.length === 0) {
-        return undefined;
-    }
-
-    return actions.find(action => action.id === selectedActionId) ?? actions[0];
-};
 
 export const getDatasetColumns = (
     datasets: DatasetMetadata[] | undefined,

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
@@ -45,6 +46,11 @@ class TestResizeObserver implements ResizeObserver {
 
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'ResizeObserver', {
+        writable: true,
+        value: TestResizeObserver,
+    });
+
+    Object.defineProperty(globalThis, 'ResizeObserver', {
         writable: true,
         value: TestResizeObserver,
     });

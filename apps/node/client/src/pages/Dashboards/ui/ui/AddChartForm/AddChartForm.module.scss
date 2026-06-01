@@ -1,12 +1,15 @@
 .form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--spacing-sm);
-    align-items: end;
+    height: 100%;
 }
 
-@media (width <= 900px) {
-    .form {
-        grid-template-columns: 1fr;
+.list {
+    flex: 1;
+
+    overflow: hidden auto;
+}
+
+@media (width <= 560px) {
+    .toolbar {
+        flex-wrap: wrap;
     }
 }

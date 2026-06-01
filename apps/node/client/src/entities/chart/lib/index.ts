@@ -2,6 +2,7 @@ export type { ChartKind } from './chartKind';
 export { CHART_KIND_ICONS } from './chartKindIcon';
 export {
     buildChartPalette,
+    buildMonochromeChartPalette,
     DEFAULT_CHART_COLOR,
     getChartColorFromConfig,
     isChartColor,

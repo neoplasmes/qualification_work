@@ -1,0 +1,105 @@
+.control {
+    --segmented-count: 2;
+    --segmented-padding: 1px;
+    --segmented-item-min-width: 0px;
+    --segmented-item-min-height: 34px;
+    --segmented-item-padding-x: var(--spacing-sm);
+
+    position: relative;
+
+    box-sizing: border-box;
+    overflow: hidden;
+    display: inline-flex;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--segmented-padding);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-sm);
+
+    background-color: var(--color-surface-container-low);
+}
+
+.indicator {
+    position: absolute;
+    top: var(--segmented-padding);
+    bottom: var(--segmented-padding);
+    left: var(--segmented-padding);
+    z-index: 0;
+
+    width: calc((100% - var(--segmented-padding) * 2) / var(--segmented-count));
+    border-radius: calc(var(--radius-sm) - 2px);
+
+    background-color: var(--color-primary);
+}
+
+.item {
+    cursor: pointer;
+
+    position: relative;
+    z-index: 1;
+
+    display: inline-flex;
+    flex: 1 1 0;
+    gap: var(--spacing-xs);
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+    min-width: var(--segmented-item-min-width);
+    min-height: var(--segmented-item-min-height);
+    padding: 0 var(--segmented-item-padding-x);
+    border: 0;
+    border-radius: calc(var(--radius-sm) - 2px);
+
+    font-family: var(--font-headline);
+    font-size: var(--font-size-xs);
+    font-weight: 800;
+    color: var(--color-on-surface-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    background-color: transparent;
+
+    transition: color 0.2s ease;
+
+    &:focus {
+        outline: none;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &.active {
+        color: var(--color-on-surface);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        color: var(--color-on-surface-disabled);
+    }
+}
+
+.label {
+    position: relative;
+    z-index: 1;
+
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.count {
+    position: relative;
+    z-index: 1;
+
+    flex: 0 0 auto;
+    min-width: 18px;
+    padding: 1px 5px;
+    border-radius: var(--radius-xs);
+
+    font-size: var(--font-size-xs);
+    line-height: 1.25;
+    color: var(--color-on-surface);
+
+    background-color: rgb(255 255 255 / 12%);
+}

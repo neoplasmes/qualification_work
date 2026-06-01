@@ -6,8 +6,6 @@ import { FormField, Select } from '@/shared/ui';
 
 import type { MetricConfigForm } from '../../../../lib';
 
-import styles from './MetricTrendFields.module.scss';
-
 type MetricTrendFieldsProps = {
     config: MetricConfigForm;
     dateColumns: DatasetColumn[];
@@ -20,12 +18,6 @@ export const MetricTrendFields = ({
     onConfigChange,
 }: MetricTrendFieldsProps) => (
     <>
-        <div className={styles['hint-field']}>
-            <span className={styles['hint']}>
-                Show a sparkline of the value over time.
-            </span>
-        </div>
-
         {config.showTrend && (
             <>
                 <FormField label="Time column">

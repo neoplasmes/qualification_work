@@ -2,6 +2,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus, Workflow } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
@@ -17,7 +18,7 @@ import { formatDate } from '@/shared/lib/formatDate';
 import { WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { actionsTestIds } from '../const';
-import { canMutate } from '../lib';
+import { actionsWorkspaceIndexPath, canMutate, getActionWorkspaceUrl } from '../lib';
 import {
     selectAction,
     selectIsCreatingAction,
@@ -27,6 +28,7 @@ import {
 
 export const ActionsLeftPanel = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const meQuery = useGetMeQuery();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
@@ -64,7 +66,10 @@ export const ActionsLeftPanel = () => {
                 title: canCreate
                     ? undefined
                     : 'Only owners and editors can create actions.',
-                onClick: () => dispatch(startCreateAction()),
+                onClick: () => {
+                    navigate(actionsWorkspaceIndexPath);
+                    dispatch(startCreateAction());
+                },
             }}
         >
             {isCreatingAction ? (
@@ -72,7 +77,10 @@ export const ActionsLeftPanel = () => {
                     selected
                     header="New action"
                     details={['Draft', 'Not saved']}
-                    onClick={() => dispatch(startCreateAction())}
+                    onClick={() => {
+                        navigate(actionsWorkspaceIndexPath);
+                        dispatch(startCreateAction());
+                    }}
                 />
             ) : null}
             {filteredActions.map(action => (
@@ -86,7 +94,10 @@ export const ActionsLeftPanel = () => {
                         formatDate(action.updatedAt),
                     ]}
                     iconElement={<Workflow size={18} />}
-                    onClick={() => dispatch(selectAction(action.id))}
+                    onClick={() => {
+                        dispatch(selectAction(action.id));
+                        navigate(getActionWorkspaceUrl(action.id, 'view'));
+                    }}
                 />
             ))}
         </WorkspaceLeftPanel>

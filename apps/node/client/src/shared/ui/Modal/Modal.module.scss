@@ -10,7 +10,7 @@
     overflow: hidden;
 
     width: min(520px, 90vw);
-    max-height: 80vh;
+    max-height: min(800px, calc(100vh - 40px));
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-sm);
 
@@ -38,10 +38,5 @@
 .body-scroll {
     min-height: 0;
     flex: 1;
-    overflow-y: auto;
-}
-
-.footer {
-    justify-content: end;
-    border-top: 1px solid var(--color-outline-new);
+    overflow: hidden auto;
 }

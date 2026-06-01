@@ -2,13 +2,19 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Action } from '@/entities/action';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { actionsTestIds } from '../const';
-import { actionsPageInitialState, actionsPageSlice } from '../model';
+import {
+    actionsPageInitialState,
+    actionsPageSlice,
+    selectActionsWorkspaceMode,
+    selectSelectedActionId,
+} from '../model';
 import { ActionsWorkspace } from './ActionsWorkspace';
 
 const mocks = vi.hoisted(() => ({
@@ -115,7 +121,10 @@ const getByDataTestId = <T extends HTMLElement>(
 
 type ActionsPageState = typeof actionsPageInitialState;
 
-const renderWorkspace = (statePatch: Partial<ActionsPageState>) => {
+const renderWorkspace = (
+    statePatch: Partial<ActionsPageState> = {},
+    initialRoute = '/actions'
+) => {
     const store = configureStore({
         reducer: combineReducers({ [actionsPageSlice.name]: actionsPageSlice.reducer }),
         preloadedState: {
@@ -130,7 +139,9 @@ const renderWorkspace = (statePatch: Partial<ActionsPageState>) => {
         store,
         ...render(
             <Provider store={store}>
-                <ActionsWorkspace />
+                <MemoryRouter initialEntries={[initialRoute]}>
+                    <ActionsWorkspace />
+                </MemoryRouter>
             </Provider>
         ),
     };
@@ -164,18 +175,50 @@ describe('ActionsWorkspace', () => {
         mocks.refetchActions.mockResolvedValue(undefined);
     });
 
+    it('does not auto-select the first action on the base route', () => {
+        const { container } = renderWorkspace();
+
+        expect(getByDataTestId(container, actionsTestIds.workspace)).toHaveTextContent(
+            'Select or create an action.'
+        );
+        expect(
+            container.querySelector(`[data-test-id="${actionsTestIds.runForm}"]`)
+        ).toBeNull();
+    });
+
+    it('syncs the view route to the selected action', async () => {
+        const { container, store } = renderWorkspace({}, '/actions/view?id=action-1');
+
+        await waitFor(() =>
+            expect(getByDataTestId(container, actionsTestIds.runForm)).toBeInTheDocument()
+        );
+        expect(selectSelectedActionId(store.getState())).toBe('action-1');
+        expect(selectActionsWorkspaceMode(store.getState())).toBe('view');
+    });
+
+    it('syncs the edit route to the selected action', async () => {
+        const { container, store } = renderWorkspace({}, '/actions/edit?id=action-1');
+
+        await waitFor(() =>
+            expect(
+                getByDataTestId(container, actionsTestIds.configureForm)
+            ).toBeInTheDocument()
+        );
+        expect(selectSelectedActionId(store.getState())).toBe('action-1');
+        expect(selectActionsWorkspaceMode(store.getState())).toBe('edit');
+    });
+
     it('creates an action from central configure inputs and selects', async () => {
         const user = userEvent.setup();
-        const { container } = renderWorkspace({ isCreatingAction: true });
+        const { container } = renderWorkspace({
+            isCreatingAction: true,
+            workspaceMode: 'edit',
+        });
 
-        await user.click(getByDataTestId(container, actionsTestIds.renameButton));
-        const nameInput = getByDataTestId<HTMLInputElement>(
-            container,
-            actionsTestIds.renameInput
+        await user.type(
+            getByDataTestId(container, actionsTestIds.actionNameInput),
+            'Close invoice'
         );
-        await user.clear(nameInput);
-        await user.type(nameInput, 'Close invoice');
-        await user.keyboard('{Enter}');
 
         await user.type(
             getByDataTestId(container, actionsTestIds.parameterLabelInput),
@@ -226,7 +269,10 @@ describe('ActionsWorkspace', () => {
 
     it('cancels action creation from the workspace header', async () => {
         const user = userEvent.setup();
-        const { container } = renderWorkspace({ isCreatingAction: true });
+        const { container } = renderWorkspace({
+            isCreatingAction: true,
+            workspaceMode: 'edit',
+        });
 
         expect(
             getByDataTestId(container, actionsTestIds.configureForm)
@@ -240,16 +286,17 @@ describe('ActionsWorkspace', () => {
             )
         ).toBeNull();
         expect(getByDataTestId(container, actionsTestIds.workspace)).toHaveTextContent(
-            'Receive payment'
+            'Select or create an action.'
         );
     });
 
     it('runs selected action with coerced input values', async () => {
         const user = userEvent.setup();
-        const { container } = renderWorkspace({
-            selectedActionId: 'action-1',
-            workspaceTab: 'run',
-        });
+        const { container } = renderWorkspace({}, '/actions/view?id=action-1');
+
+        await waitFor(() =>
+            expect(getByDataTestId(container, actionsTestIds.runForm)).toBeInTheDocument()
+        );
 
         await user.type(getByDataTestId(container, actionsTestIds.runInput), '15');
         await user.selectOptions(
@@ -265,9 +312,42 @@ describe('ActionsWorkspace', () => {
         });
     });
 
-    it('maps View tab to run and Edit tab to configure', async () => {
+    it('keeps edit draft when switching view and edit for the same action', async () => {
         const user = userEvent.setup();
-        const { container } = renderWorkspace({ selectedActionId: 'action-1' });
+        const { container } = renderWorkspace({}, '/actions/edit?id=action-1');
+
+        const actionNameInput = await waitFor(() =>
+            getByDataTestId<HTMLInputElement>(container, actionsTestIds.actionNameInput)
+        );
+
+        await user.clear(actionNameInput);
+        await user.type(actionNameInput, 'Unsaved payment');
+
+        await user.click(getByDataTestId(container, actionsTestIds.workspaceViewTab));
+        await waitFor(() =>
+            expect(getByDataTestId(container, actionsTestIds.runForm)).toBeInTheDocument()
+        );
+
+        await user.click(getByDataTestId(container, actionsTestIds.workspaceEditTab));
+        await waitFor(() =>
+            expect(
+                getByDataTestId<HTMLInputElement>(
+                    container,
+                    actionsTestIds.actionNameInput
+                )
+            ).toHaveValue('Unsaved payment')
+        );
+    });
+
+    it('maps View mode to run and Edit mode to configure', async () => {
+        const user = userEvent.setup();
+        const { container } = renderWorkspace({}, '/actions/edit?id=action-1');
+
+        await waitFor(() =>
+            expect(
+                getByDataTestId(container, actionsTestIds.configureForm)
+            ).toBeInTheDocument()
+        );
 
         await user.click(getByDataTestId(container, actionsTestIds.workspaceViewTab));
         expect(getByDataTestId(container, actionsTestIds.runForm)).toBeInTheDocument();

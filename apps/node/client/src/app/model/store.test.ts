@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { actionsPageInitialState } from '@/pages/Actions';
 import { chartsPageInitialState } from '@/pages/Charts';
 
 import { panelLayoutPersistence } from '@/widgets/WorkspaceGrid';
@@ -45,5 +46,23 @@ describe('createStore', () => {
         const store = createStore();
 
         expect(store.getState().chartsPage).toEqual(chartsPageInitialState);
+    });
+
+    it('does not hydrate actions selection or mode from localStorage', () => {
+        localStorage.setItem(
+            'actionsPage_v1',
+            JSON.stringify({
+                selectedActionId: 'action-1',
+                workspaceMode: 'edit',
+                rightPanelTab: 'properties',
+            })
+        );
+
+        const store = createStore();
+
+        expect(store.getState().actionsPage).toEqual({
+            ...actionsPageInitialState,
+            rightPanelTab: 'properties',
+        });
     });
 });

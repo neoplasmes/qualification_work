@@ -40,7 +40,7 @@ type CartesianChartProps = {
     showAxisTickLabels?: boolean;
 };
 
-type LineChartProps = CartesianChartProps & {
+type LegendCartesianChartProps = CartesianChartProps & {
     showLegend?: boolean;
 };
 
@@ -122,7 +122,7 @@ export const ChartRenderer = ({
 
     if (activeKind === 'line') {
         return (
-            <ClientOnlyDeffered<LineChartProps>
+            <ClientOnlyDeffered<LegendCartesianChartProps>
                 fallback={chartFallback}
                 LazyComponent={LazyLineChart}
                 componentProps={{
@@ -154,7 +154,7 @@ export const ChartRenderer = ({
     }
 
     return (
-        <ClientOnlyDeffered<CartesianChartProps>
+        <ClientOnlyDeffered<LegendCartesianChartProps>
             fallback={chartFallback}
             LazyComponent={LazyBarChart}
             componentProps={{
@@ -165,6 +165,7 @@ export const ChartRenderer = ({
                 color,
                 height: chartHeight,
                 showAxisTickLabels,
+                showLegend: showLegend && hasBreakdown,
             }}
         />
     );

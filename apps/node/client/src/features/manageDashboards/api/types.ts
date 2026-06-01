@@ -4,12 +4,20 @@ import type {
     AddDashboardMetricPayload as AddDashboardMetricBodyPayload,
     CreateDashboardPayload,
     CreateDashboardResponse,
+    PreviewDashboardMetricPayload,
+    PreviewDashboardMetricResponse,
     RenameDashboardPayload as RenameDashboardBodyPayload,
     UpdateDashboardLayoutPayload as UpdateDashboardLayoutBodyPayload,
     UpdateDashboardMetricPayload as UpdateDashboardMetricBodyPayload,
 } from '@qualification-work/types';
 
-export type { AddDashboardItemResponse, CreateDashboardPayload, CreateDashboardResponse };
+export type {
+    AddDashboardItemResponse,
+    CreateDashboardPayload,
+    CreateDashboardResponse,
+    PreviewDashboardMetricPayload,
+    PreviewDashboardMetricResponse,
+};
 
 export type AddDashboardChartPayload = Omit<AddDashboardChartBodyPayload, 'kind'> & {
     dashboardId: string;

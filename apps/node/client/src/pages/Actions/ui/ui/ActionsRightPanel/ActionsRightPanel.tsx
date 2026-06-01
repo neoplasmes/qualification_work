@@ -10,7 +10,6 @@ import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useListActionsQuery } from '@/entities/action';
 
 import { actionsTestIds } from '../../../const';
-import { getSelectedAction } from '../../../lib';
 import {
     selectActionsRightPanelTab,
     selectIsCreatingAction,
@@ -22,13 +21,13 @@ import {
 import { ActionsHistory } from '../ActionsHistory';
 import { ActionsProperties } from '../ActionsProperties';
 
-const ACTIONS_RIGHT_PANEL_TABS = [
+const actionsRightPanelTabs = [
     'properties',
     'history',
     'filters',
 ] as const satisfies readonly ActionsRightPanelTab[];
 
-const ACTIONS_RIGHT_PANEL_TAB_TEST_IDS = {
+const actionsRightPanelTabTestIds = {
     history: actionsTestIds.historyTab,
     properties: actionsTestIds.propertiesTab,
     filters: actionsTestIds.filtersTab,
@@ -45,9 +44,9 @@ export const ActionsRightPanel = () => {
 
     const selectedAction = useMemo(
         () =>
-            isCreatingAction
+            isCreatingAction || !selectedActionId
                 ? undefined
-                : getSelectedAction(actionsQuery.data, selectedActionId),
+                : actionsQuery.data?.find(action => action.id === selectedActionId),
         [actionsQuery.data, isCreatingAction, selectedActionId]
     );
 
@@ -61,9 +60,9 @@ export const ActionsRightPanel = () => {
     return (
         <WorkspaceRightPanel
             activeTab={activeTab}
-            activeTabs={ACTIONS_RIGHT_PANEL_TABS}
+            activeTabs={actionsRightPanelTabs}
             testId={actionsTestIds.rightPanel}
-            tabTestIds={ACTIONS_RIGHT_PANEL_TAB_TEST_IDS}
+            tabTestIds={actionsRightPanelTabTestIds}
             onTabChange={tab => dispatch(setActionsRightPanelTab(tab))}
         >
             {activeTab === 'history' && (

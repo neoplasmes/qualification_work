@@ -3,6 +3,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Chart } from '@/entities/chart';
@@ -236,7 +237,9 @@ const renderWorkspace = () => {
         store,
         ...render(
             <Provider store={store}>
-                <DashboardsWorkspace />
+                <MemoryRouter initialEntries={['/dashboards?id=dashboard-1']}>
+                    <DashboardsWorkspace />
+                </MemoryRouter>
             </Provider>
         ),
     };

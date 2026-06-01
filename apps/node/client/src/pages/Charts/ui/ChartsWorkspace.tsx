@@ -1,6 +1,6 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Eye, PencilLine } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
@@ -67,6 +67,7 @@ export const ChartsWorkspace = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const workspaceRef = useRef<HTMLElement>(null);
+    const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
 
     const selectedChartId = useSelector(selectSelectedChartId);
     const builderDatasetId = useSelector(selectBuilderDatasetId);
@@ -209,21 +210,42 @@ export const ChartsWorkspace = () => {
 
                         <Separator />
 
-                        <WorkspaceModeTabs
-                            value={workspaceMode}
-                            options={CHARTS_WORKSPACE_MODE_TABS}
-                            layoutId="charts-workspace-mode"
-                            onChange={handleWorkspaceModeChange}
-                        />
+                        <div
+                            className={styles['tabs-row']}
+                            data-stack="h"
+                            data-gap="sm"
+                            data-align="center"
+                        >
+                            <WorkspaceModeTabs
+                                value={workspaceMode}
+                                options={CHARTS_WORKSPACE_MODE_TABS}
+                                layoutId="charts-workspace-mode"
+                                onChange={handleWorkspaceModeChange}
+                            />
+                            <div
+                                ref={setActionsEl}
+                                className={styles['tabs-actions']}
+                                data-stack="h"
+                                data-gap="sm"
+                                data-align="center"
+                            />
+                        </div>
 
                         {workspaceMode === 'view' && (
-                            <SavedChartDetails
-                                chart={selectedChart}
-                                columns={editDataset?.columns ?? []}
-                                chartResult={chartData.chartResult}
-                                error={chartData.error}
-                                isLoadingData={chartData.isFetching}
-                            />
+                            <div
+                                className={styles['scroll-area']}
+                                data-stack="v"
+                                data-gap="sm"
+                                data-flex
+                            >
+                                <SavedChartDetails
+                                    chart={selectedChart}
+                                    columns={editDataset?.columns ?? []}
+                                    chartResult={chartData.chartResult}
+                                    error={chartData.error}
+                                    isLoadingData={chartData.isFetching}
+                                />
+                            </div>
                         )}
 
                         {workspaceMode === 'edit' && !editDataset && (
@@ -236,6 +258,7 @@ export const ChartsWorkspace = () => {
                                 chart={selectedChart}
                                 dataset={editDataset}
                                 fields={editFields}
+                                actionsContainer={actionsEl}
                                 onFieldsChange={handleEditFieldsChange}
                                 onChartUpdated={chartId =>
                                     void handleChartUpdated(chartId)

@@ -10,7 +10,7 @@ import {
 import { useMemo, useState } from 'react';
 
 import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
-import { DEFAULT_CHART_COLOR } from '../../../../lib';
+import { DEFAULT_CHART_COLOR, mixChartColors } from '../../../../lib';
 import { formatAxisNumber } from '../../../../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../../../../lib/parseChartData';
 
@@ -165,7 +165,13 @@ const BarChartGroupedInner = ({
                             data={seriesItem.points}
                             xAccessor={point => point.label}
                             yAccessor={point => point.value}
-                            colorAccessor={() => getSeriesColor(color, seriesIndex)}
+                            colorAccessor={point => {
+                                const base = getSeriesColor(color, seriesIndex);
+
+                                return hovered && hovered.label !== point.label
+                                    ? mixChartColors(base, C.surface, 0.52)
+                                    : base;
+                            }}
                             radius={4}
                             radiusTop
                         />

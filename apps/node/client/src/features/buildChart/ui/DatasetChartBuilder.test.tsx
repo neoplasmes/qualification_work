@@ -112,7 +112,7 @@ describe('DatasetChartBuilder', () => {
 
         renderDatasetChartBuilder({ selectedDataset: testDataset });
 
-        const groupBySelect = screen.getByLabelText('Group by');
+        const groupBySelect = screen.getByLabelText('Group X by');
 
         expect(groupBySelect).toBeDisabled();
 

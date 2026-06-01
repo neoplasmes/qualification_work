@@ -1,13 +1,12 @@
 import { Play, Save } from 'lucide-react';
 
-import { Button, Separator } from '@/shared/ui';
-
-import styles from '../../DatasetChartBuilder.module.scss';
+import { Button } from '@/shared/ui';
 
 type BuilderActionsProps = {
     canPreview: boolean;
     editMode: boolean;
     isSaving: boolean;
+    formId: string;
     onSaveWithoutPreview: () => void;
     previewLoading: boolean;
 };
@@ -16,31 +15,32 @@ export const BuilderActions = ({
     canPreview,
     editMode,
     isSaving,
+    formId,
     onSaveWithoutPreview,
     previewLoading,
 }: BuilderActionsProps) => (
-    <>
-        <Separator className={styles['actions-separator']} />
-        <div className={styles['actions']} data-stack="h" data-gap="sm" data-wrap="wrap">
+    <div data-stack="h" data-gap="sm" data-align="center">
+        <Button
+            type="submit"
+            form={formId}
+            size="sm"
+            disabled={!canPreview || previewLoading}
+            isLoading={previewLoading}
+        >
+            <Play size={16} />
+            Preview
+        </Button>
+        {editMode && (
             <Button
-                type="submit"
-                disabled={!canPreview || previewLoading}
-                isLoading={previewLoading}
+                type="button"
+                size="sm"
+                disabled={!canPreview || isSaving}
+                isLoading={isSaving}
+                onClick={onSaveWithoutPreview}
             >
-                <Play size={18} />
-                Preview
+                <Save size={16} />
+                Save
             </Button>
-            {editMode && (
-                <Button
-                    type="button"
-                    disabled={!canPreview || isSaving}
-                    isLoading={isSaving}
-                    onClick={onSaveWithoutPreview}
-                >
-                    <Save size={18} />
-                    Save
-                </Button>
-            )}
-        </div>
-    </>
+        )}
+    </div>
 );

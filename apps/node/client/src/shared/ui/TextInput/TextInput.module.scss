@@ -16,7 +16,8 @@
         outline: none;
     }
 
-    &:disabled {
+    &:disabled,
+    &.disabled {
         cursor: not-allowed;
         color: var(--color-outline);
         background-color: var(--color-surface-container-lowest);

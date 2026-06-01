@@ -60,7 +60,11 @@ export const SegmentedControl = <Value extends string>({
 
     return (
         <div
-            className={joinClassNames(styles['control'], className)}
+            className={joinClassNames(
+                styles['control'],
+                disabled && styles['disabled'],
+                className
+            )}
             role="tablist"
             aria-label={ariaLabel}
             style={controlStyle}

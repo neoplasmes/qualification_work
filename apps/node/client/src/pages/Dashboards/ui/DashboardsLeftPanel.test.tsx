@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { filterApplicationEntitiesSlice } from '@/features/filterApplicationEntities';
@@ -55,7 +56,9 @@ const makeStore = () =>
 const renderPanel = () =>
     render(
         <Provider store={makeStore()}>
-            <DashboardsLeftPanel />
+            <MemoryRouter initialEntries={['/dashboards']}>
+                <DashboardsLeftPanel />
+            </MemoryRouter>
         </Provider>
     );
 

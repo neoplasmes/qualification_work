@@ -1,0 +1,1 @@
+export { getValueTypePlaceholder } from './valueTypePlaceholder';

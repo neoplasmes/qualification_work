@@ -48,7 +48,7 @@ export const AxisSettingsSection = ({
         )}
 
         <label className={styles['control']} data-stack="v" data-gap="xs">
-            <span>{fields.chartType === 'heatmap' ? 'Group X by' : 'Group by'}</span>
+            <span>{fields.chartType === 'pie' ? 'Group by' : 'Group X by'}</span>
             <Select
                 value={
                     derived.dimGroupingModes.includes(fields.dimensionGroupingMode)

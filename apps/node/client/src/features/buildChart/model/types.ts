@@ -15,18 +15,21 @@ export type DatasetChartBuilderProps = {
     value?: ChartBuilderFields;
     onChange?: (fields: ChartBuilderFields) => void;
     onChartUpdated?: (chartId: string) => void;
+    actionsContainer?: HTMLElement | null;
 };
 
 export type ChartBuilderState = ChartBuilderFields & ChartBuilderSetters;
 
+export type DerivedMeasure = {
+    columns: DatasetColumn[];
+    activeColumnId: string;
+};
+
 export type ChartBuilderDerivedState = {
     columns: DatasetColumn[];
-    measureColumns: DatasetColumn[];
-    secondMeasureColumns: DatasetColumn[];
+    measures: DerivedMeasure[];
     activeDimensionColumnId: string;
     activeHeatmapYColumnId: string;
-    activeMeasureColumnId: string;
-    activeSecondMeasureColumnId: string;
     activeSeriesColumnId: string;
     activeFilterColumn: DatasetColumn | undefined;
     dimGroupingModes: GroupingMode[];

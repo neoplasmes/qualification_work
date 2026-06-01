@@ -9,7 +9,6 @@ export {
 export {
     coerceRunValues,
     getDefaultRunValues,
-    getRunValuePlaceholder,
     isRunValueInputAllowed,
     validateRunValues,
 } from './actionRunValues';

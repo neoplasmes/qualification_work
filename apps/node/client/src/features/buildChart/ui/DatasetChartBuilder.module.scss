@@ -1,5 +1,9 @@
 .builder {
     overflow: auto;
+
+    // keep a stable gutter so toggling the scrollbar never shifts the layout
+    scrollbar-gutter: stable;
+
     min-width: 0;
     min-height: 0;
 }
@@ -11,15 +15,6 @@
     button {
         align-self: end;
     }
-}
-
-.actions-separator {
-    grid-column: 1 / -1;
-    margin-top: var(--spacing-sm);
-}
-
-.actions {
-    grid-column: 1 / -1;
 }
 
 .control {
@@ -74,4 +69,14 @@
         height: 1px;
         background: var(--color-outline-new);
     }
+}
+
+.add-measure {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+
+// compact remove control sitting right next to the "Y value N" label
+.remove-measure {
+    padding: var(--spacing-xs);
 }

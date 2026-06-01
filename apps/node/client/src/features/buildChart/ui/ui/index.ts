@@ -8,3 +8,4 @@ export { DatasetChartBuilderConfigForm } from './DatasetChartBuilderConfigForm';
 export { DatasetChartBuilderPreview } from './DatasetChartBuilderPreview';
 export { FilterSettingsSection } from './FilterSettingsSection';
 export { MeasureSettingsSection } from './MeasureSettingsSection';
+export { PreviewActions } from './PreviewActions';

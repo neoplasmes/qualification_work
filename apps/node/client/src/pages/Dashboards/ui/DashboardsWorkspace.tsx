@@ -33,6 +33,7 @@ import {
     getResolvedDashboard,
     getSelectedDashboard,
     useDashboardMetricModal,
+    useDashboardsWorkspaceRouteSync,
 } from './lib';
 import { AddChartModal, AddMetricForm, DashboardWidgets } from './ui';
 
@@ -89,6 +90,7 @@ export const DashboardsWorkspace = () => {
     });
 
     useHasOverflow(workspaceRef);
+    useDashboardsWorkspaceRouteSync(selectedDashboardId);
 
     useEffect(() => {
         if (!dashboard) {
@@ -245,20 +247,27 @@ export const DashboardsWorkspace = () => {
 
                     <Separator />
 
-                    {error && <StatusMessage tone="error">{error}</StatusMessage>}
+                    <div
+                        className={styles['scroll-area']}
+                        data-stack="v"
+                        data-gap="sm"
+                        data-flex
+                    >
+                        {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-                    <DashboardWidgets
-                        items={dashboardItems}
-                        chartsById={chartsById}
-                        datasetColumnsById={datasetColumnsById}
-                        removing={removeItemState.isLoading}
-                        onLayoutChange={layout => void handleLayoutChange(layout)}
-                        onRemoveItem={itemId => void handleRemoveItem(itemId)}
-                        onEditMetric={item => {
-                            metricModal.openEdit(item);
-                            setActiveModal('metric');
-                        }}
-                    />
+                        <DashboardWidgets
+                            items={dashboardItems}
+                            chartsById={chartsById}
+                            datasetColumnsById={datasetColumnsById}
+                            removing={removeItemState.isLoading}
+                            onLayoutChange={layout => void handleLayoutChange(layout)}
+                            onRemoveItem={itemId => void handleRemoveItem(itemId)}
+                            onEditMetric={item => {
+                                metricModal.openEdit(item);
+                                setActiveModal('metric');
+                            }}
+                        />
+                    </div>
 
                     {activeModal === 'chart' && (
                         <AddChartModal

@@ -1,8 +1,6 @@
-import { PencilLine, Save } from 'lucide-react';
-
 import { ChartConfigSummary, ChartShell } from '@/entities/chart';
 
-import { Button, StatusMessage, TextInput } from '@/shared/ui';
+import { StatusMessage, TextInput } from '@/shared/ui';
 
 import type { DatasetChartBuilderViewModel } from '../../../model';
 
@@ -54,22 +52,6 @@ export const DatasetChartBuilderPreview = ({
                     columns={model.derived.columns}
                 />
             )}
-
-            <div data-stack="h" data-gap="sm">
-                <Button type="button" onClick={model.onBackToConfig}>
-                    <PencilLine size={18} />
-                    Edit
-                </Button>
-                <Button
-                    type="button"
-                    disabled={model.isSaving}
-                    isLoading={model.isSaving}
-                    onClick={model.onSave}
-                >
-                    <Save size={18} />
-                    {model.editMode ? 'Save changes' : 'Save chart'}
-                </Button>
-            </div>
 
             {model.chartError && (
                 <StatusMessage tone="error">{model.chartError}</StatusMessage>

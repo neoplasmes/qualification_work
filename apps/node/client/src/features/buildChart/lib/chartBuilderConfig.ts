@@ -12,6 +12,12 @@ import type {
 } from '../api';
 import type { GroupingMode } from '../types';
 
+export type BuildMeasureInput = {
+    aggregate: Aggregate;
+    valueFormat: MeasureValueFormat;
+    columnId: string;
+};
+
 export type BuildChartConfigInput = {
     chartType: ChartConfig['kind'];
     chartColor: string;
@@ -19,13 +25,7 @@ export type BuildChartConfigInput = {
     dimensionGrouping: AxisGrouping | undefined;
     heatmapYColumnId: string;
     heatmapYGrouping: AxisGrouping | undefined;
-    aggregate: Aggregate;
-    valueFormat: MeasureValueFormat;
-    measureColumnId: string;
-    secondMeasureEnabled: boolean;
-    secondAggregate: Aggregate;
-    secondValueFormat: MeasureValueFormat;
-    secondMeasureColumnId: string;
+    measures: BuildMeasureInput[];
     limit: number;
     topN: number;
     seriesEnabled: boolean;
@@ -53,20 +53,10 @@ export const buildGrouping = (
     return undefined;
 };
 
-const buildMeasure = (
-    aggregate: Aggregate,
-    measureColumnId: string,
-    valueFormat: MeasureValueFormat,
-    alias?: string
-) =>
+const buildMeasure = ({ aggregate, columnId, valueFormat }: BuildMeasureInput) =>
     aggregate === 'count'
-        ? { aggregate, valueFormat, ...(alias ? { alias } : {}) }
-        : {
-              aggregate,
-              columnId: measureColumnId,
-              valueFormat,
-              ...(alias ? { alias } : {}),
-          };
+        ? { aggregate, valueFormat }
+        : { aggregate, columnId, valueFormat };
 
 export const buildChartConfig = ({
     chartType,
@@ -75,13 +65,7 @@ export const buildChartConfig = ({
     dimensionGrouping,
     heatmapYColumnId,
     heatmapYGrouping,
-    aggregate,
-    valueFormat,
-    measureColumnId,
-    secondMeasureEnabled,
-    secondAggregate,
-    secondValueFormat,
-    secondMeasureColumnId,
+    measures,
     limit,
     topN,
     seriesEnabled,
@@ -90,7 +74,7 @@ export const buildChartConfig = ({
     seriesOtherBucket,
     filter,
 }: BuildChartConfigInput): ChartConfig => {
-    const firstMeasure = buildMeasure(aggregate, measureColumnId, valueFormat);
+    const firstMeasure = buildMeasure(measures[0]);
     const base = {
         limit,
         style: { color: normalizeChartColor(chartColor) },
@@ -122,20 +106,6 @@ export const buildChartConfig = ({
         };
     }
 
-    const measures = [
-        firstMeasure,
-        ...(secondMeasureEnabled
-            ? [
-                  buildMeasure(
-                      secondAggregate,
-                      secondMeasureColumnId,
-                      secondValueFormat,
-                      'm1'
-                  ),
-              ]
-            : []),
-    ];
-
     return {
         ...base,
         kind: chartType,
@@ -153,6 +123,6 @@ export const buildChartConfig = ({
                   },
               }
             : {}),
-        measures,
+        measures: measures.map(buildMeasure),
     };
 };

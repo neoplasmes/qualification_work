@@ -13,6 +13,8 @@ export { configToBuilderFields } from './configToBuilderFields';
 export {
     createChartBuilderFields,
     useChartBuilderState,
+    MAX_MEASURES,
     type ChartBuilderSetters,
     type ChartBuilderFields,
+    type MeasureField,
 } from './useChartBuilderState';

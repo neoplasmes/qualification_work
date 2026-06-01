@@ -1,9 +1,34 @@
 @use '../../../shared/ui/styles/layout.scss' as layout;
 
 .panel {
-    overflow: auto;
+    // the panel itself is a fixed frame - only the area under the tabs scrolls
+    overflow: hidden;
     min-width: 0;
     min-height: 0;
+}
+
+.scroll-area {
+    overflow: auto;
+
+    // keep a stable gutter so toggling the scrollbar never shifts the layout
+    scrollbar-gutter: stable;
+
+    min-width: 0;
+    min-height: 0;
+}
+
+.tabs-row {
+    > :first-child {
+        width: auto;
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+}
+
+.tabs-actions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    margin-left: auto;
 }
 
 .top-line-block {

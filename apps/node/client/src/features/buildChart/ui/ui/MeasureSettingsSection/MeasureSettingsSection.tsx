@@ -1,10 +1,13 @@
+import { Plus, X } from 'lucide-react';
+import { Fragment } from 'react';
+
 import { AGGREGATE_LABELS, VALUE_FORMAT_LABELS } from '@/entities/chart';
 
-import { Select, TextInput } from '@/shared/ui';
+import { Button, IconButton, Select, TextInput } from '@/shared/ui';
 
 import type { Aggregate, MeasureValueFormat } from '../../../api';
 import { aggregates, valueFormats } from '../../../const';
-import { needsColumn } from '../../../lib';
+import { MAX_MEASURES, needsColumn } from '../../../lib';
 import type { ChartBuilderDerivedState, ChartBuilderState } from '../../../model';
 
 import { AnalysisColumnOptions } from '../AnalysisColumnOptions';
@@ -22,85 +25,44 @@ type MeasureSettingsSectionProps = {
 export const MeasureSettingsSection = ({
     derived,
     fields,
-}: MeasureSettingsSectionProps) => (
-    <>
-        <div
-            className={styles['section']}
-            data-stack="h"
-            data-gap="sm"
-            data-align="center"
-        >
-            Measure
-        </div>
+}: MeasureSettingsSectionProps) => {
+    const singleMeasure = fields.chartType === 'pie' || fields.chartType === 'heatmap';
+    const measures = singleMeasure ? fields.measures.slice(0, 1) : fields.measures;
+    const canAddMeasure = !singleMeasure && fields.measures.length < MAX_MEASURES;
+    const canRemoveMeasure = !singleMeasure && fields.measures.length > 1;
 
-        <label className={styles['control']} data-stack="v" data-gap="xs">
-            <span>Aggregation</span>
-            <Select
-                value={fields.aggregate}
-                onChange={event => fields.setAggregate(event.target.value as Aggregate)}
-            >
-                {aggregates.map(item => (
-                    <option key={item} value={item}>
-                        {AGGREGATE_LABELS[item]}
-                    </option>
-                ))}
-            </Select>
-        </label>
+    return (
+        <>
+            {measures.map((measure, index) => (
+                <Fragment key={index}>
+                    <div
+                        className={styles['section']}
+                        data-stack="h"
+                        data-gap="xs"
+                        data-align="center"
+                    >
+                        <span>{singleMeasure ? 'Value' : `Y value ${index + 1}`}</span>
+                        {canRemoveMeasure && (
+                            <IconButton
+                                tone="nav"
+                                className={styles['remove-measure']}
+                                aria-label={`Remove Y value ${index + 1}`}
+                                onClick={() => fields.removeMeasure(index)}
+                            >
+                                <X size={14} />
+                            </IconButton>
+                        )}
+                    </div>
 
-        {needsColumn(fields.aggregate) && (
-            <label className={styles['control']} data-stack="v" data-gap="xs">
-                <span>Column</span>
-                <Select
-                    data-testid="primary-measure-select"
-                    value={derived.activeMeasureColumnId}
-                    onChange={event => fields.setMeasureColumnId(event.target.value)}
-                >
-                    <AnalysisColumnOptions columns={derived.measureColumns} />
-                </Select>
-            </label>
-        )}
-
-        <label className={styles['control']} data-stack="v" data-gap="xs">
-            <span>Value format</span>
-            <Select
-                value={fields.valueFormat}
-                onChange={event =>
-                    fields.setValueFormat(event.target.value as MeasureValueFormat)
-                }
-            >
-                {valueFormats.map(item => (
-                    <option key={item} value={item}>
-                        {VALUE_FORMAT_LABELS[item]}
-                    </option>
-                ))}
-            </Select>
-        </label>
-
-        {fields.chartType !== 'pie' && fields.chartType !== 'heatmap' && (
-            <label className={styles['control']} data-stack="v" data-gap="xs">
-                <span>2nd measure</span>
-                <Select
-                    value={fields.secondMeasureEnabled ? 'on' : 'off'}
-                    onChange={event =>
-                        fields.setSecondMeasureEnabled(event.target.value === 'on')
-                    }
-                >
-                    <option value="off">Off</option>
-                    <option value="on">On</option>
-                </Select>
-            </label>
-        )}
-
-        {fields.secondMeasureEnabled &&
-            fields.chartType !== 'pie' &&
-            fields.chartType !== 'heatmap' && (
-                <>
                     <label className={styles['control']} data-stack="v" data-gap="xs">
-                        <span>2nd aggregation</span>
+                        <span>Aggregation</span>
                         <Select
-                            value={fields.secondAggregate}
+                            value={measure.aggregate}
                             onChange={event =>
-                                fields.setSecondAggregate(event.target.value as Aggregate)
+                                fields.setMeasureAggregate(
+                                    index,
+                                    event.target.value as Aggregate
+                                )
                             }
                         >
                             {aggregates.map(item => (
@@ -110,12 +72,35 @@ export const MeasureSettingsSection = ({
                             ))}
                         </Select>
                     </label>
+
+                    {needsColumn(measure.aggregate) && (
+                        <label className={styles['control']} data-stack="v" data-gap="xs">
+                            <span>Column</span>
+                            <Select
+                                data-testid={
+                                    index === 0
+                                        ? 'primary-measure-select'
+                                        : `measure-select-${index}`
+                                }
+                                value={derived.measures[index]?.activeColumnId ?? ''}
+                                onChange={event =>
+                                    fields.setMeasureColumnId(index, event.target.value)
+                                }
+                            >
+                                <AnalysisColumnOptions
+                                    columns={derived.measures[index]?.columns ?? []}
+                                />
+                            </Select>
+                        </label>
+                    )}
+
                     <label className={styles['control']} data-stack="v" data-gap="xs">
-                        <span>2nd value format</span>
+                        <span>Value format</span>
                         <Select
-                            value={fields.secondValueFormat}
+                            value={measure.valueFormat}
                             onChange={event =>
-                                fields.setSecondValueFormat(
+                                fields.setMeasureValueFormat(
+                                    index,
                                     event.target.value as MeasureValueFormat
                                 )
                             }
@@ -127,38 +112,35 @@ export const MeasureSettingsSection = ({
                             ))}
                         </Select>
                     </label>
-                    {needsColumn(fields.secondAggregate) && (
-                        <label className={styles['control']} data-stack="v" data-gap="xs">
-                            <span>2nd column</span>
-                            <Select
-                                data-testid="second-measure-select"
-                                value={derived.activeSecondMeasureColumnId}
-                                onChange={event =>
-                                    fields.setSecondMeasureColumnId(event.target.value)
-                                }
-                            >
-                                <AnalysisColumnOptions
-                                    columns={derived.secondMeasureColumns}
-                                />
-                            </Select>
-                        </label>
-                    )}
-                </>
+                </Fragment>
+            ))}
+
+            {canAddMeasure && (
+                <Button
+                    tone="ghost"
+                    className={styles['add-measure']}
+                    data-pl="none"
+                    onClick={fields.addMeasure}
+                >
+                    <Plus size={16} />
+                    Add measure
+                </Button>
             )}
 
-        {fields.chartType === 'pie' && (
-            <label className={styles['control']} data-stack="v" data-gap="xs">
-                <span>Max slices</span>
-                <TextInput
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={fields.topN}
-                    onChange={event =>
-                        fields.setTopN(clamp(Number(event.target.value), 1, 50))
-                    }
-                />
-            </label>
-        )}
-    </>
-);
+            {fields.chartType === 'pie' && (
+                <label className={styles['control']} data-stack="v" data-gap="xs">
+                    <span>Max slices</span>
+                    <TextInput
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={fields.topN}
+                        onChange={event =>
+                            fields.setTopN(clamp(Number(event.target.value), 1, 50))
+                        }
+                    />
+                </label>
+            )}
+        </>
+    );
+};

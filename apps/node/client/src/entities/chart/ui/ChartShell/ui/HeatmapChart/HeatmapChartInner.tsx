@@ -1,14 +1,13 @@
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { localPoint } from '@visx/event';
 import { Group } from '@visx/group';
 import { HeatmapRect } from '@visx/heatmap';
 import { scaleLinear, scalePoint } from '@visx/scale';
-import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { DEFAULT_CHART_COLOR, mixChartColors } from '../../../../lib';
 import { formatChartCell } from '../../../../lib/formatChartCell';
 
+import { HeatmapChartTooltip, type HoveredHeatmapCell } from '../HeatmapChartTooltip';
 import { HEATMAP_COLORS, HEATMAP_GAP, type HeatmapMargin } from './heatmapChartConfig';
 import type { HeatmapCell } from './heatmapChartTypes';
 
@@ -40,14 +39,7 @@ export const HeatmapChartInner = ({
     margin,
     showAxisTickLabels,
 }: HeatmapChartInnerProps) => {
-    const {
-        showTooltip,
-        hideTooltip,
-        tooltipData,
-        tooltipLeft,
-        tooltipTop,
-        tooltipOpen,
-    } = useTooltip<HeatmapCell>();
+    const [hovered, setHovered] = useState<HoveredHeatmapCell>(null);
 
     const step = cellSize + HEATMAP_GAP;
     const gridWidth = xValues.length * step;
@@ -73,8 +65,8 @@ export const HeatmapChartInner = ({
 
     const colorScale = scaleLinear<string>({
         range: [
-            mixChartColors(color, HEATMAP_COLORS.cellLow, 0.72),
-            mixChartColors(color, HEATMAP_COLORS.cellHigh, 0.16),
+            mixChartColors(color, HEATMAP_COLORS.cellLow, 0.85),
+            mixChartColors(color, HEATMAP_COLORS.cellHigh, 0.36),
         ],
         domain: [minValue, maxValue],
     });
@@ -161,13 +153,12 @@ export const HeatmapChartInner = ({
                                         rx={2}
                                         fill={cell.color ?? HEATMAP_COLORS.cellLow}
                                         onMouseMove={event => {
-                                            const point = localPoint(event);
                                             const source = sourceByCell.get(
                                                 `${cell.datum.x}:${cell.bin.y}`
                                             );
 
-                                            showTooltip({
-                                                tooltipData: {
+                                            setHovered({
+                                                cell: {
                                                     x: cell.datum.x,
                                                     y: cell.bin.y,
                                                     value: cell.count ?? 0,
@@ -177,11 +168,13 @@ export const HeatmapChartInner = ({
                                                         source?.yTimeGranularity,
                                                     valueFormat: source?.valueFormat,
                                                 },
-                                                tooltipLeft: point?.x,
-                                                tooltipTop: point?.y,
+                                                point: {
+                                                    x: event.clientX,
+                                                    y: event.clientY,
+                                                },
                                             });
                                         }}
-                                        onMouseLeave={hideTooltip}
+                                        onMouseLeave={() => setHovered(null)}
                                     />
                                 ))
                             )
@@ -189,33 +182,7 @@ export const HeatmapChartInner = ({
                     </HeatmapRect>
                 </Group>
             </svg>
-            {tooltipOpen && tooltipData && (
-                <TooltipWithBounds
-                    left={tooltipLeft}
-                    top={tooltipTop}
-                    style={{
-                        ...defaultStyles,
-                        background: HEATMAP_COLORS.surfaceHigh,
-                        color: HEATMAP_COLORS.onSurface,
-                        border: `1px solid ${HEATMAP_COLORS.outline}`,
-                        fontSize: 12,
-                    }}
-                >
-                    <strong>
-                        {formatChartCell(tooltipData.x, {
-                            timeGranularity: tooltipData.xTimeGranularity,
-                        })}
-                    </strong>{' '}
-                    /{' '}
-                    {formatChartCell(tooltipData.y, {
-                        timeGranularity: tooltipData.yTimeGranularity,
-                    })}
-                    :{' '}
-                    {formatChartCell(tooltipData.value, {
-                        valueFormat: tooltipData.valueFormat,
-                    })}
-                </TooltipWithBounds>
-            )}
+            <HeatmapChartTooltip hovered={hovered} maxWidth={220} />
         </div>
     );
 };

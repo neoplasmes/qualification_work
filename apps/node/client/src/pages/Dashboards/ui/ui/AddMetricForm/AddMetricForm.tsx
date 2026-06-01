@@ -200,6 +200,7 @@ export const AddMetricForm = ({
                             value={builtExpression}
                             placeholder="avg(score)"
                             readOnly
+                            visuallyDisabled
                         />
                     </FormField>
                     {metricPreviewContent}

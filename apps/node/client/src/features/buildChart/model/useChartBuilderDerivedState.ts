@@ -54,21 +54,20 @@ export const useChartBuilderDerivedState = ({
     const activeHeatmapYColumn = columns.find(
         column => column.id === activeHeatmapYColumnId
     );
-    const measureColumns =
-        fields.aggregate === 'count_distinct' ? columns : numericColumns;
-    const activeMeasureColumnId = getActiveAnalysisColumnId(
-        measureColumns,
-        fields.measureColumnId,
-        editMode
-    );
-    const secondMeasureColumns =
-        fields.secondAggregate === 'count_distinct' ? columns : numericColumns;
-    const activeSecondMeasureColumnId = getActiveAnalysisColumnId(
-        secondMeasureColumns,
-        fields.secondMeasureColumnId,
-        editMode,
-        1
-    );
+    const measures = fields.measures.map((measure, index) => {
+        const measureColumns =
+            measure.aggregate === 'count_distinct' ? columns : numericColumns;
+
+        return {
+            columns: measureColumns,
+            activeColumnId: getActiveAnalysisColumnId(
+                measureColumns,
+                measure.columnId,
+                editMode,
+                index
+            ),
+        };
+    });
     const activeSeriesColumnId = getActiveAnalysisColumnId(
         columns,
         fields.seriesColumnId,
@@ -90,17 +89,28 @@ export const useChartBuilderDerivedState = ({
     );
     const nullaryFilter =
         fields.filterOperation === 'is_null' || fields.filterOperation === 'not_null';
+    // pie/heatmap only consume the first measure, ignore any extras kept in state
+    const usedMeasureCount =
+        fields.chartType === 'pie' || fields.chartType === 'heatmap'
+            ? 1
+            : fields.measures.length;
+    const usedMeasures = fields.measures
+        .slice(0, usedMeasureCount)
+        .map((measure, index) => ({ measure, derived: measures[index] }));
+    const measureColumnsResolved = usedMeasures.every(
+        ({ measure, derived }) =>
+            !needsColumn(measure.aggregate) || Boolean(derived.activeColumnId)
+    );
+    const measureColumnsEnabled = usedMeasures.every(
+        ({ measure, derived }) =>
+            !needsColumn(measure.aggregate) ||
+            isAnalysisColumnEnabled(derived.columns, derived.activeColumnId)
+    );
     const selectedAnalysisColumnsEnabled =
         isAnalysisColumnEnabled(columns, activeDimensionColumnId) &&
         (fields.chartType !== 'heatmap' ||
             isAnalysisColumnEnabled(columns, activeHeatmapYColumnId)) &&
-        (!needsColumn(fields.aggregate) ||
-            isAnalysisColumnEnabled(measureColumns, activeMeasureColumnId)) &&
-        (!fields.secondMeasureEnabled ||
-            fields.chartType === 'pie' ||
-            fields.chartType === 'heatmap' ||
-            !needsColumn(fields.secondAggregate) ||
-            isAnalysisColumnEnabled(secondMeasureColumns, activeSecondMeasureColumnId)) &&
+        measureColumnsEnabled &&
         (!fields.seriesEnabled ||
             fields.chartType === 'pie' ||
             fields.chartType === 'heatmap' ||
@@ -114,21 +124,15 @@ export const useChartBuilderDerivedState = ({
         (fields.chartType !== 'heatmap' || Boolean(activeHeatmapYColumnId)) &&
         (fields.chartType !== 'heatmap' ||
             activeDimensionColumnId !== activeHeatmapYColumnId) &&
-        (!needsColumn(fields.aggregate) || Boolean(activeMeasureColumnId)) &&
-        (!fields.secondMeasureEnabled ||
-            !needsColumn(fields.secondAggregate) ||
-            Boolean(activeSecondMeasureColumnId)) &&
+        measureColumnsResolved &&
         (!fields.seriesEnabled || Boolean(activeSeriesColumnId)) &&
         selectedAnalysisColumnsEnabled;
 
     return {
         columns,
-        measureColumns,
-        secondMeasureColumns,
+        measures,
         activeDimensionColumnId,
         activeHeatmapYColumnId,
-        activeMeasureColumnId,
-        activeSecondMeasureColumnId,
         activeSeriesColumnId,
         activeFilterColumn,
         dimGroupingModes,

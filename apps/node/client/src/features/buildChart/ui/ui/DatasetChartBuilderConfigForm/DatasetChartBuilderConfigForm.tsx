@@ -4,7 +4,6 @@ import type { DatasetChartBuilderViewModel } from '../../../model';
 
 import { AxisSettingsSection } from '../AxisSettingsSection';
 import { BreakdownSettingsSection } from '../BreakdownSettingsSection';
-import { BuilderActions } from '../BuilderActions';
 import { ChartSettingsSection } from '../ChartSettingsSection';
 import { FilterSettingsSection } from '../FilterSettingsSection';
 import { MeasureSettingsSection } from '../MeasureSettingsSection';
@@ -13,13 +12,16 @@ import styles from '../../DatasetChartBuilder.module.scss';
 
 type DatasetChartBuilderConfigFormProps = {
     model: DatasetChartBuilderViewModel;
+    formId: string;
 };
 
 export const DatasetChartBuilderConfigForm = ({
     model,
+    formId,
 }: DatasetChartBuilderConfigFormProps) => (
     <>
         <form
+            id={formId}
             className={styles['chart-form']}
             data-display="grid"
             data-gap="sm"
@@ -39,13 +41,6 @@ export const DatasetChartBuilderConfigForm = ({
             <MeasureSettingsSection derived={model.derived} fields={model.fields} />
             <BreakdownSettingsSection derived={model.derived} fields={model.fields} />
             <FilterSettingsSection derived={model.derived} fields={model.fields} />
-            <BuilderActions
-                canPreview={model.derived.canPreview}
-                editMode={model.editMode}
-                isSaving={model.isSaving}
-                onSaveWithoutPreview={model.onSaveWithoutPreview}
-                previewLoading={model.previewLoading}
-            />
         </form>
 
         {model.chartError && (

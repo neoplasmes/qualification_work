@@ -2,8 +2,28 @@
 
 .workspace {
     container-type: inline-size;
-    overflow: auto;
+    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
+}
 
+.tabs-row {
+    > :first-child {
+        width: auto;
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+}
+
+.tabs-actions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    margin-left: auto;
+}
+
+.scroll-area {
+    overflow: auto;
+    scrollbar-gutter: stable;
     min-width: 0;
     min-height: 0;
 }

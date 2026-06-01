@@ -197,14 +197,29 @@ export const ActionEditor = ({
             data-test-id={actionsTestIds.workspace}
             aria-label="Action details"
         >
-            <div
-                className={styles['top-line-block']}
-                data-stack="h"
-                data-align="center"
-                data-justify="between"
-            >
+            <div className={styles['top-line-block']} data-stack="h" data-align="center">
                 <h2 className={styles['title']}>{workspaceTitle}</h2>
-                <div data-stack="h" data-gap="sm" data-align="center">
+            </div>
+
+            <Separator />
+
+            <div
+                className={styles['tabs-row']}
+                data-stack="h"
+                data-gap="sm"
+                data-align="center"
+            >
+                <WorkspaceTabs
+                    activeTab={workspaceMode}
+                    runDisabled={isCreatingAction}
+                    onChange={handleTabChange}
+                />
+                <div
+                    className={styles['tabs-actions']}
+                    data-stack="h"
+                    data-gap="sm"
+                    data-align="center"
+                >
                     {saveFormId ? (
                         <Button
                             type="submit"
@@ -233,55 +248,50 @@ export const ActionEditor = ({
                     ) : null}
                     {isCreatingAction ? (
                         <Button
+                            size="sm"
                             data-test-id={actionsTestIds.cancelCreateButton}
                             onClick={() => dispatch(cancelCreateAction())}
                         >
-                            <X size={18} />
+                            <X size={16} />
                             Cancel
                         </Button>
                     ) : null}
                 </div>
             </div>
 
-            <Separator />
+            <div className={styles['scroll-area']} data-stack="v" data-gap="sm" data-flex>
+                {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
+                {!editable && (
+                    <StatusMessage>
+                        Viewer role can inspect actions and history, but can not edit or
+                        run them.
+                    </StatusMessage>
+                )}
 
-            <WorkspaceTabs
-                activeTab={workspaceMode}
-                runDisabled={isCreatingAction}
-                onChange={handleTabChange}
-            />
-
-            {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
-            {!editable && (
-                <StatusMessage>
-                    Viewer role can inspect actions and history, but can not edit or run
-                    them.
-                </StatusMessage>
-            )}
-
-            {workspaceMode === 'edit' ? (
-                <ConfigureForm
-                    draft={draft}
-                    datasets={datasetsQuery.data ?? []}
-                    disabled={!editable || saving}
-                    formId={configureFormId}
-                    onSubmit={handleSave}
-                    onDraftChange={setDraft}
-                    onUpdateParameter={updateParameter}
-                    onUpdateEffect={updateEffect}
-                    onUpdateMapping={updateMapping}
-                />
-            ) : (
-                <RunForm
-                    action={selectedAction}
-                    formId={runFormId}
-                    runValues={runValues}
-                    disabled={!editable || executeState.isLoading}
-                    lastRunMessage={lastRunMessage}
-                    onRunValueChange={handleRunValueChange}
-                    onSubmit={handleRun}
-                />
-            )}
+                {workspaceMode === 'edit' ? (
+                    <ConfigureForm
+                        draft={draft}
+                        datasets={datasetsQuery.data ?? []}
+                        disabled={!editable || saving}
+                        formId={configureFormId}
+                        onSubmit={handleSave}
+                        onDraftChange={setDraft}
+                        onUpdateParameter={updateParameter}
+                        onUpdateEffect={updateEffect}
+                        onUpdateMapping={updateMapping}
+                    />
+                ) : (
+                    <RunForm
+                        action={selectedAction}
+                        formId={runFormId}
+                        runValues={runValues}
+                        disabled={!editable || executeState.isLoading}
+                        lastRunMessage={lastRunMessage}
+                        onRunValueChange={handleRunValueChange}
+                        onSubmit={handleRun}
+                    />
+                )}
+            </div>
         </section>
     );
 };

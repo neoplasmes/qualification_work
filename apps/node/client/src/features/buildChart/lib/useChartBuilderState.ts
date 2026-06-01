@@ -11,6 +11,14 @@ import type { GroupingMode } from '../types';
 
 const chartResultLimit = 24;
 
+export const MAX_MEASURES = 6;
+
+export type MeasureField = {
+    aggregate: Aggregate;
+    valueFormat: MeasureValueFormat;
+    columnId: string;
+};
+
 export type ChartBuilderFields = {
     chartName: string;
     chartColor: string;
@@ -23,13 +31,7 @@ export type ChartBuilderFields = {
     heatmapYGroupingMode: GroupingMode;
     heatmapYGranularity: TimeGranularity;
     heatmapYStep: number;
-    aggregate: Aggregate;
-    valueFormat: MeasureValueFormat;
-    measureColumnId: string;
-    secondMeasureEnabled: boolean;
-    secondAggregate: Aggregate;
-    secondValueFormat: MeasureValueFormat;
-    secondMeasureColumnId: string;
+    measures: MeasureField[];
     limit: number;
     topN: number;
     seriesEnabled: boolean;
@@ -41,6 +43,13 @@ export type ChartBuilderFields = {
     filterOperation: FilterOperation;
     filterValue: string;
 };
+
+const createMeasure = (overrides?: Partial<MeasureField>): MeasureField => ({
+    aggregate: 'count',
+    valueFormat: 'number',
+    columnId: '',
+    ...overrides,
+});
 
 const defaultFields = ((): ChartBuilderFields => ({
     chartName: '',
@@ -54,13 +63,7 @@ const defaultFields = ((): ChartBuilderFields => ({
     heatmapYGroupingMode: 'none',
     heatmapYGranularity: 'month',
     heatmapYStep: 10,
-    aggregate: 'count',
-    valueFormat: 'number',
-    measureColumnId: '',
-    secondMeasureEnabled: false,
-    secondAggregate: 'avg',
-    secondValueFormat: 'number',
-    secondMeasureColumnId: '',
+    measures: [createMeasure()],
     limit: chartResultLimit,
     topN: 12,
     seriesEnabled: false,
@@ -77,6 +80,9 @@ export const createChartBuilderFields = (
     initialOverrides?: Partial<ChartBuilderFields>
 ): ChartBuilderFields => ({
     ...defaultFields,
+    measures: (initialOverrides?.measures ?? defaultFields.measures).map(measure => ({
+        ...measure,
+    })),
     ...initialOverrides,
 });
 
@@ -92,13 +98,11 @@ export type ChartBuilderSetters = {
     setHeatmapYGroupingMode(v: GroupingMode): void;
     setHeatmapYGranularity(v: TimeGranularity): void;
     setHeatmapYStep(v: number): void;
-    setAggregate(v: Aggregate): void;
-    setValueFormat(v: MeasureValueFormat): void;
-    setMeasureColumnId(v: string): void;
-    setSecondMeasureEnabled(v: boolean): void;
-    setSecondAggregate(v: Aggregate): void;
-    setSecondValueFormat(v: MeasureValueFormat): void;
-    setSecondMeasureColumnId(v: string): void;
+    setMeasureAggregate(index: number, v: Aggregate): void;
+    setMeasureValueFormat(index: number, v: MeasureValueFormat): void;
+    setMeasureColumnId(index: number, v: string): void;
+    addMeasure(): void;
+    removeMeasure(index: number): void;
     setLimit(v: number): void;
     setTopN(v: number): void;
     setSeriesEnabled(v: boolean): void;
@@ -187,30 +191,52 @@ export const useChartBuilderState = ({
             [patch]
         ),
         setHeatmapYStep: useCallback((v: number) => patch({ heatmapYStep: v }), [patch]),
-        setAggregate: useCallback((v: Aggregate) => patch({ aggregate: v }), [patch]),
-        setValueFormat: useCallback(
-            (v: MeasureValueFormat) => patch({ valueFormat: v }),
-            [patch]
+        setMeasureAggregate: useCallback(
+            (index: number, v: Aggregate) =>
+                patch({
+                    measures: fields.measures.map((measure, i) =>
+                        i === index ? { ...measure, aggregate: v } : measure
+                    ),
+                }),
+            [fields.measures, patch]
+        ),
+        setMeasureValueFormat: useCallback(
+            (index: number, v: MeasureValueFormat) =>
+                patch({
+                    measures: fields.measures.map((measure, i) =>
+                        i === index ? { ...measure, valueFormat: v } : measure
+                    ),
+                }),
+            [fields.measures, patch]
         ),
         setMeasureColumnId: useCallback(
-            (v: string) => patch({ measureColumnId: v }),
-            [patch]
+            (index: number, v: string) =>
+                patch({
+                    measures: fields.measures.map((measure, i) =>
+                        i === index ? { ...measure, columnId: v } : measure
+                    ),
+                }),
+            [fields.measures, patch]
         ),
-        setSecondMeasureEnabled: useCallback(
-            (v: boolean) => patch({ secondMeasureEnabled: v }),
-            [patch]
+        addMeasure: useCallback(
+            () =>
+                patch({
+                    measures:
+                        fields.measures.length >= MAX_MEASURES
+                            ? fields.measures
+                            : [...fields.measures, createMeasure({ aggregate: 'avg' })],
+                }),
+            [fields.measures, patch]
         ),
-        setSecondAggregate: useCallback(
-            (v: Aggregate) => patch({ secondAggregate: v }),
-            [patch]
-        ),
-        setSecondValueFormat: useCallback(
-            (v: MeasureValueFormat) => patch({ secondValueFormat: v }),
-            [patch]
-        ),
-        setSecondMeasureColumnId: useCallback(
-            (v: string) => patch({ secondMeasureColumnId: v }),
-            [patch]
+        removeMeasure: useCallback(
+            (index: number) =>
+                patch({
+                    measures:
+                        fields.measures.length <= 1
+                            ? fields.measures
+                            : fields.measures.filter((_, i) => i !== index),
+                }),
+            [fields.measures, patch]
         ),
         setLimit: useCallback((v: number) => patch({ limit: v }), [patch]),
         setTopN: useCallback((v: number) => patch({ topN: v }), [patch]),

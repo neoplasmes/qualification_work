@@ -27,6 +27,11 @@ import {
     selectChartsWorkspaceMode,
     selectSelectedChartId,
 } from '@/pages/Charts';
+import {
+    dashboardsWorkspaceIndexPath,
+    getDashboardWorkspaceUrl,
+    selectSelectedDashboardId,
+} from '@/pages/Dashboards';
 
 import {
     selectIsLeftCollapsed,
@@ -53,7 +58,11 @@ const navLinks = [
         label: 'Charts',
         Icon: ChartNoAxesColumnIncreasing,
     },
-    { to: '/dashboards', label: 'Dashboards', Icon: LayoutDashboard },
+    {
+        to: dashboardsWorkspaceIndexPath,
+        label: 'Dashboards',
+        Icon: LayoutDashboard,
+    },
     { to: actionsWorkspaceIndexPath, label: 'Actions', Icon: Workflow },
 ];
 
@@ -83,6 +92,7 @@ export const NavBar: FC = () => {
     const chartsWorkspaceMode = useSelector(selectChartsWorkspaceMode);
     const selectedActionId = useSelector(selectSelectedActionId);
     const actionsWorkspaceMode = useSelector(selectActionsWorkspaceMode);
+    const selectedDashboardId = useSelector(selectSelectedDashboardId);
 
     const meQuery = useGetMeQuery();
     const { activeOrg, orgs, setActiveOrgId } = useActiveOrganization(meQuery.data);
@@ -104,6 +114,9 @@ export const NavBar: FC = () => {
     const actionsLink = selectedActionId
         ? getActionWorkspaceUrl(selectedActionId, actionsWorkspaceMode)
         : actionsWorkspaceIndexPath;
+    const dashboardsLink = selectedDashboardId
+        ? getDashboardWorkspaceUrl(selectedDashboardId)
+        : dashboardsWorkspaceIndexPath;
     const isWorkspacePage =
         workspacePaths.has(pathname) ||
         isChartsWorkspacePath(pathname) ||
@@ -126,6 +139,10 @@ export const NavBar: FC = () => {
 
                         if (to === actionsWorkspaceIndexPath) {
                             href = actionsLink;
+                        }
+
+                        if (to === dashboardsWorkspaceIndexPath) {
+                            href = dashboardsLink;
                         }
 
                         const active = isActiveNavPath(pathname, to);

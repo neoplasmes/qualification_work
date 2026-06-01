@@ -1,5 +1,6 @@
 import type { metricTargetDirections } from '@qualification-work/types';
 
+import { getValueTypePlaceholder } from '@/shared/lib/valueTypePlaceholder';
 import {
     Explain,
     FormField,
@@ -49,7 +50,7 @@ export const MetricGoalFields = ({
                     type="number"
                     inputMode="decimal"
                     value={config.target}
-                    placeholder="No target"
+                    placeholder={getValueTypePlaceholder('number')}
                     onChange={event => onConfigChange({ target: event.target.value })}
                 />
             </FormField>

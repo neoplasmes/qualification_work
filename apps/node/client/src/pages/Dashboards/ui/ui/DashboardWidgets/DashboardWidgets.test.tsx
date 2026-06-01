@@ -215,15 +215,16 @@ describe('DashboardWidgets', () => {
         expect(gridMocks.node('item-chart')).toMatchObject({ x: 4, y: 1, w: 8, h: 8 });
     });
 
-    it('disables GridStack movement and resize while projected to one column', async () => {
+    it('keeps GridStack movement and resize enabled at any column count', async () => {
         gridMocks.setColumn(1);
 
         renderWidgets();
 
         await waitFor(() =>
-            expect(gridMocks.grid.enableMove).toHaveBeenCalledWith(false)
+            expect(gridMocks.grid.addWidget).toHaveBeenCalledTimes(items.length)
         );
-        expect(gridMocks.grid.enableResize).toHaveBeenCalledWith(false);
+        expect(gridMocks.grid.enableMove).not.toHaveBeenCalledWith(false);
+        expect(gridMocks.grid.enableResize).not.toHaveBeenCalledWith(false);
     });
 
     it('auto-loads chart data for chart widgets on mount', async () => {

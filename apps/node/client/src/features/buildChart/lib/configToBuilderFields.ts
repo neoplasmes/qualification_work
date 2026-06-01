@@ -6,7 +6,7 @@ import {
 
 import type { Aggregate, MeasureValueFormat, TimeGranularity } from '../api';
 import type { GroupingMode } from '../types';
-import type { ChartBuilderFields } from './useChartBuilderState';
+import type { ChartBuilderFields, MeasureField } from './useChartBuilderState';
 
 const getGroupingMode = (grouping: unknown): GroupingMode => {
     const value = grouping as { kind?: string } | undefined | null;
@@ -28,19 +28,22 @@ type MeasureConfig = {
     valueFormat?: MeasureValueFormat;
 };
 
-const applyMeasureFields = (
+const toMeasureField = (measure: MeasureConfig | undefined): MeasureField => ({
+    aggregate: measure?.aggregate ?? 'count',
+    valueFormat: measure?.valueFormat ?? 'number',
+    columnId: measure?.columnId ?? '',
+});
+
+const applyMeasures = (
     result: Partial<ChartBuilderFields>,
-    measure: MeasureConfig | undefined
+    measures: Array<MeasureConfig | undefined> | undefined
 ) => {
-    if (measure?.aggregate) {
-        result.aggregate = measure.aggregate;
-    }
-    if (measure?.columnId) {
-        result.measureColumnId = measure.columnId;
-    }
-    if (measure?.valueFormat) {
-        result.valueFormat = measure.valueFormat;
-    }
+    const list = (measures ?? []).filter(
+        (measure): measure is MeasureConfig => measure != null
+    );
+    result.measures = list.length
+        ? list.map(toMeasureField)
+        : [toMeasureField(undefined)];
 };
 
 const applyAxisFields = (
@@ -112,7 +115,7 @@ export const configToBuilderFields = (
         if (slice?.otherBucket !== undefined) {
             result.seriesOtherBucket = slice.otherBucket;
         }
-        applyMeasureFields(result, measure);
+        applyMeasures(result, [measure]);
 
         return result;
     }
@@ -124,7 +127,7 @@ export const configToBuilderFields = (
 
         applyAxisFields(result, x, 'dimension');
         applyAxisFields(result, y, 'heatmapY');
-        applyMeasureFields(result, measure);
+        applyMeasures(result, [measure]);
 
         return result;
     }
@@ -149,21 +152,7 @@ export const configToBuilderFields = (
         result.seriesOtherBucket = series.otherBucket;
     }
 
-    applyMeasureFields(result, measures?.[0]);
-    if (measures?.[1]) {
-        result.secondMeasureEnabled = true;
-        if (measures[1].aggregate) {
-            result.secondAggregate = measures[1].aggregate;
-        }
-        if (measures[1].columnId) {
-            result.secondMeasureColumnId = measures[1].columnId;
-        }
-        if (measures[1].valueFormat) {
-            result.secondValueFormat = measures[1].valueFormat;
-        }
-    } else {
-        result.secondMeasureEnabled = false;
-    }
+    applyMeasures(result, measures);
 
     return result;
 };

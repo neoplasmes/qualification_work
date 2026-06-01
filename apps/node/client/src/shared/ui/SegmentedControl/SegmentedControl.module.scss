@@ -19,6 +19,12 @@
     background-color: var(--color-surface-container-low);
 }
 
+.control.disabled {
+    cursor: not-allowed;
+    border-color: var(--color-surface-container-high);
+    background-color: var(--color-surface-container-lowest);
+}
+
 .indicator {
     position: absolute;
     top: var(--segmented-padding);
@@ -30,6 +36,18 @@
     border-radius: calc(var(--radius-sm) - 2px);
 
     background-color: var(--color-primary);
+}
+
+.control.disabled .indicator {
+    background-color: var(--color-surface-container-high);
+}
+
+.control.disabled .item {
+    color: var(--color-on-surface-muted);
+}
+
+.control.disabled .item.active {
+    color: var(--color-on-surface);
 }
 
 .item {

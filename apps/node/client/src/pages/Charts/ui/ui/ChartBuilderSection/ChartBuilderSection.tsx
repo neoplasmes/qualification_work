@@ -24,6 +24,7 @@ type EditChartBuilderSectionProps = {
     chart: Chart;
     dataset: DatasetMetadata;
     fields: ChartBuilderFields;
+    actionsContainer?: HTMLElement | null;
     onFieldsChange: (fields: ChartBuilderFields) => void;
     onChartUpdated: (chartId: string) => void;
 };
@@ -72,6 +73,7 @@ export const EditChartBuilderSection = ({
     chart,
     dataset,
     fields,
+    actionsContainer,
     onFieldsChange,
     onChartUpdated,
 }: EditChartBuilderSectionProps) => (
@@ -81,6 +83,7 @@ export const EditChartBuilderSection = ({
         selectedDataset={dataset}
         editChartId={chart.id}
         value={fields}
+        actionsContainer={actionsContainer}
         onChange={onFieldsChange}
         onChartUpdated={onChartUpdated}
     />

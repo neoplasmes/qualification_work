@@ -88,7 +88,7 @@ const hslToRgb = ({ h, s, l }: Hsl): Rgb => {
 
 const clampUnit = (value: number) => Math.min(1, Math.max(0, value));
 
-const monochromeLightnessOffsets = [0, 0.16, -0.08, 0.28, -0.18, 0.06, -0.28, 0.36];
+const monochromeLightnessOffsets = [0, 0.22, -0.15, 0.38, -0.3, 0.1, -0.4, 0.46];
 
 export const mixChartColors = (from: string, to: string, weight: number) => {
     const a = hexToRgb(normalizeChartColor(from));
@@ -118,8 +118,8 @@ export const buildMonochromeChartPalette = (baseColor: string, size: number) => 
         return rgbToHex(
             hslToRgb({
                 h: hsl.h,
-                s: clampUnit(hsl.s + (index % 2 === 0 ? 0.04 : -0.06)),
-                l: Math.min(0.82, Math.max(0.22, hsl.l + offset + cycleOffset)),
+                s: clampUnit(hsl.s + (index % 2 === 0 ? 0.06 : -0.1)),
+                l: Math.min(0.86, Math.max(0.16, hsl.l + offset + cycleOffset)),
             })
         );
     });

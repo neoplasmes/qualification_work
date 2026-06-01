@@ -2,6 +2,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { LayoutDashboard, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
@@ -20,10 +21,12 @@ import { formatDate } from '@/shared/lib/formatDate';
 import { StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
+import { getDashboardWorkspaceUrl } from '../lib';
 import { selectDashboard, selectSelectedDashboardId } from '../model';
 
 export const DashboardsLeftPanel = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [error, setError] = useState('');
 
     const meQuery = useGetMeQuery();
@@ -59,6 +62,7 @@ export const DashboardsLeftPanel = () => {
                 name: 'New dashboard',
             }).unwrap();
             dispatch(selectDashboard(result.id));
+            navigate(getDashboardWorkspaceUrl(result.id));
             await dashboardsQuery.refetch();
         } catch (createError) {
             setError(getApiErrorMessage(createError, 'Unable to create this dashboard.'));
@@ -92,7 +96,10 @@ export const DashboardsLeftPanel = () => {
                     header={item.name}
                     details={[formatDate(item.createdAt)]}
                     iconElement={<LayoutDashboard size={18} />}
-                    onClick={() => dispatch(selectDashboard(item.id))}
+                    onClick={() => {
+                        dispatch(selectDashboard(item.id));
+                        navigate(getDashboardWorkspaceUrl(item.id));
+                    }}
                 />
             ))}
         </WorkspaceLeftPanel>

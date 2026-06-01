@@ -1,12 +1,10 @@
-import { localPoint } from '@visx/event';
 import { Group } from '@visx/group';
 import { ParentSize } from '@visx/responsive';
 import { scaleOrdinal } from '@visx/scale';
 import { Pie } from '@visx/shape';
-import { defaultStyles, TooltipWithBounds, useTooltip } from '@visx/tooltip';
+import { useState } from 'react';
 
 import { buildChartPalette, DEFAULT_CHART_COLOR } from '../../../../lib';
-import { formatChartCell } from '../../../../lib/formatChartCell';
 import type { ChartDataPoint } from '../../../../lib/parseChartData';
 
 import {
@@ -14,10 +12,9 @@ import {
     getResolvedChartFrameHeight,
     type ChartFrameHeight,
 } from '../../lib';
+import { PieChartTooltip, type HoveredPieSlice } from '../PieChartTooltip';
 
 const C = {
-    outline: '#2c2a2b',
-    surfaceHigh: '#242424',
     onSurface: '#fff',
 } as const;
 
@@ -60,14 +57,7 @@ const PieChartInner = ({
     width,
     height,
 }: PieChartInnerProps) => {
-    const {
-        showTooltip,
-        hideTooltip,
-        tooltipData,
-        tooltipLeft,
-        tooltipTop,
-        tooltipOpen,
-    } = useTooltip<ChartDataPoint & { pct: string }>();
+    const [hovered, setHovered] = useState<HoveredPieSlice>(null);
 
     const total = data.reduce((sum, d) => sum + d.value, 0);
     // only pay the radius penalty when at least one slice will need an outer label
@@ -120,11 +110,14 @@ const PieChartInner = ({
                                 const handleMove = (
                                     event: React.MouseEvent<SVGElement>
                                 ) => {
-                                    const point = localPoint(event);
-                                    showTooltip({
-                                        tooltipData: { ...arc.data, pct: pctText },
-                                        tooltipLeft: point?.x,
-                                        tooltipTop: point?.y,
+                                    setHovered({
+                                        datum: arc.data,
+                                        pct: pctText,
+                                        color: fill,
+                                        point: {
+                                            x: event.clientX,
+                                            y: event.clientY,
+                                        },
                                     });
                                 };
 
@@ -134,7 +127,7 @@ const PieChartInner = ({
                                             d={path(arc) ?? ''}
                                             fill={fill}
                                             onMouseMove={handleMove}
-                                            onMouseLeave={hideTooltip}
+                                            onMouseLeave={() => setHovered(null)}
                                             style={{ cursor: 'pointer' }}
                                         />
                                         {isInline
@@ -156,30 +149,7 @@ const PieChartInner = ({
                     </Pie>
                 </Group>
             </svg>
-            {tooltipOpen && tooltipData && (
-                <TooltipWithBounds
-                    left={tooltipLeft}
-                    top={tooltipTop}
-                    style={{
-                        ...defaultStyles,
-                        background: C.surfaceHigh,
-                        color: C.onSurface,
-                        border: `1px solid ${C.outline}`,
-                        fontSize: 12,
-                    }}
-                >
-                    <strong>
-                        {formatChartCell(tooltipData.label, {
-                            timeGranularity: tooltipData.labelTimeGranularity,
-                        })}
-                    </strong>
-                    :{' '}
-                    {formatChartCell(tooltipData.value, {
-                        valueFormat: tooltipData.valueFormat,
-                    })}{' '}
-                    ({tooltipData.pct}%)
-                </TooltipWithBounds>
-            )}
+            <PieChartTooltip hovered={hovered} maxWidth={220} />
         </div>
     );
 };

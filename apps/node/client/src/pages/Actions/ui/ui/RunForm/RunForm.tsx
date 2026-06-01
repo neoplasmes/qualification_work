@@ -2,10 +2,11 @@ import type { FormEvent } from 'react';
 
 import type { Action } from '@/entities/action';
 
+import { getValueTypePlaceholder } from '@/shared/lib/valueTypePlaceholder';
 import { FormField, Select, StatusMessage, TextInput } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
-import { getRunValuePlaceholder, isRunValueInputAllowed } from '../../../lib';
+import { isRunValueInputAllowed } from '../../../lib';
 
 import styles from './RunForm.module.scss';
 
@@ -96,7 +97,7 @@ export const RunForm = ({
                                     data-test-id={actionsTestIds.runInput}
                                     type="text"
                                     inputMode={getRunInputMode(parameter.type)}
-                                    placeholder={getRunValuePlaceholder(parameter.type)}
+                                    placeholder={getValueTypePlaceholder(parameter.type)}
                                     value={runValues[parameter.key] ?? ''}
                                     disabled={disabled}
                                     required={parameter.required}

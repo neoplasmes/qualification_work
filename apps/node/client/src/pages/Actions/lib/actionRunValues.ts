@@ -11,14 +11,6 @@ const dateValuePattern = /^(\d{2})-(\d{2})-(\d{4})$/;
 const isoDateValuePattern = /^(\d{4})-(\d{2})-(\d{2})/;
 const dayOfWeekInputPattern = /^[a-zA-Zа-яА-ЯёЁ.]*$/;
 
-const runValuePlaceholders: Record<ActionParameterType, string> = {
-    string: 'text',
-    number: 'number',
-    date: 'date, DD-MM-YYYY',
-    bool: 'boolean',
-    day_of_week: 'weekday, e.g. Monday or пн',
-};
-
 const isValidDateValue = (value: string) => {
     const match = dateValuePattern.exec(value);
     if (!match) {
@@ -92,9 +84,6 @@ export const coerceRunValues = (
 
         return acc;
     }, {});
-
-export const getRunValuePlaceholder = (type: ActionParameterType) =>
-    runValuePlaceholders[type];
 
 export const isRunValueInputAllowed = (type: ActionParameterType, value: string) => {
     if (value === '' || type === 'string') {

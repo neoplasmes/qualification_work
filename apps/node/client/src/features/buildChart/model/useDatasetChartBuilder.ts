@@ -146,16 +146,14 @@ export const useDatasetChartBuilder = ({
                 fields.heatmapYGranularity,
                 fields.heatmapYStep
             ),
-            aggregate: fields.aggregate,
-            valueFormat: fields.valueFormat,
-            measureColumnId: derived.activeMeasureColumnId,
-            secondMeasureEnabled:
-                fields.secondMeasureEnabled &&
-                fields.chartType !== 'pie' &&
-                fields.chartType !== 'heatmap',
-            secondAggregate: fields.secondAggregate,
-            secondValueFormat: fields.secondValueFormat,
-            secondMeasureColumnId: derived.activeSecondMeasureColumnId,
+            measures: (fields.chartType === 'pie' || fields.chartType === 'heatmap'
+                ? fields.measures.slice(0, 1)
+                : fields.measures
+            ).map((measure, index) => ({
+                aggregate: measure.aggregate,
+                valueFormat: measure.valueFormat,
+                columnId: derived.measures[index]?.activeColumnId ?? '',
+            })),
             limit: chartRowLimit,
             topN: fields.topN,
             seriesEnabled:

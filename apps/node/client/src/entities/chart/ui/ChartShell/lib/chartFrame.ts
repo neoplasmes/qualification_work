@@ -11,6 +11,10 @@ export const dashboardChartAspectRatioConstraint: ChartAspectRatioConstraint = {
     min: 1 / 1.25,
     max: 2,
 };
+export const dashboardLineChartAspectRatioConstraint: ChartAspectRatioConstraint = {
+    ...dashboardChartAspectRatioConstraint,
+    max: 2.5,
+};
 
 export const getChartFrameStyle = (
     height: ChartFrameHeight = defaultChartFrameHeight

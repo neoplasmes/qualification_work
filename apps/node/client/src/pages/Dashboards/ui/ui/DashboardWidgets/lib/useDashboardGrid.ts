@@ -12,6 +12,7 @@ import { nodesToLayout } from './nodesToLayout';
 const BASE_CELL_HEIGHT = 64;
 const MIN_CELL_HEIGHT = 44;
 const CELL_ASPECT = 0.8;
+const resizeHandles = 'n,e,s,w,ne,se,sw,nw';
 
 const getResponsiveCellHeight = (containerWidth: number) => {
     const cellWidth = containerWidth / dashboardGridColumns;
@@ -44,6 +45,7 @@ const createGridOptions = (cellHeight: number): GridStackOptions => ({
     float: false,
     // the whole cell drags, except interactive controls
     draggable: { cancel: 'button, a, input, select, textarea, .no-drag' },
+    resizable: { handles: resizeHandles },
 });
 
 const getGridElement = (content: HTMLElement) =>

@@ -101,6 +101,13 @@ export const mixChartColors = (from: string, to: string, weight: number) => {
     });
 };
 
+// keeps hue and saturation, sets only lightness for a monochromatic shade
+export const withChartLightness = (color: string, lightness: number) => {
+    const hsl = rgbToHsl(hexToRgb(normalizeChartColor(color)));
+
+    return rgbToHex(hslToRgb({ h: hsl.h, s: hsl.s, l: clampUnit(lightness) }));
+};
+
 export const buildMonochromeChartPalette = (baseColor: string, size: number) => {
     const base = normalizeChartColor(baseColor);
     const hsl = rgbToHsl(hexToRgb(base));

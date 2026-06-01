@@ -8,6 +8,7 @@ export {
     isChartColor,
     mixChartColors,
     normalizeChartColor,
+    withChartLightness,
 } from './chartColor';
 export { formatAxisNumber, formatChartCell } from './formatChartCell';
 export {

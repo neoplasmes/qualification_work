@@ -7,6 +7,8 @@ import { ChartConfigSummary } from '../ChartConfigSummary';
 import { ChartShell } from '../ChartShell';
 import {
     dashboardChartAspectRatioConstraint,
+    dashboardLineChartAspectRatioConstraint,
+    type ChartAspectRatioConstraint,
     type ChartFrameHeight,
 } from '../ChartShell/lib';
 
@@ -31,6 +33,19 @@ type ChartCardProps = {
     transparentBackground?: boolean;
 };
 
+const getChartCardAspectRatioConstraint = (
+    kind: ChartResponse['kind'],
+    constrainAspectRatio: boolean
+): ChartAspectRatioConstraint | undefined => {
+    if (!constrainAspectRatio) {
+        return undefined;
+    }
+
+    return kind === 'line'
+        ? dashboardLineChartAspectRatioConstraint
+        : dashboardChartAspectRatioConstraint;
+};
+
 export const ChartCard = ({
     chart,
     columns,
@@ -51,9 +66,10 @@ export const ChartCard = ({
         color={chart ? getChartColorFromConfig(chart.config) : undefined}
         barsLimit={BAR_CHART_ROWS_LIMIT}
         chartHeight={chartHeight}
-        aspectRatioConstraint={
-            constrainAspectRatio ? dashboardChartAspectRatioConstraint : undefined
-        }
+        aspectRatioConstraint={getChartCardAspectRatioConstraint(
+            data.kind,
+            constrainAspectRatio
+        )}
         showAxisTickLabels={showAxisTickLabels}
         showResultSummary={false}
         showLegend={showLegend}

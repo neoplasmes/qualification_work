@@ -11,6 +11,9 @@
 }
 
 .grid {
+    --dashboard-grid-resize-edge: 10px;
+    --dashboard-grid-resize-corner: 18px;
+
     width: 100%;
     min-height: 144px;
 }
@@ -26,7 +29,86 @@
 }
 
 /* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-handle) {
+    z-index: 2;
+    background: transparent;
+    background-image: none;
+    border: 0;
+    box-shadow: none;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-n) {
+    top: 0;
+    right: var(--dashboard-grid-resize-corner);
+    left: var(--dashboard-grid-resize-corner);
+    height: var(--dashboard-grid-resize-edge);
+    cursor: ns-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-s) {
+    right: var(--dashboard-grid-resize-corner);
+    bottom: 0;
+    left: var(--dashboard-grid-resize-corner);
+    height: var(--dashboard-grid-resize-edge);
+    cursor: ns-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-e) {
+    top: var(--dashboard-grid-resize-corner);
+    right: 0;
+    bottom: var(--dashboard-grid-resize-corner);
+    width: var(--dashboard-grid-resize-edge);
+    cursor: ew-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-w) {
+    top: var(--dashboard-grid-resize-corner);
+    bottom: var(--dashboard-grid-resize-corner);
+    left: 0;
+    width: var(--dashboard-grid-resize-edge);
+    cursor: ew-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-ne),
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-se),
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-sw),
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-nw) {
+    width: var(--dashboard-grid-resize-corner);
+    height: var(--dashboard-grid-resize-corner);
+    background: transparent;
+    background-image: none;
+    transform: none;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-ne) {
+    top: 0;
+    right: 0;
+    cursor: nesw-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
 .grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-se) {
-    right: calc(var(--gs-item-margin-right) + var(--spacing-md));
-    bottom: calc(var(--gs-item-margin-bottom) + var(--spacing-md));
+    right: 0;
+    bottom: 0;
+    cursor: nwse-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-sw) {
+    bottom: 0;
+    left: 0;
+    cursor: nesw-resize;
+}
+
+/* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+.grid:global(.grid-stack) > :global(.grid-stack-item) > :global(.ui-resizable-nw) {
+    top: 0;
+    left: 0;
+    cursor: nwse-resize;
 }

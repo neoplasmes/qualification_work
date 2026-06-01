@@ -11,6 +11,7 @@ export {
 } from './fixedChartTooltip';
 export {
     dashboardChartAspectRatioConstraint,
+    dashboardLineChartAspectRatioConstraint,
     getChartAspectFrameStyle,
     getChartFrameStyle,
     getConstrainedChartFrameSize,

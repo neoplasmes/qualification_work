@@ -1,6 +1,6 @@
 export const HEATMAP_COLORS = {
-    lowValueTone: '#ffffff',
-    highValueTone: '#000000',
+    lowValueLightness: 0.62,
+    highValueLightness: 0.32,
     muted: '#b0b0b0',
     outline: '#2c2a2b',
     surfaceHigh: '#242424',

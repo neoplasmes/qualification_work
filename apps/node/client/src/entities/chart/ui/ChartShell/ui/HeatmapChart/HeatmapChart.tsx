@@ -14,15 +14,8 @@ import {
     type ChartAspectRatioConstraint,
     type ChartFrameHeight,
 } from '../../lib';
-import {
-    HEATMAP_COMPACT_MARGIN,
-    HEATMAP_DEFAULT_CELL_SIZE,
-    HEATMAP_GAP,
-    HEATMAP_MARGIN,
-    HEATMAP_MAX_CELL_SIZE,
-    type HeatmapMargin,
-} from './heatmapChartConfig';
 import { HeatmapChartInner } from './HeatmapChartInner';
+import { getHeatmapBaseHeight, getHeatmapLayout } from './heatmapChartLayout';
 import type { HeatmapCell } from './heatmapChartTypes';
 
 type HeatmapChartProps = {
@@ -46,30 +39,6 @@ const sortHeatmapLabels = (
     return [...values].sort(compareCategoryLabels);
 };
 
-const getHeatmapHeight = (rowsCount: number, cellSize: number, margin: HeatmapMargin) =>
-    margin.top + margin.bottom + rowsCount * (cellSize + HEATMAP_GAP);
-
-const getHeatmapCellSize = (
-    width: number,
-    columnsCount: number,
-    height: number | undefined,
-    rowsCount: number,
-    margin: HeatmapMargin
-) => {
-    if (columnsCount === 0) {
-        return HEATMAP_DEFAULT_CELL_SIZE;
-    }
-
-    const xMax = width - margin.left - margin.right;
-    const widthSize = Math.floor(xMax / columnsCount) - HEATMAP_GAP;
-    const heightSize =
-        height && rowsCount > 0
-            ? Math.floor((height - margin.top - margin.bottom) / rowsCount) - HEATMAP_GAP
-            : HEATMAP_MAX_CELL_SIZE;
-
-    return Math.max(6, Math.min(HEATMAP_MAX_CELL_SIZE, widthSize, heightSize));
-};
-
 export const HeatmapChart = ({
     data,
     color = DEFAULT_CHART_COLOR,
@@ -78,7 +47,6 @@ export const HeatmapChart = ({
     showAxisTickLabels = true,
 }: HeatmapChartProps) => {
     const fillHeight = height === 'fill';
-    const margin = showAxisTickLabels ? HEATMAP_MARGIN : HEATMAP_COMPACT_MARGIN;
     const {
         ref,
         width,
@@ -100,11 +68,7 @@ export const HeatmapChart = ({
         () => new Map(data.map(c => [`${c.x}:${c.y}`, c.value])),
         [data]
     );
-    const baseHeight = getHeatmapHeight(
-        yValues.length,
-        HEATMAP_DEFAULT_CELL_SIZE,
-        margin
-    );
+    const baseHeight = getHeatmapBaseHeight(yValues.length, showAxisTickLabels);
     const availableHeight =
         height === undefined
             ? undefined
@@ -118,20 +82,19 @@ export const HeatmapChart = ({
 
     if (width > 0 && (!fillHeight || availableHeight)) {
         const chartHeight =
-            availableHeight ??
-            getHeatmapHeight(yValues.length, HEATMAP_DEFAULT_CELL_SIZE, margin);
+            availableHeight ?? getHeatmapBaseHeight(yValues.length, showAxisTickLabels);
         const frame = getConstrainedChartFrameSize(
             width,
             chartHeight,
             aspectRatioConstraint
         );
-        const cellSize = getHeatmapCellSize(
-            frame.width,
-            xValues.length,
-            frame.height,
-            yValues.length,
-            margin
-        );
+        const layout = getHeatmapLayout({
+            width: frame.width,
+            height: frame.height,
+            xValues,
+            yValues,
+            showAxisTickLabels,
+        });
         const innerContent = (
             <HeatmapChartInner
                 data={data}
@@ -140,10 +103,14 @@ export const HeatmapChart = ({
                 cellMap={cellMap}
                 width={frame.width}
                 height={frame.height}
-                cellSize={cellSize}
+                cellSize={layout.cellSize}
+                gap={layout.gap}
                 color={color}
-                margin={margin}
-                showAxisTickLabels={showAxisTickLabels}
+                margin={layout.margin}
+                axisFontSize={layout.axisFontSize}
+                xAxisLabelMaxChars={layout.xAxisLabelMaxChars}
+                yAxisLabelMaxChars={layout.yAxisLabelMaxChars}
+                showAxisTickLabels={layout.showAxisTickLabels}
             />
         );
         content = aspectRatioConstraint ? (

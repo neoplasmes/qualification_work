@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
+    clearPersistedState,
     getPersistedInitialState,
     loadPersistedState,
     subscribePersistedSlices,
@@ -37,6 +38,18 @@ describe('storePersistence', () => {
         });
 
         expect(state).toEqual({ selectedId: 'item-1', isModalOpen: false });
+    });
+
+    it('clears selected persisted keys without touching unrelated storage', () => {
+        localStorage.setItem('datasetsPage_v1', JSON.stringify({ selectedId: 'ds-1' }));
+        localStorage.setItem('panelLayout_v2', JSON.stringify({ sizes: {} }));
+
+        clearPersistedState(['datasetsPage_v1']);
+
+        expect(localStorage.getItem('datasetsPage_v1')).toBeNull();
+        expect(localStorage.getItem('panelLayout_v2')).toBe(
+            JSON.stringify({ sizes: {} })
+        );
     });
 
     it('stores selected state only when persisted fields change', () => {

@@ -1,6 +1,6 @@
 import type { CommitMergeResult, MergePreviewResult } from '@qualification-work/types';
 
-import { api } from '@/shared/api';
+import { api, datasetContentChangedTags } from '@/shared/api';
 
 export const uploadDatasetApi = api.injectEndpoints({
     endpoints: builder => ({
@@ -15,7 +15,13 @@ export const uploadDatasetApi = api.injectEndpoints({
                     body,
                 };
             },
-            invalidatesTags: [{ type: 'Datasets', id: 'LIST' }],
+            invalidatesTags: result =>
+                result
+                    ? [
+                          { type: 'Datasets', id: 'LIST' },
+                          { type: 'Datasets', id: result.id },
+                      ]
+                    : [{ type: 'Datasets', id: 'LIST' }],
         }),
         mergePreview: builder.mutation<
             MergePreviewResult,
@@ -67,16 +73,10 @@ export const uploadDatasetApi = api.injectEndpoints({
                 url: `/data/datasets/merge/${sessionId}/commit?orgId=${encodeURIComponent(orgId)}`,
                 method: 'POST',
             }),
-            // resulting datasetId can be either existing or freshly-created -> invalidate
-            // both metadata and rows so the preview/grid reload right after commit
+            // resulting datasetId can be either existing or freshly-created
             invalidatesTags: result =>
                 result
-                    ? [
-                          { type: 'Datasets', id: 'LIST' },
-                          { type: 'Datasets', id: result.datasetId },
-                          { type: 'DatasetRows', id: result.datasetId },
-                          { type: 'ChartData', id: 'LIST' },
-                      ]
+                    ? datasetContentChangedTags(result.datasetId)
                     : [{ type: 'Datasets', id: 'LIST' }],
         }),
         mergeCancel: builder.mutation<void, string>({

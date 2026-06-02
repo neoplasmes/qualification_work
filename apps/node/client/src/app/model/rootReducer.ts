@@ -11,7 +11,9 @@ import { filterApplicationEntitiesSlice } from '@/features/filterApplicationEnti
 
 import { api } from '@/shared/api';
 
-export const rootReducer = combineReducers({
+import { resetAuthenticatedSessionState } from './sessionState';
+
+const appReducer = combineReducers({
     [api.reducerPath]: api.reducer,
     [panelLayoutSlice.name]: panelLayoutSlice.reducer,
     [actionsPageSlice.name]: actionsPageSlice.reducer,
@@ -21,4 +23,22 @@ export const rootReducer = combineReducers({
     [filterApplicationEntitiesSlice.name]: filterApplicationEntitiesSlice.reducer,
 });
 
-export type RootState = ReturnType<typeof rootReducer>;
+export type RootState = ReturnType<typeof appReducer>;
+
+type RootReducerState = Parameters<typeof appReducer>[0];
+type RootReducerAction = Parameters<typeof appReducer>[1];
+
+export const rootReducer = (
+    state: RootReducerState,
+    action: RootReducerAction
+): RootState => {
+    if (resetAuthenticatedSessionState.match(action)) {
+        const preservedState = state?.[panelLayoutSlice.name]
+            ? { [panelLayoutSlice.name]: state[panelLayoutSlice.name] }
+            : undefined;
+
+        return appReducer(preservedState as RootReducerState, action);
+    }
+
+    return appReducer(state, action);
+};

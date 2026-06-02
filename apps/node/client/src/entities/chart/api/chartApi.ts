@@ -4,7 +4,17 @@ import type {
     GetChartDataPayload,
 } from '@qualification-work/types';
 
-import { api } from '@/shared/api';
+import { api, chartChangedTags, datasetRelationTagId } from '@/shared/api';
+
+type ChartCacheTag = {
+    type: 'Charts';
+    id: string;
+};
+
+const getChartTags = (chart: Chart): ChartCacheTag[] => [
+    { type: 'Charts', id: chart.id },
+    { type: 'Charts', id: datasetRelationTagId(chart.datasetId) },
+];
 
 const encodeFilterOverrides = (filters: GetChartDataPayload['filterOverrides']) => {
     if (!filters || filters.length === 0) {
@@ -27,18 +37,22 @@ export const chartApi = api.injectEndpoints({
             query: orgId => `/data/charts?orgId=${encodeURIComponent(orgId)}`,
             providesTags: result =>
                 result
-                    ? [
-                          ...result.map(chart => ({
-                              type: 'Charts' as const,
-                              id: chart.id,
-                          })),
-                          { type: 'Charts' as const, id: 'LIST' },
-                      ]
+                    ? [...result.flatMap(getChartTags), { type: 'Charts', id: 'LIST' }]
                     : [{ type: 'Charts' as const, id: 'LIST' }],
         }),
         getChart: builder.query<Chart, string>({
             query: chartId => `/data/charts/${chartId}`,
-            providesTags: (_result, _error, chartId) => [{ type: 'Charts', id: chartId }],
+            providesTags: (result, _error, chartId) => [
+                { type: 'Charts', id: chartId },
+                ...(result
+                    ? [
+                          {
+                              type: 'Charts' as const,
+                              id: datasetRelationTagId(result.datasetId),
+                          },
+                      ]
+                    : []),
+            ],
         }),
         deleteChart: builder.mutation<void, string>({
             query: chartId => ({
@@ -46,11 +60,7 @@ export const chartApi = api.injectEndpoints({
                 method: 'DELETE',
                 responseHandler: 'text',
             }),
-            invalidatesTags: (_result, _error, chartId) => [
-                { type: 'Charts', id: chartId },
-                { type: 'Charts', id: 'LIST' },
-                { type: 'ChartData', id: chartId },
-            ],
+            invalidatesTags: (_result, _error, chartId) => chartChangedTags(chartId),
         }),
         getChartData: builder.query<ChartResponse, string | GetChartDataPayload>({
             query: arg => {

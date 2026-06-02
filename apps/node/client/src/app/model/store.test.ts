@@ -1,10 +1,26 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { actionsPageInitialState } from '@/pages/Actions';
+import {
+    actionsPageInitialState,
+    openActionRoute,
+    setActionsRightPanelTab,
+} from '@/pages/Actions';
 import { chartsPageInitialState } from '@/pages/Charts';
+import { selectDashboard } from '@/pages/Dashboards';
+import { selectDataset } from '@/pages/Datasets';
 
-import { panelLayoutPersistence } from '@/widgets/WorkspaceGrid';
+import {
+    panelLayoutPersistence,
+    toggleLeftPanel,
+    toggleRightPanel,
+} from '@/widgets/WorkspaceGrid';
 
+import {
+    filterApplicationEntitiesInitialState,
+    toggleFilterApplicationValue,
+} from '@/features/filterApplicationEntities';
+
+import { resetAuthenticatedSessionState } from './sessionState';
 import { createStore } from './store';
 
 describe('createStore', () => {
@@ -64,5 +80,37 @@ describe('createStore', () => {
             ...actionsPageInitialState,
             rightPanelTab: 'properties',
         });
+    });
+
+    it('resets authenticated session state while keeping global panel layout', () => {
+        const store = createStore();
+
+        store.dispatch(toggleLeftPanel());
+        store.dispatch(toggleRightPanel());
+        store.dispatch(selectDataset('dataset-1'));
+        store.dispatch(selectDashboard('dashboard-1'));
+        store.dispatch(openActionRoute({ actionId: 'action-1', mode: 'edit' }));
+        store.dispatch(setActionsRightPanelTab('properties'));
+        store.dispatch(
+            toggleFilterApplicationValue({
+                scope: 'dashboards',
+                entity: 'charts',
+                value: 'chart-1',
+            })
+        );
+
+        store.dispatch(resetAuthenticatedSessionState());
+
+        expect(store.getState().panelLayout).toEqual({
+            sizes: {},
+            isLeftCollapsed: true,
+            isRightCollapsed: true,
+        });
+        expect(store.getState().datasetsPage.selectedDatasetId).toBeNull();
+        expect(store.getState().dashboardsPage.selectedDashboardId).toBeNull();
+        expect(store.getState().actionsPage).toEqual(actionsPageInitialState);
+        expect(store.getState().filterApplicationEntities).toEqual(
+            filterApplicationEntitiesInitialState
+        );
     });
 });

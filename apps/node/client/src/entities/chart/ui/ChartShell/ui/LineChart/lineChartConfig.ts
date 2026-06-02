@@ -54,8 +54,10 @@ export const getSeriesColor = (baseColor: string, seriesIndex: number) =>
         seriesIndex
     ];
 
-export const gradientId = (seriesName: string, seriesIndex: number) =>
-    `line-area-grad-${seriesIndex}-${seriesName.replace(/[^a-z0-9_-]/gi, '_')}`;
+// scope keeps gradient ids unique per chart instance so area fills on a
+// dashboard with many line charts do not reference each other's gradients
+export const gradientId = (scope: string, seriesName: string, seriesIndex: number) =>
+    `line-area-grad-${scope}-${seriesIndex}-${seriesName.replace(/[^a-z0-9_-]/gi, '_')}`;
 
 export const stripGlyphSeriesSuffix = (key: string) =>
     key.endsWith(GLYPH_SERIES_SUFFIX) ? key.slice(0, -GLYPH_SERIES_SUFFIX.length) : key;

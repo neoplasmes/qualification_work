@@ -54,6 +54,8 @@ export const RunForm = ({
         );
     }
 
+    const visibleParameters = action.parameters.filter(parameter => !parameter.hidden);
+
     return (
         <form
             id={formId}
@@ -70,11 +72,11 @@ export const RunForm = ({
                 </div>
             </div>
 
-            {action.parameters.length === 0 ? (
+            {visibleParameters.length === 0 ? (
                 <StatusMessage>This action has no parameters.</StatusMessage>
             ) : (
                 <div className={styles['run-grid']} data-display="grid" data-gap="sm">
-                    {action.parameters.map(parameter => (
+                    {visibleParameters.map(parameter => (
                         <FormField key={parameter.key} label={parameter.label}>
                             {parameter.type === 'bool' ? (
                                 <Select

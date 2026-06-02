@@ -2,25 +2,13 @@ import type { Action, ActionRun } from '@/entities/action';
 
 import { api } from '@/shared/api';
 
+import { getExecuteActionInvalidationTags } from './executeActionInvalidation';
 import type {
     CreateActionPayload,
     ExecuteActionPayload,
     PatchActionPayload,
     UpdateActionPayload,
 } from './types';
-
-const getRunDatasetTags = (run: ActionRun | undefined) => {
-    if (!run) {
-        return [];
-    }
-
-    return Array.from(new Set(run.changes.map(change => change.datasetId))).map(
-        datasetId => ({
-            type: 'DatasetRows' as const,
-            id: datasetId,
-        })
-    );
-};
 
 export const manageActionsApi = api.injectEndpoints({
     endpoints: builder => ({
@@ -61,12 +49,8 @@ export const manageActionsApi = api.injectEndpoints({
                 method: 'POST',
                 body: { parameters },
             }),
-            invalidatesTags: (result, _error, arg) => [
-                { type: 'ActionRuns', id: 'LIST' },
-                { type: 'ActionRuns', id: arg.actionId },
-                ...(result ? [{ type: 'ChartData' as const, id: 'LIST' }] : []),
-                ...getRunDatasetTags(result),
-            ],
+            invalidatesTags: (result, _error, arg) =>
+                getExecuteActionInvalidationTags(result, arg.actionId),
         }),
     }),
 });

@@ -123,7 +123,7 @@ export const DatasetRowContextMenu = ({
                             aria-label="Cancel delete"
                             onClick={onCancel}
                         >
-                            <X size={16} />
+                            <X size={20} />
                         </IconButton>
                     </div>
                 </div>

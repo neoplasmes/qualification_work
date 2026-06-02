@@ -1,8 +1,33 @@
 import { z } from 'zod';
 
-import { actionParameterTypes } from '@qualification-work/types';
+import {
+    actionComputedOperations,
+    actionParameterTypes,
+    actionValueOperations,
+} from '@qualification-work/types';
 
 const valueSourceSchema = z.discriminatedUnion('kind', [
+    z.object({
+        kind: z.literal('parameter'),
+        key: z.string().min(1).max(255),
+        operation: z.enum(actionValueOperations).default('='),
+    }),
+    z.object({
+        kind: z.literal('literal'),
+        value: z.unknown(),
+        operation: z.enum(actionValueOperations).default('='),
+    }),
+    z.object({
+        kind: z.literal('computed'),
+        leftParameterKey: z.string().min(1).max(255),
+        operation: z.enum(actionComputedOperations),
+        rightParameterKey: z.string().min(1).max(255),
+    }),
+]);
+
+const valuesSchema = z.record(z.string().min(1).max(255), valueSourceSchema);
+
+const matchSourceSchema = z.discriminatedUnion('kind', [
     z.object({
         kind: z.literal('parameter'),
         key: z.string().min(1).max(255),
@@ -13,14 +38,13 @@ const valueSourceSchema = z.discriminatedUnion('kind', [
     }),
 ]);
 
-const valuesSchema = z.record(z.string().min(1).max(255), valueSourceSchema);
-
 const parameterSchema = z.object({
     key: z.string().min(1).max(255),
     label: z.string().min(1).max(255),
     type: z.enum(actionParameterTypes),
     required: z.boolean().optional(),
     defaultValue: z.unknown().optional(),
+    hidden: z.boolean().optional(),
 });
 
 const insertRowEffectSchema = z.object({
@@ -32,10 +56,15 @@ const insertRowEffectSchema = z.object({
 const updateRowsByMatchEffectSchema = z.object({
     kind: z.literal('updateRowsByMatch'),
     datasetId: z.uuid(),
-    match: z.object({
-        columnKey: z.string().min(1).max(255),
-        parameterKey: z.string().min(1).max(255),
-    }),
+    match: z
+        .object({
+            columnKey: z.string().min(1).max(255),
+            parameterKey: z.string().min(1).max(255).optional(),
+            source: matchSourceSchema.optional(),
+        })
+        .refine(value => Boolean(value.parameterKey || value.source), {
+            message: 'match source is required',
+        }),
     values: valuesSchema,
     maxRows: z.number().int().min(1).max(500).optional(),
 });

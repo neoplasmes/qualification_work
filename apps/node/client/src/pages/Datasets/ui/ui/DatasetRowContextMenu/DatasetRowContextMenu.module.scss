@@ -87,8 +87,8 @@
 
 .confirm {
     display: flex;
-    width: min(280px, calc(100vw - var(--spacing-lg)));
-    min-width: 220px;
+
+    // max-width: calc(100vw - var(--spacing-lg));
     flex-direction: column;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm);
@@ -109,35 +109,15 @@
     display: flex;
     gap: var(--spacing-sm);
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     min-width: 0;
 }
 
 .confirm-delete-button.confirm-delete-button {
     overflow: hidden;
-    flex: 0 1 auto;
-    min-width: 104px;
-    max-width: calc(100% - 44px - var(--spacing-sm));
-    height: 36px;
-    padding: 0 var(--spacing-md);
+    flex-grow: 1;
+    padding: var(--spacing-xs) var(--spacing-md);
 
     text-transform: none;
     white-space: nowrap;
-
-    svg {
-        flex: 0 0 auto;
-    }
-
-    span {
-        overflow: hidden;
-        min-width: 0;
-        text-overflow: ellipsis;
-    }
-}
-
-.confirm-cancel-button {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    flex: 0 0 auto;
 }

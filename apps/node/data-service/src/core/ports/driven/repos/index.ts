@@ -7,6 +7,7 @@ export type {
     ListActionRunsPayload,
     PatchActionPayload,
     ResolvedActionExecutionEffect,
+    ResolvedActionUpdateValue,
     UpdateActionPayload,
 } from './action.repo';
 export type {

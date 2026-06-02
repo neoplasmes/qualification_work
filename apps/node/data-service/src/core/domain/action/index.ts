@@ -3,5 +3,7 @@ export {
     coerceActionParameters,
     resolveActionValue,
     resolveAndCoerceEffectValues,
+    resolveAndCoerceUpdateEffectValues,
+    resolveMatchValue,
     validateActionDefinition,
 } from './validation';

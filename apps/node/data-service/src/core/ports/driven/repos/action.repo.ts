@@ -4,6 +4,7 @@ import type {
     ActionParameter,
     ActionRunDB as ActionRun,
     ActionRunChange,
+    ActionValueOperation,
     DatasetColumn,
 } from '@qualification-work/types';
 
@@ -45,6 +46,11 @@ export type DatasetActionContext = {
     columns: DatasetColumn[];
 };
 
+export type ResolvedActionUpdateValue = {
+    operation: ActionValueOperation;
+    value: unknown;
+};
+
 export type ResolvedActionExecutionEffect =
     | {
           kind: 'insertRow';
@@ -58,7 +64,7 @@ export type ResolvedActionExecutionEffect =
               columnKey: string;
               value: unknown;
           };
-          values: Record<string, unknown>;
+          values: Record<string, ResolvedActionUpdateValue>;
           maxRows: number;
       };
 

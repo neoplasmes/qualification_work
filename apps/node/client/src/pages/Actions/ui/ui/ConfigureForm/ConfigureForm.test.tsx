@@ -185,4 +185,35 @@ describe('ConfigureForm', () => {
             )
         ).toHaveValue('paid');
     });
+
+    it('renders computed mapping controls in one mapping row', async () => {
+        const user = userEvent.setup();
+        const { container } = render(<TestConfigureForm />);
+
+        await user.click(
+            getByDataTestId(container, actionsTestIds.mappingSourceComputedButton)
+        );
+
+        expect(
+            getByDataTestId<HTMLSelectElement>(
+                container,
+                actionsTestIds.mappingComputedLeftParameterSelect
+            )
+        ).toBeInTheDocument();
+        expect(
+            getByDataTestId<HTMLSelectElement>(
+                container,
+                actionsTestIds.mappingComputedOperationSelect
+            )
+        ).toHaveValue('*');
+        expect(
+            getByDataTestId<HTMLSelectElement>(
+                container,
+                actionsTestIds.mappingComputedRightParameterSelect
+            )
+        ).toBeInTheDocument();
+        expect(
+            container.querySelectorAll(`[data-test-id="${actionsTestIds.mappingRow}"]`)
+        ).toHaveLength(1);
+    });
 });

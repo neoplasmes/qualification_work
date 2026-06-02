@@ -2,15 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AuthOrg, MeResponse } from '../api';
 
-const ACTIVE_ORG_KEY = 'qualification-work.active-org-id';
-const ACTIVE_ORG_EVENT = 'qualification-work.active-org-change';
+const activeOrgKey = 'qualification-work.active-org-id';
+const activeOrgEvent = 'qualification-work.active-org-change';
 
 const getStoredOrgId = () => {
     if (typeof window === 'undefined') {
         return null;
     }
 
-    return window.localStorage.getItem(ACTIVE_ORG_KEY);
+    return window.localStorage.getItem(activeOrgKey);
 };
 
 const setStoredOrgId = (orgId: string | null) => {
@@ -19,13 +19,15 @@ const setStoredOrgId = (orgId: string | null) => {
     }
 
     if (orgId) {
-        window.localStorage.setItem(ACTIVE_ORG_KEY, orgId);
+        window.localStorage.setItem(activeOrgKey, orgId);
     } else {
-        window.localStorage.removeItem(ACTIVE_ORG_KEY);
+        window.localStorage.removeItem(activeOrgKey);
     }
 
-    window.dispatchEvent(new CustomEvent(ACTIVE_ORG_EVENT, { detail: orgId }));
+    window.dispatchEvent(new CustomEvent(activeOrgEvent, { detail: orgId }));
 };
+
+export const clearStoredActiveOrganization = () => setStoredOrgId(null);
 
 export const getActiveOrganization = (
     me: MeResponse | undefined,
@@ -50,9 +52,9 @@ export const useActiveOrganization = (me: MeResponse | undefined) => {
             setPreferredOrgId((event as CustomEvent<string | null>).detail ?? null);
         };
 
-        window.addEventListener(ACTIVE_ORG_EVENT, handleChange);
+        window.addEventListener(activeOrgEvent, handleChange);
 
-        return () => window.removeEventListener(ACTIVE_ORG_EVENT, handleChange);
+        return () => window.removeEventListener(activeOrgEvent, handleChange);
     }, []);
 
     const orgs = me?.organizations ?? [];

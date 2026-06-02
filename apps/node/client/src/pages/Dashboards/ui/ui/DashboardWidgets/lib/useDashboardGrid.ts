@@ -2,7 +2,7 @@ import {
     dashboardGridColumns,
     type DashboardItemLayoutInput,
 } from '@qualification-work/types';
-import { GridStack, type GridItemHTMLElement, type GridStackOptions } from 'gridstack';
+import type { GridItemHTMLElement, GridStack, GridStackOptions } from 'gridstack';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useRafThrottle } from '@/shared/lib/useRafThrottle';
@@ -86,6 +86,7 @@ export const useDashboardGrid = (
     onChangeRef.current = onLayoutChange;
 
     const [hosts, setHosts] = useState<Map<string, HTMLElement>>(new Map());
+    const [gridVersion, setGridVersion] = useState(0);
 
     const applyResponsiveCellHeight = useRafThrottle(() => {
         const grid = gridRef.current;
@@ -109,33 +110,53 @@ export const useDashboardGrid = (
             return;
         }
 
-        const initialCellHeight = getInitialCellHeight(container);
-        const grid = GridStack.init(createGridOptions(initialCellHeight), container);
-        gridRef.current = grid;
-        cellHeightRef.current = initialCellHeight;
+        let mounted = true;
+        let cleanupGrid: (() => void) | null = null;
 
-        const handleLayoutStop = () => {
-            if (applyingRef.current) {
+        void import('gridstack').then(({ GridStack }) => {
+            if (!mounted) {
                 return;
             }
 
-            onChangeRef.current(snapshotLayout(grid));
-        };
+            const initialCellHeight = getInitialCellHeight(container);
+            const grid = GridStack.init(createGridOptions(initialCellHeight), container);
+            if (!grid) {
+                return;
+            }
 
-        grid.on('dragstop', handleLayoutStop);
-        grid.on('resizestop', handleLayoutStop);
+            gridRef.current = grid;
+            cellHeightRef.current = initialCellHeight;
 
-        const resizeObserver = new ResizeObserver(() => applyResponsiveCellHeight());
-        resizeObserver.observe(container);
+            const handleLayoutStop = () => {
+                if (applyingRef.current) {
+                    return;
+                }
+
+                onChangeRef.current(snapshotLayout(grid));
+            };
+
+            grid.on('dragstop', handleLayoutStop);
+            grid.on('resizestop', handleLayoutStop);
+
+            const resizeObserver = new ResizeObserver(() => applyResponsiveCellHeight());
+            resizeObserver.observe(container);
+
+            cleanupGrid = () => {
+                resizeObserver.disconnect();
+                grid.off('dragstop');
+                grid.off('resizestop');
+                grid.destroy(false);
+                gridRef.current = null;
+                cellHeightRef.current = null;
+                hostsRef.current.clear();
+            };
+
+            setGridVersion(version => version + 1);
+        });
 
         return () => {
-            resizeObserver.disconnect();
-            grid.off('dragstop');
-            grid.off('resizestop');
-            grid.destroy(false);
-            gridRef.current = null;
-            cellHeightRef.current = null;
-            hostsRef.current.clear();
+            mounted = false;
+            cleanupGrid?.();
         };
     }, [applyResponsiveCellHeight]);
 
@@ -191,7 +212,7 @@ export const useDashboardGrid = (
         grid.batchUpdate(false);
         applyingRef.current = false;
         setHosts(new Map(hostsRef.current));
-    }, [items]);
+    }, [gridVersion, items]);
 
     return { containerRef, hosts };
 };

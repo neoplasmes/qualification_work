@@ -14,6 +14,7 @@ export {
     dashboardsPageSlice,
     dashboardsPageInitialState,
     dashboardsPagePersistence,
+    selectDashboard,
     selectSelectedDashboardId,
 } from './model';
 export type { DashboardsPageState } from './model';

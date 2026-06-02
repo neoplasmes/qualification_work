@@ -1,6 +1,15 @@
-import type { actionParameterTypes, actionRunStatuses } from './const.js';
+import type {
+    actionComputedOperations,
+    actionParameterTypes,
+    actionRunStatuses,
+    actionValueOperations,
+} from './const.js';
 
 export type ActionParameterType = (typeof actionParameterTypes)[number];
+
+export type ActionValueOperation = (typeof actionValueOperations)[number];
+
+export type ActionComputedOperation = (typeof actionComputedOperations)[number];
 
 export type ActionParameter = {
     key: string;
@@ -8,9 +17,30 @@ export type ActionParameter = {
     type: ActionParameterType;
     required?: boolean;
     defaultValue?: unknown;
+    hidden?: boolean;
 };
 
 export type ActionValueSource =
+    | {
+          kind: 'parameter';
+          key: string;
+          operation?: ActionValueOperation;
+      }
+    | {
+          kind: 'literal';
+          value: unknown;
+          operation?: ActionValueOperation;
+      }
+    | {
+          kind: 'computed';
+          leftParameterKey: string;
+          operation: ActionComputedOperation;
+          rightParameterKey: string;
+      };
+
+export type ActionValuesMap = Record<string, ActionValueSource>;
+
+export type ActionMatchSource =
     | {
           kind: 'parameter';
           key: string;
@@ -19,8 +49,6 @@ export type ActionValueSource =
           kind: 'literal';
           value: unknown;
       };
-
-export type ActionValuesMap = Record<string, ActionValueSource>;
 
 export type InsertRowActionEffect = {
     kind: 'insertRow';
@@ -33,7 +61,8 @@ export type UpdateRowsByMatchActionEffect = {
     datasetId: string;
     match: {
         columnKey: string;
-        parameterKey: string;
+        parameterKey?: string;
+        source?: ActionMatchSource;
     };
     values: ActionValuesMap;
     maxRows?: number;

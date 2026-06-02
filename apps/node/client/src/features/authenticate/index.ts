@@ -14,6 +14,7 @@ export type {
     RegisterResponse,
 } from './api';
 export {
+    clearStoredActiveOrganization,
     getActiveOrganization,
     useActiveOrganization,
 } from './lib/useActiveOrganization';

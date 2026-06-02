@@ -11,8 +11,9 @@
     grid-template-columns: auto 1fr;
     gap: 2px var(--spacing-sm);
     align-items: center;
+    align-content: center;
 
-    min-height: 96px;
+    min-height: 60px;
     padding: var(--spacing-md);
     border: 1px solid var(--color-outline-new);
     border-radius: var(--radius-sm);

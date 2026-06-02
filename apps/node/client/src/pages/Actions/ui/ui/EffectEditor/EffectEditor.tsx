@@ -90,6 +90,7 @@ export const EffectEditor = ({
                             className={styles['form-grid']}
                             data-display="grid"
                             data-gap="sm"
+                            data-align="start"
                         >
                             <EffectFields
                                 effect={effect}
@@ -101,12 +102,13 @@ export const EffectEditor = ({
                             />
                         </div>
 
-                        <div
-                            data-display="grid"
-                            data-gap="sm"
-                            className={styles['stack']}
-                        >
-                            <div className={styles['values-header']}>
+                        <div data-display="grid" data-gap="sm">
+                            <div
+                                data-stack="h"
+                                data-gap="sm"
+                                data-align="center"
+                                data-justify="between"
+                            >
                                 <span className={styles['eyebrow']}>Column values</span>
                                 <Button
                                     className={styles['add-value-button']}

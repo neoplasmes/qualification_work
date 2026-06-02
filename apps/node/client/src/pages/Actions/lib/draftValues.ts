@@ -63,7 +63,10 @@ export const parseLiteralValue = (value: string) => {
     }
 };
 
-export const draftValuesToMap = (values: ActionValueMappingDraft[]) =>
+export const draftValuesToMap = (
+    values: ActionValueMappingDraft[],
+    effectKind: ActionEffect['kind']
+) =>
     values.reduce<ActionEffect['values']>((acc, value) => {
         const columnKey = value.columnKey.trim();
         if (!columnKey) {
@@ -71,11 +74,23 @@ export const draftValuesToMap = (values: ActionValueMappingDraft[]) =>
         }
 
         if (value.sourceKind === 'parameter') {
-            acc[columnKey] = { kind: 'parameter', key: value.parameterKey };
-        } else {
+            acc[columnKey] = {
+                kind: 'parameter',
+                key: value.parameterKey,
+                operation: effectKind === 'updateRowsByMatch' ? value.operation : '=',
+            };
+        } else if (value.sourceKind === 'literal') {
             acc[columnKey] = {
                 kind: 'literal',
                 value: parseLiteralValue(value.literalValue),
+                operation: effectKind === 'updateRowsByMatch' ? value.operation : '=',
+            };
+        } else {
+            acc[columnKey] = {
+                kind: 'computed',
+                leftParameterKey: value.leftParameterKey,
+                operation: value.computedOperation,
+                rightParameterKey: value.rightParameterKey,
             };
         }
 

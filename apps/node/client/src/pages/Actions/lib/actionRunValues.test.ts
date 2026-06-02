@@ -58,4 +58,23 @@ describe('actionRunValues', () => {
             date: '2026-05-27',
         });
     });
+
+    it('does not expose hidden parameters in run values', () => {
+        const params: ActionParameter[] = [
+            { key: 'qty', label: 'Qty', type: 'number', required: true },
+            {
+                key: 'unit',
+                label: 'Unit',
+                type: 'number',
+                defaultValue: 100,
+                hidden: true,
+            },
+        ];
+
+        expect(getDefaultRunValues(params)).toEqual({ qty: '' });
+        expect(coerceRunValues(params, { qty: '2', unit: '500' })).toEqual({
+            qty: 2,
+        });
+        expect(validateRunValues(params, { qty: '2', unit: 'nope' })).toBeNull();
+    });
 });

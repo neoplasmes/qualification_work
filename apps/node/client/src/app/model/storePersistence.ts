@@ -35,6 +35,14 @@ export const getPersistedInitialState = <State, PersistedState extends object>(
         loadPersistedState(descriptor.key, descriptor.fallbackState)
     );
 
+export const clearPersistedState = (keys: readonly string[]) => {
+    try {
+        keys.forEach(key => localStorage.removeItem(key));
+    } catch {
+        // ignore storage access errors
+    }
+};
+
 const hasPersistedStateChanged = (prevState: object, nextState: object) => {
     const prevRecord = prevState as Record<string, unknown>;
     const nextRecord = nextState as Record<string, unknown>;

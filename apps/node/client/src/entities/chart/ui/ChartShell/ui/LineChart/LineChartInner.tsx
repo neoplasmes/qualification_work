@@ -6,7 +6,7 @@ import {
     XYChart,
     type EventHandlerParams,
 } from '@visx/xychart';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
 import { formatAxisNumber, formatChartCell } from '../../../../lib/formatChartCell';
@@ -70,11 +70,17 @@ export const LineChartInner = ({
     showAxisTickLabels,
 }: LineChartInnerProps) => {
     const [hovered, setHovered] = useState<HoveredCartesianPoint>(null);
+    const gradientScope = useId().replace(/[^a-z0-9]/gi, '');
     const rotateLabels = showAxisTickLabels && labels.length > 6;
     const values = getValues(series);
     const minValue = values.length ? Math.min(...values, 0) : 0;
     const maxValue = values.length ? Math.max(...values, 1) : 1;
     const margin = getLineChartMargin(rotateLabels, height, showAxisTickLabels);
+    // axis label size scales with the smaller widget dimension so dates
+    // do not overflow on compact tiles
+    const axisFontSize = Math.round(
+        Math.max(8, Math.min(13, Math.min(width, height) / 26))
+    );
     const xAxisTickLabels = showAxisTickLabels
         ? getAdaptiveAxisTickLabels({
               labels,
@@ -119,6 +125,13 @@ export const LineChartInner = ({
                     tickFormat={v =>
                         showAxisTickLabels ? formatAxisNumber(Number(v), valueFormat) : ''
                     }
+                    tickLabelProps={() => ({
+                        fill: C.muted,
+                        fontSize: axisFontSize,
+                        textAnchor: 'end' as const,
+                        dx: '-0.25em',
+                        dy: '0.33em',
+                    })}
                 />
                 <Axis
                     orientation="bottom"
@@ -133,7 +146,7 @@ export const LineChartInner = ({
                     }
                     tickLabelProps={() => ({
                         fill: C.muted,
-                        fontSize: 11,
+                        fontSize: axisFontSize,
                         textAnchor: rotateLabels ? 'end' : 'middle',
                         angle: rotateLabels ? -45 : 0,
                         dx: rotateLabels ? '-0.25em' : '0',
@@ -147,7 +160,11 @@ export const LineChartInner = ({
                         return (
                             <linearGradient
                                 key={seriesItem.name}
-                                id={gradientId(seriesItem.name, seriesIndex)}
+                                id={gradientId(
+                                    gradientScope,
+                                    seriesItem.name,
+                                    seriesIndex
+                                )}
                                 x1="0"
                                 y1="0"
                                 x2="0"
@@ -177,7 +194,7 @@ export const LineChartInner = ({
                                 data={seriesItem.points}
                                 xAccessor={point => point.label}
                                 yAccessor={point => point.value}
-                                fill={`url(#${gradientId(seriesItem.name, seriesIndex)})`}
+                                fill={`url(#${gradientId(gradientScope, seriesItem.name, seriesIndex)})`}
                                 curve={curveMonotoneX}
                                 renderLine
                                 lineProps={{

@@ -1,6 +1,10 @@
 import type { Pool, PoolClient } from 'pg';
 
-import { ConflictError, NotFoundError } from '@qualification-work/microservice-utils';
+import {
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+} from '@qualification-work/microservice-utils';
 import type {
     ActionDB as Action,
     ActionRunDB as ActionRun,
@@ -14,6 +18,7 @@ import type {
     DatasetActionContext,
     ExecuteActionPayload,
     ListActionRunsPayload,
+    ResolvedActionUpdateValue,
     UpdateActionPayload,
 } from '@/core/ports/driven/repos';
 
@@ -330,7 +335,7 @@ export class PgActionRepo implements ActionRepo {
         datasetId: string,
         columnKey: string,
         matchValue: unknown,
-        values: Record<string, unknown>,
+        values: Record<string, ResolvedActionUpdateValue>,
         maxRows: number
     ): Promise<ActionRun['changes'][number]> {
         await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [datasetId]);
@@ -356,17 +361,22 @@ export class PgActionRepo implements ActionRepo {
         }
 
         const rowIds = before.map(row => row.id);
-        const after = await client
-            .query<DatasetRowRecord>(
-                `UPDATE data.dataset_rows
-                 SET data = data || $3::jsonb
-                 WHERE dataset_id = $1 AND id = ANY($2::uuid[])
-                 RETURNING id, row_index AS "rowIndex", data`,
-                [datasetId, rowIds, JSON.stringify(values)]
-            )
-            .then(result =>
-                result.rows.sort((a, b) => rowIds.indexOf(a.id) - rowIds.indexOf(b.id))
-            );
+        const after: DatasetRowRecord[] = [];
+
+        for (const row of before) {
+            const nextData = applyUpdateValues(row.data, values);
+            const [updated] = await client
+                .query<DatasetRowRecord>(
+                    `UPDATE data.dataset_rows
+                     SET data = $3::jsonb
+                     WHERE dataset_id = $1 AND id = $2
+                     RETURNING id, row_index AS "rowIndex", data`,
+                    [datasetId, row.id, JSON.stringify(nextData)]
+                )
+                .then(result => result.rows);
+
+            after.push(updated);
+        }
 
         return {
             kind: 'updateRowsByMatch',
@@ -422,4 +432,59 @@ export class PgActionRepo implements ActionRepo {
 
         return row;
     }
+}
+
+function applyUpdateValues(
+    data: Record<string, unknown>,
+    values: Record<string, ResolvedActionUpdateValue>
+): Record<string, unknown> {
+    const patch = Object.fromEntries(
+        Object.entries(values).map(([columnKey, value]) => [
+            columnKey,
+            calculateUpdateValue(data[columnKey], value, columnKey),
+        ])
+    );
+
+    return { ...data, ...patch };
+}
+
+function calculateUpdateValue(
+    currentValue: unknown,
+    value: ResolvedActionUpdateValue,
+    columnKey: string
+): unknown {
+    if (value.operation === '=') {
+        return value.value;
+    }
+
+    const currentNumber = toFiniteNumber(currentValue, columnKey);
+    const operand = toFiniteNumber(value.value, columnKey);
+
+    if (value.operation === '+') {
+        return currentNumber + operand;
+    }
+    if (value.operation === '-') {
+        return currentNumber - operand;
+    }
+    if (value.operation === '*') {
+        return currentNumber * operand;
+    }
+    if (operand === 0) {
+        throw new ValidationError([columnKey], 'division by zero');
+    }
+
+    return currentNumber / operand;
+}
+
+function toFiniteNumber(value: unknown, columnKey: string): number {
+    if (value === null || value === undefined || value === '') {
+        throw new ValidationError([columnKey], `expected number for "${columnKey}"`);
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(numberValue)) {
+        throw new ValidationError([columnKey], `expected number for "${columnKey}"`);
+    }
+
+    return numberValue;
 }

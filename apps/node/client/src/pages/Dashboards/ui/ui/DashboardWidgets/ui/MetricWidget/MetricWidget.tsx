@@ -132,16 +132,30 @@ export const MetricWidget = ({
 
                     {progressValue !== null && (
                         <div
-                            className={styles['progress']}
-                            role="meter"
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={Math.round(progressValue * 100)}
+                            className={styles['progress-row']}
+                            data-stack="h"
+                            data-align="center"
+                            data-gap="xs"
                         >
                             <div
-                                className={styles['progress-fill']}
-                                style={{ width: `${progressValue * 100}%` }}
-                            />
+                                className={styles['progress']}
+                                role="meter"
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={Math.round(progressValue * 100)}
+                            >
+                                <div
+                                    className={styles['progress-fill']}
+                                    style={{ width: `${progressValue * 100}%` }}
+                                />
+                            </div>
+                            <span className={styles['progress-target']} title="Target">
+                                {formatMetricValue(
+                                    item.target,
+                                    item.format,
+                                    item.valueMultiplier
+                                )}
+                            </span>
                         </div>
                     )}
 

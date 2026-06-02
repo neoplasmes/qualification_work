@@ -230,15 +230,7 @@ export function createApp(
         },
     } as UpdateDashboardLayoutCommand;
 
-    const getDashboard = cache.wrapExecutable(baseGetDashboard, {
-        key: (dashboardId: string, orgs: OrgMembership[]) => [
-            'dashboards',
-            'by-id',
-            dashboardId,
-            accessFingerprint(orgs),
-        ],
-        tags: (dashboardId: string) => [`dashboard:${dashboardId}`],
-    }) as GetDashboardQuery;
+    const getDashboard = baseGetDashboard;
     const listDashboards = cache.wrapExecutable(baseListDashboards, {
         key: (orgId: string, orgs: OrgMembership[]) => [
             'dashboards',

@@ -1,6 +1,7 @@
 // clamp(min, min(width * wFactor, height * hFactor), max)
 $title-font: clamp(12px, min(8cqw, 10cqh), 26px);
 $value-font: clamp(14px, min(10.5cqw, 13.5cqh), 33px);
+$target-font: clamp(10px, min(4cqw, 5.5cqh), 15px);
 
 .metric-card {
     display: flex;
@@ -85,13 +86,26 @@ $value-font: clamp(14px, min(10.5cqw, 13.5cqh), 33px);
     color: var(--color-on-surface-variant);
 }
 
-.progress {
+.progress-row {
     width: 90%;
-    height: 4px;
     margin-top: var(--spacing-sm);
+}
+
+.progress {
+    flex: 1;
+    height: 4px;
     overflow: hidden;
     border-radius: var(--radius-xs);
     background-color: var(--color-outline-new);
+}
+
+.progress-target {
+    font-family: var(--font-body);
+    font-size: $target-font;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-on-surface-variant);
+    white-space: nowrap;
 }
 
 .progress-fill {
@@ -111,7 +125,7 @@ $value-font: clamp(14px, min(10.5cqw, 13.5cqh), 33px);
 }
 
 @container (width < 124px) {
-    .progress,
+    .progress-row,
     .sparkline-block,
     .metric-value-row > :not(.metric-value) {
         display: none;

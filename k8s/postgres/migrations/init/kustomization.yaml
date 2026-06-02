@@ -19,5 +19,6 @@ configMapGenerator:
       - ../../../../infrastructure/postgres/init/008_metric_trend.sql
       - ../../../../infrastructure/postgres/init/009_metric_visuals.sql
       - ../../../../infrastructure/postgres/init/010_metric_custom_format.sql
+      - ../../../../infrastructure/postgres/init/011_action_value_operations.sql
 resources:
   - job.yaml

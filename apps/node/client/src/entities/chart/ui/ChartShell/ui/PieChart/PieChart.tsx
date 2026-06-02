@@ -62,10 +62,20 @@ const PieChartInner = ({
     const hasSmallSlices = data.some(
         d => total > 0 && (d.value / total) * 100 < INLINE_PCT_THRESHOLD
     );
-    const reserveW = hasSmallSlices ? OUTER_RESERVE_W : INLINE_RESERVE;
-    const reserveH = hasSmallSlices ? OUTER_RESERVE_H : INLINE_RESERVE;
+    const minSide = Math.min(width, height);
+    // adaptive label visibility so nothing spills outside the dashboard card
+    const showLabels = minSide >= 110;
+    const showInlineNames = showLabels && width >= 240;
+    // outer leader labels need real vertical and horizontal room; drop them
+    // on short or narrow cards instead of letting them overflow
+    const allowOuterLabels =
+        showLabels && hasSmallSlices && height >= 230 && width >= 340;
+    const labelFontSize = Math.round(Math.max(9, Math.min(13, minSide / 22)));
+
+    const reserveW = allowOuterLabels ? OUTER_RESERVE_W : INLINE_RESERVE;
+    const reserveH = allowOuterLabels ? OUTER_RESERVE_H : INLINE_RESERVE;
     const outerRadius = Math.max(
-        50,
+        24,
         Math.min(width / 2 - reserveW, height / 2 - reserveH)
     );
     const innerRadius = outerRadius * 0.5;
@@ -103,6 +113,25 @@ const PieChartInner = ({
                                 const isInline = pct >= INLINE_PCT_THRESHOLD;
                                 const fill = colorScale(arc.data.label);
 
+                                let labelNode = null;
+                                if (showLabels && isInline) {
+                                    labelNode = renderInlineLabel(
+                                        path.centroid(arc),
+                                        arc.data.label,
+                                        pctText,
+                                        labelFontSize,
+                                        showInlineNames
+                                    );
+                                } else if (allowOuterLabels) {
+                                    labelNode = renderOuterLabel(
+                                        midAngle,
+                                        outerRadius,
+                                        arc.data.label,
+                                        pctText,
+                                        labelFontSize
+                                    );
+                                }
+
                                 // shared interaction handlers so both inline and outer
                                 // labels keep the hover behaviour of the slice itself
                                 const handleMove = (
@@ -128,18 +157,7 @@ const PieChartInner = ({
                                             onMouseLeave={() => setHovered(null)}
                                             style={{ cursor: 'pointer' }}
                                         />
-                                        {isInline
-                                            ? renderInlineLabel(
-                                                  path.centroid(arc),
-                                                  arc.data.label,
-                                                  pctText
-                                              )
-                                            : renderOuterLabel(
-                                                  midAngle,
-                                                  outerRadius,
-                                                  arc.data.label,
-                                                  pctText
-                                              )}
+                                        {labelNode}
                                     </g>
                                 );
                             })
@@ -155,9 +173,12 @@ const PieChartInner = ({
 const renderInlineLabel = (
     centroid: [number, number],
     label: string,
-    pctText: string
+    pctText: string,
+    fontSize: number,
+    showName: boolean
 ) => {
     const [lx, ly] = centroid;
+    const text = showName ? `${label} ${pctText}%` : `${pctText}%`;
 
     return (
         <text
@@ -166,7 +187,7 @@ const renderInlineLabel = (
             textAnchor="middle"
             dominantBaseline="middle"
             fill={C.onSurface}
-            fontSize={11}
+            fontSize={fontSize}
             fontWeight={600}
             pointerEvents="none"
             // outline gives readability on lighter slice colors
@@ -177,7 +198,7 @@ const renderInlineLabel = (
                 strokeLinejoin: 'round',
             }}
         >
-            {label} {pctText}%
+            {text}
         </text>
     );
 };
@@ -186,7 +207,8 @@ const renderOuterLabel = (
     midAngle: number,
     outerRadius: number,
     label: string,
-    pctText: string
+    pctText: string,
+    fontSize: number
 ) => {
     // arc midpoint just outside the slice -> bend point -> horizontal tip
     const sin = Math.sin(midAngle);
@@ -215,7 +237,7 @@ const renderOuterLabel = (
                 textAnchor={onRight ? 'start' : 'end'}
                 dominantBaseline="middle"
                 fill="rgba(255, 255, 255, 0.85)"
-                fontSize={11}
+                fontSize={fontSize}
                 pointerEvents="none"
             >
                 {label} {pctText}%

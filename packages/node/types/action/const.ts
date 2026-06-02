@@ -10,4 +10,8 @@ export const actionRunStatuses = ['success', 'failed'] as const;
 
 export const actionEffectKinds = ['insertRow', 'updateRowsByMatch'] as const;
 
-export const actionValueSourceKinds = ['parameter', 'literal'] as const;
+export const actionValueSourceKinds = ['parameter', 'literal', 'computed'] as const;
+
+export const actionValueOperations = ['=', '+', '-', '*', '/'] as const;
+
+export const actionComputedOperations = ['+', '-', '*', '/'] as const;

@@ -7,7 +7,13 @@ import type {
     PatchDatasetPayload,
 } from '@qualification-work/types';
 
-import { api } from '@/shared/api';
+import {
+    api,
+    datasetContentChangedTags,
+    datasetDefinitionChangedTags,
+    datasetMetadataChangedTags,
+    datasetRemovedTags,
+} from '@/shared/api';
 
 type PatchDatasetMutationPayload = {
     datasetId: string;
@@ -46,12 +52,8 @@ export const datasetApi = api.injectEndpoints({
                 method: 'DELETE',
                 responseHandler: 'text',
             }),
-            invalidatesTags: (_result, _error, datasetId) => [
-                { type: 'Datasets', id: 'LIST' },
-                { type: 'Datasets', id: datasetId },
-                { type: 'DatasetRows', id: datasetId },
-                { type: 'ChartData', id: 'LIST' },
-            ],
+            invalidatesTags: (_result, _error, datasetId) =>
+                datasetRemovedTags(datasetId),
         }),
         patchDataset: builder.mutation<void, PatchDatasetMutationPayload>({
             query: ({ datasetId, ...body }) => ({
@@ -60,10 +62,8 @@ export const datasetApi = api.injectEndpoints({
                 body,
                 responseHandler: 'text',
             }),
-            invalidatesTags: (_result, _error, arg) => [
-                { type: 'Datasets', id: 'LIST' },
-                { type: 'Datasets', id: arg.datasetId },
-            ],
+            invalidatesTags: (_result, _error, arg) =>
+                datasetMetadataChangedTags(arg.datasetId),
         }),
         patchDatasetColumn: builder.mutation<
             DatasetColumn,
@@ -74,11 +74,8 @@ export const datasetApi = api.injectEndpoints({
                 method: 'PATCH',
                 body: { isAnalyzable },
             }),
-            invalidatesTags: (_result, _error, arg) => [
-                { type: 'Datasets', id: 'LIST' },
-                { type: 'Datasets', id: arg.datasetId },
-                { type: 'DatasetRows', id: arg.datasetId },
-            ],
+            invalidatesTags: (_result, _error, arg) =>
+                datasetDefinitionChangedTags(arg.datasetId),
         }),
         getDatasetRows: builder.query<
             DatasetRowsPage,
@@ -104,10 +101,8 @@ export const datasetApi = api.injectEndpoints({
                 method: 'PATCH',
                 body: { rowIds, values },
             }),
-            invalidatesTags: (_result, _error, arg) => [
-                { type: 'DatasetRows', id: arg.datasetId },
-                { type: 'ChartData', id: 'LIST' },
-            ],
+            invalidatesTags: (_result, _error, arg) =>
+                datasetContentChangedTags(arg.datasetId),
         }),
         insertRow: builder.mutation<
             DatasetRow,
@@ -123,12 +118,8 @@ export const datasetApi = api.injectEndpoints({
                 method: 'POST',
                 body: { afterRowId, data },
             }),
-            invalidatesTags: (_result, _error, arg) => [
-                { type: 'DatasetRows', id: arg.datasetId },
-                { type: 'Datasets', id: arg.datasetId },
-                { type: 'Datasets', id: 'LIST' },
-                { type: 'ChartData', id: 'LIST' },
-            ],
+            invalidatesTags: (_result, _error, arg) =>
+                datasetContentChangedTags(arg.datasetId),
         }),
         deleteRow: builder.mutation<
             DatasetRow[],
@@ -139,12 +130,8 @@ export const datasetApi = api.injectEndpoints({
                 method: 'DELETE',
                 body: { rowIds },
             }),
-            invalidatesTags: (_result, _error, arg) => [
-                { type: 'DatasetRows', id: arg.datasetId },
-                { type: 'Datasets', id: arg.datasetId },
-                { type: 'Datasets', id: 'LIST' },
-                { type: 'ChartData', id: 'LIST' },
-            ],
+            invalidatesTags: (_result, _error, arg) =>
+                datasetContentChangedTags(arg.datasetId),
         }),
     }),
 });

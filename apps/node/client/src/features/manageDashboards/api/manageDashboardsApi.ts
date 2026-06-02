@@ -1,4 +1,4 @@
-import { api } from '@/shared/api';
+import { api, datasetRelationTagId } from '@/shared/api';
 
 import type {
     AddDashboardChartPayload,
@@ -76,6 +76,9 @@ export const manageDashboardsApi = api.injectEndpoints({
                 method: 'POST',
                 body,
             }),
+            providesTags: (_result, _error, arg) => [
+                { type: 'Dashboards', id: datasetRelationTagId(arg.datasetId) },
+            ],
             keepUnusedDataFor: 30,
         }),
         updateDashboardMetric: builder.mutation<void, UpdateDashboardMetricPayload>({

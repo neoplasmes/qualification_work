@@ -90,6 +90,147 @@ describe('action execution', () => {
         expect(row.data.name).toBe('Alice Updated');
     });
 
+    it('updates numeric columns with a literal match and parameter operation', async () => {
+        const { userId, orgId } = await createTestUserWithOrg();
+        setIdentity(userId, orgId);
+        const datasetId = await uploadDataset(orgId);
+        const actionId = await createAction({
+            orgId,
+            name: 'Reduce age',
+            description: null,
+            parameters: [
+                { key: 'delta', label: 'Delta', type: 'number', required: true },
+            ],
+            effects: [
+                {
+                    kind: 'updateRowsByMatch',
+                    datasetId,
+                    match: { columnKey: 'id', source: { kind: 'literal', value: '1' } },
+                    maxRows: 1,
+                    values: {
+                        age: { kind: 'parameter', key: 'delta', operation: '-' },
+                    },
+                },
+            ],
+        });
+
+        const res = await api(`/api/actions/${actionId}/runs`, {
+            method: 'POST',
+            body: JSON.stringify({ parameters: { delta: 4 } }),
+        });
+
+        expect(res.status).toBe(201);
+        const [row] = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows
+             WHERE dataset_id = $1 AND data ->> 'id' = '1'`,
+            [datasetId]
+        );
+        expect(row.data.age).toBe(26);
+    });
+
+    it('inserts computed values from two parameters', async () => {
+        const { userId, orgId } = await createTestUserWithOrg();
+        setIdentity(userId, orgId);
+        const datasetId = await uploadDataset(orgId);
+        const actionId = await createAction({
+            orgId,
+            name: 'Insert computed age',
+            description: null,
+            parameters: [
+                { key: 'unit', label: 'Unit', type: 'number', required: true },
+                { key: 'qty', label: 'Qty', type: 'number', required: true },
+            ],
+            effects: [
+                {
+                    kind: 'insertRow',
+                    datasetId,
+                    values: {
+                        id: { kind: 'literal', value: 888 },
+                        name: { kind: 'literal', value: 'Computed Customer' },
+                        age: {
+                            kind: 'computed',
+                            leftParameterKey: 'unit',
+                            operation: '*',
+                            rightParameterKey: 'qty',
+                        },
+                    },
+                },
+            ],
+        });
+
+        const res = await api(`/api/actions/${actionId}/runs`, {
+            method: 'POST',
+            body: JSON.stringify({ parameters: { unit: 12, qty: 3 } }),
+        });
+
+        expect(res.status).toBe(201);
+        const [row] = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows
+             WHERE dataset_id = $1 AND data ->> 'name' = 'Computed Customer'`,
+            [datasetId]
+        );
+        expect(row.data.age).toBe(36);
+    });
+
+    it('rolls back and records failed run when arithmetic is invalid', async () => {
+        const { userId, orgId } = await createTestUserWithOrg();
+        setIdentity(userId, orgId);
+        const datasetId = await uploadDataset(orgId);
+        const actionId = await createAction({
+            orgId,
+            name: 'Invalid divide',
+            description: null,
+            parameters: [
+                { key: 'divisor', label: 'Divisor', type: 'number', required: true },
+            ],
+            effects: [
+                {
+                    kind: 'updateRowsByMatch',
+                    datasetId,
+                    match: { columnKey: 'id', source: { kind: 'literal', value: '1' } },
+                    maxRows: 1,
+                    values: {
+                        age: { kind: 'parameter', key: 'divisor', operation: '/' },
+                    },
+                },
+                {
+                    kind: 'insertRow',
+                    datasetId,
+                    values: {
+                        id: { kind: 'literal', value: 999 },
+                        name: { kind: 'literal', value: 'Should Roll Back' },
+                    },
+                },
+            ],
+        });
+
+        const res = await api(`/api/actions/${actionId}/runs`, {
+            method: 'POST',
+            body: JSON.stringify({ parameters: { divisor: 0 } }),
+        });
+
+        expect(res.status).toBe(400);
+        const [row] = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows
+             WHERE dataset_id = $1 AND data ->> 'id' = '1'`,
+            [datasetId]
+        );
+        expect(row.data.age).toBe('30');
+
+        const insertedRows = await dbQuery<{ data: Record<string, unknown> }>(
+            `SELECT data FROM data.dataset_rows
+             WHERE dataset_id = $1 AND data ->> 'name' = 'Should Roll Back'`,
+            [datasetId]
+        );
+        expect(insertedRows).toEqual([]);
+
+        const runs = (await (
+            await api(`/api/actions/runs?orgId=${orgId}`)
+        ).json()) as Array<{ status: string; errorMessage: string }>;
+        expect(runs[0].status).toBe('failed');
+        expect(runs[0].errorMessage).toContain('division by zero');
+    });
+
     it('records failed run when a required parameter is missing', async () => {
         const { userId, orgId } = await createTestUserWithOrg();
         setIdentity(userId, orgId);

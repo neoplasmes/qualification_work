@@ -124,4 +124,36 @@ describe('RunForm', () => {
         expect(onRunValueChange).toHaveBeenCalledTimes(1);
         expect(onRunValueChange).toHaveBeenCalledWith('amount', '1');
     });
+
+    it('does not render hidden parameters', () => {
+        const hiddenAction: Action = {
+            ...action,
+            parameters: [
+                ...action.parameters,
+                {
+                    key: 'unit',
+                    label: 'Unit',
+                    type: 'number',
+                    hidden: true,
+                    defaultValue: 100,
+                },
+            ],
+        };
+        const { container } = render(
+            <RunForm
+                action={hiddenAction}
+                formId={runFormId}
+                runValues={{ amount: '', paid: '' }}
+                disabled={false}
+                lastRunMessage=""
+                onRunValueChange={vi.fn()}
+                onSubmit={vi.fn()}
+            />
+        );
+
+        expect(
+            container.querySelectorAll(`[data-test-id="${actionsTestIds.runInput}"]`)
+        ).toHaveLength(1);
+        expect(container).not.toHaveTextContent('Unit');
+    });
 });

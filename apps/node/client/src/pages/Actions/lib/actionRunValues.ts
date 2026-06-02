@@ -61,29 +61,33 @@ const getRunValueTypeError = (parameter: ActionParameter) => {
 };
 
 export const getDefaultRunValues = (parameters: ActionParameter[]) =>
-    parameters.reduce<Record<string, string>>((acc, parameter) => {
-        acc[parameter.key] =
-            parameter.type === 'date'
-                ? formatDateForRunInput(parameter.defaultValue)
-                : valueToDraftString(parameter.defaultValue);
+    parameters
+        .filter(parameter => !parameter.hidden)
+        .reduce<Record<string, string>>((acc, parameter) => {
+            acc[parameter.key] =
+                parameter.type === 'date'
+                    ? formatDateForRunInput(parameter.defaultValue)
+                    : valueToDraftString(parameter.defaultValue);
 
-        return acc;
-    }, {});
+            return acc;
+        }, {});
 
 export const coerceRunValues = (
     parameters: ActionParameter[],
     values: Record<string, string>
 ) =>
-    parameters.reduce<Record<string, unknown>>((acc, parameter) => {
-        const raw = values[parameter.key] ?? '';
-        const value = parameter.type === 'date' ? formatDateForRunPayload(raw) : raw;
-        const parsed = parseDraftValue(parameter.type, value);
-        if (parsed !== undefined || raw.trim() !== '') {
-            acc[parameter.key] = parsed;
-        }
+    parameters
+        .filter(parameter => !parameter.hidden)
+        .reduce<Record<string, unknown>>((acc, parameter) => {
+            const raw = values[parameter.key] ?? '';
+            const value = parameter.type === 'date' ? formatDateForRunPayload(raw) : raw;
+            const parsed = parseDraftValue(parameter.type, value);
+            if (parsed !== undefined || raw.trim() !== '') {
+                acc[parameter.key] = parsed;
+            }
 
-        return acc;
-    }, {});
+            return acc;
+        }, {});
 
 export const isRunValueInputAllowed = (type: ActionParameterType, value: string) => {
     if (value === '' || type === 'string') {
@@ -106,7 +110,7 @@ export const validateRunValues = (
     parameters: ActionParameter[],
     values: Record<string, string>
 ) => {
-    for (const parameter of parameters) {
+    for (const parameter of parameters.filter(item => !item.hidden)) {
         const value = (values[parameter.key] ?? '').trim();
         if (!value) {
             continue;

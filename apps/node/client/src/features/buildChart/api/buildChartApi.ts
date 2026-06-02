@@ -1,6 +1,12 @@
 import type { ChartResponse } from '@qualification-work/types';
 
-import { api } from '@/shared/api';
+import {
+    api,
+    chartChangedTags,
+    chartCreatedTags,
+    chartRelationTagId,
+    type CacheInvalidationTag,
+} from '@/shared/api';
 
 import type {
     CreateChartPayload,
@@ -10,18 +16,6 @@ import type {
     UpdateChartPayload,
 } from './types';
 
-type ChartInvalidationTag = {
-    type: 'Charts' | 'ChartData';
-    id: string;
-};
-
-const chartDataChangingTags = (chartId: string) =>
-    [
-        { type: 'Charts', id: chartId },
-        { type: 'Charts', id: 'LIST' },
-        { type: 'ChartData', id: chartId },
-    ] satisfies ChartInvalidationTag[];
-
 export const buildChartApi = api.injectEndpoints({
     endpoints: builder => ({
         createChart: builder.mutation<CreateChartResponse, CreateChartPayload>({
@@ -30,7 +24,7 @@ export const buildChartApi = api.injectEndpoints({
                 method: 'POST',
                 body,
             }),
-            invalidatesTags: [{ type: 'Charts', id: 'LIST' }],
+            invalidatesTags: (_result, _error, arg) => chartCreatedTags(arg.datasetId),
         }),
         updateChart: builder.mutation<void, UpdateChartPayload>({
             query: ({ chartId, ...body }) => ({
@@ -39,7 +33,7 @@ export const buildChartApi = api.injectEndpoints({
                 body,
                 responseHandler: 'text',
             }),
-            invalidatesTags: (_result, _error, arg) => chartDataChangingTags(arg.chartId),
+            invalidatesTags: (_result, _error, arg) => chartChangedTags(arg.chartId),
         }),
         patchChart: builder.mutation<void, PatchChartPayload>({
             query: ({ chartId, ...body }) => ({
@@ -49,9 +43,10 @@ export const buildChartApi = api.injectEndpoints({
                 responseHandler: 'text',
             }),
             invalidatesTags: (_result, _error, arg) => {
-                const tags: ChartInvalidationTag[] = [
+                const tags: CacheInvalidationTag[] = [
                     { type: 'Charts', id: arg.chartId },
                     { type: 'Charts', id: 'LIST' },
+                    { type: 'Dashboards', id: chartRelationTagId(arg.chartId) },
                 ];
 
                 if (arg.chartType || arg.config) {

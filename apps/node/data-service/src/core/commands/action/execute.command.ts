@@ -5,8 +5,9 @@ import type { ActionEffect, ActionRunDB as ActionRun } from '@qualification-work
 import {
     assertEffectColumnsExist,
     coerceActionParameters,
-    resolveActionValue,
     resolveAndCoerceEffectValues,
+    resolveAndCoerceUpdateEffectValues,
+    resolveMatchValue,
 } from '@/core/domain/action';
 import type {
     ActionRepo,
@@ -111,10 +112,7 @@ export class ExecuteActionCommand implements Executable<
                 throw new NotFoundError('Match column not found');
             }
 
-            const rawMatchValue = resolveActionValue(
-                { kind: 'parameter', key: effect.match.parameterKey },
-                parameters
-            );
+            const rawMatchValue = resolveMatchValue(effect.match, parameters);
 
             resolved.push({
                 kind: 'updateRowsByMatch',
@@ -123,11 +121,10 @@ export class ExecuteActionCommand implements Executable<
                     columnKey: effect.match.columnKey,
                     value: rawMatchValue,
                 },
-                values: resolveAndCoerceEffectValues(
+                values: resolveAndCoerceUpdateEffectValues(
                     effect,
                     context.columns,
-                    parameters,
-                    false
+                    parameters
                 ),
                 maxRows: effect.maxRows ?? 1,
             });

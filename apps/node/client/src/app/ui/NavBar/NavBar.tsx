@@ -49,6 +49,9 @@ import {
 import { useHasMounted } from '@/shared/lib/useHasMounted';
 import { FormField, IconButton, Logo, Select } from '@/shared/ui';
 
+import { clearAuthenticatedSessionStorage } from '../../model/sessionPersistence';
+import { resetAuthenticatedSessionState } from '../../model/sessionState';
+
 import styles from './NavBar.module.scss';
 
 const navLinks = [
@@ -104,6 +107,8 @@ export const NavBar: FC = () => {
         } catch {
             // ignore logout errors
         } finally {
+            dispatch(resetAuthenticatedSessionState());
+            clearAuthenticatedSessionStorage();
             navigate('/sign-in', { replace: true });
         }
     };

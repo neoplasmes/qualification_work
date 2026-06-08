@@ -53,7 +53,7 @@ tasks:
       outputStyle: stream
 
   test-compose-down:
-    command: "docker compose -f docker-compose.test.yaml down -v"
+    command: "docker compose -f docker-compose.test.yaml down -v --rmi local"
     toolchain: system
     options:
       cache: false
@@ -65,7 +65,7 @@ tasks:
         --renew-anon-volumes --build --wait --wait-timeout 300
       RC=0
       go test -tags=integration -count=1 ./test/integration/... || RC=$?
-      docker compose -f docker-compose.test.yaml down -v
+      docker compose -f docker-compose.test.yaml down -v --rmi local
       exit $RC
     toolchain: system
     inputs:

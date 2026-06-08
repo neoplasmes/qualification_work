@@ -16,7 +16,7 @@ tasks:
 
   test-compose-up:
     script: |
-      DOCKER_BUILDKIT=0 docker compose -f ../docker-compose/docker-compose.yaml up -d \
+      docker compose -f ../docker-compose/docker-compose.yaml up -d \
         --renew-anon-volumes \
         --build \
         --wait \
@@ -27,7 +27,7 @@ tasks:
       outputStyle: stream
 
   test-compose-down:
-    command: "docker compose -f ../docker-compose/docker-compose.yaml down -v"
+    command: "docker compose -f ../docker-compose/docker-compose.yaml down -v --rmi local"
     toolchain: system
     options:
       cache: false

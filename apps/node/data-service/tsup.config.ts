@@ -11,7 +11,6 @@ export default defineConfig({
     treeshake: true,
     noExternal: [
         /^@qualification-work\/microservice-utils/,
-        /^@qualification-work\/redis-cache/,
         /^@qualification-work\/types/,
     ],
 });

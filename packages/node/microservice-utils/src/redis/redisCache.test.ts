@@ -1,14 +1,49 @@
-import { describe, expect, it } from 'vitest';
+import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { createRedisCache } from '../src/index.ts';
-import { FakeRedis } from './setup.ts';
+import { createRedisCache, createRedisClient, type RedisClient } from './index.ts';
 
-describe('redis-cache', () => {
+const redisPort = 6379;
+const redisImage = 'redis:8.6-alpine';
+
+let container: StartedTestContainer | undefined;
+let redis: RedisClient | undefined;
+
+beforeAll(async () => {
+    container = await new GenericContainer(redisImage)
+        .withExposedPorts(redisPort)
+        .withWaitStrategy(Wait.forLogMessage(/Ready to accept connections/))
+        .start();
+
+    redis = await createRedisClient({
+        host: container.getHost(),
+        port: container.getMappedPort(redisPort),
+    });
+}, 60_000);
+
+beforeEach(async () => {
+    await redis?.sendCommand(['FLUSHDB']);
+});
+
+afterAll(async () => {
+    redis?.destroy();
+    await container?.stop();
+});
+
+function createTestCache() {
+    if (!redis) {
+        throw new Error('Redis test container is not started');
+    }
+
+    return createRedisCache(redis, {
+        namespace: 'test',
+        defaultTtlSeconds: 60,
+    });
+}
+
+describe('redis cache', () => {
     it('uses stable object cache keys', async () => {
-        const cache = createRedisCache(new FakeRedis() as never, {
-            namespace: 'test',
-            defaultTtlSeconds: 60,
-        });
+        const cache = createTestCache();
         let calls = 0;
 
         const first = await cache.rememberJson({ key: [{ b: 2, a: 1 }] }, () => {
@@ -28,10 +63,7 @@ describe('redis-cache', () => {
     });
 
     it('returns cached json values', async () => {
-        const cache = createRedisCache(new FakeRedis() as never, {
-            namespace: 'test',
-            defaultTtlSeconds: 60,
-        });
+        const cache = createTestCache();
         let calls = 0;
 
         const first = await cache.rememberJson({ key: ['k'], tags: ['tag'] }, () => {
@@ -51,10 +83,7 @@ describe('redis-cache', () => {
     });
 
     it('invalidates all entries under a tag', async () => {
-        const cache = createRedisCache(new FakeRedis() as never, {
-            namespace: 'test',
-            defaultTtlSeconds: 60,
-        });
+        const cache = createTestCache();
 
         await cache.rememberJson({ key: ['a'], tags: ['tag'] }, () => 1);
         await cache.rememberJson({ key: ['b'], tags: ['tag'] }, () => 2);
@@ -66,10 +95,7 @@ describe('redis-cache', () => {
     });
 
     it('coalesces concurrent misses with a lock', async () => {
-        const cache = createRedisCache(new FakeRedis() as never, {
-            namespace: 'test',
-            defaultTtlSeconds: 60,
-        });
+        const cache = createTestCache();
         let calls = 0;
 
         const producer = async () => {

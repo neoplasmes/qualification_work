@@ -383,9 +383,8 @@ Two language workspaces sit side by side: Node packages are wired through `pnpm`
 ├── packages/
 │   ├── node/
 │   │   ├── primitive-server/        Zero-dep HTTP framework used by server + data-service
-│   │   ├── microservice-utils/      Shared utilities: zod parsing, pg helpers, internal JWT verify
+│   │   ├── microservice-utils/      Shared auth, validation, postgres, and redis helpers
 │   │   ├── microservice-config/     Reusable tsconfig/oxlint/prettier/vitest presets
-│   │   ├── redis-cache/             Thin cache layer over node-redis (catalog version)
 │   │   ├── types/                   Cross-service domain types
 │   │   └── eslint-plugin-fsd/       Local oxlint plugin enforcing FSD layer boundaries
 │   └── go/

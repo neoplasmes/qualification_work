@@ -6,6 +6,7 @@
         "./auth": "./src/auth/index.ts",
         "./errors": "./src/errors/index.ts",
         "./postgres": "./src/postgres/index.ts",
+        "./redis": "./src/redis/index.ts",
         "./test-utils": "./src/test-utils/index.ts",
         "./validation": "./src/validation/index.ts"
     },
@@ -21,12 +22,15 @@
     },
     "peerDependencies": {
         "pg": ">=8",
+        "redis": ">=5",
         "zod": ">=4.0.0"
     },
     "devDependencies": {
         "@qualification-work/microservice-config": "workspace:*",
         "@types/pg": "catalog:postgres",
         "pg": "catalog:postgres",
+        "redis": "catalog:backend",
+        "testcontainers": "catalog:devtools",
         "zod": "catalog:backend"
     }
 }

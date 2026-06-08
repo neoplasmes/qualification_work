@@ -2,4 +2,4 @@ export {
     createRedisClient,
     type RedisClient,
     type RedisConfig,
-} from '@qualification-work/redis-cache';
+} from '@qualification-work/microservice-utils/redis';

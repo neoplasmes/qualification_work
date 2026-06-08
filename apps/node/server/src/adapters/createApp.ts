@@ -6,7 +6,7 @@ import {
     BaseError,
     ValidationError,
 } from '@qualification-work/microservice-utils/errors';
-import { createRedisCache } from '@qualification-work/redis-cache';
+import { createRedisCache } from '@qualification-work/microservice-utils/redis';
 
 import {
     AddDashboardItemCommand,

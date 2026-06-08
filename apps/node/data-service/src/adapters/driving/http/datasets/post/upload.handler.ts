@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { parseWithZod, ValidationError } from '@qualification-work/microservice-utils';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
+import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 
 import type { UploadDatasetCommand } from '@/core/commands';
 

@@ -1,6 +1,6 @@
 import { exportJWK, generateKeyPair, SignJWT, type JWK, type KeyLike } from 'jose';
 
-import type { InternalIdentity } from '../internalAuth/types.ts';
+import type { InternalIdentity } from '../auth/index.ts';
 
 export type TestKeyPair = {
     kid: string;

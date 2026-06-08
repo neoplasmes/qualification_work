@@ -3,7 +3,7 @@ import { mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { Readable } from 'node:stream';
 
-import { ValidationError } from '@qualification-work/microservice-utils';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
 
 import type {
     SavedTmpFile,

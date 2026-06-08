@@ -1,4 +1,4 @@
-import { NotFoundError } from '@qualification-work/microservice-utils';
+import { NotFoundError } from '@qualification-work/microservice-utils/errors';
 
 import { assertChartConfigUsesAnalyzableColumns } from '@/core/domain/chart';
 import type { ChartRepo, UpdateChartPayload } from '@/core/ports/driven/repos';

@@ -6,8 +6,8 @@ import type { FRequest } from 'primitive-server';
 import {
     setInternalIdentity,
     type InternalIdentity,
-} from '@qualification-work/microservice-utils/internalAuth';
-import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
+} from '@qualification-work/microservice-utils/auth';
+import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 
 import { createApp } from '@/adapters/createApp';
 

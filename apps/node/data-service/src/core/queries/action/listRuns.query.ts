@@ -1,5 +1,5 @@
-import { NotFoundError } from '@qualification-work/microservice-utils';
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
+import { NotFoundError } from '@qualification-work/microservice-utils/errors';
 import type { ActionRunDB as ActionRun } from '@qualification-work/types';
 
 import type { ActionRepo } from '@/core/ports/driven/repos';

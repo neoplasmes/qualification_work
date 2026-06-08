@@ -1,6 +1,6 @@
 import jsep, { type Expression } from 'jsep';
 
-import { ValidationError } from '@qualification-work/microservice-utils';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
 
 import type {
     MetricAggregate,

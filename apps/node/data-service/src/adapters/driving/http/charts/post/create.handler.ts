@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { parseWithZod } from '@qualification-work/microservice-utils';
+import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 import { chartTypes } from '@qualification-work/types';
 
 import type { CreateChartCommand } from '@/core/commands';

@@ -5,7 +5,7 @@ import {
     setInternalIdentity,
     type InternalIdentity,
     type VerifyOptions,
-} from '@qualification-work/microservice-utils/internalAuth';
+} from '@qualification-work/microservice-utils/auth';
 
 export type AuthHook = (ctx: { request: FRequest }) => Promise<void>;
 

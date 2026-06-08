@@ -3,12 +3,12 @@
     "version": "1.0.0",
     "type": "module",
     "exports": {
-        ".": "./index.ts",
-        "./internalAuth": "./internalAuth/index.ts",
-        "./pg": "./pg/index.ts",
-        "./test": "./test/index.ts"
+        "./auth": "./src/auth/index.ts",
+        "./errors": "./src/errors/index.ts",
+        "./postgres": "./src/postgres/index.ts",
+        "./test-utils": "./src/test-utils/index.ts",
+        "./validation": "./src/validation/index.ts"
     },
-    "types": "./index.ts",
     "scripts": {
         "typecheck": "tsc --noEmit",
         "lint": "oxlint -c ../../../oxlint.config.ts .",

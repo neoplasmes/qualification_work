@@ -1,4 +1,4 @@
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
 import type { Dashboard } from '@qualification-work/types';
 
 import type { DashboardRepo } from '@/core/ports/driven/repos';

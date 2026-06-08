@@ -1,4 +1,4 @@
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
 import type { ChartDB as Chart } from '@qualification-work/types';
 
 import type { ChartRepo } from '@/core/ports/driven/repos';

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { parseWithZod } from '@qualification-work/microservice-utils';
+import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 
 import type { DeleteDatasetCommand } from '@/core/commands';
 

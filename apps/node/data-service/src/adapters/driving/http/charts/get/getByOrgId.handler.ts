@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { parseWithZod } from '@qualification-work/microservice-utils';
-import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
+import { getInternalIdentity } from '@qualification-work/microservice-utils/auth';
+import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 
 import type { GetChartsByOrgIdQuery } from '@/core/queries';
 

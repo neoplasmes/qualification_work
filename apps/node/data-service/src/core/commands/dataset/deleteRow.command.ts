@@ -2,7 +2,7 @@ import {
     ForbiddenError,
     NotFoundError,
     ValidationError,
-} from '@qualification-work/microservice-utils';
+} from '@qualification-work/microservice-utils/errors';
 import type { DatasetRow } from '@qualification-work/types';
 
 import type { DatasetRepo } from '@/core/ports/driven/repos';

@@ -1,7 +1,11 @@
 import { createLocalJWKSet } from 'jose';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { createTestKeyPair, signTestToken, type TestKeyPair } from '../test/index.ts';
+import {
+    createTestKeyPair,
+    signTestToken,
+    type TestKeyPair,
+} from '../test-utils/index.ts';
 import { InvalidInternalAuthError } from './errors.ts';
 import type { VerifyOptions } from './types.ts';
 import {

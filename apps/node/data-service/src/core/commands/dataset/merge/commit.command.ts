@@ -1,4 +1,7 @@
-import { ForbiddenError, NotFoundError } from '@qualification-work/microservice-utils';
+import {
+    ForbiddenError,
+    NotFoundError,
+} from '@qualification-work/microservice-utils/errors';
 import type { ColumnDataType } from '@qualification-work/types';
 
 import type {

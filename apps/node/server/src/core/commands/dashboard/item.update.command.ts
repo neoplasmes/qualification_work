@@ -1,7 +1,7 @@
 import { pick } from 'es-toolkit';
 
-import { NotFoundError } from '@qualification-work/microservice-utils';
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
+import { NotFoundError } from '@qualification-work/microservice-utils/errors';
 
 import type { DashboardMetricSpec, DashboardRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';

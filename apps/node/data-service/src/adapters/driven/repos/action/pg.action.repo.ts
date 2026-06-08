@@ -4,7 +4,7 @@ import {
     ConflictError,
     NotFoundError,
     ValidationError,
-} from '@qualification-work/microservice-utils';
+} from '@qualification-work/microservice-utils/errors';
 import type {
     ActionDB as Action,
     ActionRunDB as ActionRun,

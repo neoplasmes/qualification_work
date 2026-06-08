@@ -1,4 +1,4 @@
-import type { InternalIdentity, OrgMembership } from '../internalAuth/types.ts';
+import type { InternalIdentity, OrgMembership } from '../auth/index.ts';
 
 /**
  * Builds fake internal identity for unit tests.

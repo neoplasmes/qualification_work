@@ -1,6 +1,6 @@
 import type { Readable } from 'node:stream';
 
-import { AppError, ValidationError } from '@qualification-work/microservice-utils';
+import { AppError, ValidationError } from '@qualification-work/microservice-utils/errors';
 import type { ColumnDataType } from '@qualification-work/types';
 
 import type { DatasetRepo } from '@/core/ports/driven/repos';

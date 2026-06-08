@@ -1,4 +1,7 @@
-import { ForbiddenError, NotFoundError } from '@qualification-work/microservice-utils';
+import {
+    ForbiddenError,
+    NotFoundError,
+} from '@qualification-work/microservice-utils/errors';
 import type { DatasetColumn } from '@qualification-work/types';
 
 import type { DatasetRepo } from '@/core/ports/driven/repos';

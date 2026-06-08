@@ -1,8 +1,11 @@
 import type { Pool } from 'pg';
 import { Application } from 'primitive-server';
 
-import { BaseError, ValidationError } from '@qualification-work/microservice-utils';
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
+import {
+    BaseError,
+    ValidationError,
+} from '@qualification-work/microservice-utils/errors';
 import { createRedisCache } from '@qualification-work/redis-cache';
 
 import {

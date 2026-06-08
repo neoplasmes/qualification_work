@@ -2,11 +2,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Pool } from 'pg';
 
-import { NotFoundError, ValidationError } from '@qualification-work/microservice-utils';
+import {
+    NotFoundError,
+    ValidationError,
+} from '@qualification-work/microservice-utils/errors';
 import {
     isForeignKeyViolation,
     loadScript,
-} from '@qualification-work/microservice-utils/pg';
+} from '@qualification-work/microservice-utils/postgres';
 import {
     dashboardChartDefaultHeight,
     dashboardChartDefaultWidth,

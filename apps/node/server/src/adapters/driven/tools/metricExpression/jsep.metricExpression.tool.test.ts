@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ValidationError } from '@qualification-work/microservice-utils';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
 
 import type { MetricTermKey } from '@/core/ports/driven/tools';
 

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { delay } from 'es-toolkit';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
+import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 import type { Dashboard } from '@qualification-work/types';
 
 import { api, apiAs, resetTestIdentity, startServer, stopServer, truncate } from '../lib';

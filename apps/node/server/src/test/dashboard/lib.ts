@@ -3,8 +3,8 @@ import { vi } from 'vitest';
 import type {
     InternalIdentity,
     OrgRole,
-} from '@qualification-work/microservice-utils/internalAuth';
-import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
+} from '@qualification-work/microservice-utils/auth';
+import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 
 import { api, createTestChart, createTestDataset, createTestUserWithOrg } from '../lib';
 import { setTestIdentity } from '../setup';

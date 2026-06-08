@@ -1,4 +1,4 @@
-import { BaseError, type ErrorType } from '../errors.ts';
+import { BaseError, type ErrorType } from '../errors/index.ts';
 
 /**
  * no X-Internal-Auth header

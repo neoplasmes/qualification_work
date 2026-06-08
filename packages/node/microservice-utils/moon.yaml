@@ -9,11 +9,10 @@ fileGroups:
     - "tsconfig.json"
     - "*.config.{js,ts}"
   src:
-    - "*.ts"
-    - "internalAuth/**/*.ts"
+    - "src/**/*.ts"
   test:
     - "**/*.test.ts"
-    - "test/**/*.ts"
+    - "src/test-utils/**/*.ts"
 
 tasks:
   typecheck:
@@ -39,7 +38,7 @@ tasks:
     options:
       cache: false
 
-  prettier:
+  fmt:
     command: "pnpm prettier"
     inputs:
       - "@group(src)"

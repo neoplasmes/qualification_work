@@ -1,9 +1,9 @@
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
 import {
     ForbiddenError,
     NotFoundError,
     ValidationError,
-} from '@qualification-work/microservice-utils';
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+} from '@qualification-work/microservice-utils/errors';
 
 import { validateActionDefinition } from '@/core/domain/action';
 import type {

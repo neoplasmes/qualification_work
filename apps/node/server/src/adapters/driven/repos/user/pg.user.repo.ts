@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import type { Pool } from 'pg';
 
-import { isUniqueViolation } from '@qualification-work/microservice-utils/pg';
+import { isUniqueViolation } from '@qualification-work/microservice-utils/postgres';
 
 import type { UserRepo } from '@/core/ports/driven/repos';
 

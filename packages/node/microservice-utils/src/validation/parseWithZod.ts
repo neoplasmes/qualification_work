@@ -1,6 +1,6 @@
 import { ZodError } from 'zod';
 
-import { ValidationError } from './errors.js';
+import { ValidationError } from '../errors/index.ts';
 
 /**
  * automatically throws validation error with 400 code if validation fails

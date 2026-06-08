@@ -1,4 +1,7 @@
-import { ForbiddenError, NotFoundError } from '@qualification-work/microservice-utils';
+import {
+    ForbiddenError,
+    NotFoundError,
+} from '@qualification-work/microservice-utils/errors';
 import type { ChartConfig, ChartType } from '@qualification-work/types';
 
 import { assertChartConfigUsesAnalyzableColumns } from '@/core/domain/chart';

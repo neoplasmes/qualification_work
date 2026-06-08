@@ -1,4 +1,4 @@
-import { ValidationError } from '@qualification-work/microservice-utils';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
 import type { ChartConfig } from '@qualification-work/types';
 
 type AnalysisColumn = {

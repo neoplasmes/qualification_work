@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
-import { parseWithZod, ValidationError } from '@qualification-work/microservice-utils';
-import { getInternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
+import { getInternalIdentity } from '@qualification-work/microservice-utils/auth';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
+import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 import { mergeModes } from '@qualification-work/types';
 
 import type { PreviewMergeCommand } from '@/core/commands';

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { delay } from 'es-toolkit';
 import type { QueryResultRow } from 'pg';
 
-import type { InternalIdentity } from '@qualification-work/microservice-utils/internalAuth';
+import type { InternalIdentity } from '@qualification-work/microservice-utils/auth';
 
 import { getBaseUrl, getPool, getRedis, setTestIdentity } from './setup';
 

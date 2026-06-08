@@ -1,5 +1,8 @@
-import { NotFoundError, ValidationError } from '@qualification-work/microservice-utils';
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
+import {
+    NotFoundError,
+    ValidationError,
+} from '@qualification-work/microservice-utils/errors';
 import {
     dashboardGridColumns,
     type DashboardItemLayoutInput,

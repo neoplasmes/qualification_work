@@ -1,4 +1,4 @@
-import type { OrgRole } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgRole } from '@qualification-work/microservice-utils/auth';
 
 import { api, dbQuery, setTestIdentity } from '../setup';
 

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { mockInternalIdentity } from '@qualification-work/microservice-utils/test';
+import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 
 import { api, apiAs, resetTestIdentity, startServer, stopServer, truncate } from '../lib';
 import { bootFixture, createDashboard, dashboardIdentity, silenceErrors } from './lib';

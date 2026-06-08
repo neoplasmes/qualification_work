@@ -1,7 +1,8 @@
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
 
 import type { DatasetMetadata, DatasetRepo } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
+
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
 export class GetDatasetsMetadataByOrgIdQuery implements Executable<

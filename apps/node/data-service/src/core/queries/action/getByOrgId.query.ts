@@ -1,4 +1,4 @@
-import type { OrgMembership } from '@qualification-work/microservice-utils/internalAuth';
+import type { OrgMembership } from '@qualification-work/microservice-utils/auth';
 import type { ActionDB as Action } from '@qualification-work/types';
 
 import type { ActionRepo } from '@/core/ports/driven/repos';

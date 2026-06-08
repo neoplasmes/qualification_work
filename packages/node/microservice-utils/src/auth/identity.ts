@@ -7,7 +7,7 @@ import type { InternalIdentity } from './types.ts';
  * @type {symbol}
  */
 const INTERNAL_IDENTITY: symbol = Symbol.for(
-    '@qualification-work/microservice-utils/internalAuth/identity'
+    '@qualification-work/microservice-utils/auth/identity'
 );
 
 type WithIdentity = { [INTERNAL_IDENTITY]?: InternalIdentity };

@@ -1,4 +1,4 @@
-import { ValidationError } from '@qualification-work/microservice-utils';
+import { ValidationError } from '@qualification-work/microservice-utils/errors';
 import type { ColumnDataType } from '@qualification-work/types';
 
 import type { MergeSessionFile } from '@/core/ports/driven/repos';

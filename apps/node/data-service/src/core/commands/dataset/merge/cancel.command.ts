@@ -1,4 +1,4 @@
-import { ForbiddenError } from '@qualification-work/microservice-utils';
+import { ForbiddenError } from '@qualification-work/microservice-utils/errors';
 
 import type { MergeSessionRepo } from '@/core/ports/driven/repos';
 import type { TmpFileStorageTool } from '@/core/ports/driven/tools';

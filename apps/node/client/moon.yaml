@@ -33,7 +33,7 @@ tasks:
       outputStyle: "stream"
 
   dev-compose-up:
-    command: "DOCKER_BUILDKIT=0 docker compose -f docker-compose.dev.yaml up -d --build --wait --wait-timeout 300"
+    command: "docker compose -f docker-compose.dev.yaml up -d --build --wait --wait-timeout 300"
     toolchain: system
     inputs:
       - "docker-compose.dev.yaml"
@@ -43,7 +43,7 @@ tasks:
       outputStyle: "stream"
 
   dev-compose-down:
-    command: "docker compose -f docker-compose.dev.yaml down"
+    command: "docker compose -f docker-compose.dev.yaml down --rmi local"
     toolchain: system
     options:
       cache: false

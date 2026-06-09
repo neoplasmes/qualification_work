@@ -1,9 +1,9 @@
 export const setTaggedScript = `
-redis.call('SET', KEYS[1], ARGV[1], 'EX', tonumber(ARGV[2]))
-local tagTtl = tonumber(ARGV[2]) + 60
+redis.call('SET', KEYS[1], ARGV[1], 'PX', tonumber(ARGV[2]))
+local tagTtlMs = tonumber(ARGV[2]) + 60000
 for i = 3, #ARGV do
     redis.call('SADD', ARGV[i], KEYS[1])
-    redis.call('EXPIRE', ARGV[i], tagTtl)
+    redis.call('PEXPIRE', ARGV[i], tagTtlMs)
 end
 return 1
 `;

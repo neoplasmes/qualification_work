@@ -42,7 +42,7 @@ export type PreviewMergeInput = {
 };
 
 export type PreviewMergeConfig = {
-    sessionTtlSeconds: number;
+    sessionTtlMs: number;
     maxMergeRowsInMemory: number;
     maxExistingRowsForMerge: number;
 };
@@ -144,12 +144,12 @@ export class PreviewMergeCommand implements Executable<
                     unionColumns,
                     createdAt: new Date().toISOString(),
                 },
-                this.config.sessionTtlSeconds
+                this.config.sessionTtlMs
             );
 
             return {
                 sessionId: input.sessionId,
-                expiresInSeconds: this.config.sessionTtlSeconds,
+                expiresInMs: this.config.sessionTtlMs,
                 statistics: {
                     totalFiles: parsed.length,
                     totalIncomingRows: totalParsedRows,
@@ -276,12 +276,12 @@ export class PreviewMergeCommand implements Executable<
                         unionColumns,
                         createdAt: new Date().toISOString(),
                     },
-                    this.config.sessionTtlSeconds
+                    this.config.sessionTtlMs
                 );
 
                 return {
                     sessionId: input.sessionId,
-                    expiresInSeconds: this.config.sessionTtlSeconds,
+                    expiresInMs: this.config.sessionTtlMs,
                     statistics: {
                         totalFiles: parsed.length,
                         totalIncomingRows: totalParsedRows,
@@ -457,7 +457,7 @@ export class PreviewMergeCommand implements Executable<
             createdAt: new Date().toISOString(),
         };
 
-        await this.mergeSessionRepo.save(session, this.config.sessionTtlSeconds);
+        await this.mergeSessionRepo.save(session, this.config.sessionTtlMs);
 
         const newColumns = unionColumns
             .filter(c => c.isNew)
@@ -479,7 +479,7 @@ export class PreviewMergeCommand implements Executable<
 
         return {
             sessionId: input.sessionId,
-            expiresInSeconds: this.config.sessionTtlSeconds,
+            expiresInMs: this.config.sessionTtlMs,
             statistics,
             conflicts: [],
         };

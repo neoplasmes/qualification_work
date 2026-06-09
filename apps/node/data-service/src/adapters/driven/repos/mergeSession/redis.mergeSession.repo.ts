@@ -1,6 +1,6 @@
-import type { MergeSession, MergeSessionRepo } from '@/core/ports/driven/repos';
+import type { RedisClient } from '@qualification-work/microservice-utils/redis';
 
-import type { RedisClient } from '@/infrastructure/redis';
+import type { MergeSession, MergeSessionRepo } from '@/core/ports/driven/repos';
 
 const KEY_PREFIX = 'merge_session:';
 
@@ -11,9 +11,9 @@ export class RedisMergeSessionRepo implements MergeSessionRepo {
         return `${KEY_PREFIX}${sessionId}`;
     }
 
-    async save(session: MergeSession, ttlSeconds: number): Promise<void> {
+    async save(session: MergeSession, ttlMs: number): Promise<void> {
         await this.redis.set(this.key(session.sessionId), JSON.stringify(session), {
-            EX: ttlSeconds,
+            PX: ttlMs,
         });
     }
 

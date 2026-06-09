@@ -1,3 +1,5 @@
+import { createRedisClient } from '@qualification-work/microservice-utils/redis';
+
 import { InitUserCommand } from '@/core/commands';
 
 import { createApp } from '@/adapters/createApp';
@@ -6,7 +8,6 @@ import { RedisUserEventsConsumer } from '@/adapters/driving/consumer';
 
 import { loadConfig } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
-import { createRedisClient } from '@/infrastructure/redis';
 
 const config = loadConfig();
 const pool = await createPool(config.postgresConnectionString);

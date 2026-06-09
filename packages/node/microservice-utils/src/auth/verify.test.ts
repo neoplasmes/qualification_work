@@ -51,7 +51,7 @@ describe('verifyInternalAuth', () => {
             identity: { userId: '1', orgs: [] },
             issuer,
             audience,
-            expiredBySeconds: 60,
+            expiredByMs: 60_000,
         });
 
         await expect(verifyInternalAuth(token, baseOptions)).rejects.toBeInstanceOf(

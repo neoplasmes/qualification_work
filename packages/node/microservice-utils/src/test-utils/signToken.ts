@@ -34,8 +34,8 @@ export type SignTokenInput = {
     identity: InternalIdentity;
     issuer: string;
     audience: string;
-    ttlSeconds?: number;
-    expiredBySeconds?: number;
+    ttlMs?: number;
+    expiredByMs?: number;
 };
 
 /**
@@ -48,8 +48,10 @@ export type SignTokenInput = {
  */
 export async function signTestToken(input: SignTokenInput): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
-    const ttl = input.ttlSeconds ?? 300;
-    const exp = input.expiredBySeconds ? now - input.expiredBySeconds : now + ttl;
+    const ttlForJwt = Math.ceil((input.ttlMs ?? 300_000) / 1000);
+    const expiredByForJwt =
+        input.expiredByMs === undefined ? undefined : Math.ceil(input.expiredByMs / 1000);
+    const exp = expiredByForJwt === undefined ? now + ttlForJwt : now - expiredByForJwt;
 
     return new SignJWT({ orgs: input.identity.orgs })
         .setProtectedHeader({ alg: 'RS256', kid: input.keyPair.kid, typ: 'JWT' })

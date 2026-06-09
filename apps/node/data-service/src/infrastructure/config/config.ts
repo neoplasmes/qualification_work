@@ -16,7 +16,7 @@ const schema = z.object({
     }),
     merge: z.object({
         tmpDir: z.string().min(1),
-        sessionTtlSeconds: z.coerce.number().int().positive(),
+        sessionTtlMs: z.coerce.number().int().positive(),
         maxFileBytes: z.coerce.number().int().positive(),
         maxRowsInMemory: z.coerce.number().int().positive(),
         maxExistingRowsForMerge: z.coerce.number().int().positive(),
@@ -51,7 +51,7 @@ export function loadConfig(): Config {
         },
         merge: {
             tmpDir: env.MERGE_TMP_DIR ?? '/tmp/datasets',
-            sessionTtlSeconds: env.MERGE_SESSION_TTL_SECONDS ?? '1800',
+            sessionTtlMs: env.MERGE_SESSION_TTL_MS ?? '1800000',
             maxFileBytes: env.MERGE_MAX_FILE_BYTES ?? `${500 * 1024 * 1024}`,
             maxRowsInMemory: env.MERGE_MAX_ROWS_IN_MEMORY ?? '100000',
             maxExistingRowsForMerge: env.MERGE_MAX_EXISTING_ROWS ?? '1000000',
@@ -83,7 +83,7 @@ export function loadConfig(): Config {
         }),
         merge: Object.freeze({
             tmpDir: data.merge.tmpDir,
-            sessionTtlSeconds: data.merge.sessionTtlSeconds,
+            sessionTtlMs: data.merge.sessionTtlMs,
             maxFileBytes: data.merge.maxFileBytes,
             maxRowsInMemory: data.merge.maxRowsInMemory,
             maxExistingRowsForMerge: data.merge.maxExistingRowsForMerge,

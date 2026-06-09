@@ -1,12 +1,10 @@
 export { createRedisClient } from './client/index.ts';
 export type { RedisClient, RedisConfig } from './client/index.ts';
 
-export { createRedisCache } from './cache/index.ts';
+export { RedisCache } from './cache/index.ts';
 export type {
     Executable,
-    ExecutableCacheSpec,
-    RedisCache,
-    RedisCacheClient,
-    RedisCacheOptions,
+    ExecutableCacheOptions,
+    RedisCacheConfig,
     RememberJsonOptions,
 } from './cache/index.ts';

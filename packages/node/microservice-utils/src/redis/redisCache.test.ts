@@ -1,7 +1,7 @@
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { createRedisCache, createRedisClient, type RedisClient } from './index.ts';
+import { createRedisClient, RedisCache, type RedisClient } from './index.ts';
 
 const redisPort = 6379;
 const redisImage = 'redis:8.6-alpine';
@@ -35,9 +35,9 @@ function createTestCache() {
         throw new Error('Redis test container is not started');
     }
 
-    return createRedisCache(redis, {
+    return new RedisCache(redis, {
         namespace: 'test',
-        defaultTtlSeconds: 60,
+        defaultTtlMs: 60_000,
     });
 }
 

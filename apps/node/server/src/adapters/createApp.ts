@@ -6,7 +6,10 @@ import {
     BaseError,
     ValidationError,
 } from '@qualification-work/microservice-utils/errors';
-import { createRedisCache } from '@qualification-work/microservice-utils/redis';
+import {
+    RedisCache,
+    type RedisClient,
+} from '@qualification-work/microservice-utils/redis';
 
 import {
     AddDashboardItemCommand,
@@ -35,7 +38,6 @@ import { parseCookiesMiddleware } from '@/shared/parseCookie';
 import { resolveInternalAuthHook, type AuthHook } from '@/shared/resolveInternalAuth';
 
 import type { Config } from '@/infrastructure/config';
-import type { RedisClient } from '@/infrastructure/redis';
 
 export type CreateAppOptions = {
     /**
@@ -65,9 +67,9 @@ export function createApp(
     opts: CreateAppOptions = {}
 ): Application<AppState> {
     const app = new Application<AppState>();
-    const cache = createRedisCache(redis, {
+    const cache = new RedisCache(redis, {
         namespace: 'server',
-        defaultTtlSeconds: 60,
+        defaultTtlMs: 60_000,
     });
 
     // ——————————————————————————————— CORS ———————————————————————————————————
@@ -257,7 +259,7 @@ export function createApp(
                         metric.expression,
                         accessFingerprint(orgs),
                     ],
-                    ttlSeconds: 30,
+                    ttlMs: 30_000,
                 },
                 () => basePreviewDashboardMetric.execute(metric, orgs)
             ),

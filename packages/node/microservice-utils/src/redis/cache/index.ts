@@ -1,9 +1,8 @@
-export { createRedisCache } from './createRedisCache.ts';
+export { RedisCache } from './RedisCache.ts';
+export { stableStringify } from './stableStringify.ts';
 export type {
     Executable,
-    ExecutableCacheSpec,
-    RedisCache,
-    RedisCacheClient,
-    RedisCacheOptions,
+    ExecutableCacheOptions,
+    RedisCacheConfig,
     RememberJsonOptions,
 } from './types.ts';

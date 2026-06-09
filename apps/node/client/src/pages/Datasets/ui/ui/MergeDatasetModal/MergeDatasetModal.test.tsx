@@ -50,7 +50,7 @@ const selectedDataset = {
 
 const previewResult = {
     sessionId: 'session-1',
-    expiresInSeconds: 1800,
+    expiresInMs: 1800000,
     conflicts: [],
     statistics: {
         totalFiles: 1,

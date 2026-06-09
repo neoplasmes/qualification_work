@@ -42,7 +42,7 @@ export type MergeSession = {
 };
 
 export interface MergeSessionRepo {
-    save(session: MergeSession, ttlSeconds: number): Promise<void>;
+    save(session: MergeSession, ttlMs: number): Promise<void>;
     get(sessionId: string): Promise<MergeSession | null>;
     delete(sessionId: string): Promise<void>;
     listSessionIds(): Promise<string[]>;

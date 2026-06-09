@@ -6,7 +6,10 @@ import {
     BaseError,
     ValidationError,
 } from '@qualification-work/microservice-utils/errors';
-import { createRedisCache, type RedisCache } from '@qualification-work/redis-cache';
+import {
+    createRedisCache,
+    type RedisCache,
+} from '@qualification-work/microservice-utils/redis';
 
 import {
     ArchiveActionCommand,

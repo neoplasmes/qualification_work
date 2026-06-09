@@ -2,14 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { api } from '../utils/api.js';
 import { registerAndLogin } from '../utils/auth.js';
-import {
-    createBarChart,
-    createDashboard,
-    uploadCsvDataset,
-} from '../utils/factories.js';
+import { createBarChart, createDashboard, uploadCsvDataset } from '../utils/factories.js';
 
 /**
- * end-to-end behavioural tests for the @qualification-work/redis-cache integration
+ * end-to-end behavioural tests for the microservice-utils redis integration
  * in server and data-service. these tests exercise the cache as a black box:
  * they verify that mutations correctly invalidate the appropriate cache entries
  * via tag-based invalidation, so that subsequent reads return fresh values
@@ -21,7 +17,7 @@ type RowsPage = {
 };
 type Chart = { id: string; name: string };
 
-describe('redis-cache behavior via API', () => {
+describe('redis cache behavior via API', () => {
     it('uploading a dataset invalidates the org-level dataset list', async () => {
         const user = await registerAndLogin();
 
@@ -54,14 +50,11 @@ describe('redis-cache behavior via API', () => {
         const { rows } = (await before.json()) as RowsPage;
         const rowId = rows[0].id;
 
-        await api(
-            `/api/data/datasets/${dataset.id}/rows/${rowId}?orgId=${user.orgId}`,
-            {
-                method: 'PATCH',
-                cookie: user.cookie,
-                body: JSON.stringify({ values: { age: 99 } }),
-            }
-        );
+        await api(`/api/data/datasets/${dataset.id}/rows/${rowId}?orgId=${user.orgId}`, {
+            method: 'PATCH',
+            cookie: user.cookie,
+            body: JSON.stringify({ values: { age: 99 } }),
+        });
 
         const after = await api(`/api/data/datasets/${dataset.id}/rows`, {
             cookie: user.cookie,
@@ -88,7 +81,12 @@ describe('redis-cache behavior via API', () => {
                 orgId: user.orgId,
                 name: 'add row',
                 parameters: [
-                    { key: 'category', label: 'category', type: 'string', required: true },
+                    {
+                        key: 'category',
+                        label: 'category',
+                        type: 'string',
+                        required: true,
+                    },
                     { key: 'value', label: 'value', type: 'string', required: true },
                 ],
                 effects: [

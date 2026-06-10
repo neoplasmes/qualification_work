@@ -7,13 +7,16 @@ import {
     setInternalIdentity,
     type InternalIdentity,
 } from '@qualification-work/microservice-utils/auth';
+import {
+    createRedisClient,
+    type RedisClient,
+} from '@qualification-work/microservice-utils/redis';
 import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 
 import { createApp } from '@/adapters/createApp';
 
 import { loadConfig } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
-import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
 
 let pool: Pool;
 let redis: RedisClient | undefined;

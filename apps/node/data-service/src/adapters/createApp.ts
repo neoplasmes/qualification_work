@@ -7,8 +7,8 @@ import {
     ValidationError,
 } from '@qualification-work/microservice-utils/errors';
 import {
-    createRedisCache,
-    type RedisCache,
+    RedisCache,
+    type RedisClient,
 } from '@qualification-work/microservice-utils/redis';
 
 import {
@@ -68,7 +68,6 @@ import { startMergeSessionCleanup } from '@/shared/mergeSessionCleanup';
 import { resolveInternalAuthHook, type AuthHook } from '@/shared/resolveInternalAuth';
 
 import type { Config } from '@/infrastructure/config';
-import type { RedisClient } from '@/infrastructure/redis';
 
 export type CreateAppOptions = {
     /** override auth hook for tests or e2e scenarios */
@@ -100,9 +99,9 @@ export function createAppWithCleanup(
     config: Config,
     opts: CreateAppOptions = {}
 ): CreateAppResult {
-    const cache = createRedisCache(redis, {
+    const cache = new RedisCache(redis, {
         namespace: 'data-service',
-        defaultTtlSeconds: 60,
+        defaultTtlMs: 60_000,
     });
 
     // ----- dataset -----
@@ -134,7 +133,7 @@ export function createAppWithCleanup(
         tmpStorage,
         DefaultDatasetParserFactoryTool.resolveParser,
         {
-            sessionTtlSeconds: config.merge.sessionTtlSeconds,
+            sessionTtlMs: config.merge.sessionTtlMs,
             maxMergeRowsInMemory: config.merge.maxRowsInMemory,
             maxExistingRowsForMerge: config.merge.maxExistingRowsForMerge,
         }
@@ -202,7 +201,7 @@ export function createAppWithCleanup(
             orgs: OrgMembership[]
         ) => ['datasets', 'rows', datasetId, offset, limit, accessFingerprint(orgs)],
         tags: (datasetId: string) => [`dataset:${datasetId}`],
-        ttlSeconds: 30,
+        ttlMs: 30_000,
     }) as GetDatasetRowsQuery;
 
     const uploadDatasetHandler = {
@@ -355,7 +354,7 @@ export function createAppWithCleanup(
                         `chart:${input.chartId}`,
                         chart && `dataset:${chart.datasetId}`,
                     ]),
-                    ttlSeconds: 120,
+                    ttlMs: 120_000,
                 },
                 () => baseGetChartDataHandler.execute(...args)
             );
@@ -433,7 +432,7 @@ export function createAppWithCleanup(
             accessFingerprint(orgs),
         ],
         tags: (actionId: string) => [`action:${actionId}`],
-        ttlSeconds: 60,
+        ttlMs: 60_000,
     }) as GetActionByIdQuery;
     const getActionsByOrgIdHandler = cache.wrapExecutable(baseGetActionsByOrgIdHandler, {
         key: (orgId: string, orgs: OrgMembership[]) => [
@@ -443,7 +442,7 @@ export function createAppWithCleanup(
             accessFingerprint(orgs),
         ],
         tags: (orgId: string) => [`org:${orgId}:actions`],
-        ttlSeconds: 60,
+        ttlMs: 60_000,
     }) as GetActionsByOrgIdQuery;
     const listActionRunsHandler = cache.wrapExecutable(baseListActionRunsHandler, {
         key: (input: ListActionRunsInput) => [
@@ -464,7 +463,7 @@ export function createAppWithCleanup(
                       `org:${input.orgId}:actions`,
                   ]
                 : [`org:${input.orgId}:actions`],
-        ttlSeconds: 30,
+        ttlMs: 30_000,
     }) as ListActionRunsQuery;
 
     const app = new Application<AppState>();
@@ -563,7 +562,7 @@ export function createAppWithCleanup(
     if (!opts.disableMergeCleanup) {
         stopCleanup = startMergeSessionCleanup(mergeSessionRepo, tmpStorage, {
             intervalMs: config.merge.cleanupIntervalMs,
-            maxAgeMs: config.merge.sessionTtlSeconds * 1000,
+            maxAgeMs: config.merge.sessionTtlMs,
         });
     }
 

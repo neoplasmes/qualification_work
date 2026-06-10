@@ -6,7 +6,7 @@ import { uploadCsvDataset } from '../utils/factories.js';
 
 type MergePreview = {
     sessionId: string;
-    expiresInSeconds: number;
+    expiresInMs: number;
     statistics: {
         totalFiles: number;
         totalIncomingRows: number;
@@ -72,9 +72,12 @@ describe('data-service /api/data/datasets/merge', () => {
         );
         expect(commit.status).toBe(200);
 
-        const rows = await api(`/api/data/datasets/${dataset.id}/rows?offset=0&limit=20`, {
-            cookie: user.cookie,
-        });
+        const rows = await api(
+            `/api/data/datasets/${dataset.id}/rows?offset=0&limit=20`,
+            {
+                cookie: user.cookie,
+            }
+        );
         const body = (await rows.json()) as RowsPage;
         const names = body.rows.map(r => r.data.name);
         expect(names).toEqual(expect.arrayContaining(['Alice', 'Bob', 'Carla', 'Dan']));
@@ -118,10 +121,10 @@ describe('data-service /api/data/datasets/merge', () => {
             dataset.id,
             'id,name\n2,Bob'
         );
-        await api(
-            `/api/data/datasets/merge/${preview.sessionId}?orgId=${user.orgId}`,
-            { method: 'DELETE', cookie: user.cookie }
-        );
+        await api(`/api/data/datasets/merge/${preview.sessionId}?orgId=${user.orgId}`, {
+            method: 'DELETE',
+            cookie: user.cookie,
+        });
 
         const commit = await api(
             `/api/data/datasets/merge/${preview.sessionId}/commit?orgId=${user.orgId}`,

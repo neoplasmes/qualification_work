@@ -5,6 +5,10 @@ import {
     setInternalIdentity,
     type InternalIdentity,
 } from '@qualification-work/microservice-utils/auth';
+import {
+    createRedisClient,
+    type RedisClient,
+} from '@qualification-work/microservice-utils/redis';
 import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 
 import { InitUserCommand } from '@/core/commands';
@@ -15,7 +19,6 @@ import { RedisUserEventsConsumer } from '@/adapters/driving/consumer';
 
 import type { Config } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
-import { createRedisClient, type RedisClient } from '@/infrastructure/redis';
 
 let pool: Pool;
 let redis: RedisClient;

@@ -1,8 +1,9 @@
+import { createRedisClient } from '@qualification-work/microservice-utils/redis';
+
 import { createApp } from '@/adapters/createApp';
 
 import { loadConfig } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
-import { createRedisClient } from '@/infrastructure/redis';
 
 const config = loadConfig();
 

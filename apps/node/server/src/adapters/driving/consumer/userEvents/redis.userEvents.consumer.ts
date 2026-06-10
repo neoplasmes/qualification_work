@@ -1,8 +1,8 @@
+import type { RedisClient } from '@qualification-work/microservice-utils/redis';
+
 import type { InitUserCommand } from '@/core/commands';
 
 import type { ReconciliationRepo } from '@/adapters/driven/repos/user/_reconciliation.repo';
-
-import type { RedisClient } from '@/infrastructure/redis';
 
 export type UserEventsConsumerOptions = Partial<{
     streamName: string;

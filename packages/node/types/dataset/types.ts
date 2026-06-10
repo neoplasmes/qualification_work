@@ -119,7 +119,7 @@ export type MergePreviewStatistics = {
 
 export type MergePreviewResult = {
     sessionId: string;
-    expiresInSeconds: number;
+    expiresInMs: number;
     statistics: MergePreviewStatistics;
     conflicts: MergeConflict[];
 };

@@ -1,2 +1,5 @@
-export { createRedisClient } from './createRedisClient.ts';
-export type { RedisClient, RedisConfig } from './types.ts';
+export {
+    createRedisClient,
+    type RedisClient,
+    type RedisConfig,
+} from './createRedisClient.ts';

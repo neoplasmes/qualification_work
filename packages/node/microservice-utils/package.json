@@ -30,7 +30,6 @@
         "@types/pg": "catalog:postgres",
         "pg": "catalog:postgres",
         "redis": "catalog:backend",
-        "testcontainers": "catalog:devtools",
         "zod": "catalog:backend"
     }
 }

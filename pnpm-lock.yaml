@@ -67,6 +67,9 @@ importers:
       prettier:
         specifier: ^3.8.3
         version: 3.8.3
+      testcontainers:
+        specifier: catalog:devtools
+        version: 12.0.1
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -368,9 +371,6 @@ importers:
       redis:
         specifier: catalog:backend
         version: 5.11.0
-      testcontainers:
-        specifier: catalog:devtools
-        version: 12.0.1
       zod:
         specifier: catalog:backend
         version: 4.3.6

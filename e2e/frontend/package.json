@@ -9,7 +9,6 @@
         "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
-        "@playwright/test": "^1.60.0",
-        "exceljs": "^4.4.0"
+        "@playwright/test": "^1.60.0"
     }
 }

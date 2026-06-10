@@ -42,8 +42,13 @@ tasks:
 
   e2e:
     script: |
+      docker compose -f ../docker-compose/docker-compose.yaml up -d \
+        --renew-anon-volumes --build --wait --wait-timeout 300
       export NODE_EXTRA_CA_CERTS="$(pwd)/../docker-compose/keys/ca.pem"
-      pnpm test
+      RC=0
+      pnpm test || RC=$?
+      docker compose -f ../docker-compose/docker-compose.yaml down -v --rmi local
+      exit $RC
     toolchain: system
     options:
       cache: false

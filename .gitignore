@@ -25,7 +25,6 @@ mdnDocsHeaders.html
 package-lock.json
 test-results
 playwright-report
-playwright.config.ts
 apps/node/client/tests
 
 # moon

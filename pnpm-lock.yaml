@@ -319,9 +319,6 @@ importers:
       '@playwright/test':
         specifier: ^1.60.0
         version: 1.60.0
-      exceljs:
-        specifier: ^4.4.0
-        version: 4.4.0
 
   generation:
     dependencies:

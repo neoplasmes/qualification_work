@@ -89,7 +89,11 @@ if (isDev) {
     if (isPreview) {
         server.onRequest(async ctx => {
             const { request, response } = ctx;
-            if (!request.pathname.startsWith('/api/')) {return;}
+
+            if (!request.pathname.startsWith('/api/')) {
+                return;
+            }
+
             await new Promise<void>((resolve, reject) => {
                 const proxyReq = http.request(
                     {
@@ -102,13 +106,16 @@ if (isDev) {
                     proxyRes => {
                         response.statusCode = proxyRes.statusCode ?? 502;
                         for (const [key, val] of Object.entries(proxyRes.headers)) {
-                            if (val !== undefined)
-                                {response.setHeader(key, val as string | string[]);}
+                            if (val !== undefined) {
+                                response.setHeader(key, val as string | string[]);
+                            }
                         }
                         pipeline(proxyRes, response).then(resolve).catch(reject);
                     }
                 );
+
                 proxyReq.on('error', reject);
+
                 request.pipe(proxyReq);
             });
         });

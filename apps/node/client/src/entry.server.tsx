@@ -25,6 +25,18 @@ function escapeForScript(str: string): string {
     return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
 }
 
+function getRequestHeader(request: FRequest, headerName: string): string | undefined {
+    const normalizedHeaderName = headerName.toLowerCase();
+
+    for (const [key, values] of Object.entries(request.headersDistinct)) {
+        if (key.toLowerCase() === normalizedHeaderName) {
+            return values?.[0];
+        }
+    }
+
+    return undefined;
+}
+
 /**
  * turboStream - это ReadableSteam, поток, в который пушатся изначальные данные, а затем доходит по чанку
  * по мере резолва каждого промиса в потокеы
@@ -107,7 +119,13 @@ export async function streamSSR(
         }
     }
 
-    const serverStore = createStore();
+    // cookie forwarding to API requests on SSR server. basically on SSR server there will be no user cookies on
+    // outhcoming requests, so they must be passed as extra argument to all requests
+    const serverStore = createStore(undefined, {
+        apiExtraArgument: {
+            requestCookie: getRequestHeader(request, 'cookie'),
+        },
+    });
 
     const routes = getRoutes(serverStore);
     const { query, dataRoutes } = createStaticHandler(routes);

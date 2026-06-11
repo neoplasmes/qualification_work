@@ -28,12 +28,19 @@ import {
     type FilterApplicationEntitiesState,
 } from '@/features/filterApplicationEntities';
 
-import { api } from '@/shared/api';
+import { api, type ApiExtraArgument } from '@/shared/api';
 
 import { rootReducer, type RootState } from './rootReducer';
 import { getPersistedInitialState, subscribePersistedSlices } from './storePersistence';
 
-export function createStore(preloadedState?: Partial<RootState>) {
+export type CreateStoreOptions = {
+    apiExtraArgument?: ApiExtraArgument;
+};
+
+export function createStore(
+    preloadedState?: Partial<RootState>,
+    options: CreateStoreOptions = {}
+) {
     const persistedState = {
         [panelLayoutSlice.name]: getPersistedInitialState<
             PanelLayoutState,
@@ -59,7 +66,13 @@ export function createStore(preloadedState?: Partial<RootState>) {
 
     const store = configureStore({
         reducer: rootReducer,
-        middleware: getDefaultMiddleware => getDefaultMiddleware().concat(api.middleware),
+        middleware: getDefaultMiddleware =>
+            getDefaultMiddleware({
+                // RTK query extra arguments are taken literally out of here
+                thunk: {
+                    extraArgument: options.apiExtraArgument ?? {},
+                },
+            }).concat(api.middleware),
         preloadedState: {
             ...preloadedState,
             ...persistedState,

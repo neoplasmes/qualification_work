@@ -1,5 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+export type ApiExtraArgument = {
+    requestCookie?: string;
+};
+
 const browserApiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
 const serverApiBaseUrl =
     typeof process !== 'undefined'
@@ -23,6 +27,16 @@ export const api = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: apiBaseUrl,
         credentials: 'include',
+        prepareHeaders: (headers, { extra }) => {
+            const { requestCookie } = (extra ?? {}) as ApiExtraArgument;
+
+            // we set cookies ONLY on ssr server, where window obviously is undefined
+            if (typeof window === 'undefined' && requestCookie) {
+                headers.set('cookie', requestCookie);
+            }
+
+            return headers;
+        },
     }),
     keepUnusedDataFor: 300,
     extractRehydrationInfo(action, { reducerPath }) {

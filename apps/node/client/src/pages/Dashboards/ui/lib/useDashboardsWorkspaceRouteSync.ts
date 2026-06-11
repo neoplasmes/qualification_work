@@ -3,7 +3,6 @@ import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router';
 
 import {
-    dashboardsWorkspaceIndexPath,
     getDashboardIdFromSearch,
     getDashboardWorkspaceUrl,
     isDashboardsWorkspacePath,
@@ -29,14 +28,10 @@ export const useDashboardsWorkspaceRouteSync = (selectedDashboardId: string | nu
     }, [dispatch, onDashboards, routeId, selectedDashboardId]);
 
     useEffect(() => {
-        if (!onDashboards || routeId === selectedDashboardId) {
+        if (!onDashboards || routeId || !selectedDashboardId) {
             return;
         }
 
-        if (selectedDashboardId) {
-            navigate(getDashboardWorkspaceUrl(selectedDashboardId), { replace: true });
-        } else if (routeId) {
-            navigate(dashboardsWorkspaceIndexPath, { replace: true });
-        }
+        navigate(getDashboardWorkspaceUrl(selectedDashboardId), { replace: true });
     }, [navigate, onDashboards, routeId, selectedDashboardId]);
 };

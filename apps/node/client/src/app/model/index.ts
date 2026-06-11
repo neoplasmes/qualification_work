@@ -3,5 +3,12 @@ export {
     authenticatedSessionStorageKeys,
     clearAuthenticatedSessionStorage,
 } from './sessionPersistence';
-export { resetAuthenticatedSessionState } from './sessionState';
-export { createStore, type AppDispatch, type AppStore, type RootState } from './store';
+export { hydratePersistedState, resetAuthenticatedSessionState } from './sessionState';
+export {
+    createStore,
+    getPersistedState,
+    type AppDispatch,
+    type AppStore,
+    type RootState,
+} from './store';
+export { usePersistedStateHydration } from './usePersistedStateHydration';

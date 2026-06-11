@@ -2,6 +2,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useRenameDashboardMutation } from '@/features/manageDashboards';
@@ -23,12 +24,14 @@ import {
 } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../const';
+import { dashboardsWorkspaceIndexPath } from '../../../lib';
 import { selectDashboard, selectSelectedDashboardId } from '../../../model';
 
 import { getResolvedDashboard, getSelectedDashboard } from '../../lib';
 
 export const DashboardsPropertiesPanel = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
     const [error, setError] = useState('');
 
@@ -72,6 +75,7 @@ export const DashboardsPropertiesPanel = () => {
         try {
             await deleteDashboard(selectedDashboard.id).unwrap();
             dispatch(selectDashboard(null));
+            navigate(dashboardsWorkspaceIndexPath, { replace: true });
             setDeleteConfirmationId(null);
             await dashboardsQuery.refetch();
         } catch (deleteError) {

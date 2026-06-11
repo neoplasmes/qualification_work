@@ -2,6 +2,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { usePatchActionMutation } from '@/features/manageActions';
@@ -22,7 +23,7 @@ import {
 } from '@/shared/ui';
 
 import { actionsTestIds } from '../../../const';
-import { canMutate } from '../../../lib';
+import { actionsWorkspaceIndexPath, canMutate } from '../../../lib';
 import { selectAction } from '../../../model';
 
 import styles from '../../ActionsPage.module.scss';
@@ -37,6 +38,7 @@ export const ActionsProperties = ({
     refetchActions,
 }: ActionsPropertiesProps) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [archiveConfirmationId, setArchiveConfirmationId] = useState<string | null>(
         null
     );
@@ -82,6 +84,7 @@ export const ActionsProperties = ({
             setError('');
             await archiveAction(selectedAction.id).unwrap();
             dispatch(selectAction(null));
+            navigate(actionsWorkspaceIndexPath, { replace: true });
             setArchiveConfirmationId(null);
             await refetchActions();
         } catch (archiveError) {

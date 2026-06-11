@@ -20,15 +20,15 @@ import {
     toggleFilterApplicationValue,
 } from '@/features/filterApplicationEntities';
 
-import { resetAuthenticatedSessionState } from './sessionState';
-import { createStore } from './store';
+import { hydratePersistedState, resetAuthenticatedSessionState } from './sessionState';
+import { createStore, getPersistedState } from './store';
 
 describe('createStore', () => {
     beforeEach(() => {
         localStorage.clear();
     });
 
-    it('keeps persisted panel layout over server preloaded fallback', () => {
+    it('starts from server preloaded state before persisted hydration', () => {
         localStorage.setItem(
             panelLayoutPersistence.key,
             JSON.stringify({
@@ -47,10 +47,44 @@ describe('createStore', () => {
         });
 
         expect(store.getState().panelLayout).toEqual({
+            sizes: {},
+            isLeftCollapsed: false,
+            isRightCollapsed: false,
+        });
+    });
+
+    it('hydrates persisted state explicitly after mount', () => {
+        localStorage.setItem(
+            panelLayoutPersistence.key,
+            JSON.stringify({
+                sizes: { workspace: [360, 900, 420] },
+                isLeftCollapsed: true,
+                isRightCollapsed: false,
+            })
+        );
+        localStorage.setItem(
+            'datasetsPage_v1',
+            JSON.stringify({ selectedDatasetId: 'dataset-1' })
+        );
+        localStorage.setItem(
+            'dashboardsPage_v1',
+            JSON.stringify({
+                selectedDashboardId: 'dashboard-1',
+                workspaceDraftDashboardId: null,
+                workspaceDraftName: '',
+            })
+        );
+
+        const store = createStore();
+        store.dispatch(hydratePersistedState(getPersistedState()));
+
+        expect(store.getState().panelLayout).toEqual({
             sizes: { workspace: [360, 900, 420] },
             isLeftCollapsed: true,
             isRightCollapsed: false,
         });
+        expect(store.getState().datasetsPage.selectedDatasetId).toBe('dataset-1');
+        expect(store.getState().dashboardsPage.selectedDashboardId).toBe('dashboard-1');
     });
 
     it('does not hydrate charts page from localStorage', () => {
@@ -64,7 +98,19 @@ describe('createStore', () => {
         expect(store.getState().chartsPage).toEqual(chartsPageInitialState);
     });
 
-    it('does not hydrate actions selection or mode from localStorage', () => {
+    it('does not hydrate charts page from localStorage after persisted hydration', () => {
+        localStorage.setItem(
+            'chartsPage_v1',
+            JSON.stringify({ selectedChartId: 'chart-1' })
+        );
+
+        const store = createStore();
+        store.dispatch(hydratePersistedState(getPersistedState()));
+
+        expect(store.getState().chartsPage).toEqual(chartsPageInitialState);
+    });
+
+    it('does not hydrate actions selection or mode from localStorage after persisted hydration', () => {
         localStorage.setItem(
             'actionsPage_v1',
             JSON.stringify({
@@ -75,6 +121,7 @@ describe('createStore', () => {
         );
 
         const store = createStore();
+        store.dispatch(hydratePersistedState(getPersistedState()));
 
         expect(store.getState().actionsPage).toEqual({
             ...actionsPageInitialState,

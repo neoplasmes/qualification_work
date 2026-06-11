@@ -1,6 +1,7 @@
 import { LazyMotion } from 'motion/react';
 import { Outlet, useLocation } from 'react-router';
 
+import { usePersistedStateHydration } from '../../model';
 import { NavBar } from '../NavBar';
 
 const motionFeatures = () =>
@@ -8,8 +9,11 @@ const motionFeatures = () =>
 
 export const Layout = () => {
     const location = useLocation();
+    const isAuthPage =
+        location.pathname === '/sign-in' || location.pathname === '/sign-up';
+    usePersistedStateHydration(!isAuthPage);
 
-    if (location.pathname === '/sign-in' || location.pathname === '/sign-up') {
+    if (isAuthPage) {
         return (
             <LazyMotion features={motionFeatures} strict>
                 <Outlet />

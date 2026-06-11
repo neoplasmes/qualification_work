@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Dashboard } from '@/entities/dashboard';
@@ -110,7 +111,9 @@ const renderPropertiesPanel = (selectedDashboardId: string | null) => {
         store,
         ...render(
             <Provider store={store}>
-                <DashboardsPropertiesPanel />
+                <MemoryRouter initialEntries={['/dashboards?id=dashboard-1']}>
+                    <DashboardsPropertiesPanel />
+                </MemoryRouter>
             </Provider>
         ),
     };

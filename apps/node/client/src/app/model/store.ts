@@ -37,46 +37,41 @@ export type CreateStoreOptions = {
     apiExtraArgument?: ApiExtraArgument;
 };
 
+export const getPersistedState = (): Partial<RootState> => ({
+    [panelLayoutSlice.name]: getPersistedInitialState<PanelLayoutState, PanelLayoutState>(
+        panelLayoutPersistence
+    ),
+    [actionsPageSlice.name]: getPersistedInitialState<
+        ActionsPageState,
+        ReturnType<typeof actionsPagePersistence.pickPersistedState>
+    >(actionsPagePersistence),
+    [datasetsPageSlice.name]: getPersistedInitialState<
+        DatasetsPageState,
+        ReturnType<typeof datasetsPagePersistence.pickPersistedState>
+    >(datasetsPagePersistence),
+    [dashboardsPageSlice.name]: getPersistedInitialState<
+        DashboardsPageState,
+        ReturnType<typeof dashboardsPagePersistence.pickPersistedState>
+    >(dashboardsPagePersistence),
+    [filterApplicationEntitiesSlice.name]: getPersistedInitialState<
+        FilterApplicationEntitiesState,
+        ReturnType<typeof filterApplicationEntitiesPersistence.pickPersistedState>
+    >(filterApplicationEntitiesPersistence),
+});
+
 export function createStore(
     preloadedState?: Partial<RootState>,
     options: CreateStoreOptions = {}
 ) {
-    const persistedState = {
-        [panelLayoutSlice.name]: getPersistedInitialState<
-            PanelLayoutState,
-            PanelLayoutState
-        >(panelLayoutPersistence),
-        [actionsPageSlice.name]: getPersistedInitialState<
-            ActionsPageState,
-            ReturnType<typeof actionsPagePersistence.pickPersistedState>
-        >(actionsPagePersistence),
-        [datasetsPageSlice.name]: getPersistedInitialState<
-            DatasetsPageState,
-            ReturnType<typeof datasetsPagePersistence.pickPersistedState>
-        >(datasetsPagePersistence),
-        [dashboardsPageSlice.name]: getPersistedInitialState<
-            DashboardsPageState,
-            ReturnType<typeof dashboardsPagePersistence.pickPersistedState>
-        >(dashboardsPagePersistence),
-        [filterApplicationEntitiesSlice.name]: getPersistedInitialState<
-            FilterApplicationEntitiesState,
-            ReturnType<typeof filterApplicationEntitiesPersistence.pickPersistedState>
-        >(filterApplicationEntitiesPersistence),
-    };
-
     const store = configureStore({
         reducer: rootReducer,
         middleware: getDefaultMiddleware =>
             getDefaultMiddleware({
-                // RTK query extra arguments are taken literally out of here
                 thunk: {
                     extraArgument: options.apiExtraArgument ?? {},
                 },
             }).concat(api.middleware),
-        preloadedState: {
-            ...preloadedState,
-            ...persistedState,
-        },
+        preloadedState,
     });
 
     subscribePersistedSlices(store, [

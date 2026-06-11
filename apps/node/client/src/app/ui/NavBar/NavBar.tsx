@@ -13,25 +13,9 @@ import { type FC } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 
-import {
-    actionsWorkspaceIndexPath,
-    getActionWorkspaceUrl,
-    isActionsWorkspacePath,
-    selectActionsWorkspaceMode,
-    selectSelectedActionId,
-} from '@/pages/Actions';
-import {
-    chartsWorkspaceIndexPath,
-    getChartWorkspaceUrl,
-    isChartsWorkspacePath,
-    selectChartsWorkspaceMode,
-    selectSelectedChartId,
-} from '@/pages/Charts';
-import {
-    dashboardsWorkspaceIndexPath,
-    getDashboardWorkspaceUrl,
-    selectSelectedDashboardId,
-} from '@/pages/Dashboards';
+import { actionsWorkspaceIndexPath, isActionsWorkspacePath } from '@/pages/Actions';
+import { chartsWorkspaceIndexPath, isChartsWorkspacePath } from '@/pages/Charts';
+import { dashboardsWorkspaceIndexPath } from '@/pages/Dashboards';
 
 import {
     selectIsLeftCollapsed,
@@ -91,11 +75,6 @@ export const NavBar: FC = () => {
 
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
-    const selectedChartId = useSelector(selectSelectedChartId);
-    const chartsWorkspaceMode = useSelector(selectChartsWorkspaceMode);
-    const selectedActionId = useSelector(selectSelectedActionId);
-    const actionsWorkspaceMode = useSelector(selectActionsWorkspaceMode);
-    const selectedDashboardId = useSelector(selectSelectedDashboardId);
 
     const meQuery = useGetMeQuery();
     const { activeOrg, orgs, setActiveOrgId } = useActiveOrganization(meQuery.data);
@@ -113,15 +92,6 @@ export const NavBar: FC = () => {
         }
     };
 
-    const chartsLink = selectedChartId
-        ? getChartWorkspaceUrl(selectedChartId, chartsWorkspaceMode)
-        : chartsWorkspaceIndexPath;
-    const actionsLink = selectedActionId
-        ? getActionWorkspaceUrl(selectedActionId, actionsWorkspaceMode)
-        : actionsWorkspaceIndexPath;
-    const dashboardsLink = selectedDashboardId
-        ? getDashboardWorkspaceUrl(selectedDashboardId)
-        : dashboardsWorkspaceIndexPath;
     const isWorkspacePage =
         workspacePaths.has(pathname) ||
         isChartsWorkspacePath(pathname) ||
@@ -136,26 +106,12 @@ export const NavBar: FC = () => {
             <nav aria-label="Main navigation">
                 <ul data-stack="h" data-gap="sm">
                     {navLinks.map(({ to, label, Icon }) => {
-                        let href = to;
-
-                        if (to === chartsWorkspaceIndexPath) {
-                            href = chartsLink;
-                        }
-
-                        if (to === actionsWorkspaceIndexPath) {
-                            href = actionsLink;
-                        }
-
-                        if (to === dashboardsWorkspaceIndexPath) {
-                            href = dashboardsLink;
-                        }
-
                         const active = isActiveNavPath(pathname, to);
 
                         return (
                             <div key={to} data-stack="v">
                                 <NavLink
-                                    to={href}
+                                    to={to}
                                     className={`${styles['link']} ${
                                         active ? styles['active'] : ''
                                     }`}

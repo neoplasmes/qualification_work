@@ -11,7 +11,7 @@ import { filterApplicationEntitiesSlice } from '@/features/filterApplicationEnti
 
 import { api } from '@/shared/api';
 
-import { resetAuthenticatedSessionState } from './sessionState';
+import { hydratePersistedState, resetAuthenticatedSessionState } from './sessionState';
 
 const appReducer = combineReducers({
     [api.reducerPath]: api.reducer,
@@ -32,6 +32,18 @@ export const rootReducer = (
     state: RootReducerState,
     action: RootReducerAction
 ): RootState => {
+    if (hydratePersistedState.match(action)) {
+        const currentState = appReducer(state, action);
+
+        return appReducer(
+            {
+                ...currentState,
+                ...action.payload,
+            } as RootReducerState,
+            action
+        );
+    }
+
     if (resetAuthenticatedSessionState.match(action)) {
         const preservedState = state?.[panelLayoutSlice.name]
             ? { [panelLayoutSlice.name]: state[panelLayoutSlice.name] }

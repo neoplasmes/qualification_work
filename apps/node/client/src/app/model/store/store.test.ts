@@ -20,7 +20,7 @@ import {
     toggleFilterApplicationValue,
 } from '@/features/filterApplicationEntities';
 
-import { hydratePersistedState, resetAuthenticatedSessionState } from './sessionState';
+import { hydratePersistedState, resetAuthenticatedSessionState } from './reducer';
 import { createStore, getPersistedState } from './store';
 
 describe('createStore', () => {

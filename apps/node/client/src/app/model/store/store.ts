@@ -30,30 +30,31 @@ import {
 
 import { api, type ApiExtraArgument } from '@/shared/api';
 
-import { rootReducer, type RootState } from './rootReducer';
-import { getPersistedInitialState, subscribePersistedSlices } from './storePersistence';
+import { persistentStateStorage } from '../persistence/persistentState';
+import { rootReducer, type RootState } from './reducer';
 
 export type CreateStoreOptions = {
     apiExtraArgument?: ApiExtraArgument;
 };
 
 export const getPersistedState = (): Partial<RootState> => ({
-    [panelLayoutSlice.name]: getPersistedInitialState<PanelLayoutState, PanelLayoutState>(
-        panelLayoutPersistence
-    ),
-    [actionsPageSlice.name]: getPersistedInitialState<
+    [panelLayoutSlice.name]: persistentStateStorage.getInitialState<
+        PanelLayoutState,
+        PanelLayoutState
+    >(panelLayoutPersistence),
+    [actionsPageSlice.name]: persistentStateStorage.getInitialState<
         ActionsPageState,
         ReturnType<typeof actionsPagePersistence.pickPersistedState>
     >(actionsPagePersistence),
-    [datasetsPageSlice.name]: getPersistedInitialState<
+    [datasetsPageSlice.name]: persistentStateStorage.getInitialState<
         DatasetsPageState,
         ReturnType<typeof datasetsPagePersistence.pickPersistedState>
     >(datasetsPagePersistence),
-    [dashboardsPageSlice.name]: getPersistedInitialState<
+    [dashboardsPageSlice.name]: persistentStateStorage.getInitialState<
         DashboardsPageState,
         ReturnType<typeof dashboardsPagePersistence.pickPersistedState>
     >(dashboardsPagePersistence),
-    [filterApplicationEntitiesSlice.name]: getPersistedInitialState<
+    [filterApplicationEntitiesSlice.name]: persistentStateStorage.getInitialState<
         FilterApplicationEntitiesState,
         ReturnType<typeof filterApplicationEntitiesPersistence.pickPersistedState>
     >(filterApplicationEntitiesPersistence),
@@ -74,7 +75,7 @@ export function createStore(
         preloadedState,
     });
 
-    subscribePersistedSlices(store, [
+    persistentStateStorage.subscribeSlices(store, [
         {
             key: panelLayoutPersistence.key,
             selectPersistedState: state =>

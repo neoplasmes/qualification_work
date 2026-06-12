@@ -1,25 +1,20 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import {
-    clearPersistedState,
-    getPersistedInitialState,
-    loadPersistedState,
-    subscribePersistedSlices,
-} from './storePersistence';
+import { persistentStateStorage } from './persistentState';
 
-describe('storePersistence', () => {
+describe('persistentState', () => {
     beforeEach(() => {
         localStorage.clear();
     });
 
     it('loads fallback state when storage is empty or invalid', () => {
-        expect(loadPersistedState('missing', { selectedId: null })).toEqual({
+        expect(persistentStateStorage.load('missing', { selectedId: null })).toEqual({
             selectedId: null,
         });
 
         localStorage.setItem('broken', '{');
 
-        expect(loadPersistedState('broken', { selectedId: null })).toEqual({
+        expect(persistentStateStorage.load('broken', { selectedId: null })).toEqual({
             selectedId: null,
         });
     });
@@ -27,7 +22,7 @@ describe('storePersistence', () => {
     it('builds initial state through the slice descriptor', () => {
         localStorage.setItem('page', JSON.stringify({ selectedId: 'item-1' }));
 
-        const state = getPersistedInitialState({
+        const state = persistentStateStorage.getInitialState({
             key: 'page',
             fallbackState: { selectedId: null as string | null },
             getInitialState: persistedState => ({
@@ -44,7 +39,7 @@ describe('storePersistence', () => {
         localStorage.setItem('datasetsPage_v1', JSON.stringify({ selectedId: 'ds-1' }));
         localStorage.setItem('panelLayout_v2', JSON.stringify({ sizes: {} }));
 
-        clearPersistedState(['datasetsPage_v1']);
+        persistentStateStorage.clear(['datasetsPage_v1']);
 
         expect(localStorage.getItem('datasetsPage_v1')).toBeNull();
         expect(localStorage.getItem('panelLayout_v2')).toBe(
@@ -64,7 +59,7 @@ describe('storePersistence', () => {
             },
         };
 
-        subscribePersistedSlices(store, [
+        persistentStateStorage.subscribeSlices(store, [
             {
                 key: 'page',
                 selectPersistedState: rootState => ({

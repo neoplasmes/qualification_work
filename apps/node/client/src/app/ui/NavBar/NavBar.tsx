@@ -13,9 +13,17 @@ import { type FC } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 
-import { actionsWorkspaceIndexPath, isActionsWorkspacePath } from '@/pages/Actions';
+import {
+    actionsPagePersistence,
+    actionsWorkspaceIndexPath,
+    isActionsWorkspacePath,
+} from '@/pages/Actions';
 import { chartsWorkspaceIndexPath, isChartsWorkspacePath } from '@/pages/Charts';
-import { dashboardsWorkspaceIndexPath } from '@/pages/Dashboards';
+import {
+    dashboardsPagePersistence,
+    dashboardsWorkspaceIndexPath,
+} from '@/pages/Dashboards';
+import { datasetsPagePersistence } from '@/pages/Datasets';
 
 import {
     selectIsLeftCollapsed,
@@ -25,16 +33,18 @@ import {
 } from '@/widgets/WorkspaceGrid';
 
 import {
+    clearStoredActiveOrganization,
     useActiveOrganization,
     useGetMeQuery,
     useLogoutMutation,
 } from '@/features/authenticate';
+import { filterApplicationEntitiesPersistence } from '@/features/filterApplicationEntities';
 
 import { useHasMounted } from '@/shared/lib/useHasMounted';
 import { FormField, IconButton, Logo, Select } from '@/shared/ui';
 
-import { clearAuthenticatedSessionStorage } from '../../model/sessionPersistence';
-import { resetAuthenticatedSessionState } from '../../model/sessionState';
+import { persistentStateStorage } from '../../model/persistence';
+import { resetAuthenticatedSessionState } from '../../model/store';
 
 import styles from './NavBar.module.scss';
 
@@ -54,6 +64,19 @@ const navLinks = [
 ];
 
 const workspacePaths = new Set(['/datasets', '/dashboards']);
+
+const authenticatedSessionStorageKeys = [
+    actionsPagePersistence.key,
+    'chartsPage_v1',
+    datasetsPagePersistence.key,
+    dashboardsPagePersistence.key,
+    filterApplicationEntitiesPersistence.key,
+] as const;
+
+const clearAuthenticatedSessionStorage = () => {
+    persistentStateStorage.clear(authenticatedSessionStorageKeys);
+    clearStoredActiveOrganization();
+};
 
 const isActiveNavPath = (pathname: string, linkPath: string) => {
     if (linkPath === chartsWorkspaceIndexPath) {

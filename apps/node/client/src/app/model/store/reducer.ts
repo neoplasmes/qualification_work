@@ -1,4 +1,4 @@
-import { combineReducers } from '@reduxjs/toolkit';
+import { combineReducers, createAction } from '@reduxjs/toolkit';
 
 import { actionsPageSlice } from '@/pages/Actions';
 import { chartsPageSlice } from '@/pages/Charts';
@@ -11,7 +11,11 @@ import { filterApplicationEntitiesSlice } from '@/features/filterApplicationEnti
 
 import { api } from '@/shared/api';
 
-import { hydratePersistedState, resetAuthenticatedSessionState } from './sessionState';
+export const hydratePersistedState = createAction<object>('app/hydratePersistedState');
+
+export const resetAuthenticatedSessionState = createAction(
+    'app/resetAuthenticatedSessionState'
+);
 
 const appReducer = combineReducers({
     [api.reducerPath]: api.reducer,

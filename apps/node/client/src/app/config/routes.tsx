@@ -1,13 +1,13 @@
 import { redirect, type RouteObject } from 'react-router';
 
 import { Layout } from '@/app/ui/Layout';
+import { WorkspaceLayout } from '@/app/ui/WorkspaceLayout';
 
 import { Entrance, SignIn, SignUp } from '@/pages/Entrance';
 import { ProfilePage } from '@/pages/Profile';
 
 import { authApi } from '@/features/authenticate';
 
-import { WorkspaceLayout } from '../layouts/WorkspaceLayout';
 import type { AppStore } from '../model/store';
 
 /**

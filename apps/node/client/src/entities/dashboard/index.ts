@@ -3,6 +3,7 @@ export {
     useGetDashboardQuery,
     useListDashboardsQuery,
 } from './api';
+export { formatMetricValue } from './lib';
 export type {
     Dashboard,
     DashboardChartItem,

@@ -1,1 +1,0 @@
-export { AddMetricForm } from './AddMetricForm';

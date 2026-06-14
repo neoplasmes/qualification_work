@@ -8,10 +8,7 @@ import {
     resetDashboardsWorkspaceDraft,
     selectDashboard,
     setDashboardsWorkspaceDraftName,
-    setWorkspaceMetricExpression,
-    setWorkspaceMetricFormat,
-    setWorkspaceMetricName,
-    setWorkspaceMetricValueMultiplier,
+    setWorkspaceMetricForm,
 } from './dashboardsPageSlice';
 
 describe('dashboardsPageSlice', () => {
@@ -46,22 +43,27 @@ describe('dashboardsPageSlice', () => {
     it('stores and clears metric form fields', () => {
         let state = dashboardsPageSlice.reducer(
             dashboardsPageInitialState,
-            setWorkspaceMetricName('Average')
-        );
-        state = dashboardsPageSlice.reducer(
-            state,
-            setWorkspaceMetricExpression('avg(score)')
-        );
-        state = dashboardsPageSlice.reducer(state, setWorkspaceMetricFormat('%'));
-        state = dashboardsPageSlice.reducer(
-            state,
-            setWorkspaceMetricValueMultiplier('100')
+            setWorkspaceMetricForm({
+                name: 'Average',
+                expression: 'avg(score)',
+                format: '%',
+                valueMultiplier: '100',
+                target: '42',
+                targetDirection: 'higher',
+                showTrend: true,
+                timeColumn: 'created_at',
+                timeBucket: 'month',
+            })
         );
 
         expect(state.workspaceMetricName).toBe('Average');
         expect(state.workspaceMetricExpression).toBe('avg(score)');
         expect(state.workspaceMetricFormat).toBe('%');
         expect(state.workspaceMetricValueMultiplier).toBe('100');
+        expect(state.workspaceMetricTarget).toBe('42');
+        expect(state.workspaceMetricShowTrend).toBe(true);
+        expect(state.workspaceMetricTimeColumn).toBe('created_at');
+        expect(state.workspaceMetricTimeBucket).toBe('month');
 
         state = dashboardsPageSlice.reducer(state, clearWorkspaceMetricForm());
 
@@ -69,5 +71,9 @@ describe('dashboardsPageSlice', () => {
         expect(state.workspaceMetricExpression).toBe('');
         expect(state.workspaceMetricFormat).toBe('');
         expect(state.workspaceMetricValueMultiplier).toBe('1');
+        expect(state.workspaceMetricTarget).toBe('');
+        expect(state.workspaceMetricShowTrend).toBe(false);
+        expect(state.workspaceMetricTimeColumn).toBe('');
+        expect(state.workspaceMetricTimeBucket).toBe('');
     });
 });

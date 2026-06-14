@@ -110,6 +110,7 @@ const HookProbe = () => {
 describe('Config', () => {
     it('updates uncontrolled draft fields', () => {
         const handleChange = vi.fn();
+        const handleValueChange = vi.fn();
 
         render(
             <demoConfig.Root
@@ -118,7 +119,10 @@ describe('Config', () => {
                 toOutput={toOutput}
             >
                 <FormField label="Title">
-                    <demoConfig.Input bind={titleBind} />
+                    <demoConfig.Input
+                        bind={titleBind}
+                        onValueChange={handleValueChange}
+                    />
                 </FormField>
             </demoConfig.Root>
         );
@@ -128,6 +132,7 @@ describe('Config', () => {
         });
 
         expect(screen.getByLabelText('Title')).toHaveValue('Profit');
+        expect(handleValueChange).toHaveBeenCalledWith('Profit');
         expect(getLastCall<DemoDraft>(handleChange).title).toBe('Profit');
     });
 

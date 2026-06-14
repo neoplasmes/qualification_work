@@ -1,0 +1,25 @@
+@use '../../MetricBuilder.mixins' as metricBuilder;
+
+.section {
+    @include metricBuilder.wide;
+}
+
+.multiplier-input {
+    flex: 0 0 88px;
+}
+
+.multiplier-slider {
+    min-width: 96px;
+}
+
+@media (width <= 640px) {
+    .multiplier-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .multiplier-input {
+        width: 100%;
+        flex-basis: auto;
+    }
+}

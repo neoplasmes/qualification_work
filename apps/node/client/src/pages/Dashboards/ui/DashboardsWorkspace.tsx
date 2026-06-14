@@ -4,8 +4,10 @@ import {
 } from '@qualification-work/types';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus, Save } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { MetricBuilder } from '@/widgets/MetricBuilder';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
@@ -19,7 +21,6 @@ import { useGetDashboardQuery, useListDashboardsQuery } from '@/entities/dashboa
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { useHasOverflow } from '@/shared/lib/useHasOverflow';
 import { Button, Modal, PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../const';
@@ -35,7 +36,7 @@ import {
     useDashboardMetricModal,
     useDashboardsWorkspaceRouteSync,
 } from './lib';
-import { AddChartModal, AddMetricForm, DashboardWidgets } from './ui';
+import { AddChartModal, DashboardWidgets } from './ui';
 
 import styles from './DashboardsPage.module.scss';
 
@@ -43,7 +44,6 @@ const dashboardMetricFormId = 'dashboard-metric-form';
 
 export const DashboardsWorkspace = () => {
     const dispatch = useDispatch();
-    const workspaceRef = useRef<HTMLElement>(null);
     const [selectedChartIds, setSelectedChartIds] = useState<string[]>([]);
     const [activeModal, setActiveModal] = useState<'chart' | 'metric' | null>(null);
     const [error, setError] = useState('');
@@ -101,7 +101,9 @@ export const DashboardsWorkspace = () => {
         refetchDashboards: dashboardsQuery.refetch,
     });
     const isMetricSaveDisabled =
-        !metricModal.datasetId || !metricModal.expression.trim() || metricModal.disabled;
+        !metricModal.value.datasetId ||
+        !metricModal.value.expression.trim() ||
+        metricModal.disabled;
     const metricModalActions = (
         <Button
             type="submit"
@@ -118,7 +120,6 @@ export const DashboardsWorkspace = () => {
         </Button>
     );
 
-    useHasOverflow(workspaceRef);
     useDashboardsWorkspaceRouteSync(selectedDashboardId);
 
     useEffect(() => {
@@ -227,7 +228,6 @@ export const DashboardsWorkspace = () => {
 
     return (
         <section
-            ref={workspaceRef}
             className={styles['panel']}
             data-stack="v"
             data-gap="sm"
@@ -326,23 +326,14 @@ export const DashboardsWorkspace = () => {
                                 setActiveModal(null);
                             }}
                         >
-                            <AddMetricForm
+                            <MetricBuilder
                                 formId={dashboardMetricFormId}
                                 datasets={datasetsQuery.data}
-                                datasetId={metricModal.datasetId}
-                                metricName={metricModal.name}
-                                metricExpression={metricModal.expression}
-                                metricFormat={metricModal.format}
-                                metricValueMultiplier={metricModal.valueMultiplier}
-                                config={metricModal.config}
+                                value={metricModal.value}
                                 error={metricModal.error}
                                 editing={metricModal.editing}
-                                onDatasetChange={metricModal.setDatasetId}
-                                onNameChange={metricModal.setName}
-                                onExpressionChange={metricModal.setExpression}
-                                onFormatChange={metricModal.setFormat}
-                                onValueMultiplierChange={metricModal.setValueMultiplier}
-                                onConfigChange={metricModal.setConfig}
+                                onChange={metricModal.setValue}
+                                onOutputChange={metricModal.setOutput}
                                 onSubmit={event => {
                                     void metricModal.submit(event).then(saved => {
                                         if (saved) {

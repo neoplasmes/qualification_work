@@ -1,4 +1,4 @@
-import type { FormEvent, RefObject } from 'react';
+import type { FormEvent } from 'react';
 
 import type { ChartConfig, ChartResponse } from '@/entities/chart';
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
@@ -39,7 +39,6 @@ export type ChartBuilderDerivedState = {
 };
 
 export type DatasetChartBuilderViewModel = {
-    builderRef: RefObject<HTMLElement | null>;
     chartError: string;
     derived: ChartBuilderDerivedState;
     editMode: boolean;

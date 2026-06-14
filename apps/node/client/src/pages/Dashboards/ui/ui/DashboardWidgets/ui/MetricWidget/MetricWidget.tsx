@@ -1,18 +1,13 @@
 import { Pencil, X } from 'lucide-react';
 
-import type { DashboardItem } from '@/entities/dashboard';
+import { formatMetricValue, type DashboardItem } from '@/entities/dashboard';
 import type { DatasetColumn } from '@/entities/dataset';
 
 import { Card, IconButton, Separator, Sparkline } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../../../const';
 
-import {
-    formatMetricValue,
-    metricProgress,
-    metricTargetDelta,
-    useMeasuredElementSize,
-} from '../../lib';
+import { metricProgress, metricTargetDelta, useMeasuredElementSize } from '../../lib';
 import { WidgetSourceLabel } from '../WidgetSourceLabel';
 import { getMetricTrendDescription, getMetricWidgetLayout } from './lib';
 import { MetricTrendDescription } from './ui';

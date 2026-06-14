@@ -1,4 +1,3 @@
-export { formatMetricValue } from './formatMetricValue';
 export {
     metricProgress,
     metricTargetDelta,

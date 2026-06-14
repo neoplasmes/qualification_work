@@ -1,0 +1,9 @@
+@use './MetricBuilder.mixins' as metricBuilder;
+
+.form.form {
+    @include metricBuilder.form-grid;
+}
+
+.error {
+    @include metricBuilder.wide;
+}

@@ -1,6 +1,6 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Eye, PencilLine } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
@@ -19,7 +19,6 @@ import {
 import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
-import { useHasOverflow } from '@/shared/lib/useHasOverflow';
 import { PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
@@ -66,7 +65,6 @@ const CHARTS_WORKSPACE_MODE_TABS = [
 export const ChartsWorkspace = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const workspaceRef = useRef<HTMLElement>(null);
     const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
 
     const selectedChartId = useSelector(selectSelectedChartId);
@@ -81,7 +79,6 @@ export const ChartsWorkspace = () => {
     const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
-    useHasOverflow(workspaceRef);
     useChartsWorkspaceRouteSync({
         selectedChartId,
         builderDatasetId,
@@ -166,7 +163,6 @@ export const ChartsWorkspace = () => {
     return (
         <>
             <section
-                ref={workspaceRef}
                 className={styles['panel']}
                 data-stack="v"
                 data-gap="sm"

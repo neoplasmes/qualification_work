@@ -1,9 +1,8 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
 import { type ChartConfig, type ChartResponse } from '@/entities/chart';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { useHasOverflow } from '@/shared/lib/useHasOverflow';
 
 import {
     useCreateChartMutation,
@@ -37,7 +36,6 @@ export const useDatasetChartBuilder = ({
     const [previewChart, previewState] = usePreviewChartDataMutation();
     const [createChart, createChartState] = useCreateChartMutation();
     const [updateChart, updateChartState] = useUpdateChartMutation();
-    const builderRef = useRef<HTMLElement>(null);
     const fields = useChartBuilderState({
         datasetId: selectedDataset.dataset.id,
         initialOverrides: initialFields,
@@ -47,8 +45,6 @@ export const useDatasetChartBuilder = ({
     const columns = selectedDataset.columns;
     const editMode = Boolean(editChartId);
     const derived = useChartBuilderDerivedState({ columns, fields, editMode });
-
-    useHasOverflow(builderRef);
 
     const onDimensionColumnChange = (newId: string) => {
         const newType = columns.find(c => c.id === newId)?.dataType;
@@ -236,7 +232,6 @@ export const useDatasetChartBuilder = ({
     };
 
     return {
-        builderRef,
         chartError,
         derived,
         editMode,

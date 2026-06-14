@@ -87,39 +87,6 @@ export const dashboardsPageSlice = createSlice({
         setDashboardsWorkspaceDraftName(state, action: PayloadAction<string>) {
             state.workspaceDraftName = action.payload;
         },
-        setWorkspaceMetricName(state, action: PayloadAction<string>) {
-            state.workspaceMetricName = action.payload;
-        },
-        setWorkspaceMetricExpression(state, action: PayloadAction<string>) {
-            state.workspaceMetricExpression = action.payload;
-        },
-        setWorkspaceMetricFormat(state, action: PayloadAction<MetricFormat>) {
-            state.workspaceMetricFormat = action.payload;
-        },
-        setWorkspaceMetricValueMultiplier(state, action: PayloadAction<string>) {
-            state.workspaceMetricValueMultiplier = action.payload;
-        },
-        setWorkspaceMetricTarget(state, action: PayloadAction<string>) {
-            state.workspaceMetricTarget = action.payload;
-        },
-        setWorkspaceMetricTargetDirection(
-            state,
-            action: PayloadAction<MetricTargetDirection>
-        ) {
-            state.workspaceMetricTargetDirection = action.payload;
-        },
-        setWorkspaceMetricShowTrend(state, action: PayloadAction<boolean>) {
-            state.workspaceMetricShowTrend = action.payload;
-        },
-        setWorkspaceMetricTimeColumn(state, action: PayloadAction<string>) {
-            state.workspaceMetricTimeColumn = action.payload;
-        },
-        setWorkspaceMetricTimeBucket(
-            state,
-            action: PayloadAction<MetricTimeBucket | ''>
-        ) {
-            state.workspaceMetricTimeBucket = action.payload;
-        },
         clearWorkspaceMetricForm(state) {
             state.workspaceMetricName = '';
             state.workspaceMetricExpression = '';
@@ -146,15 +113,6 @@ export const {
     initDashboardsWorkspaceDraft,
     resetDashboardsWorkspaceDraft,
     setDashboardsWorkspaceDraftName,
-    setWorkspaceMetricName,
-    setWorkspaceMetricExpression,
-    setWorkspaceMetricFormat,
-    setWorkspaceMetricValueMultiplier,
-    setWorkspaceMetricTarget,
-    setWorkspaceMetricTargetDirection,
-    setWorkspaceMetricShowTrend,
-    setWorkspaceMetricTimeColumn,
-    setWorkspaceMetricTimeBucket,
     clearWorkspaceMetricForm,
     setWorkspaceMetricForm,
 } = dashboardsPageSlice.actions;

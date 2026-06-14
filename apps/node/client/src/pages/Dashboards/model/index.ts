@@ -20,16 +20,7 @@ export {
     setDashboardsRightPanelTab,
     selectDashboardsRightPanelTab,
     setDashboardsWorkspaceDraftName,
-    setWorkspaceMetricExpression,
     setWorkspaceMetricForm,
-    setWorkspaceMetricFormat,
-    setWorkspaceMetricName,
-    setWorkspaceMetricValueMultiplier,
-    setWorkspaceMetricTarget,
-    setWorkspaceMetricTargetDirection,
-    setWorkspaceMetricShowTrend,
-    setWorkspaceMetricTimeColumn,
-    setWorkspaceMetricTimeBucket,
 } from './dashboardsPageSlice';
 export type {
     DashboardsPageState,

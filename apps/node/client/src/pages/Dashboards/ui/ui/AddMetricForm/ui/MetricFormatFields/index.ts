@@ -1,1 +1,0 @@
-export { MetricFormatFields } from './MetricFormatFields';

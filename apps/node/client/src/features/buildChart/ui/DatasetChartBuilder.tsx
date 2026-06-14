@@ -40,7 +40,6 @@ export const DatasetChartBuilder = (props: DatasetChartBuilderProps) => {
 
     return (
         <section
-            ref={model.builderRef}
             className={styles['builder']}
             data-stack="v"
             data-gap="md"

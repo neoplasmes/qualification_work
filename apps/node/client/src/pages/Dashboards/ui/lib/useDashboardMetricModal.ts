@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import type { MetricBuilderDraft, MetricBuilderOutput } from '@/widgets/MetricBuilder';
+
 import {
     useAddDashboardMetricMutation,
     useUpdateDashboardMetricMutation,
@@ -22,16 +24,7 @@ import {
     selectWorkspaceMetricTimeBucket,
     selectWorkspaceMetricTimeColumn,
     selectWorkspaceMetricValueMultiplier,
-    setWorkspaceMetricExpression,
     setWorkspaceMetricForm,
-    setWorkspaceMetricFormat,
-    setWorkspaceMetricName,
-    setWorkspaceMetricShowTrend,
-    setWorkspaceMetricTarget,
-    setWorkspaceMetricTargetDirection,
-    setWorkspaceMetricTimeBucket,
-    setWorkspaceMetricTimeColumn,
-    setWorkspaceMetricValueMultiplier,
     type WorkspaceMetricForm,
 } from '../../model';
 
@@ -43,14 +36,6 @@ type UseDashboardMetricModalParams = {
     refetchDashboard: Refetch;
     refetchDashboards: Refetch;
 };
-
-/**
- * the goal and trend config slice of the metric form, edited as one object
- */
-export type MetricConfigForm = Pick<
-    WorkspaceMetricForm,
-    'target' | 'targetDirection' | 'showTrend' | 'timeColumn' | 'timeBucket'
->;
 
 const getFirstDatasetId = (datasets: DatasetMetadata[] | undefined) =>
     datasets?.[0]?.dataset.id ?? '';
@@ -92,6 +77,8 @@ export const useDashboardMetricModal = ({
     const dispatch = useDispatch();
     const [selectedDatasetId, setSelectedDatasetId] = useState('');
     const [editingMetricId, setEditingMetricId] = useState<string | null>(null);
+    const [metricBuilderOutput, setMetricBuilderOutput] =
+        useState<MetricBuilderOutput | null>(null);
     const [error, setError] = useState('');
 
     const name = useSelector(selectWorkspaceMetricName);
@@ -115,34 +102,56 @@ export const useDashboardMetricModal = ({
         });
     }, [datasets]);
 
-    const config = useMemo<MetricConfigForm>(
-        () => ({ target, targetDirection, showTrend, timeColumn, timeBucket }),
-        [target, targetDirection, showTrend, timeColumn, timeBucket]
+    const value = useMemo<MetricBuilderDraft>(
+        () => ({
+            datasetId: selectedDatasetId,
+            name,
+            expression,
+            format,
+            valueMultiplier,
+            target,
+            targetDirection,
+            showTrend,
+            timeColumn,
+            timeBucket,
+        }),
+        [
+            expression,
+            format,
+            name,
+            selectedDatasetId,
+            showTrend,
+            target,
+            targetDirection,
+            timeBucket,
+            timeColumn,
+            valueMultiplier,
+        ]
     );
 
-    const setConfig = useCallback(
-        (patch: Partial<MetricConfigForm>) => {
-            if (patch.target !== undefined) {
-                dispatch(setWorkspaceMetricTarget(patch.target));
-            }
-            if (patch.targetDirection !== undefined) {
-                dispatch(setWorkspaceMetricTargetDirection(patch.targetDirection));
-            }
-            if (patch.showTrend !== undefined) {
-                dispatch(setWorkspaceMetricShowTrend(patch.showTrend));
-            }
-            if (patch.timeColumn !== undefined) {
-                dispatch(setWorkspaceMetricTimeColumn(patch.timeColumn));
-            }
-            if (patch.timeBucket !== undefined) {
-                dispatch(setWorkspaceMetricTimeBucket(patch.timeBucket));
-            }
+    const setValue = useCallback(
+        (next: MetricBuilderDraft) => {
+            setSelectedDatasetId(next.datasetId);
+            dispatch(
+                setWorkspaceMetricForm({
+                    name: next.name,
+                    expression: next.expression,
+                    format: next.format,
+                    valueMultiplier: next.valueMultiplier,
+                    target: next.target,
+                    targetDirection: next.targetDirection,
+                    showTrend: next.showTrend,
+                    timeColumn: next.timeColumn,
+                    timeBucket: next.timeBucket,
+                })
+            );
         },
         [dispatch]
     );
 
     const openAdd = useCallback(() => {
         setEditingMetricId(null);
+        setMetricBuilderOutput(null);
         setError('');
         setSelectedDatasetId(getFirstDatasetId(datasets));
         dispatch(clearWorkspaceMetricForm());
@@ -151,6 +160,7 @@ export const useDashboardMetricModal = ({
     const openEdit = useCallback(
         (item: DashboardMetricItem) => {
             setEditingMetricId(item.id);
+            setMetricBuilderOutput({ datasetId: item.datasetId, ...itemToForm(item) });
             setError('');
             setSelectedDatasetId(item.datasetId);
             dispatch(setWorkspaceMetricForm(itemToForm(item)));
@@ -160,55 +170,30 @@ export const useDashboardMetricModal = ({
 
     const close = useCallback(() => {
         setEditingMetricId(null);
+        setMetricBuilderOutput(null);
         setError('');
         dispatch(clearWorkspaceMetricForm());
     }, [dispatch]);
-
-    const setName = useCallback(
-        (value: string) => {
-            dispatch(setWorkspaceMetricName(value));
-        },
-        [dispatch]
-    );
-
-    const setExpression = useCallback(
-        (value: string) => {
-            dispatch(setWorkspaceMetricExpression(value));
-        },
-        [dispatch]
-    );
-
-    const setFormat = useCallback(
-        (value: DashboardMetricItem['format']) => {
-            dispatch(setWorkspaceMetricFormat(value));
-        },
-        [dispatch]
-    );
-
-    const setValueMultiplier = useCallback(
-        (value: string) => {
-            dispatch(setWorkspaceMetricValueMultiplier(value));
-        },
-        [dispatch]
-    );
 
     const submit = useCallback(
         async (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
 
-            if (!dashboard || !selectedDatasetId) {
+            const submitValue = metricBuilderOutput ?? value;
+
+            if (!dashboard || !submitValue.datasetId) {
                 return false;
             }
 
-            const nextName = name.trim();
-            const nextExpression = expression.trim();
+            const nextName = submitValue.name.trim();
+            const nextExpression = submitValue.expression.trim();
             if (!nextName || !nextExpression) {
                 setError('Metric name and expression are required.');
 
                 return false;
             }
 
-            const trimmedTarget = target.trim();
+            const trimmedTarget = submitValue.target.trim();
             const parsedTarget = trimmedTarget === '' ? null : Number(trimmedTarget);
             if (parsedTarget !== null && !Number.isFinite(parsedTarget)) {
                 setError('Target must be a number.');
@@ -216,7 +201,7 @@ export const useDashboardMetricModal = ({
                 return false;
             }
 
-            const trimmedValueMultiplier = valueMultiplier.trim();
+            const trimmedValueMultiplier = submitValue.valueMultiplier.trim();
             const parsedValueMultiplier =
                 trimmedValueMultiplier === '' ? 1 : Number(trimmedValueMultiplier);
             if (!Number.isFinite(parsedValueMultiplier)) {
@@ -227,10 +212,11 @@ export const useDashboardMetricModal = ({
 
             const configPayload = {
                 target: parsedTarget,
-                targetDirection: parsedTarget === null ? null : targetDirection,
-                showTrend,
-                timeColumn: timeColumn || null,
-                timeBucket: timeBucket || null,
+                targetDirection:
+                    parsedTarget === null ? null : submitValue.targetDirection,
+                showTrend: submitValue.showTrend,
+                timeColumn: submitValue.timeColumn || null,
+                timeBucket: submitValue.timeBucket || null,
             };
 
             try {
@@ -239,20 +225,20 @@ export const useDashboardMetricModal = ({
                     await updateDashboardMetric({
                         dashboardId: dashboard.id,
                         itemId: editingMetricId,
-                        datasetId: selectedDatasetId,
+                        datasetId: submitValue.datasetId,
                         name: nextName,
                         expression: nextExpression,
-                        format: format.trim(),
+                        format: submitValue.format.trim(),
                         valueMultiplier: parsedValueMultiplier,
                         ...configPayload,
                     }).unwrap();
                 } else {
                     await addDashboardMetric({
                         dashboardId: dashboard.id,
-                        datasetId: selectedDatasetId,
+                        datasetId: submitValue.datasetId,
                         name: nextName,
                         expression: nextExpression,
-                        format: format.trim(),
+                        format: submitValue.format.trim(),
                         valueMultiplier: parsedValueMultiplier,
                         ...configPayload,
                     }).unwrap();
@@ -278,41 +264,24 @@ export const useDashboardMetricModal = ({
             close,
             dashboard,
             editingMetricId,
-            expression,
-            format,
-            name,
+            metricBuilderOutput,
             refetchDashboard,
             refetchDashboards,
-            selectedDatasetId,
-            showTrend,
-            target,
-            targetDirection,
-            timeBucket,
-            timeColumn,
             updateDashboardMetric,
-            valueMultiplier,
+            value,
         ]
     );
 
     return {
-        datasetId: selectedDatasetId,
         disabled: addState.isLoading || updateState.isLoading,
         editing: editingMetricId !== null,
         error,
-        expression,
-        format,
-        valueMultiplier,
-        name,
-        config,
+        value,
         close,
         openAdd,
         openEdit,
-        setDatasetId: setSelectedDatasetId,
-        setExpression,
-        setFormat,
-        setValueMultiplier,
-        setName,
-        setConfig,
+        setOutput: setMetricBuilderOutput,
+        setValue,
         submit,
     };
 };

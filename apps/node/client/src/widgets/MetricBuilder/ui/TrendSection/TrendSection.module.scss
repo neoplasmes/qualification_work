@@ -1,0 +1,5 @@
+@use '../../MetricBuilder.mixins' as metricBuilder;
+
+.section {
+    @include metricBuilder.wide;
+}

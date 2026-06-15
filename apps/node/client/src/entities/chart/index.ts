@@ -1,4 +1,4 @@
-export type { Aggregate, ChartKind } from './lib';
+export type { ChartKind } from './lib';
 export {
     AGGREGATE_LABELS,
     FILTER_OP_LABELS,
@@ -20,16 +20,4 @@ export {
     useLazyGetChartDataQuery,
     useLazyGetChartQuery,
     useListChartsQuery,
-} from './api';
-export type {
-    Chart,
-    ChartConfig,
-    ChartResponse,
-    ChartResultColumn,
-    ChartType,
-    FilterClause,
-    FilterOperation,
-    GetChartDataPayload,
-    MeasureValueFormat,
-    TimeGranularity,
 } from './api';

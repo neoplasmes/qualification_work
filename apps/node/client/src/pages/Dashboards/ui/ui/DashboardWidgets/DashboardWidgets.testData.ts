@@ -1,4 +1,5 @@
-import type { Chart } from '@/entities/chart';
+import type { Chart } from '@qualification-work/types';
+
 import type { DashboardItem } from '@/entities/dashboard';
 
 export const chart: Chart = {

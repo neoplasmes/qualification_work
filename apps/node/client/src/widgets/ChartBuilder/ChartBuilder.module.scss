@@ -1,0 +1,10 @@
+@use './ChartBuilder.mixins' as chartBuilder;
+
+.form.form {
+    @include chartBuilder.form-grid;
+}
+
+.error,
+.preview {
+    @include chartBuilder.wide;
+}

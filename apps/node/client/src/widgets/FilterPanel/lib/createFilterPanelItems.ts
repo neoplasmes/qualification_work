@@ -1,9 +1,10 @@
+import type { Chart } from '@qualification-work/types';
+
 import type {
     FilterApplicationEntity,
     FilterApplicationScope,
 } from '@/features/filterApplicationEntities';
 
-import type { Chart } from '@/entities/chart';
 import type { Dashboard } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
@@ -59,17 +60,14 @@ export const createFilterPanelItems = ({
     entity,
     sources,
 }: CreateFilterPanelItemsParams): FilterPanelItem[] | undefined => {
-    if (entity === 'datasets') {
-        return createDatasetItems(scope, sources.datasets);
+    switch (entity) {
+        case 'datasets':
+            return createDatasetItems(scope, sources.datasets);
+        case 'charts':
+            return createChartItems(sources.charts);
+        case 'dashboards':
+            return createDashboardItems(sources.dashboards);
+        default:
+            return sources.effects;
     }
-
-    if (entity === 'charts') {
-        return createChartItems(sources.charts);
-    }
-
-    if (entity === 'dashboards') {
-        return createDashboardItems(sources.dashboards);
-    }
-
-    return sources.effects;
 };

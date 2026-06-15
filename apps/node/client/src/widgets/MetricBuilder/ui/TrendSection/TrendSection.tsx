@@ -5,11 +5,7 @@ import type { DatasetMetadata } from '@/entities/dataset';
 
 import { FormField } from '@/shared/ui';
 
-import {
-    disableMetricTrendOutput,
-    metricBuilderBinds,
-    metricBuilderConfig,
-} from '../../model';
+import { metricBuilderConfig } from '../../model';
 
 import styles from './TrendSection.module.scss';
 
@@ -18,7 +14,7 @@ type TrendSectionProps = {
 };
 
 export const TrendSection = ({ datasets }: TrendSectionProps) => {
-    const datasetIdInput = metricBuilderConfig.useInput(metricBuilderBinds.datasetId);
+    const datasetIdInput = metricBuilderConfig.useInput('datasetId');
     const selectedDataset = useMemo(
         () => datasets?.find(item => item.dataset.id === datasetIdInput.value) ?? null,
         [datasets, datasetIdInput.value]
@@ -33,12 +29,11 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
         <metricBuilderConfig.Section
             name="Trend"
             explain="Show a sparkline of the value over time."
-            enabledBind={metricBuilderBinds.showTrend}
-            disabledOutput={disableMetricTrendOutput}
+            enabledField="showTrend"
             className={styles['section']}
         >
             <FormField label="Time column">
-                <metricBuilderConfig.Select bind={metricBuilderBinds.timeColumn}>
+                <metricBuilderConfig.Select field="timeColumn">
                     <option value="">Auto</option>
                     {dateColumns.map(column => (
                         <option key={column.id} value={column.key}>
@@ -48,7 +43,7 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
                 </metricBuilderConfig.Select>
             </FormField>
             <FormField label="Bucket">
-                <metricBuilderConfig.Select bind={metricBuilderBinds.timeBucket}>
+                <metricBuilderConfig.Select field="timeBucket">
                     <option value="">Auto</option>
                     {metricTimeBuckets.map(bucket => (
                         <option key={bucket} value={bucket}>

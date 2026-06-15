@@ -1,8 +1,8 @@
+import type { ChartResultColumn } from '@qualification-work/types';
 import { useMemo } from 'react';
 
 import { compareCategoryLabels } from '@/shared/lib/dayOfWeek';
 
-import type { ChartResultColumn } from '../../../../api';
 import { DEFAULT_CHART_COLOR } from '../../../../lib';
 
 import {

@@ -2,7 +2,7 @@ import type {
     ChartResultColumn,
     MeasureValueFormat,
     TimeGranularity,
-} from '../../../../api';
+} from '@qualification-work/types';
 
 export type HeatmapCell = {
     x: string;

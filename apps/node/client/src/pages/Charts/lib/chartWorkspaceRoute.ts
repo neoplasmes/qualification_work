@@ -2,6 +2,8 @@ import type { ChartsWorkspaceMode } from '../model';
 
 const chartsBasePath = '/charts';
 
+export const chartsWorkspaceNewPath = `${chartsBasePath}/new`;
+
 export const isChartsWorkspacePath = (pathname: string) =>
     pathname === chartsBasePath || pathname.startsWith(`${chartsBasePath}/`);
 

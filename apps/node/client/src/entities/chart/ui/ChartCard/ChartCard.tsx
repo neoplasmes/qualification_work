@@ -1,6 +1,7 @@
+import type { Chart, ChartResponse } from '@qualification-work/types';
+
 import { formatDate } from '@/shared/lib/formatDate';
 
-import type { Chart, ChartResponse } from '../../api';
 import { BAR_CHART_ROWS_LIMIT } from '../../const';
 import { getChartColorFromConfig } from '../../lib';
 import { ChartConfigSummary } from '../ChartConfigSummary';

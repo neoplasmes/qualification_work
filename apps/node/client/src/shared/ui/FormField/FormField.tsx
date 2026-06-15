@@ -21,9 +21,9 @@ export const FormField = ({
     ...props
 }: FormFieldProps) => (
     <label
-        data-display={dataStack ? dataDisplay : (dataDisplay ?? 'grid')}
+        data-display={dataStack ? dataDisplay : dataDisplay}
         data-gap={dataGap ?? 'xs'}
-        data-stack={dataStack}
+        data-stack={dataStack ?? 'v'}
         className={[error ? styles['error'] : '', className ?? '']
             .filter(Boolean)
             .join(' ')}

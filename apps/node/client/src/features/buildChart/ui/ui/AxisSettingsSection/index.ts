@@ -1,1 +1,0 @@
-export { AxisSettingsSection } from './AxisSettingsSection';

@@ -7,7 +7,6 @@ import { FormField, SegmentedControl, type SegmentedControlOption } from '@/shar
 import { metricBuilderTestIds } from '../../const';
 import { metricAggregateOptions, type MetricExpressionMode } from '../../lib';
 import {
-    metricBuilderBinds,
     metricBuilderConfig,
     useMetricExpressionBuilder,
     useMetricPreview,
@@ -33,14 +32,11 @@ export const ExpressionSection = ({
     onBuilderMetricNameChange,
 }: ExpressionSectionProps) => {
     const lastAutoMetricNameRef = useRef('');
-    const datasetIdInput = metricBuilderConfig.useInput(metricBuilderBinds.datasetId);
-    const expressionInput = metricBuilderConfig.useInput(metricBuilderBinds.expression);
-    const nameInput = metricBuilderConfig.useInput(metricBuilderBinds.name);
-    const formatInput = metricBuilderConfig.useInput(metricBuilderBinds.format);
-
-    const valueMultiplierInput = metricBuilderConfig.useInput(
-        metricBuilderBinds.valueMultiplier
-    );
+    const datasetIdInput = metricBuilderConfig.useInput('datasetId');
+    const expressionInput = metricBuilderConfig.useInput('expression');
+    const nameInput = metricBuilderConfig.useInput('name');
+    const formatInput = metricBuilderConfig.useInput('format');
+    const valueMultiplierInput = metricBuilderConfig.useInput('valueMultiplier');
     const selectedDataset = useMemo(
         () => datasets?.find(item => item.dataset.id === datasetIdInput.value) ?? null,
         [datasets, datasetIdInput.value]
@@ -119,7 +115,7 @@ export const ExpressionSection = ({
         <div className={styles['expression-row']}>
             <FormField label="Expression" data-flex>
                 <metricBuilderConfig.Input
-                    bind={metricBuilderBinds.expression}
+                    field="expression"
                     data-test-id={metricBuilderTestIds.expressionInput}
                     placeholder="avg(score)"
                     readOnly={expressionMode === 'builder'}

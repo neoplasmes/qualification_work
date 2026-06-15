@@ -1,5 +1,6 @@
 export {
     chartsWorkspaceIndexPath,
+    chartsWorkspaceNewPath,
     getChartsWorkspaceBasePath,
     getChartWorkspaceModeFromPath,
     getChartWorkspaceUrl,

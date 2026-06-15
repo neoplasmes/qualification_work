@@ -1,7 +1,7 @@
+import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
 import { Axis, BarSeries, Grid, XYChart, type EventHandlerParams } from '@visx/xychart';
 import { useMemo, useState } from 'react';
 
-import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
 import { DEFAULT_CHART_COLOR, mixChartColors } from '../../../../lib';
 import { formatAxisNumber } from '../../../../lib/formatChartCell';
 import type { ChartDataPoint, ChartSeries } from '../../../../lib/parseChartData';

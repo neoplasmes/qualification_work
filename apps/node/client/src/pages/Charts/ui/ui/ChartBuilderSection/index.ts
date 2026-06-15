@@ -1,4 +1,2 @@
-export {
-    CreateChartBuilderSection,
-    EditChartBuilderSection,
-} from './ChartBuilderSection';
+export { CreateChartBuilderSection } from './CreateChartBuilderSection';
+export { EditChartBuilderSection } from './EditChartBuilderSection';

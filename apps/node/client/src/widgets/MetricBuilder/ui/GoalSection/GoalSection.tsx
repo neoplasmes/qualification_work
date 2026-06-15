@@ -8,7 +8,7 @@ import {
     type SegmentedControlOption,
 } from '@/shared/ui';
 
-import { metricBuilderBinds, metricBuilderConfig } from '../../model';
+import { metricBuilderConfig } from '../../model';
 
 import styles from './GoalSection.module.scss';
 
@@ -22,10 +22,8 @@ type GoalSectionProps = {
 };
 
 export const GoalSection = ({ metricName }: GoalSectionProps) => {
-    const targetInput = metricBuilderConfig.useInput(metricBuilderBinds.target);
-    const targetDirectionInput = metricBuilderConfig.useInput(
-        metricBuilderBinds.targetDirection
-    );
+    const targetInput = metricBuilderConfig.useInput('target');
+    const targetDirectionInput = metricBuilderConfig.useInput('targetDirection');
     const hasTarget = targetInput.value.trim() !== '';
     const targetLabel = (
         <span data-display="inline-flex" data-gap="xs" data-align="center">
@@ -42,7 +40,7 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
         <metricBuilderConfig.Section name="Goal" className={styles['section']}>
             <FormField label={targetLabel}>
                 <metricBuilderConfig.Input
-                    bind={metricBuilderBinds.target}
+                    field="target"
                     type="number"
                     inputMode="decimal"
                     placeholder={getValueTypePlaceholder('number')}

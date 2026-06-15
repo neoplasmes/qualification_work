@@ -4,8 +4,6 @@ import type {
     TimeGranularity,
 } from '@qualification-work/types';
 
-export type { Aggregate };
-
 export const AGGREGATE_LABELS: Record<Aggregate, string> = {
     count: 'Count',
     sum: 'Sum',

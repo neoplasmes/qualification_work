@@ -1,5 +1,6 @@
+import type { Chart } from '@qualification-work/types';
+
 import type { Action } from '@/entities/action';
-import type { Chart } from '@/entities/chart';
 import type { Dashboard } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 

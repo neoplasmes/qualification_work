@@ -1,18 +1,25 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import type { ChartBuilderFields } from '@/features/buildChart';
+import type { ChartBuilderDraft, ChartBuilderOutput } from '@/widgets/ChartBuilder';
 
 export type ChartsRightPanelTab = 'properties' | 'filters';
 export type ChartsWorkspaceMode = 'view' | 'edit';
 
 export type ChartsEditDraft = {
     chartId: string;
-    fields: ChartBuilderFields;
+    draft: ChartBuilderDraft;
+    output: ChartBuilderOutput | null;
+};
+
+export type ChartsCreateDraft = {
+    datasetId: string;
+    draft: ChartBuilderDraft;
+    output: ChartBuilderOutput | null;
 };
 
 export type ChartsPageState = {
     selectedChartId: string | null;
-    builderDatasetId: string | null;
+    createDraft: ChartsCreateDraft | null;
     showDatasetPicker: boolean;
     chartsRightPanelTab: ChartsRightPanelTab;
     workspaceMode: ChartsWorkspaceMode;
@@ -23,7 +30,7 @@ type StateWithChartsPage = { chartsPage: ChartsPageState };
 
 export const chartsPageInitialState: ChartsPageState = {
     selectedChartId: null,
-    builderDatasetId: null,
+    createDraft: null,
     showDatasetPicker: false,
     chartsRightPanelTab: 'properties',
     workspaceMode: 'view',
@@ -38,7 +45,7 @@ export const chartsPageSlice = createSlice({
             const chartChanged = state.selectedChartId !== action.payload;
 
             state.selectedChartId = action.payload;
-            state.builderDatasetId = null;
+            state.createDraft = null;
             state.showDatasetPicker = false;
 
             if (chartChanged) {
@@ -56,7 +63,7 @@ export const chartsPageSlice = createSlice({
             const chartChanged = state.selectedChartId !== action.payload.chartId;
 
             state.selectedChartId = action.payload.chartId;
-            state.builderDatasetId = null;
+            state.createDraft = null;
             state.showDatasetPicker = false;
             state.workspaceMode = action.payload.mode;
 
@@ -64,12 +71,34 @@ export const chartsPageSlice = createSlice({
                 state.editDraft = null;
             }
         },
-        setBuilderDatasetId(state, action: PayloadAction<string | null>) {
-            state.builderDatasetId = action.payload;
+        openNewChartRoute(state) {
+            state.selectedChartId = null;
+            state.workspaceMode = 'view';
+            state.editDraft = null;
+            if (!state.createDraft) {
+                state.showDatasetPicker = true;
+            }
+        },
+        setChartCreateDraft(state, action: PayloadAction<ChartsCreateDraft>) {
+            state.createDraft = action.payload;
             state.selectedChartId = null;
             state.showDatasetPicker = false;
             state.workspaceMode = 'view';
             state.editDraft = null;
+        },
+        setChartCreateDraftValue(state, action: PayloadAction<ChartBuilderDraft>) {
+            if (state.createDraft) {
+                state.createDraft.draft = action.payload;
+            }
+        },
+        setChartCreateOutput(state, action: PayloadAction<ChartBuilderOutput>) {
+            if (state.createDraft) {
+                state.createDraft.output = action.payload;
+            }
+        },
+        clearChartCreateDraft(state) {
+            state.createDraft = null;
+            state.showDatasetPicker = false;
         },
         setShowDatasetPicker(state, action: PayloadAction<boolean>) {
             state.showDatasetPicker = action.payload;
@@ -83,6 +112,22 @@ export const chartsPageSlice = createSlice({
         setChartEditDraft(state, action: PayloadAction<ChartsEditDraft>) {
             state.editDraft = action.payload;
         },
+        setChartEditDraftValue(
+            state,
+            action: PayloadAction<{ chartId: string; draft: ChartBuilderDraft }>
+        ) {
+            if (state.editDraft?.chartId === action.payload.chartId) {
+                state.editDraft.draft = action.payload.draft;
+            }
+        },
+        setChartEditOutput(
+            state,
+            action: PayloadAction<{ chartId: string; output: ChartBuilderOutput }>
+        ) {
+            if (state.editDraft?.chartId === action.payload.chartId) {
+                state.editDraft.output = action.payload.output;
+            }
+        },
         clearChartEditDraft(state, action: PayloadAction<string | undefined>) {
             if (!action.payload || state.editDraft?.chartId === action.payload) {
                 state.editDraft = null;
@@ -93,10 +138,16 @@ export const chartsPageSlice = createSlice({
 
 export const {
     clearChartEditDraft,
+    clearChartCreateDraft,
     openChartRoute,
+    openNewChartRoute,
     selectChart,
-    setBuilderDatasetId,
+    setChartCreateDraft,
+    setChartCreateDraftValue,
+    setChartCreateOutput,
     setChartEditDraft,
+    setChartEditDraftValue,
+    setChartEditOutput,
     setShowDatasetPicker,
     setChartsRightPanelTab,
     setChartsWorkspaceMode,
@@ -104,8 +155,10 @@ export const {
 
 export const selectSelectedChartId = (state: StateWithChartsPage) =>
     state.chartsPage.selectedChartId;
-export const selectBuilderDatasetId = (state: StateWithChartsPage) =>
-    state.chartsPage.builderDatasetId;
+export const selectChartCreateDatasetId = (state: StateWithChartsPage) =>
+    state.chartsPage.createDraft?.datasetId ?? null;
+export const selectChartCreateDraft = (state: StateWithChartsPage) =>
+    state.chartsPage.createDraft;
 export const selectShowDatasetPicker = (state: StateWithChartsPage) =>
     state.chartsPage.showDatasetPicker;
 export const selectChartsRightPanelTab = (state: StateWithChartsPage) =>

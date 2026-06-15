@@ -1,6 +1,7 @@
+import type { ChartResponse } from '@qualification-work/types';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-import { useGetChartDataQuery, type ChartResponse } from '@/entities/chart';
+import { useGetChartDataQuery } from '@/entities/chart';
 
 import { getApiErrorMessage } from '@/shared/api';
 

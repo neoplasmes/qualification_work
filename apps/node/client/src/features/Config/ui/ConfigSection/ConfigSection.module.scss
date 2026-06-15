@@ -1,6 +1,8 @@
-.header {
+.root {
     width: 100%;
+}
 
+.header {
     color: var(--color-outline);
     font-size: var(--font-size-xs);
     font-weight: 700;
@@ -8,6 +10,6 @@
     letter-spacing: 0.05em;
 }
 
-.header-hidden {
+.root-hidden {
     margin-bottom: calc(var(--spacing-sm) * -1);
 }

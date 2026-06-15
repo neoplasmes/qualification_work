@@ -158,7 +158,7 @@ describe('ChartsLeftPanel', () => {
         await user.click(screen.getByRole('button', { name: /Revenue/ }));
         await user.click(getByDataTestId(container, chartsTestIds.createChartButton));
 
-        expect(selectSelectedChartId(store.getState())).toBe('chart-1');
+        expect(selectSelectedChartId(store.getState())).toBeNull();
         expect(selectShowDatasetPicker(store.getState())).toBe(true);
     });
 

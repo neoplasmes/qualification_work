@@ -1,0 +1,6 @@
+@use '../../ChartBuilder.mixins' as chartBuilder;
+
+.section,
+.preview {
+    @include chartBuilder.section;
+}

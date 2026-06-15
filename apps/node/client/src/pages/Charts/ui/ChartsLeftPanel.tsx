@@ -20,8 +20,8 @@ import { formatDate } from '@/shared/lib/formatDate';
 import { WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
-import { getChartWorkspaceUrl } from '../lib';
-import { selectChart, selectSelectedChartId, setShowDatasetPicker } from '../model';
+import { chartsWorkspaceNewPath, getChartWorkspaceUrl } from '../lib';
+import { openNewChartRoute, selectChart, selectSelectedChartId } from '../model';
 
 const chartIconSize = 18;
 
@@ -68,8 +68,8 @@ export const ChartsLeftPanel = () => {
                 Icon: Plus,
                 testId: chartsTestIds.createChartButton,
                 onClick: () => {
-                    navigate('/charts');
-                    dispatch(setShowDatasetPicker(true));
+                    dispatch(openNewChartRoute());
+                    navigate(chartsWorkspaceNewPath);
                 },
             }}
         >

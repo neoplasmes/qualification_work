@@ -1,0 +1,1 @@
+export { ChartBarChartSection } from './ChartBarChartSection';

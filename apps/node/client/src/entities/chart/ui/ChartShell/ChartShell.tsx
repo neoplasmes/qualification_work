@@ -1,6 +1,6 @@
+import type { ChartResultColumn } from '@qualification-work/types';
 import { type ReactNode } from 'react';
 
-import type { ChartResultColumn } from '../../api';
 import { BAR_CHART_ROWS_LIMIT } from '../../const';
 import type { ChartKind } from '../../lib/chartKind';
 import { parseChartResult } from '../../lib/parseChartData';

@@ -11,8 +11,9 @@ export {
 export type {
     ConfigBind,
     ConfigBinding,
+    ConfigFieldKey,
+    ConfigInputSource,
     ConfigMutator,
     ConfigSetter,
     ConfigSnapshot,
-    ConfigToOutput,
 } from './model';

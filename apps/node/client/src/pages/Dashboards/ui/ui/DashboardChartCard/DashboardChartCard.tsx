@@ -1,7 +1,8 @@
+import type { Chart } from '@qualification-work/types';
 import { Pencil, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
-import { ChartCard, useGetChartDataQuery, type Chart } from '@/entities/chart';
+import { ChartCard, useGetChartDataQuery } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
 import type { DatasetColumn } from '@/entities/dataset';
 

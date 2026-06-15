@@ -5,6 +5,7 @@ export {
     ChartsWorkspaceRightPanel,
 } from './ui';
 export {
+    chartsWorkspaceNewPath,
     chartsWorkspaceIndexPath,
     getChartWorkspaceUrl,
     getChartWorkspaceModeFromPath,

@@ -1,23 +1,4 @@
-import type {
-    Aggregate,
-    AxisGrouping,
-    CreateChartPayload,
-    CreateChartResponse,
-    MeasureValueFormat,
-    PreviewChartPayload,
-    TimeGranularity,
-    UpdateChartPayload as UpdateChartBodyPayload,
-} from '@qualification-work/types';
-
-export type {
-    Aggregate,
-    AxisGrouping,
-    CreateChartPayload,
-    CreateChartResponse,
-    MeasureValueFormat,
-    PreviewChartPayload,
-    TimeGranularity,
-};
+import type { UpdateChartPayload as UpdateChartBodyPayload } from '@qualification-work/types';
 
 export type UpdateChartPayload = UpdateChartBodyPayload & {
     chartId: string;

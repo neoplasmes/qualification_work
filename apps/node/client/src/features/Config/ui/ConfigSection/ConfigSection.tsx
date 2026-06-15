@@ -1,24 +1,24 @@
-import { useEffect, useId, useMemo, type ReactNode } from 'react';
+import { useId, useMemo, type ReactNode } from 'react';
 
 import { Explain, Separator, Switch } from '@/shared/ui';
 
-import {
-    useConfigInput,
-    useConfigStoreContext,
-    type ConfigBind,
-    type ConfigMutator,
-} from '../../model';
+import { useConfigInput, type ConfigBind, type ConfigFieldKey } from '../../model';
 
 import styles from './ConfigSection.module.scss';
 
+/**
+ * Props for a visual config section with optional enabled state binding
+ *
+ * @template T - draft object shape managed by the surrounding config root
+ */
 export type ConfigSectionProps<T extends object> = {
     name: string;
     explain?: ReactNode;
     children: ReactNode;
     enabled?: boolean;
     enabledBind?: ConfigBind<T, boolean>;
+    enabledField?: ConfigFieldKey<T, boolean>;
     onEnabledChange?: (enabled: boolean) => void;
-    disabledOutput?: ConfigMutator<T>;
     className?: string;
 };
 
@@ -33,51 +33,31 @@ export const ConfigSection = <T extends object>({
     children,
     enabled,
     enabledBind,
+    enabledField,
     onEnabledChange,
-    disabledOutput,
     className,
 }: ConfigSectionProps<T>) => {
-    const store = useConfigStoreContext<T, T>();
-    const sectionId = useId();
     const labelId = useId();
-    const enabledInput = useConfigInput(
-        (enabledBind ?? fallbackEnabledBind) as ConfigBind<T, boolean>
-    );
+    const enabledSource =
+        enabledBind ?? enabledField ?? (fallbackEnabledBind as ConfigBind<T, boolean>);
+    const enabledInput = useConfigInput(enabledSource as ConfigBind<T, boolean>);
 
-    const hasBindToggle = enabledBind !== undefined;
+    const hasBindToggle = enabledBind !== undefined || enabledField !== undefined;
     const hasExternalToggle = enabled !== undefined;
     const hasSwitch = hasBindToggle || hasExternalToggle;
     const checked = hasBindToggle ? enabledInput.value : enabled !== false;
     const switchDisabled = hasExternalToggle && !onEnabledChange;
 
-    const headerClassName = useMemo(
+    const rootClassName = useMemo(
         () =>
-            [styles['header'], !checked ? styles['header-hidden'] : '', className ?? '']
+            [styles['root'], !checked ? styles['root-hidden'] : '', className ?? '']
                 .filter(Boolean)
                 .join(' '),
         [checked, className]
     );
 
-    useEffect(() => {
-        if (!hasSwitch || !disabledOutput) {
-            return;
-        }
-
-        const rule = {
-            id: sectionId,
-            enabled: checked,
-            apply: disabledOutput,
-        };
-
-        store.addDisabledSectionOutputRule(rule);
-
-        return () => {
-            store.removeDisabledSectionOutputRule(rule);
-        };
-    }, [checked, disabledOutput, hasSwitch, sectionId, store]);
-
     const handleEnabledChange = (nextEnabled: boolean) => {
-        if (enabledBind) {
+        if (hasBindToggle) {
             enabledInput.setValue(nextEnabled);
 
             return;
@@ -87,9 +67,9 @@ export const ConfigSection = <T extends object>({
     };
 
     return (
-        <>
+        <section className={rootClassName} data-stack="v" data-gap="sm">
             <div
-                className={headerClassName}
+                className={styles['header']}
                 data-stack="h"
                 data-gap="sm"
                 data-align="center"
@@ -112,7 +92,11 @@ export const ConfigSection = <T extends object>({
                     />
                 )}
             </div>
-            {checked && children}
-        </>
+            {checked && (
+                <div data-config-section-body data-stack="v" data-gap="sm">
+                    {children}
+                </div>
+            )}
+        </section>
     );
 };

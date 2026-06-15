@@ -1,4 +1,4 @@
-import { dashboardChartDefaultHeight } from '@qualification-work/types';
+import { dashboardChartDefaultHeight, type Chart } from '@qualification-work/types';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Chart } from '@/entities/chart';
 import type { Dashboard } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
@@ -176,6 +175,12 @@ vi.mock('@/entities/dataset', () => ({
 }));
 
 vi.mock('@/entities/dashboard', () => ({
+    formatMetricValue: (value: unknown) =>
+        typeof value === 'number'
+            ? new Intl.NumberFormat('ru-RU', {
+                  maximumFractionDigits: 2,
+              }).format(value)
+            : String(value ?? ''),
     useListDashboardsQuery: () => ({
         data: [dashboard],
         isLoading: false,

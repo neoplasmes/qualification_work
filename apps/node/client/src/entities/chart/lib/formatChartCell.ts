@@ -1,7 +1,7 @@
+import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+
 import { decorateFormattedNumber } from '@/shared/lib/formatNumberSuffix';
 import { formatNumberWithSpaces } from '@/shared/lib/formatNumberWithSpaces';
-
-import type { MeasureValueFormat, TimeGranularity } from '../api';
 
 // matches ISO datetime with timezone: 2024-01-15T10:00:00.000Z or 2024-01-15T10:00:00+03:00
 const ISO_TZ_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})$/;

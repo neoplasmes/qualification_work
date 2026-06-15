@@ -5,8 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { FormField } from '@/shared/ui';
 
+import { ConfigStore } from '../model';
+
 type DemoDraft = {
     title: string;
+    viewMode: 'table' | 'chart';
     filterEnabled: boolean;
     filter: {
         column: string;
@@ -19,14 +22,11 @@ type DemoDraft = {
     }[];
 };
 
-type DemoOutput = DemoDraft & {
-    summary: string;
-};
-
-const demoConfig = createConfig<DemoDraft, DemoOutput>();
+const demoConfig = createConfig<DemoDraft>();
 
 const defaultDraft: DemoDraft = {
     title: 'Revenue',
+    viewMode: 'chart',
     filterEnabled: true,
     filter: {
         column: 'status',
@@ -40,11 +40,6 @@ const defaultDraft: DemoDraft = {
         },
     ],
 };
-
-const toOutput = (normalizedDraft: DemoDraft): DemoOutput => ({
-    ...normalizedDraft,
-    summary: normalizedDraft.filter.column || 'none',
-});
 
 const titleBind = {
     get: draft => draft.title,
@@ -83,12 +78,6 @@ const measureAggregateOptions = [
     { value: 'count', label: 'Count' },
 ] as const;
 
-const disableFilterOutput = (draft: DemoDraft) => {
-    draft.filter.column = '';
-    draft.filter.mode = 'eq';
-    draft.filter.value = '';
-};
-
 const getLastCall = <T,>(mock: ReturnType<typeof vi.fn>) =>
     mock.mock.calls.at(-1)?.[0] as T;
 
@@ -99,7 +88,7 @@ const HookProbe = () => {
     return (
         <div>
             <span data-testid="hook-title">{title.value}</span>
-            <span data-testid="hook-summary">{config.output.summary}</span>
+            <span data-testid="hook-view-mode">{config.draft.viewMode}</span>
             <button type="button" onClick={() => title.setValue('Hook title')}>
                 Set hook title
             </button>
@@ -108,16 +97,42 @@ const HookProbe = () => {
 };
 
 describe('Config', () => {
+    it('does not read bind value when setting a direct value', () => {
+        const store = new ConfigStore<Pick<DemoDraft, 'title'>>({ title: 'Revenue' });
+        const bind = {
+            get: vi.fn(draft => draft.title),
+            set: vi.fn((draft, value) => {
+                draft.title = value;
+            }),
+        } satisfies ConfigBind<Pick<DemoDraft, 'title'>, string>;
+
+        store.setValue(bind, 'Profit');
+
+        expect(bind.get).not.toHaveBeenCalled();
+        expect(bind.set).toHaveBeenCalledWith({ title: 'Profit' }, 'Profit');
+    });
+
+    it('reads bind value when setting with a function', () => {
+        const store = new ConfigStore<Pick<DemoDraft, 'title'>>({ title: 'Revenue' });
+        const bind = {
+            get: vi.fn(draft => draft.title),
+            set: vi.fn((draft, value) => {
+                draft.title = value;
+            }),
+        } satisfies ConfigBind<Pick<DemoDraft, 'title'>, string>;
+
+        store.setValue(bind, (title: string) => `${title} net`);
+
+        expect(bind.get).toHaveBeenCalledTimes(1);
+        expect(bind.set).toHaveBeenCalledWith({ title: 'Revenue net' }, 'Revenue net');
+    });
+
     it('updates uncontrolled draft fields', () => {
         const handleChange = vi.fn();
         const handleValueChange = vi.fn();
 
         render(
-            <demoConfig.Root
-                defaultValue={defaultDraft}
-                onChange={handleChange}
-                toOutput={toOutput}
-            >
+            <demoConfig.Root defaultValue={defaultDraft} onChange={handleChange}>
                 <FormField label="Title">
                     <demoConfig.Input
                         bind={titleBind}
@@ -140,11 +155,7 @@ describe('Config', () => {
         const handleChange = vi.fn();
 
         render(
-            <demoConfig.Root
-                value={defaultDraft}
-                onChange={handleChange}
-                toOutput={toOutput}
-            >
+            <demoConfig.Root value={defaultDraft} onChange={handleChange}>
                 <FormField label="Title">
                     <demoConfig.Input bind={titleBind} />
                 </FormField>
@@ -163,11 +174,7 @@ describe('Config', () => {
         const handleChange = vi.fn();
 
         render(
-            <demoConfig.Root
-                defaultValue={defaultDraft}
-                onChange={handleChange}
-                toOutput={toOutput}
-            >
+            <demoConfig.Root defaultValue={defaultDraft} onChange={handleChange}>
                 <FormField label="Column">
                     <demoConfig.Input bind={filterColumnBind} />
                 </FormField>
@@ -193,21 +200,59 @@ describe('Config', () => {
         expect(nextDraft.measures[0]?.aggregate).toBe('count');
     });
 
-    it('hides disabled sections, keeps draft values and normalizes output', async () => {
+    it('updates flat fields by field names', async () => {
         const user = userEvent.setup();
-        const handleOutputChange = vi.fn();
+        const handleChange = vi.fn();
 
         render(
-            <demoConfig.Root
-                defaultValue={defaultDraft}
-                onOutputChange={handleOutputChange}
-                toOutput={toOutput}
-            >
+            <demoConfig.Root defaultValue={defaultDraft} onChange={handleChange}>
+                <FormField label="Title">
+                    <demoConfig.Input field="title" />
+                </FormField>
+                <FormField label="View mode">
+                    <demoConfig.Select field="viewMode">
+                        <option value="chart">Chart</option>
+                        <option value="table">Table</option>
+                    </demoConfig.Select>
+                </FormField>
+                <demoConfig.Section name="Filter" enabledField="filterEnabled">
+                    <span>Filter content</span>
+                </demoConfig.Section>
+            </demoConfig.Root>
+        );
+
+        await user.clear(screen.getByLabelText('Title'));
+        await user.type(screen.getByLabelText('Title'), 'Profit');
+        await user.selectOptions(screen.getByLabelText('View mode'), 'table');
+        await user.click(screen.getByRole('switch', { name: 'Filter' }));
+
+        await waitFor(() =>
+            expect(
+                handleChange.mock.calls.some(call => {
+                    const draft = call[0] as DemoDraft;
+
+                    return (
+                        draft.title === 'Profit' &&
+                        draft.viewMode === 'table' &&
+                        draft.filterEnabled === false
+                    );
+                })
+            ).toBe(true)
+        );
+        await waitFor(() =>
+            expect(screen.queryByText('Filter content')).not.toBeInTheDocument()
+        );
+    });
+
+    it('hides disabled sections and keeps draft values', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <demoConfig.Root defaultValue={defaultDraft}>
                 <demoConfig.Section
                     name="Filter"
                     explain="Restrict rows before aggregation."
                     enabledBind={filterEnabledBind}
-                    disabledOutput={disableFilterOutput}
                 >
                     <FormField label="Column">
                         <demoConfig.Input bind={filterColumnBind} />
@@ -221,26 +266,18 @@ describe('Config', () => {
         await user.click(screen.getByRole('switch', { name: 'Filter' }));
 
         expect(screen.queryByLabelText('Column')).not.toBeInTheDocument();
-        await waitFor(() =>
-            expect(getLastCall<DemoOutput>(handleOutputChange).filter.column).toBe('')
-        );
 
         await user.click(screen.getByRole('switch', { name: 'Filter' }));
 
         expect(screen.getByLabelText('Column')).toHaveValue('country');
         expect(screen.getByLabelText('Explain Filter')).toBeInTheDocument();
-        await waitFor(() =>
-            expect(getLastCall<DemoOutput>(handleOutputChange).filter.column).toBe(
-                'country'
-            )
-        );
     });
 
     it('supports renderless input and typed hooks', async () => {
         const user = userEvent.setup();
 
         render(
-            <demoConfig.Root defaultValue={defaultDraft} toOutput={toOutput}>
+            <demoConfig.Root defaultValue={defaultDraft}>
                 <demoConfig.InputPropRenderer bind={titleBind}>
                     {field => (
                         <button
@@ -256,7 +293,7 @@ describe('Config', () => {
         );
 
         expect(screen.getByTestId('hook-title')).toHaveTextContent('Revenue');
-        expect(screen.getByTestId('hook-summary')).toHaveTextContent('status');
+        expect(screen.getByTestId('hook-view-mode')).toHaveTextContent('chart');
 
         await user.click(screen.getByRole('button', { name: 'Set input title' }));
         expect(screen.getByTestId('hook-title')).toHaveTextContent('Input title');
@@ -270,11 +307,7 @@ describe('Config', () => {
             expect(event.defaultPrevented).toBe(true);
         });
         const { container } = render(
-            <demoConfig.Root
-                defaultValue={defaultDraft}
-                onSubmit={handleSubmit}
-                toOutput={toOutput}
-            >
+            <demoConfig.Root defaultValue={defaultDraft} onSubmit={handleSubmit}>
                 <button type="submit">Save</button>
             </demoConfig.Root>
         );

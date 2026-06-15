@@ -1,4 +1,5 @@
-import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
+import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+
 import { DEFAULT_CHART_COLOR } from '../../../../lib';
 import type { ChartSeries } from '../../../../lib/parseChartData';
 

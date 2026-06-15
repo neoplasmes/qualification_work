@@ -3,7 +3,7 @@ import type { DatasetMetadata } from '@/entities/dataset';
 import { FormField, Slider } from '@/shared/ui';
 
 import { metricBuilderTestIds } from '../../const';
-import { metricBuilderBinds, metricBuilderConfig } from '../../model';
+import { metricBuilderConfig } from '../../model';
 
 import styles from './MetricsSection.module.scss';
 
@@ -36,10 +36,8 @@ export const MetricsSection = ({
     metricNamePlaceholder,
     onMetricNameDirtyChange,
 }: MetricsSectionProps) => {
-    const formatInput = metricBuilderConfig.useInput(metricBuilderBinds.format);
-    const valueMultiplierInput = metricBuilderConfig.useInput(
-        metricBuilderBinds.valueMultiplier
-    );
+    const formatInput = metricBuilderConfig.useInput('format');
+    const valueMultiplierInput = metricBuilderConfig.useInput('valueMultiplier');
 
     const handleFormatValueChange = (value: string) => {
         const normalizedMultiplier = valueMultiplierInput.value.trim();
@@ -57,7 +55,7 @@ export const MetricsSection = ({
         <metricBuilderConfig.Section name="Metrics" className={styles['section']}>
             <FormField label="Dataset">
                 <metricBuilderConfig.Select
-                    bind={metricBuilderBinds.datasetId}
+                    field="datasetId"
                     data-test-id={metricBuilderTestIds.datasetSelect}
                 >
                     {datasets?.map(item => (
@@ -69,7 +67,7 @@ export const MetricsSection = ({
             </FormField>
             <FormField label="Metric name">
                 <metricBuilderConfig.Input
-                    bind={metricBuilderBinds.name}
+                    field="name"
                     data-test-id={metricBuilderTestIds.nameInput}
                     placeholder={metricNamePlaceholder || 'Average score'}
                     onValueChange={() => {
@@ -79,7 +77,7 @@ export const MetricsSection = ({
             </FormField>
             <FormField label="Format">
                 <metricBuilderConfig.Input
-                    bind={metricBuilderBinds.format}
+                    field="format"
                     data-test-id={metricBuilderTestIds.formatInput}
                     maxLength={metricFormatMaxLength}
                     placeholder="%, ₽, шт"
@@ -94,7 +92,7 @@ export const MetricsSection = ({
                     data-align="center"
                 >
                     <metricBuilderConfig.Input
-                        bind={metricBuilderBinds.valueMultiplier}
+                        field="valueMultiplier"
                         className={styles['multiplier-input']}
                         data-test-id={metricBuilderTestIds.valueMultiplierInput}
                         type="number"

@@ -27,13 +27,13 @@ const metricBuilderExpressionPattern = /^\s*(avg|sum|min|max|count)\s*\(([\s\S]*
 const legacyMetricColumnPattern = /^[^,()+\-*/%]+$/u;
 
 /**
- * Formats a column key so generated expressions work with simple and special names.
+ * Formats a column key so generated expressions work with simple and special names
  */
 export const formatMetricColumnRef = (columnKey: string) =>
     metricIdentifierPattern.test(columnKey) ? columnKey : JSON.stringify(columnKey);
 
 /**
- * Reads a column reference from saved or typed expressions, including old raw keys.
+ * Reads a column reference from saved or typed expressions, including old raw keys
  */
 const parseMetricColumnRef = (value: string): string | null => {
     const trimmed = value.trim();
@@ -60,7 +60,7 @@ const parseMetricColumnRef = (value: string): string | null => {
 };
 
 /**
- * Detects formulas the visual builder can edit when an existing metric is opened.
+ * Detects formulas the visual builder can edit when an existing metric is opened
  */
 export const parseMetricBuilderExpression = (
     expression: string
@@ -84,7 +84,7 @@ export const parseMetricBuilderExpression = (
 };
 
 /**
- * Keeps the column picker focused on fields that fit the selected aggregate.
+ * Keeps the column picker focused on fields that fit the selected aggregate
  */
 export const getMetricExpressionColumns = (
     columns: DatasetColumn[],
@@ -98,7 +98,7 @@ export const getMetricExpressionColumns = (
 };
 
 /**
- * Creates the formula that the visual builder previews and saves for a metric.
+ * Creates the formula that the visual builder previews and saves for a metric
  */
 export const buildMetricExpression = (
     aggregate: MetricAggregate,
@@ -112,7 +112,7 @@ export const buildMetricExpression = (
 };
 
 /**
- * Creates a clear default name so a new metric starts with a useful label.
+ * Creates a clear default name so a new metric starts with a useful label
  */
 export const buildMetricName = (
     aggregate: MetricAggregate,

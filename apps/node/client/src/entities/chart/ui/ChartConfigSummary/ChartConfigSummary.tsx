@@ -1,12 +1,12 @@
-import type { ChartType, FilterClause, FilterOperation } from '@qualification-work/types';
+import type {
+    Aggregate,
+    ChartType,
+    FilterClause,
+    FilterOperation,
+} from '@qualification-work/types';
 import { Fragment, type ReactNode } from 'react';
 
-import {
-    AGGREGATE_LABELS,
-    FILTER_OP_SHORT,
-    GRANULARITY_LABELS,
-    type Aggregate,
-} from '../../lib/labels';
+import { AGGREGATE_LABELS, FILTER_OP_SHORT, GRANULARITY_LABELS } from '../../lib/labels';
 
 import styles from './ChartConfigSummary.module.scss';
 

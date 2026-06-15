@@ -1,3 +1,4 @@
+import type { Chart, ChartResponse } from '@qualification-work/types';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,16 +6,15 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ChartBuilderFields } from '@/features/buildChart';
+import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
 
-import type { Chart, ChartResponse } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { chartsTestIds } from '../const';
 import {
     chartsPageInitialState,
     chartsPageSlice,
-    selectBuilderDatasetId,
+    selectChartCreateDatasetId,
     selectSelectedChartId,
     selectShowDatasetPicker,
     type ChartsPageState,
@@ -51,10 +51,7 @@ const chartResponse = vi.hoisted(
     () =>
         ({
             kind: 'bar',
-            columns: [
-                { name: 'month', role: 'dim', type: 'string' },
-                { name: 'amount', role: 'measure', type: 'number' },
-            ],
+            columns: [{ name: 'month', role: 'dim', type: 'string' }],
             rows: [['Jan', 120]],
             truncated: false,
             aggregatedAt: '2026-01-01T00:00:00.000Z',
@@ -120,80 +117,79 @@ vi.mock('@/entities/dataset', () => ({
 }));
 
 vi.mock('@/features/buildChart', () => ({
-    configToBuilderFields: () => ({
+    usePatchChartMutation: () => [mocks.patchChart, { isLoading: false }],
+}));
+
+vi.mock('@/widgets/ChartBuilder', () => ({
+    configToBuilderDraft: () => ({
         chartType: 'bar',
         dimensionColumnId: 'column-1',
     }),
-    createChartBuilderFields: (overrides: Partial<ChartBuilderFields> = {}) => ({
+    createChartBuilderDraft: (overrides = {}) => ({
         chartName: '',
         chartColor: '#8a6cff',
         chartType: 'bar',
-        dimensionColumnId: '',
-        dimensionGroupingMode: 'none',
-        dimensionGranularity: 'month',
-        dimensionStep: 10,
-        heatmapYColumnId: '',
-        heatmapYGroupingMode: 'none',
-        heatmapYGranularity: 'month',
-        heatmapYStep: 10,
-        measures: [{ aggregate: 'count', valueFormat: '', columnId: '' }],
-        limit: 24,
-        topN: 12,
-        seriesEnabled: false,
-        seriesColumnId: '',
-        seriesTopN: 8,
-        seriesOtherBucket: true,
-        filterEnabled: false,
-        filterColumnId: '',
-        filterOperation: 'eq',
-        filterValue: '',
         ...overrides,
     }),
-    usePatchChartMutation: () => [mocks.patchChart, { isLoading: false }],
-    DatasetChartBuilder: ({
+    ChartBuilder: ({
         selectedDataset,
         onChartCreated,
         editChartId,
         value,
         onChange,
+        onOutputChange,
         onChartUpdated,
     }: {
         selectedDataset: DatasetMetadata;
         editChartId?: string;
-        value?: ChartBuilderFields;
-        onChange?: (fields: ChartBuilderFields) => void;
+        value?: ReturnType<typeof createChartBuilderDraft>;
+        onChange?: (draft: ReturnType<typeof createChartBuilderDraft>) => void;
+        onOutputChange?: (output: unknown) => void;
         onChartCreated?: (chartId: string) => void;
         onChartUpdated?: (chartId: string) => void;
-    }) => (
-        <div data-testid="chart-builder">
-            Builder for {selectedDataset.dataset.name}
-            <span data-testid="builder-mode">{editChartId ? 'edit' : 'create'}</span>
-            <span data-testid="builder-name">{value?.chartName ?? ''}</span>
-            <span data-testid="builder-type">{value?.chartType ?? ''}</span>
-            <button
-                type="button"
-                onClick={() =>
-                    value &&
-                    onChange?.({
-                        ...value,
-                        chartName: 'Unsaved Revenue',
-                        chartType: 'line',
-                    })
-                }
-            >
-                Change builder
-            </button>
-            <button
-                type="button"
-                onClick={() => onChartUpdated?.(editChartId ?? 'chart-1')}
-            >
-                Save edit
-            </button>
-            <button type="button" onClick={() => onChartCreated?.('chart-new')}>
-                Save chart
-            </button>
-        </div>
-    ),
+    }) => {
+        const nextDraft = value
+            ? { ...value, chartName: 'Unsaved Revenue', chartType: 'line' as const }
+            : null;
+
+        return (
+            <div data-testid="chart-builder">
+                Builder for {selectedDataset.dataset.name}
+                <span data-testid="builder-mode">{editChartId ? 'edit' : 'create'}</span>
+                <span data-testid="builder-name">{value?.chartName ?? ''}</span>
+                <span data-testid="builder-type">{value?.chartType ?? ''}</span>
+                <button
+                    type="button"
+                    onClick={() => {
+                        if (!nextDraft) {
+                            return;
+                        }
+
+                        onChange?.(nextDraft);
+                        onOutputChange?.({
+                            chartName: nextDraft.chartName,
+                            chartColor: nextDraft.chartColor,
+                            chartType: nextDraft.chartType,
+                            config: null,
+                            error: '',
+                            canPreview: true,
+                        });
+                    }}
+                >
+                    Change builder
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onChartUpdated?.(editChartId ?? 'chart-1')}
+                >
+                    Save edit
+                </button>
+                <button type="button" onClick={() => onChartCreated?.('chart-new')}>
+                    Save chart
+                </button>
+            </div>
+        );
+    },
 }));
 
 const renderWorkspace = (
@@ -265,7 +261,7 @@ describe('ChartsWorkspace', () => {
         const { store } = renderWorkspace({}, '/charts/edit?id=chart-1');
 
         await user.click(await screen.findByRole('button', { name: 'Change builder' }));
-        expect(store.getState().chartsPage.editDraft?.fields.chartName).toBe(
+        expect(store.getState().chartsPage.editDraft?.draft.chartName).toBe(
             'Unsaved Revenue'
         );
 
@@ -291,24 +287,57 @@ describe('ChartsWorkspace', () => {
 
     it('selects a dataset from modal and finishes builder creation', async () => {
         const user = userEvent.setup();
-        const { store } = renderWorkspace({ showDatasetPicker: true });
+        const { store } = renderWorkspace({}, '/charts/new');
+
+        expect(
+            await screen.findByRole('button', { name: /Invoices/ })
+        ).toBeInTheDocument();
+        expect(selectShowDatasetPicker(store.getState())).toBe(true);
 
         await user.click(screen.getByRole('button', { name: /Invoices/ }));
 
-        expect(selectBuilderDatasetId(store.getState())).toBe('dataset-1');
+        expect(selectChartCreateDatasetId(store.getState())).toBe('dataset-1');
         expect(selectShowDatasetPicker(store.getState())).toBe(false);
         expect(screen.getByTestId('chart-builder')).toHaveTextContent('Invoices');
 
         await user.click(screen.getByRole('button', { name: 'Save chart' }));
 
         await waitFor(() => expect(mocks.refetchCharts).toHaveBeenCalledTimes(1));
-        expect(selectBuilderDatasetId(store.getState())).toBeNull();
+        expect(selectChartCreateDatasetId(store.getState())).toBeNull();
         expect(selectSelectedChartId(store.getState())).toBe('chart-new');
+    });
+
+    it('stores create builder draft while new chart page stays open', async () => {
+        const user = userEvent.setup();
+        const { store } = renderWorkspace(
+            {
+                createDraft: {
+                    datasetId: 'dataset-1',
+                    draft: createChartBuilderDraft({ chartName: 'Started' }),
+                    output: null,
+                },
+            },
+            '/charts/new'
+        );
+
+        expect(await screen.findByTestId('builder-name')).toHaveTextContent('Started');
+
+        await user.click(screen.getByRole('button', { name: 'Change builder' }));
+
+        expect(store.getState().chartsPage.createDraft?.draft.chartName).toBe(
+            'Unsaved Revenue'
+        );
     });
 
     it('cancels chart creation from the builder header', async () => {
         const user = userEvent.setup();
-        const { store } = renderWorkspace({ builderDatasetId: 'dataset-1' });
+        const { store } = renderWorkspace({
+            createDraft: {
+                datasetId: 'dataset-1',
+                draft: createChartBuilderDraft(),
+                output: null,
+            },
+        });
 
         expect(screen.getByTestId('chart-builder')).toBeInTheDocument();
         expect(
@@ -317,7 +346,7 @@ describe('ChartsWorkspace', () => {
 
         await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-        expect(selectBuilderDatasetId(store.getState())).toBeNull();
+        expect(selectChartCreateDatasetId(store.getState())).toBeNull();
         expect(screen.queryByTestId('chart-builder')).not.toBeInTheDocument();
     });
 

@@ -1,29 +1,15 @@
-import type {
-    ConfigBind,
-    ConfigMutator,
-    ConfigSetter,
-    ConfigSnapshot,
-    ConfigToOutput,
-    DisabledOutputRule,
-} from './types';
+import type { ConfigBind, ConfigMutator, ConfigSetter, ConfigSnapshot } from './types';
 
-type ConfigStoreOptions<T extends object, O> = {
+type ConfigStoreOptions<T extends object> = {
     onChange?: (draft: T) => void;
-    onOutputChange?: (output: O) => void;
-    configToOutput?: ConfigToOutput<T, O>;
 };
 
 function resolveNext<T>(current: T, next: ConfigSetter<T>) {
     return typeof next === 'function' ? (next as (current: T) => T)(current) : next;
 }
 
-export class ConfigStore<T extends object, O> {
+export class ConfigStore<T extends object> {
     private readonly listeners = new Set<() => void>();
-
-    private readonly disabledSectionOutputRules = new Map<
-        string,
-        DisabledOutputRule<T>
-    >();
 
     /**
      * draft is the very config that is configured in this store
@@ -32,23 +18,15 @@ export class ConfigStore<T extends object, O> {
      */
     private draft: T;
 
-    /**
-     * config modification that will be sent outside of the store
-     *
-     * @private
-     */
-    private output: O;
-
-    private snapshot: ConfigSnapshot<T, O>;
-    private options: ConfigStoreOptions<T, O> = {};
+    private snapshot: ConfigSnapshot<T>;
+    private options: ConfigStoreOptions<T> = {};
 
     constructor(initialDraft: T) {
         this.draft = initialDraft;
-        this.output = initialDraft as unknown as O;
         this.snapshot = this.createSnapshot();
     }
 
-    setOptions(options: ConfigStoreOptions<T, O>) {
+    setOptions(options: ConfigStoreOptions<T>) {
         this.options = options;
     }
 
@@ -102,8 +80,6 @@ export class ConfigStore<T extends object, O> {
         if (shouldNotifyChange) {
             this.options.onChange?.(this.draft);
         }
-
-        this.notifyOutputChange();
     }
 
     getValue<V>(bind: ConfigBind<T, V>) {
@@ -112,67 +88,41 @@ export class ConfigStore<T extends object, O> {
 
     setValue<V>(bind: ConfigBind<T, V>, next: ConfigSetter<V>) {
         const nextDraft = structuredClone(this.draft);
-        const currentValue = bind.get(nextDraft);
+        const nextValue =
+            typeof next === 'function' ? resolveNext(bind.get(nextDraft), next) : next;
 
-        bind.set(nextDraft, resolveNext(currentValue, next));
+        bind.set(nextDraft, nextValue);
         this.commitDraft(nextDraft, true);
     }
 
-    // ————————————————————— Output managment —————————————————————
-    refreshOutput() {
-        this.rebuildSnapshot();
-        this.notifySubscribers();
-        this.notifyOutputChange();
+    getField<K extends keyof T & string>(field: K) {
+        return this.draft[field];
     }
 
-    private notifyOutputChange() {
-        this.options.onOutputChange?.(this.output);
-    }
+    setField<K extends keyof T & string>(field: K, next: ConfigSetter<T[K]>) {
+        const nextDraft = structuredClone(this.draft);
+        const nextValue =
+            typeof next === 'function' ? resolveNext(nextDraft[field], next) : next;
 
-    addDisabledSectionOutputRule(rule: DisabledOutputRule<T>) {
-        this.disabledSectionOutputRules.set(rule.id, rule);
-        this.refreshOutput();
-    }
-
-    removeDisabledSectionOutputRule(rule: DisabledOutputRule<T>) {
-        if (this.disabledSectionOutputRules.delete(rule.id)) {
-            this.refreshOutput();
-        }
+        nextDraft[field] = nextValue;
+        this.commitDraft(nextDraft, true);
     }
 
     getSnapshot() {
         return this.snapshot;
     }
 
-    private createSnapshot(): ConfigSnapshot<T, O> {
+    private createSnapshot(): ConfigSnapshot<T> {
         return {
             draft: this.draft,
-            output: this.output,
-            setDraft: this.setDraft,
-            mutateDraft: this.mutateDraft,
-            getValue: this.getValue,
-            setValue: this.setValue,
+            setDraft: this.setDraft.bind(this),
+            mutateDraft: this.mutateDraft.bind(this),
+            getValue: this.getValue.bind(this),
+            setValue: this.setValue.bind(this),
         };
     }
 
     private rebuildSnapshot() {
-        let normalizedDraft = this.draft;
-
-        for (const rule of this.disabledSectionOutputRules.values()) {
-            if (rule.enabled) {
-                continue;
-            }
-
-            if (normalizedDraft === this.draft) {
-                normalizedDraft = structuredClone(this.draft);
-            }
-
-            rule.apply(normalizedDraft);
-        }
-
-        this.output = this.options.configToOutput
-            ? this.options.configToOutput(normalizedDraft, this.draft)
-            : (normalizedDraft as unknown as O);
         this.snapshot = this.createSnapshot();
     }
 }

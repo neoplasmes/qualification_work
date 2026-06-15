@@ -1,6 +1,6 @@
+import type { Chart } from '@qualification-work/types';
 import { describe, expect, it } from 'vitest';
 
-import type { Chart } from '@/entities/chart';
 import type { Dashboard } from '@/entities/dashboard';
 
 import { filterCharts, getChartIdsInDashboards } from './filterCharts';

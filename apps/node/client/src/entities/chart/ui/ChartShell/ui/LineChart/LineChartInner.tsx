@@ -1,3 +1,4 @@
+import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
 import { curveMonotoneX } from '@visx/curve';
 import {
     AreaSeries,
@@ -8,7 +9,6 @@ import {
 } from '@visx/xychart';
 import { useId, useState } from 'react';
 
-import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
 import { formatAxisNumber, formatChartCell } from '../../../../lib/formatChartCell';
 import type { ChartSeries } from '../../../../lib/parseChartData';
 

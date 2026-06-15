@@ -1,4 +1,10 @@
-import { useCallback, useState, type SubmitEventHandler } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type SubmitEventHandler,
+} from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
@@ -6,6 +12,7 @@ import { StatusMessage } from '@/shared/ui';
 
 import { metricBuilderTestIds } from './const';
 import {
+    createMetricBuilderOutput,
     metricBuilderConfig,
     type MetricBuilderDraft,
     type MetricBuilderOutput,
@@ -41,6 +48,11 @@ export const MetricBuilder = ({
         setBuiltMetricName(nextMetricName);
     }, []);
     const targetMetricName = value.name.trim() || builtMetricName;
+    const output = useMemo(() => createMetricBuilderOutput(value), [value]);
+
+    useEffect(() => {
+        onOutputChange?.(output);
+    }, [onOutputChange, output]);
 
     return (
         <metricBuilderConfig.Root
@@ -50,7 +62,6 @@ export const MetricBuilder = ({
             aria-label={editing ? 'Edit metric' : 'Add metric'}
             value={value}
             onChange={onChange}
-            onOutputChange={onOutputChange}
             onSubmit={onSubmit}
         >
             <MetricsSection

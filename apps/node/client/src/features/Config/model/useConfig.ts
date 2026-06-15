@@ -3,8 +3,8 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { useConfigStoreContext } from './configStoreContext';
 import type { ConfigSnapshot } from './types';
 
-export const useConfig = <T extends object, O>() => {
-    const store = useConfigStoreContext<T, O>();
+export const useConfig = <T extends object>() => {
+    const store = useConfigStoreContext<T>();
 
     /** "this" was being lost when passing store.subscribe to useSyncExternalStore */
     const stableSubscribe = useCallback(
@@ -17,5 +17,5 @@ export const useConfig = <T extends object, O>() => {
         stableSubscribe,
         getSnapshot,
         getSnapshot
-    ) as ConfigSnapshot<T, O>;
+    ) as ConfigSnapshot<T>;
 };

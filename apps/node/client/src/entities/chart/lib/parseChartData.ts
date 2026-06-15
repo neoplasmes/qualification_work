@@ -1,4 +1,9 @@
-import type { ChartResultColumn, MeasureValueFormat, TimeGranularity } from '../api';
+import type {
+    ChartResultColumn,
+    MeasureValueFormat,
+    TimeGranularity,
+} from '@qualification-work/types';
+
 import type { ChartKind } from './chartKind';
 
 export type ChartDataPoint = {

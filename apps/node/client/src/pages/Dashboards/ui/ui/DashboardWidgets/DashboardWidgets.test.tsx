@@ -3,13 +3,13 @@ import {
     dashboardChartMinWidth,
     dashboardMetricMinHeight,
     dashboardMetricMinWidth,
+    type ChartResponse,
 } from '@qualification-work/types';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ChartResponse } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
 
 import { dashboardsTestIds } from '../../../const';

@@ -5,16 +5,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import {
+    configToBuilderDraft,
+    createChartBuilderDraft,
+    type ChartBuilderDraft,
+    type ChartBuilderOutput,
+} from '@/widgets/ChartBuilder';
+import {
     WorkspaceModeTabs,
     type WorkspaceModeTabOption,
 } from '@/widgets/WorkspaceModeTabs';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
-import {
-    configToBuilderFields,
-    createChartBuilderFields,
-    type ChartBuilderFields,
-} from '@/features/buildChart';
 
 import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
@@ -22,17 +23,27 @@ import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 import { PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
 
 import { chartsTestIds } from '../const';
-import { chartsWorkspaceIndexPath, getChartWorkspaceUrl } from '../lib';
 import {
+    chartsWorkspaceIndexPath,
+    chartsWorkspaceNewPath,
+    getChartWorkspaceUrl,
+} from '../lib';
+import {
+    clearChartCreateDraft,
     clearChartEditDraft,
-    selectBuilderDatasetId,
     selectChart,
+    selectChartCreateDatasetId,
+    selectChartCreateDraft,
     selectChartEditDraft,
     selectChartsWorkspaceMode,
     selectSelectedChartId,
     selectShowDatasetPicker,
-    setBuilderDatasetId,
+    setChartCreateDraft,
+    setChartCreateDraftValue,
+    setChartCreateOutput,
     setChartEditDraft,
+    setChartEditDraftValue,
+    setChartEditOutput,
     setChartsWorkspaceMode,
     setShowDatasetPicker,
     type ChartsWorkspaceMode,
@@ -68,7 +79,8 @@ export const ChartsWorkspace = () => {
     const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
 
     const selectedChartId = useSelector(selectSelectedChartId);
-    const builderDatasetId = useSelector(selectBuilderDatasetId);
+    const createDatasetId = useSelector(selectChartCreateDatasetId);
+    const createDraft = useSelector(selectChartCreateDraft);
     const showDatasetPicker = useSelector(selectShowDatasetPicker);
     const workspaceMode = useSelector(selectChartsWorkspaceMode);
     const editDraft = useSelector(selectChartEditDraft);
@@ -81,7 +93,7 @@ export const ChartsWorkspace = () => {
 
     useChartsWorkspaceRouteSync({
         selectedChartId,
-        builderDatasetId,
+        createDatasetId,
         showDatasetPicker,
         workspaceMode,
     });
@@ -91,8 +103,8 @@ export const ChartsWorkspace = () => {
     const chartData = useChartDataResult(selectedChart?.id ?? null, workspaceMode);
 
     const builderDataset = useMemo(
-        () => datasetsQuery.data?.find(d => d.dataset.id === builderDatasetId) ?? null,
-        [datasetsQuery.data, builderDatasetId]
+        () => datasetsQuery.data?.find(d => d.dataset.id === createDatasetId) ?? null,
+        [datasetsQuery.data, createDatasetId]
     );
 
     const editDataset = useMemo(
@@ -105,11 +117,11 @@ export const ChartsWorkspace = () => {
         [datasetsQuery.data, selectedChart]
     );
 
-    const savedEditFields = useMemo(
+    const savedEditDraft = useMemo(
         () =>
             selectedChart
-                ? createChartBuilderFields({
-                      ...configToBuilderFields(
+                ? createChartBuilderDraft({
+                      ...configToBuilderDraft(
                           selectedChart.config,
                           selectedChart.chartType
                       ),
@@ -118,20 +130,26 @@ export const ChartsWorkspace = () => {
                 : null,
         [selectedChart]
     );
-    const editFields =
+    const editBuilderDraft =
         selectedChart && editDraft?.chartId === selectedChart.id
-            ? editDraft.fields
-            : savedEditFields;
+            ? editDraft.draft
+            : savedEditDraft;
 
     const handleDatasetSelect = (dataset: DatasetMetadata) => {
-        navigate(chartsWorkspaceIndexPath);
-        dispatch(setBuilderDatasetId(dataset.dataset.id));
+        dispatch(
+            setChartCreateDraft({
+                datasetId: dataset.dataset.id,
+                draft: createChartBuilderDraft(),
+                output: null,
+            })
+        );
+        navigate(chartsWorkspaceNewPath);
     };
 
     const handleChartCreated = async (chartId: string) => {
         await chartsQuery.refetch();
 
-        dispatch(setBuilderDatasetId(null));
+        dispatch(clearChartCreateDraft());
         dispatch(selectChart(chartId));
 
         navigate(getChartWorkspaceUrl(chartId, 'view'));
@@ -146,12 +164,34 @@ export const ChartsWorkspace = () => {
         navigate(getChartWorkspaceUrl(selectedChartId, mode));
     };
 
-    const handleEditFieldsChange = (fields: ChartBuilderFields) => {
+    const handleCreateDraftChange = (draft: ChartBuilderDraft) => {
+        dispatch(setChartCreateDraftValue(draft));
+    };
+
+    const handleCreateOutputChange = (output: ChartBuilderOutput) => {
+        dispatch(setChartCreateOutput(output));
+    };
+
+    const handleEditDraftChange = (draft: ChartBuilderDraft) => {
         if (!selectedChart) {
             return;
         }
 
-        dispatch(setChartEditDraft({ chartId: selectedChart.id, fields }));
+        if (editDraft?.chartId === selectedChart.id) {
+            dispatch(setChartEditDraftValue({ chartId: selectedChart.id, draft }));
+
+            return;
+        }
+
+        dispatch(setChartEditDraft({ chartId: selectedChart.id, draft, output: null }));
+    };
+
+    const handleEditOutputChange = (output: ChartBuilderOutput) => {
+        if (!selectedChart) {
+            return;
+        }
+
+        dispatch(setChartEditOutput({ chartId: selectedChart.id, output }));
     };
 
     const handleChartUpdated = async (chartId: string) => {
@@ -170,10 +210,14 @@ export const ChartsWorkspace = () => {
                 data-test-id={chartsTestIds.workspace}
                 aria-label="Chart details"
             >
-                {!selectedChartId && !builderDataset && (
+                {!selectedChartId && !createDraft && !builderDataset && (
                     <PanelPlaceholder>
                         Select a chart or create a new one.
                     </PanelPlaceholder>
+                )}
+
+                {createDraft && !builderDataset && (
+                    <StatusMessage>Loading dataset...</StatusMessage>
                 )}
 
                 {selectedChartId && selectedChartQuery.isLoading && (
@@ -184,12 +228,21 @@ export const ChartsWorkspace = () => {
                     <StatusMessage tone="error">Unable to load this chart.</StatusMessage>
                 )}
 
-                {builderDataset && org && (
+                {createDraft && builderDataset && org && (
                     <CreateChartBuilderSection
                         orgId={org.id}
                         dataset={builderDataset}
-                        onChangeDataset={() => dispatch(setShowDatasetPicker(true))}
-                        onCancel={() => dispatch(setBuilderDatasetId(null))}
+                        draft={createDraft.draft}
+                        onChangeDataset={() => {
+                            dispatch(setShowDatasetPicker(true));
+                            navigate(chartsWorkspaceNewPath);
+                        }}
+                        onCancel={() => {
+                            dispatch(clearChartCreateDraft());
+                            navigate(chartsWorkspaceIndexPath);
+                        }}
+                        onDraftChange={handleCreateDraftChange}
+                        onOutputChange={handleCreateOutputChange}
                         onChartCreated={chartId => void handleChartCreated(chartId)}
                     />
                 )}
@@ -248,19 +301,23 @@ export const ChartsWorkspace = () => {
                             <StatusMessage>Loading dataset...</StatusMessage>
                         )}
 
-                        {workspaceMode === 'edit' && editDataset && org && editFields && (
-                            <EditChartBuilderSection
-                                orgId={org.id}
-                                chart={selectedChart}
-                                dataset={editDataset}
-                                fields={editFields}
-                                actionsContainer={actionsEl}
-                                onFieldsChange={handleEditFieldsChange}
-                                onChartUpdated={chartId =>
-                                    void handleChartUpdated(chartId)
-                                }
-                            />
-                        )}
+                        {workspaceMode === 'edit' &&
+                            editDataset &&
+                            org &&
+                            editBuilderDraft && (
+                                <EditChartBuilderSection
+                                    orgId={org.id}
+                                    chart={selectedChart}
+                                    dataset={editDataset}
+                                    draft={editBuilderDraft}
+                                    actionsContainer={actionsEl}
+                                    onDraftChange={handleEditDraftChange}
+                                    onOutputChange={handleEditOutputChange}
+                                    onChartUpdated={chartId =>
+                                        void handleChartUpdated(chartId)
+                                    }
+                                />
+                            )}
                     </>
                 )}
             </section>
@@ -269,7 +326,12 @@ export const ChartsWorkspace = () => {
                 <CreateChartModal
                     datasets={datasetsQuery.data}
                     onSelect={handleDatasetSelect}
-                    onClose={() => dispatch(setShowDatasetPicker(false))}
+                    onClose={() => {
+                        dispatch(setShowDatasetPicker(false));
+                        if (!createDraft) {
+                            navigate(chartsWorkspaceIndexPath);
+                        }
+                    }}
                 />
             )}
         </>

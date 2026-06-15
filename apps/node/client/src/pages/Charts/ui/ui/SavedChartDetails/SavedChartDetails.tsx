@@ -1,4 +1,6 @@
-import { ChartCard, type Chart, type ChartResponse } from '@/entities/chart';
+import type { Chart, ChartResponse } from '@qualification-work/types';
+
+import { ChartCard } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
 
 import { StatusMessage } from '@/shared/ui';

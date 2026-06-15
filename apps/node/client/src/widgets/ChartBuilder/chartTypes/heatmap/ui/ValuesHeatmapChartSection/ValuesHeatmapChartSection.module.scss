@@ -1,0 +1,5 @@
+@use '../../../../ChartBuilder.mixins' as chartBuilder;
+
+.section {
+    @include chartBuilder.section;
+}

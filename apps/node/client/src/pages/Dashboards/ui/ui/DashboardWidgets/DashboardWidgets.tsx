@@ -5,12 +5,12 @@ import {
     dashboardChartMinWidth,
     dashboardMetricMinHeight,
     dashboardMetricMinWidth,
+    type Chart,
     type DashboardItemLayoutInput,
 } from '@qualification-work/types';
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
-import type { Chart } from '@/entities/chart';
 import type { DashboardItem } from '@/entities/dashboard';
 import type { DatasetColumn } from '@/entities/dataset';
 

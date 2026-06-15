@@ -1,4 +1,5 @@
-import type { MeasureValueFormat, TimeGranularity } from '../../../../api';
+import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+
 import type { ChartSeries } from '../../../../lib/parseChartData';
 
 import type { ChartAspectRatioConstraint, ChartFrameHeight } from '../../lib';

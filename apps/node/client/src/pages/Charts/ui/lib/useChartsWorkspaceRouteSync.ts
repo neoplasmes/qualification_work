@@ -4,21 +4,27 @@ import { useLocation, useNavigate } from 'react-router';
 
 import {
     chartsWorkspaceIndexPath,
+    chartsWorkspaceNewPath,
     getChartWorkspaceModeFromPath,
     getChartWorkspaceUrl,
 } from '../../lib';
-import { openChartRoute, selectChart, type ChartsWorkspaceMode } from '../../model';
+import {
+    openChartRoute,
+    openNewChartRoute,
+    selectChart,
+    type ChartsWorkspaceMode,
+} from '../../model';
 
 type UseChartsWorkspaceRouteSyncParams = {
     selectedChartId: string | null;
-    builderDatasetId: string | null;
+    createDatasetId: string | null;
     showDatasetPicker: boolean;
     workspaceMode: ChartsWorkspaceMode;
 };
 
 export const useChartsWorkspaceRouteSync = ({
     selectedChartId,
-    builderDatasetId,
+    createDatasetId,
     showDatasetPicker,
     workspaceMode,
 }: UseChartsWorkspaceRouteSyncParams) => {
@@ -26,12 +32,19 @@ export const useChartsWorkspaceRouteSync = ({
     const navigate = useNavigate();
     const location = useLocation();
     const routeMode = getChartWorkspaceModeFromPath(location.pathname);
+    const isNewRoute = location.pathname === chartsWorkspaceNewPath;
     const routeChartId = useMemo(
         () => new URLSearchParams(location.search).get('id'),
         [location.search]
     );
 
     useEffect(() => {
+        if (isNewRoute) {
+            dispatch(openNewChartRoute());
+
+            return;
+        }
+
         if (!routeMode) {
             return;
         }
@@ -44,15 +57,20 @@ export const useChartsWorkspaceRouteSync = ({
         }
 
         dispatch(openChartRoute({ chartId: routeChartId, mode: routeMode }));
-    }, [dispatch, navigate, routeChartId, routeMode]);
+    }, [dispatch, isNewRoute, navigate, routeChartId, routeMode]);
 
     useEffect(() => {
-        if (
-            location.pathname !== chartsWorkspaceIndexPath ||
-            !selectedChartId ||
-            builderDatasetId ||
-            showDatasetPicker
-        ) {
+        if (location.pathname !== chartsWorkspaceIndexPath) {
+            return;
+        }
+
+        if (createDatasetId || showDatasetPicker) {
+            navigate(chartsWorkspaceNewPath, { replace: true });
+
+            return;
+        }
+
+        if (!selectedChartId) {
             return;
         }
 
@@ -60,7 +78,7 @@ export const useChartsWorkspaceRouteSync = ({
             replace: true,
         });
     }, [
-        builderDatasetId,
+        createDatasetId,
         location.pathname,
         navigate,
         selectedChartId,

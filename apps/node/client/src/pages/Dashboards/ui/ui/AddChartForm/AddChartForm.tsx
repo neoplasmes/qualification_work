@@ -1,7 +1,8 @@
+import type { Chart } from '@qualification-work/types';
 import { Eraser } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import { CHART_KIND_ICONS, type Chart } from '@/entities/chart';
+import { CHART_KIND_ICONS } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';

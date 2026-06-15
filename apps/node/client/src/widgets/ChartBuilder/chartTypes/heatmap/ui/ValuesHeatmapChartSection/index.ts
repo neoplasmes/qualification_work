@@ -1,0 +1,1 @@
+export { ValuesHeatmapChartSection } from './ValuesHeatmapChartSection';

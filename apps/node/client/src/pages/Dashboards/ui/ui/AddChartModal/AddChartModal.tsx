@@ -1,7 +1,7 @@
+import type { Chart } from '@qualification-work/types';
 import { Plus, X } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 
-import type { Chart } from '@/entities/chart';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { Button, Modal, Separator } from '@/shared/ui';

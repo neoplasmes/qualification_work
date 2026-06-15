@@ -1,4 +1,9 @@
-import type { ChartResponse } from '@qualification-work/types';
+import type {
+    ChartResponse,
+    CreateChartPayload,
+    CreateChartResponse,
+    PreviewChartPayload,
+} from '@qualification-work/types';
 
 import {
     api,
@@ -8,13 +13,7 @@ import {
     type CacheInvalidationTag,
 } from '@/shared/api';
 
-import type {
-    CreateChartPayload,
-    CreateChartResponse,
-    PatchChartPayload,
-    PreviewChartPayload,
-    UpdateChartPayload,
-} from './types';
+import type { PatchChartPayload, UpdateChartPayload } from './types';
 
 export const buildChartApi = api.injectEndpoints({
     endpoints: builder => ({

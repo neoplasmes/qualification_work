@@ -1,8 +1,8 @@
+import type { MeasureValueFormat } from '@qualification-work/types';
 import { scaleBand } from '@visx/scale';
 import { DataContext } from '@visx/xychart';
 import { useContext } from 'react';
 
-import type { MeasureValueFormat } from '../../../../api';
 import { formatCompactChartNumber } from '../../../../lib/formatChartCell';
 import type { ChartSeries } from '../../../../lib/parseChartData';
 

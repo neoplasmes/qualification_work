@@ -11,7 +11,7 @@ import type { DatasetMetadata } from '@/entities/dataset';
 
 import { Button } from '@/shared/ui';
 
-import { chartsTestIds } from '../../../const';
+import { chartsTestIds } from '../../const';
 
 import styles from './ChartBuilderSection.module.scss';
 

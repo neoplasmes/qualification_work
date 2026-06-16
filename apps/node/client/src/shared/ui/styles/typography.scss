@@ -26,3 +26,9 @@
     font-weight: 400;
     line-height: 1.45;
 }
+
+@mixin text-heading-2xl {
+    font-family: var(--font-headline);
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+}

@@ -1,0 +1,1 @@
+export { ChartsRightPanel } from './ChartsRightPanel';

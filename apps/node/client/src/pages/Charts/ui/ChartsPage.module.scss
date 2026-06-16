@@ -1,27 +1,19 @@
 @use '../../../shared/ui/styles/layout.scss' as layout;
+@use '../../../shared/ui/styles/typography.scss' as typography;
 
 .panel {
-    // the panel itself is a fixed frame - only the area under the tabs scrolls
     overflow: hidden;
-    min-width: 0;
-    min-height: 0;
 }
 
 .scroll-area {
     overflow: auto;
-
-    // keep a stable gutter so toggling the scrollbar never shifts the layout
     scrollbar-gutter: stable;
-
-    min-width: 0;
-    min-height: 0;
 }
 
 .tabs-row {
     > :first-child {
         width: auto;
         flex: 0 1 auto;
-        min-width: 0;
     }
 }
 
@@ -36,16 +28,11 @@
 }
 
 .eyebrow {
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    color: var(--color-outline);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    @include typography.text-uppercase-xs;
 }
 
 .title {
+    @include typography.text-heading-2xl;
+
     overflow-wrap: anywhere;
-    font-family: var(--font-headline);
-    font-size: var(--font-size-2xl);
-    font-weight: 800;
 }

@@ -1,7 +1,7 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
@@ -12,6 +12,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
+import { useAppSelector } from '@/shared/model';
 import {
     Button,
     EditableText,
@@ -20,9 +21,9 @@ import {
     Table,
 } from '@/shared/ui';
 
-import { chartsTestIds } from '../../../const';
-import { chartsWorkspaceIndexPath } from '../../../lib';
-import { selectChart, selectSelectedChartId } from '../../../model';
+import { chartsTestIds } from '../../const';
+import { chartsWorkspaceIndexPath } from '../../lib';
+import { selectChart } from '../../model';
 
 export const ChartsPropertiesPanel = () => {
     const dispatch = useDispatch();
@@ -35,7 +36,7 @@ export const ChartsPropertiesPanel = () => {
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [patchChart, patchChartState] = usePatchChartMutation();
     const [deleteChart, deleteChartState] = useDeleteChartMutation();
-    const selectedChartId = useSelector(selectSelectedChartId);
+    const selectedChartId = useAppSelector(state => state.chartsPage.selectedChartId);
     const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);
     const selectedChart = selectedChartQuery.data ?? null;
     const selectedDatasetName = useMemo(
@@ -108,7 +109,7 @@ export const ChartsPropertiesPanel = () => {
     }
 
     return (
-        <section data-display="grid" data-gap="md" aria-label="Chart properties">
+        <section data-stack="v" data-gap="md" aria-label="Chart properties">
             <EditableText
                 title={selectedChart.name}
                 fallbackTitle="Untitled chart"

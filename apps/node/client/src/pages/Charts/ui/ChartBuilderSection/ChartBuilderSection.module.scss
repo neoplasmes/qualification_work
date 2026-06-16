@@ -1,0 +1,16 @@
+@use '../../../../shared/ui/styles/typography.scss' as typography;
+
+.builder-header {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.eyebrow {
+    @include typography.text-uppercase-xs;
+}
+
+.title {
+    @include typography.text-heading-2xl;
+}

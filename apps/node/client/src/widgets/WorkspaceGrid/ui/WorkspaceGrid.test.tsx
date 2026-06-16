@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import { describe, expect, it } from 'vitest';
 
-import { panelLayoutSlice, useWorkspaceGridCollapse } from '../model';
+import { panelLayoutSlice, type WorkspaceGridCollapseController } from '../model';
 import { WorkspaceGrid } from './WorkspaceGrid';
 import { WorkspaceGridGroup } from './WorkspaceGridGroup';
 import { WorkspaceGridPanel } from './WorkspaceGridPanel';
@@ -64,7 +64,37 @@ describe('WorkspaceGrid', () => {
 
     it('hides a panel end-to-end through the collapse controller', () => {
         const Harness = () => {
-            const collapse = useWorkspaceGridCollapse<'left' | 'right'>();
+            const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
+
+            const collapse = useMemo<
+                WorkspaceGridCollapseController<'left' | 'right'>
+            >(() => {
+                const collapsed = new Set<'left' | 'right'>();
+
+                if (isLeftCollapsed) {
+                    collapsed.add('left');
+                }
+
+                return {
+                    collapsed,
+                    isCollapsed: key => collapsed.has(key),
+                    collapse: key => {
+                        if (key === 'left') {
+                            setIsLeftCollapsed(true);
+                        }
+                    },
+                    expand: key => {
+                        if (key === 'left') {
+                            setIsLeftCollapsed(false);
+                        }
+                    },
+                    toggle: key => {
+                        if (key === 'left') {
+                            setIsLeftCollapsed(value => !value);
+                        }
+                    },
+                };
+            }, [isLeftCollapsed]);
 
             return (
                 <>

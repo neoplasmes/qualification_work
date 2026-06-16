@@ -26,8 +26,6 @@ export type ChartsPageState = {
     editDraft: ChartsEditDraft | null;
 };
 
-type StateWithChartsPage = { chartsPage: ChartsPageState };
-
 export const chartsPageInitialState: ChartsPageState = {
     selectedChartId: null,
     createDraft: null,
@@ -152,18 +150,3 @@ export const {
     setChartsRightPanelTab,
     setChartsWorkspaceMode,
 } = chartsPageSlice.actions;
-
-export const selectSelectedChartId = (state: StateWithChartsPage) =>
-    state.chartsPage.selectedChartId;
-export const selectChartCreateDatasetId = (state: StateWithChartsPage) =>
-    state.chartsPage.createDraft?.datasetId ?? null;
-export const selectChartCreateDraft = (state: StateWithChartsPage) =>
-    state.chartsPage.createDraft;
-export const selectShowDatasetPicker = (state: StateWithChartsPage) =>
-    state.chartsPage.showDatasetPicker;
-export const selectChartsRightPanelTab = (state: StateWithChartsPage) =>
-    state.chartsPage.chartsRightPanelTab;
-export const selectChartsWorkspaceMode = (state: StateWithChartsPage) =>
-    state.chartsPage.workspaceMode;
-export const selectChartEditDraft = (state: StateWithChartsPage) =>
-    state.chartsPage.editDraft;

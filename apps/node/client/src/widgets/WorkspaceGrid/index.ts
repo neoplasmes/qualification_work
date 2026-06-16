@@ -8,7 +8,6 @@ export {
     selectPanelSizes,
     selectIsLeftCollapsed,
     selectIsRightCollapsed,
-    useWorkspaceGridCollapse,
     type PanelLayoutState,
     type WorkspaceGridCollapseController,
 } from './model';

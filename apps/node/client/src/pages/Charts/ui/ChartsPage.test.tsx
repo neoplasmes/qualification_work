@@ -11,15 +11,8 @@ import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { chartsTestIds } from '../const';
-import {
-    chartsPageInitialState,
-    chartsPageSlice,
-    selectChartCreateDatasetId,
-    selectSelectedChartId,
-    selectShowDatasetPicker,
-    type ChartsPageState,
-} from '../model';
-import { ChartsWorkspace } from './ChartsWorkspace';
+import { chartsPageInitialState, chartsPageSlice, type ChartsPageState } from '../model';
+import { ChartsPage } from './ChartsPage';
 
 const mocks = vi.hoisted(() => ({
     getChartDataQuery: vi.fn(),
@@ -211,14 +204,14 @@ const renderWorkspace = (
         ...render(
             <Provider store={store}>
                 <MemoryRouter initialEntries={[initialRoute]}>
-                    <ChartsWorkspace />
+                    <ChartsPage />
                 </MemoryRouter>
             </Provider>
         ),
     };
 };
 
-describe('ChartsWorkspace', () => {
+describe('ChartsPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mocks.getChartDataQuery.mockImplementation((arg: unknown) => ({
@@ -241,7 +234,7 @@ describe('ChartsWorkspace', () => {
         const { store } = renderWorkspace({}, '/charts/view?id=chart-1');
 
         await screen.findByTestId('chart-result');
-        expect(selectSelectedChartId(store.getState())).toBe('chart-1');
+        expect(store.getState().chartsPage.selectedChartId).toBe('chart-1');
         expect(mocks.getChartDataQuery).toHaveBeenCalledWith('chart-1');
     });
 
@@ -292,19 +285,21 @@ describe('ChartsWorkspace', () => {
         expect(
             await screen.findByRole('button', { name: /Invoices/ })
         ).toBeInTheDocument();
-        expect(selectShowDatasetPicker(store.getState())).toBe(true);
+        expect(store.getState().chartsPage.showDatasetPicker).toBe(true);
 
         await user.click(screen.getByRole('button', { name: /Invoices/ }));
 
-        expect(selectChartCreateDatasetId(store.getState())).toBe('dataset-1');
-        expect(selectShowDatasetPicker(store.getState())).toBe(false);
+        expect(store.getState().chartsPage.createDraft?.datasetId ?? null).toBe(
+            'dataset-1'
+        );
+        expect(store.getState().chartsPage.showDatasetPicker).toBe(false);
         expect(screen.getByTestId('chart-builder')).toHaveTextContent('Invoices');
 
         await user.click(screen.getByRole('button', { name: 'Save chart' }));
 
         await waitFor(() => expect(mocks.refetchCharts).toHaveBeenCalledTimes(1));
-        expect(selectChartCreateDatasetId(store.getState())).toBeNull();
-        expect(selectSelectedChartId(store.getState())).toBe('chart-new');
+        expect(store.getState().chartsPage.createDraft?.datasetId ?? null).toBeNull();
+        expect(store.getState().chartsPage.selectedChartId).toBe('chart-new');
     });
 
     it('stores create builder draft while new chart page stays open', async () => {
@@ -346,7 +341,7 @@ describe('ChartsWorkspace', () => {
 
         await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-        expect(selectChartCreateDatasetId(store.getState())).toBeNull();
+        expect(store.getState().chartsPage.createDraft?.datasetId ?? null).toBeNull();
         expect(screen.queryByTestId('chart-builder')).not.toBeInTheDocument();
     });
 

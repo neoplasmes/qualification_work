@@ -5,7 +5,7 @@ import { useGetChartDataQuery } from '@/entities/chart';
 
 import { getApiErrorMessage } from '@/shared/api';
 
-import type { ChartsWorkspaceMode } from '../../model';
+import type { ChartsWorkspaceMode } from '../model';
 
 export const useChartDataResult = (
     chartId: string | null,

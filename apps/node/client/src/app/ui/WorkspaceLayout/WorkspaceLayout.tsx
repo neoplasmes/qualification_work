@@ -39,14 +39,14 @@ const ChartsLeftPanel = lazy(() =>
         default: module.ChartsLeftPanel,
     }))
 );
-const ChartsWorkspace = lazy(() =>
+const ChartsPage = lazy(() =>
     import('@/pages/Charts').then(module => ({
-        default: module.ChartsWorkspace,
+        default: module.ChartsPage,
     }))
 );
-const ChartsWorkspaceRightPanel = lazy(() =>
+const ChartsRightPanel = lazy(() =>
     import('@/pages/Charts').then(module => ({
-        default: module.ChartsWorkspaceRightPanel,
+        default: module.ChartsRightPanel,
     }))
 );
 
@@ -98,8 +98,8 @@ const workspaceSlots: Record<string, WorkspaceSlots> = {
     },
     '/charts': {
         Left: ChartsLeftPanel,
-        Center: ChartsWorkspace,
-        Right: ChartsWorkspaceRightPanel,
+        Center: ChartsPage,
+        Right: ChartsRightPanel,
     },
     '/datasets': {
         Left: DatasetsLeftPanel,

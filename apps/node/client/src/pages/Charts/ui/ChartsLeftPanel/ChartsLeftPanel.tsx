@@ -1,7 +1,7 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus } from 'lucide-react';
 import { useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
@@ -12,16 +12,17 @@ import {
     selectFilterApplicationValues,
 } from '@/features/filterApplicationEntities';
 
-import { CHART_KIND_ICONS, useListChartsQuery } from '@/entities/chart';
+import { CHART_KIND_ICONS as chartKindIcons, useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
+import { useAppSelector } from '@/shared/model';
 import { WorkspaceLeftPanelItem } from '@/shared/ui';
 
-import { chartsTestIds } from '../const';
-import { chartsWorkspaceNewPath, getChartWorkspaceUrl } from '../lib';
-import { openNewChartRoute, selectChart, selectSelectedChartId } from '../model';
+import { chartsTestIds } from '../../const';
+import { chartsWorkspaceNewPath, getChartWorkspaceUrl } from '../../lib';
+import { openNewChartRoute, selectChart } from '../../model';
 
 const chartIconSize = 18;
 
@@ -35,8 +36,8 @@ export const ChartsLeftPanel = () => {
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 
-    const selectedChartId = useSelector(selectSelectedChartId);
-    const filterValues = useSelector(selectFilterApplicationValues('charts'));
+    const selectedChartId = useAppSelector(state => state.chartsPage.selectedChartId);
+    const filterValues = useAppSelector(selectFilterApplicationValues('charts'));
 
     const filteredCharts = filterApplicationEntities({
         scope: 'charts',
@@ -74,7 +75,7 @@ export const ChartsLeftPanel = () => {
             }}
         >
             {filteredCharts?.map(chart => {
-                const ChartIcon = CHART_KIND_ICONS[chart.chartType];
+                const ChartIcon = chartKindIcons[chart.chartType];
 
                 return (
                     <WorkspaceLeftPanelItem

@@ -10,12 +10,8 @@ import {
     toggleFilterApplicationValue,
 } from '@/features/filterApplicationEntities';
 
-import { chartsTestIds } from '../const';
-import {
-    chartsPageSlice,
-    selectSelectedChartId,
-    selectShowDatasetPicker,
-} from '../model';
+import { chartsTestIds } from '../../const';
+import { chartsPageSlice } from '../../model';
 import { ChartsLeftPanel } from './ChartsLeftPanel';
 
 vi.mock('@/features/authenticate', () => ({
@@ -158,8 +154,8 @@ describe('ChartsLeftPanel', () => {
         await user.click(screen.getByRole('button', { name: /Revenue/ }));
         await user.click(getByDataTestId(container, chartsTestIds.createChartButton));
 
-        expect(selectSelectedChartId(store.getState())).toBeNull();
-        expect(selectShowDatasetPicker(store.getState())).toBe(true);
+        expect(store.getState().chartsPage.selectedChartId).toBeNull();
+        expect(store.getState().chartsPage.showDatasetPicker).toBe(true);
     });
 
     it('renders charts filtered by selected dataset ids', () => {

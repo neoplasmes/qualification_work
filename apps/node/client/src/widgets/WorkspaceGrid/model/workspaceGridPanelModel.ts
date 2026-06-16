@@ -5,20 +5,19 @@ type WorkspaceGridPanelElement = HTMLElement;
 type CSSPixelSize = `${number}px`;
 
 /**
- * All functions are arrow in orger to not lose the context of this after
- * these functions are passed to some other components and called in them
+ * All functions are arrow in order to not lose the context of "this" after
+ * passing these functions to some other components and calling them inside
  *
  * @export
  * @class WorkspaceGridPanelModel
  */
 export class WorkspaceGridPanelModel {
     private element: WorkspaceGridPanelElement | null = null;
+    private lastSizePx = 0;
+
     private readonly initialSizePx: number;
     private readonly minSizePx: number;
     private readonly maxSizePx: number;
-    // last size applied to the element, used as a fallback when the element is
-    // hidden (display:none) and offset measurement reports 0
-    private lastSizePx = 0;
 
     constructor(
         private readonly direction: WorkspaceGridGroupDirection,
@@ -34,30 +33,30 @@ export class WorkspaceGridPanelModel {
 
         if (this.minSizePx > this.maxSizePx) {
             throw new Error(
-                `WorkspaceGridPanelModel(${this.id}): minSize can not be greater than maxSize`
+                this.formatErrorMsg('minSize can not be greater than maxSize')
             );
         }
     }
 
-    public getElement = () => {
+    getElement = () => {
         return this.element;
     };
 
-    public getMinSizePx = () => {
+    getMinSizePx = () => {
         return this.minSizePx;
     };
 
-    public getMaxSizePx = () => {
+    getMaxSizePx = () => {
         return this.maxSizePx;
     };
 
-    public getInitialSizePx = () => {
+    getInitialSizePx = () => {
         return this.initialSizePx;
     };
 
-    public getCurrentSizePx = () => {
+    getCurrentSizePx = () => {
         if (!this.element) {
-            throw new Error('incorrect usage of the model');
+            throw new Error(this.formatErrorMsg('incorrect usage of the model'));
         }
 
         const measured =
@@ -70,14 +69,14 @@ export class WorkspaceGridPanelModel {
         return measured > 0 ? measured : this.lastSizePx;
     };
 
-    public attach = (element: WorkspaceGridPanelElement | null) => {
+    attach = (element: WorkspaceGridPanelElement | null) => {
         this.element = element;
 
         this.applyAxisConstraints();
         this.setSizePx(this.initialSizePx);
     };
 
-    public setSizePx = (size: number) => {
+    setSizePx = (size: number) => {
         const nextSizePx = Math.min(this.maxSizePx, Math.max(this.minSizePx, size));
 
         this.applySizePx(nextSizePx);
@@ -85,7 +84,7 @@ export class WorkspaceGridPanelModel {
         return nextSizePx;
     };
 
-    public setFittedSizePx = (size: number) => {
+    setFittedSizePx = (size: number) => {
         const nextSizePx = Math.min(this.maxSizePx, Math.max(0, size));
 
         this.applySizePx(nextSizePx);
@@ -127,15 +126,18 @@ export class WorkspaceGridPanelModel {
 
     private parsePixelSize = (size: string) => {
         if (!size.endsWith('px')) {
-            throw new Error('wrong size format');
+            throw new Error(this.formatErrorMsg('wrong size format'));
         }
 
         const parsed = Number.parseFloat(size);
 
         if (!Number.isFinite(parsed)) {
-            throw new Error('wrong size format');
+            throw new Error(this.formatErrorMsg('wrong size format'));
         }
 
         return parsed;
     };
+
+    private formatErrorMsg = (msg: string) =>
+        `[WorkspaceGridPanelModel(${this.id})]: ${msg}`;
 }

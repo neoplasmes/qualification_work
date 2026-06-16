@@ -3,17 +3,17 @@ import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router';
 
 import {
-    chartsWorkspaceIndexPath,
-    chartsWorkspaceNewPath,
-    getChartWorkspaceModeFromPath,
-    getChartWorkspaceUrl,
-} from '../../lib';
-import {
     openChartRoute,
     openNewChartRoute,
     selectChart,
     type ChartsWorkspaceMode,
-} from '../../model';
+} from '../model';
+import {
+    chartsWorkspaceIndexPath,
+    chartsWorkspaceNewPath,
+    getChartWorkspaceModeFromPath,
+    getChartWorkspaceUrl,
+} from './chartWorkspaceRoute';
 
 type UseChartsWorkspaceRouteSyncParams = {
     selectedChartId: string | null;

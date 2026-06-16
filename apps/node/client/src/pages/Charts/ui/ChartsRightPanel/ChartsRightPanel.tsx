@@ -1,36 +1,34 @@
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import { FilterPanel } from '@/widgets/FilterPanel';
 import { WorkspaceRightPanel } from '@/widgets/WorkspaceRightPanel';
 
-import { chartsTestIds } from '../const';
-import {
-    selectChartsRightPanelTab,
-    setChartsRightPanelTab,
-    type ChartsRightPanelTab,
-} from '../model';
-import { ChartsPropertiesPanel } from './ui/ChartsPropertiesPanel';
+import { useAppSelector } from '@/shared/model';
 
-const CHARTS_WORKSPACE_RIGHT_PANEL_TABS = [
+import { chartsTestIds } from '../../const';
+import { setChartsRightPanelTab, type ChartsRightPanelTab } from '../../model';
+import { ChartsPropertiesPanel } from '../ChartsPropertiesPanel';
+
+const chartsRightPanelTabs = [
     'properties',
     'filters',
 ] as const satisfies readonly ChartsRightPanelTab[];
 
-const CHARTS_WORKSPACE_RIGHT_PANEL_TAB_TEST_IDS = {
+const chartsRightPanelTabTestIds = {
     properties: chartsTestIds.propertiesTab,
     filters: chartsTestIds.filterTab,
 } satisfies Partial<Record<ChartsRightPanelTab, string>>;
 
-export const ChartsWorkspaceRightPanel = () => {
+export const ChartsRightPanel = () => {
     const dispatch = useDispatch();
-    const activeTab = useSelector(selectChartsRightPanelTab);
+    const activeTab = useAppSelector(state => state.chartsPage.chartsRightPanelTab);
 
     return (
         <WorkspaceRightPanel
             activeTab={activeTab}
-            activeTabs={CHARTS_WORKSPACE_RIGHT_PANEL_TABS}
+            activeTabs={chartsRightPanelTabs}
             testId={chartsTestIds.rightPanel}
-            tabTestIds={CHARTS_WORKSPACE_RIGHT_PANEL_TAB_TEST_IDS}
+            tabTestIds={chartsRightPanelTabTestIds}
             onTabChange={tab => dispatch(setChartsRightPanelTab(tab))}
         >
             {activeTab === 'properties' ? (

@@ -1,9 +1,4 @@
-export {
-    ChartsPage,
-    ChartsLeftPanel,
-    ChartsWorkspace,
-    ChartsWorkspaceRightPanel,
-} from './ui';
+export { ChartsPage, ChartsLeftPanel, ChartsRightPanel } from './ui';
 export {
     chartsWorkspaceNewPath,
     chartsWorkspaceIndexPath,
@@ -12,10 +7,5 @@ export {
     getChartsWorkspaceBasePath,
     isChartsWorkspacePath,
 } from './lib';
-export {
-    chartsPageSlice,
-    chartsPageInitialState,
-    selectChartsWorkspaceMode,
-    selectSelectedChartId,
-} from './model';
+export { chartsPageSlice, chartsPageInitialState } from './model';
 export type { ChartsPageState, ChartsWorkspaceMode } from './model';

@@ -11,19 +11,19 @@ import {
     WorkspaceLeftPanelItem,
 } from '@/shared/ui';
 
-import { chartsTestIds } from '../../../const';
+import { chartsTestIds } from '../../const';
 
-type CreateChartModalProps = {
+type SelectDatasetForChartModalProps = {
     datasets: DatasetMetadata[] | undefined;
     onSelect: (dataset: DatasetMetadata) => void;
     onClose: () => void;
 };
 
-export const CreateChartModal = ({
+export const SelectDatasetForChartModal = ({
     datasets,
     onSelect,
     onClose,
-}: CreateChartModalProps) => (
+}: SelectDatasetForChartModalProps) => (
     <Modal
         title="Select dataset"
         ariaLabel="Select dataset"

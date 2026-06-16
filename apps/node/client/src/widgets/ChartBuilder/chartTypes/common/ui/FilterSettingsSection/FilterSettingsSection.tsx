@@ -9,8 +9,6 @@ import { FormField } from '@/shared/ui';
 
 import { isNullaryFilterOperation } from '../../model';
 
-import styles from './FilterSettingsSection.module.scss';
-
 type FilterSettingsSectionProps<T extends object> = {
     config: Config<T>;
     enabledField: ConfigFieldKey<T, boolean>;
@@ -39,11 +37,7 @@ export const FilterSettingsSection = <T extends object>({
     }
 
     return (
-        <config.Section
-            name="Filter"
-            enabledField={enabledField}
-            className={styles['section']}
-        >
+        <config.Section name="Filter" enabledField={enabledField}>
             <FormField label="Filter column">
                 <config.Select bind={columnBind}>
                     {columns.map(column => (

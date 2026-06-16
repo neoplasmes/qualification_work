@@ -5,5 +5,5 @@ export {
 } from './lineChartConfig';
 export {
     configToLineChartDraft,
-    createLineChartOutput,
+    draftToLineChartBuilderOutput,
 } from './lineChartConfigTransformers';

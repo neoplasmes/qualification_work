@@ -1,10 +1,9 @@
 import type { ChartTypeSettingsProps } from '../../../model';
 
 import { createActiveStringBind, getActiveAnalysisColumnId } from '../../common/model';
-import { FilterSettingsSection } from '../../common/ui';
+import { FilterSettingsSection, ValueSectionDefault } from '../../common/ui';
 import type { HeatmapChartDraft } from '../model';
 import { ChartHeatmapChartSection } from './ChartHeatmapChartSection';
-import { ValuesHeatmapChartSection } from './ValuesHeatmapChartSection';
 
 const heatmapChartSettingsBinds = {
     filterColumnId: (activeColumnId: string) =>
@@ -32,10 +31,11 @@ export const HeatmapChartSettings = ({
                 columns={columns}
                 editMode={editMode}
             />
-            <ValuesHeatmapChartSection
+            <ValueSectionDefault
                 config={config}
                 columns={columns}
                 editMode={editMode}
+                maxMeasureCount={1}
             />
 
             <FilterSettingsSection

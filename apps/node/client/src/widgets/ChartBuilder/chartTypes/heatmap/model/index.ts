@@ -5,5 +5,5 @@ export {
 } from './heatmapChartConfig';
 export {
     configToHeatmapChartDraft,
-    createHeatmapChartOutput,
+    draftToHeatmapChartBuilderOutput,
 } from './heatmapChartConfigTransformers';

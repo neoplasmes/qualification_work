@@ -4,11 +4,7 @@ import type { ConfigBind, ConfigFieldKey } from '@/features/Config';
 
 import type { DatasetColumn } from '@/entities/dataset';
 
-import {
-    getDefaultGranularity,
-    getGroupingMode,
-    type GroupingMode,
-} from './groupingConfig';
+import { defaultGranularity, type GroupingMode } from './groupingConfig';
 
 /**
  * minimal axis shape accepted from saved chart configs
@@ -61,13 +57,22 @@ export const axisConfigToDraftFields = (
     axis: AxisConfigLike | undefined
 ): AxisDraftFields => {
     const grouping = axis?.grouping as
-        | { granularity?: TimeGranularity; step?: number }
+        | { kind?: string; granularity?: TimeGranularity; step?: number }
         | undefined;
+    let groupingMode: GroupingMode = 'none';
+
+    if (grouping?.kind === 'time') {
+        groupingMode = 'time';
+    }
+
+    if (grouping?.kind === 'numeric') {
+        groupingMode = 'numeric';
+    }
 
     return {
         columnId: axis?.columnId ?? '',
-        groupingMode: getGroupingMode(axis?.grouping),
-        granularity: grouping?.granularity ?? getDefaultGranularity(),
+        groupingMode,
+        granularity: grouping?.granularity ?? defaultGranularity,
         step: grouping?.step ?? 10,
     };
 };

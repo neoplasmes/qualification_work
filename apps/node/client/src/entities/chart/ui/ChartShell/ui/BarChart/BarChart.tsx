@@ -1,4 +1,4 @@
-import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+import type { TimeGranularity } from '@qualification-work/types';
 
 import type { ChartSeries } from '../../../../lib/parseChartData';
 
@@ -10,7 +10,7 @@ type BarChartProps = {
     series: ChartSeries[];
     labels: string[];
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
     color?: string;
     height?: ChartFrameHeight;
     aspectRatioConstraint?: ChartAspectRatioConstraint;

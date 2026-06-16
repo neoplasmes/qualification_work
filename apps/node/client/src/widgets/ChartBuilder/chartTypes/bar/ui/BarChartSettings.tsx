@@ -9,10 +9,13 @@ import {
     createNumberInputBind,
     getActiveAnalysisColumnId,
 } from '../../common/model';
-import { BreakdownSettingsSection, FilterSettingsSection } from '../../common/ui';
+import {
+    BreakdownSettingsSection,
+    FilterSettingsSection,
+    ValueSectionDefault,
+} from '../../common/ui';
 import type { BarChartDraft } from '../model';
 import { ChartBarChartSection } from './ChartBarChartSection';
-import { ValuesBarChartSection } from './ValuesBarChartSection';
 
 const barChartSettingsBinds = {
     breakdownColumnId: (activeColumnId: string) =>
@@ -50,11 +53,7 @@ export const BarChartSettings = ({
     return (
         <>
             <ChartBarChartSection config={config} columns={columns} editMode={editMode} />
-            <ValuesBarChartSection
-                config={config}
-                columns={columns}
-                editMode={editMode}
-            />
+            <ValueSectionDefault config={config} columns={columns} editMode={editMode} />
 
             <BreakdownSettingsSection
                 config={config}

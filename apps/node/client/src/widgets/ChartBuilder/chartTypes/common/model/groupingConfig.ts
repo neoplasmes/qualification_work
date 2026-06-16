@@ -47,22 +47,9 @@ export const buildGrouping = (
     return undefined;
 };
 
-/**
- * reads form-level grouping mode from a saved chart config
- */
-export const getGroupingMode = (grouping: unknown): GroupingMode => {
-    const value = grouping as { kind?: string } | undefined | null;
-
-    if (value?.kind === 'time') {
-        return 'time';
-    }
-
-    if (value?.kind === 'numeric') {
-        return 'numeric';
-    }
-
-    return 'none';
-};
+const defaultGroupingModes: GroupingMode[] = ['none'];
+const dateGroupingModes: GroupingMode[] = ['none', 'time'];
+const numberGroupingModes: GroupingMode[] = ['none', 'numeric'];
 
 /**
  * returns grouping modes that make sense for the selected column type
@@ -70,28 +57,18 @@ export const getGroupingMode = (grouping: unknown): GroupingMode => {
 export const getGroupingModes = (
     dataType: DatasetColumn['dataType'] | undefined
 ): GroupingMode[] => {
-    const modes: GroupingMode[] = ['none'];
-
     if (dataType === 'date') {
-        modes.push('time');
+        return dateGroupingModes;
     }
 
     if (dataType === 'number') {
-        modes.push('numeric');
+        return numberGroupingModes;
     }
 
-    return modes;
+    return defaultGroupingModes;
 };
-
-/**
- * falls back to no grouping when a saved mode no longer fits the column
- */
-export const normalizeGroupingMode = (
-    groupingMode: GroupingMode,
-    modes: GroupingMode[]
-) => (modes.includes(groupingMode) ? groupingMode : 'none');
 
 /**
  * default time grain used by new chart drafts
  */
-export const getDefaultGranularity = (): TimeGranularity => 'month';
+export const defaultGranularity: TimeGranularity = 'month';

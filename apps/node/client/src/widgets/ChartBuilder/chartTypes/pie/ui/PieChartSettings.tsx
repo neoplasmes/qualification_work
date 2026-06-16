@@ -1,12 +1,20 @@
+import { FormField } from '@/shared/ui';
+
 import type { ChartTypeSettingsProps } from '../../../model';
 
-import { createActiveStringBind, getActiveAnalysisColumnId } from '../../common/model';
-import { FilterSettingsSection } from '../../common/ui';
+import {
+    createActiveStringBind,
+    createNumberInputBind,
+    getActiveAnalysisColumnId,
+} from '../../common/model';
+import { FilterSettingsSection, ValueSectionDefault } from '../../common/ui';
 import type { PieChartDraft } from '../model';
 import { ChartPieChartSection } from './ChartPieChartSection';
-import { ValuesPieChartSection } from './ValuesPieChartSection';
 
 const pieChartSettingsBinds = {
+    topN: createNumberInputBind<PieChartDraft, 'topN'>('topN', value =>
+        Math.min(Math.max(1, value), 50)
+    ),
     filterColumnId: (activeColumnId: string) =>
         createActiveStringBind<PieChartDraft>('filterColumnId', activeColumnId),
 } as const;
@@ -28,11 +36,21 @@ export const PieChartSettings = ({
     return (
         <>
             <ChartPieChartSection config={config} columns={columns} editMode={editMode} />
-            <ValuesPieChartSection
+            <ValueSectionDefault
                 config={config}
                 columns={columns}
                 editMode={editMode}
-            />
+                maxMeasureCount={1}
+            >
+                <FormField label="Max slices">
+                    <config.Input
+                        bind={pieChartSettingsBinds.topN}
+                        type="number"
+                        min={1}
+                        max={50}
+                    />
+                </FormField>
+            </ValueSectionDefault>
 
             <FilterSettingsSection
                 config={config}

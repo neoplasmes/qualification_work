@@ -1,15 +1,17 @@
+@use '../../../../shared/ui/styles/typography.scss' as t;
+
 .root {
     width: 100%;
+
+    config-section-body {
+        gap: var(--spacing-sm);
+    }
 }
 
 .header {
-    color: var(--color-outline);
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    @include t.text-uppercase-xs;
 }
 
 .root-hidden {
-    margin-bottom: calc(var(--spacing-sm) * -1);
+    margin-bottom: calc(var(--spacing-xs) * -1);
 }

@@ -2,7 +2,7 @@ import type { ChartTypeDefinition } from '../../model';
 import {
     configToPieChartDraft,
     createPieChartDraft,
-    createPieChartOutput,
+    draftToPieChartBuilderOutput,
     pieChartConfig,
     type PieChartDraft,
 } from './model';
@@ -14,6 +14,6 @@ export const pieChartDefinition: ChartTypeDefinition<PieChartDraft> = {
     config: pieChartConfig,
     createDraft: createPieChartDraft,
     configToDraft: configToPieChartDraft,
-    createOutput: createPieChartOutput,
+    createOutput: draftToPieChartBuilderOutput,
     Settings: PieChartSettings,
 };

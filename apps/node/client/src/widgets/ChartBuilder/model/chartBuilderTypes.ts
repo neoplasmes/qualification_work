@@ -11,11 +11,12 @@ export type ChartBuilderAppearanceDraft = {
     chartType: ChartType;
 };
 
-export type ChartBuilderOutput = ChartBuilderAppearanceDraft & {
-    config: ChartConfig | null;
-    error: string;
-    canPreview: boolean;
-};
+export type ChartBuilderOutput<T extends ChartConfig = ChartConfig> =
+    ChartBuilderAppearanceDraft & {
+        config: T | null;
+        error: string;
+        canPreview: boolean;
+    };
 
 /**
  * Input required to transform a chart-type draft into a chart builder output

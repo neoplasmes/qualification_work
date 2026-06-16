@@ -70,7 +70,7 @@ export const ConfigRoot = <T extends object>({
     };
 
     return (
-        <form {...props} className={rootClassName} onSubmit={handleSubmit}>
+        <form {...props} className={rootClassName} onSubmit={handleSubmit} data-px="sm">
             {content}
         </form>
     );

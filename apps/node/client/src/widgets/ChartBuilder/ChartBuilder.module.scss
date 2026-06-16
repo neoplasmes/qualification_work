@@ -1,10 +1,12 @@
-@use './ChartBuilder.mixins' as chartBuilder;
-
-.form.form {
-    @include chartBuilder.form-grid;
+.form {
+    config-section-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        width: 100%;
+    }
 }
 
 .error,
 .preview {
-    @include chartBuilder.wide;
+    width: 100%;
 }

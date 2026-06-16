@@ -7,8 +7,6 @@ import { FormField, StatusMessage, TextInput } from '@/shared/ui';
 
 import { type ChartBuilderOutput } from '../../model';
 
-import styles from './ChartBuilderPreview.module.scss';
-
 type ChartBuilderPreviewProps = {
     chartError: string;
     columns: DatasetColumn[];
@@ -31,15 +29,10 @@ export const ChartBuilderPreview = ({
     onChartNameChange,
 }: ChartBuilderPreviewProps) => (
     <>
-        <div
-            className={styles['section']}
-            data-stack="h"
-            data-gap="sm"
-            data-align="center"
-        >
+        <div data-stack="h" data-gap="sm" data-align="center">
             Preview
         </div>
-        <div className={styles['preview']} data-stack="v" data-gap="sm">
+        <div data-stack="v" data-gap="sm">
             {!editMode && (
                 <FormField label="Chart name">
                     <TextInput

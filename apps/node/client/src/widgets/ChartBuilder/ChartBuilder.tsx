@@ -5,7 +5,7 @@ import {
     useId,
     useMemo,
     useState,
-    type ComponentType,
+    type ReactNode,
     type SubmitEventHandler,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -19,7 +19,7 @@ import {
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
-import { Separator, StatusMessage } from '@/shared/ui';
+import { StatusMessage } from '@/shared/ui';
 
 import {
     chartDefinitions,
@@ -27,7 +27,6 @@ import {
     type ChartBuilderDraft,
     type ChartBuilderOutput,
     type ChartTypeDefinition,
-    type ChartTypeSettingsProps,
 } from './model';
 import {
     AppearanceSection,
@@ -41,9 +40,11 @@ import styles from './ChartBuilder.module.scss';
 export type ChartBuilderProps = {
     orgId: string;
     selectedDataset: DatasetMetadata;
+    /** what is configured in the builder so far */
     value: ChartBuilderDraft;
     editChartId?: string;
-    actionsContainer?: HTMLElement | null;
+    /** element, where buttons save/edit/preview etc shall be rendered */
+    actionsContainer: HTMLElement | null;
     onChange: (draft: ChartBuilderDraft) => void;
     onOutputChange?: (output: ChartBuilderOutput) => void;
     onChartCreated?: (chartId: string) => void;
@@ -75,9 +76,7 @@ export const ChartBuilder = ({
     const [updateChart, updateChartState] = useUpdateChartMutation();
     const isSaving = editMode ? updateChartState.isLoading : createChartState.isLoading;
     const definition = chartDefinitions[value.chartType] as ChartTypeDefinition<object>;
-    const ActiveSettings = definition.Settings as ComponentType<
-        ChartTypeSettingsProps<object>
-    >;
+
     const currentOutput = useMemo(
         () => createChartBuilderOutput(value, selectedDataset.columns, editMode),
         [editMode, selectedDataset.columns, value]
@@ -200,8 +199,8 @@ export const ChartBuilder = ({
         void saveChartConfig(currentOutput.config, currentOutput);
     };
 
-    let content;
-    let actions;
+    let content: ReactNode;
+    let actions: ReactNode;
 
     if (preview) {
         content = (
@@ -216,6 +215,7 @@ export const ChartBuilder = ({
                 onChartNameChange={handleChartNameChange}
             />
         );
+
         actions = (
             <PreviewActions
                 editMode={editMode}
@@ -239,7 +239,7 @@ export const ChartBuilder = ({
                     onTypeChange={handleChartTypeChange}
                 />
 
-                <ActiveSettings
+                <definition.Settings
                     config={definition.config}
                     selectedDataset={selectedDataset}
                     editMode={editMode}
@@ -252,6 +252,7 @@ export const ChartBuilder = ({
                 )}
             </>
         );
+
         actions = (
             <BuilderActions
                 canPreview={currentOutput.canPreview}
@@ -276,14 +277,7 @@ export const ChartBuilder = ({
             onSubmit={handlePreview}
         >
             {content}
-            {actionsContainer ? (
-                createPortal(actions, actionsContainer)
-            ) : (
-                <>
-                    <Separator />
-                    {actions}
-                </>
-            )}
+            {actionsContainer && createPortal(actions, actionsContainer)}
         </definition.config.Root>
     );
 };

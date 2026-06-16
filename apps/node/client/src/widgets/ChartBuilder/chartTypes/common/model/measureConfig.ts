@@ -1,4 +1,4 @@
-import type { Aggregate, Measure, MeasureValueFormat } from '@qualification-work/types';
+import type { Aggregate, Measure } from '@qualification-work/types';
 
 import type { ConfigBind } from '@/features/Config';
 
@@ -14,76 +14,54 @@ import {
  */
 export const maxMeasures = 6;
 
+// TODO: implement aliases somewhere in the future
 /**
  * flat draft shape used by measure settings
  */
-export type MeasureDraft = {
-    aggregate: Aggregate;
-    valueFormat: MeasureValueFormat;
-    columnId: string;
-};
+export type MeasureDraft = Required<Omit<Measure, 'alias'>>;
 
 /**
- * measure column context after analysis-column filtering
- */
-export type ActiveMeasure = {
-    columns: DatasetColumn[];
-    activeColumnId: string;
-};
-
-/**
- * connects one measure aggregate control to a measure list item
+ * connects measure controls to a measure list item
  *
  * @template T draft shape with a measures list
+ * @param index
+ * @param activeColumnId
+ * @returns
  */
-export const createMeasureAggregateBind = <T extends { measures: MeasureDraft[] }>(
-    index: number
-): ConfigBind<T, Aggregate> => ({
-    get: draft => draft.measures[index]?.aggregate ?? 'count',
-    set: (draft, aggregate) => {
-        const measure = draft.measures[index];
-
-        if (measure) {
-            measure.aggregate = aggregate;
-        }
-    },
-});
-
-/**
- * connects one measure column control to a measure list item
- *
- * @template T draft shape with a measures list
- */
-export const createMeasureColumnIdBind = <T extends { measures: MeasureDraft[] }>(
+export const createMeasureBinds = <T extends { measures: MeasureDraft[] }>(
     index: number,
     activeColumnId: string
-): ConfigBind<T, string> => ({
-    get: draft => activeColumnId || draft.measures[index]?.columnId || '',
-    set: (draft, columnId) => {
-        const measure = draft.measures[index];
+) => ({
+    aggregate: {
+        get: draft => draft.measures[index]?.aggregate ?? 'count',
+        set: (draft, aggregate) => {
+            const measure = draft.measures[index];
 
-        if (measure) {
-            measure.columnId = columnId;
-        }
-    },
-});
+            if (measure) {
+                measure.aggregate = aggregate;
+            }
+        },
+    } satisfies ConfigBind<T, Aggregate>,
+    columnId: {
+        get: draft => activeColumnId || draft.measures[index]?.columnId || '',
+        set: (draft, columnId) => {
+            const measure = draft.measures[index];
 
-/**
- * connects one measure format control to a measure list item
- *
- * @template T draft shape with a measures list
- */
-export const createMeasureValueFormatBind = <T extends { measures: MeasureDraft[] }>(
-    index: number
-): ConfigBind<T, MeasureValueFormat> => ({
-    get: draft => draft.measures[index]?.valueFormat ?? '',
-    set: (draft, valueFormat) => {
-        const measure = draft.measures[index];
+            if (measure) {
+                measure.columnId = columnId;
+            }
+        },
+    } satisfies ConfigBind<T, string>,
+    valueFormat: {
+        get: draft => draft.measures[index]?.valueFormat ?? '',
+        set: (draft, valueFormat) => {
+            const measure = draft.measures[index];
 
-        if (measure) {
-            measure.valueFormat = valueFormat;
-        }
-    },
+            if (measure) {
+                measure.valueFormat = valueFormat;
+            }
+        },
+    } satisfies ConfigBind<T, string>,
 });
 
 /**
@@ -97,20 +75,33 @@ export const createMeasureDraft = (overrides?: Partial<MeasureDraft>): MeasureDr
 });
 
 /**
- * tells whether the aggregate needs a real dataset column
+ * measure columns accepted by the selected aggregation
  */
-export const needsColumn = (aggregate: Aggregate) => aggregate !== 'count';
+export type AcceptableMeasureColumns = {
+    columns: DatasetColumn[];
+    activeColumnId: string;
+};
 
 /**
- * resolves the selected measure column within columns allowed for the aggregate
+ * returns columns accepted by the selected aggregation
+ *
+ * activeColumnId is returned to be used as a kind of auto-selection,
+ * especially, when draft is blank at start and when acceptable type of columns is changed
+ *
+ * @param columns
+ * @param aggregate
+ * @param columnId
+ * @param editMode
+ * @param fallbackIndex
+ * @returns
  */
-export const getActiveMeasure = (
+export const getAcceptableColumnsForSelectedAggregationType = (
     columns: DatasetColumn[],
     aggregate: Aggregate,
     columnId: string,
     editMode: boolean,
     fallbackIndex = 0
-): ActiveMeasure => {
+): AcceptableMeasureColumns => {
     const numericColumns = columns.filter(column => column.dataType === 'number');
     const measureColumns = aggregate === 'count_distinct' ? columns : numericColumns;
 
@@ -126,29 +117,33 @@ export const getActiveMeasure = (
 };
 
 /**
- * checks that one measure uses a column available for chart analysis
- */
-export const validateMeasureColumn = (
-    measure: MeasureDraft,
-    activeMeasure: ActiveMeasure
-) =>
-    !needsColumn(measure.aggregate) ||
-    (Boolean(activeMeasure.activeColumnId) &&
-        isAnalysisColumnEnabled(activeMeasure.columns, activeMeasure.activeColumnId));
-
-/**
- * checks that every measure uses a column available for chart analysis
+ * checks that configured measures are valid; part of draft validation before sending over HTTP to backend
+ *
+ * @param selectedMeasures
+ * @param acceptableColumnsForMeasures
+ * @returns
  */
 export const validateMeasureColumns = (
-    measures: MeasureDraft[],
-    activeMeasures: ActiveMeasure[]
-) =>
-    measures.every((measure, index) =>
-        validateMeasureColumn(
-            measure,
-            activeMeasures[index] ?? { columns: [], activeColumnId: '' }
-        )
-    );
+    selectedMeasures: MeasureDraft | MeasureDraft[],
+    acceptableColumnsForMeasures: AcceptableMeasureColumns[]
+) => {
+    const measures = Array.isArray(selectedMeasures)
+        ? selectedMeasures
+        : [selectedMeasures];
+
+    return measures.every((measure, index) => {
+        const acceptableColumns = acceptableColumnsForMeasures[index];
+
+        return (
+            measure.aggregate === 'count' ||
+            (Boolean(acceptableColumns?.activeColumnId) &&
+                isAnalysisColumnEnabled(
+                    acceptableColumns?.columns ?? [],
+                    acceptableColumns?.activeColumnId ?? ''
+                ))
+        );
+    });
+};
 
 /**
  * builds the output measure expected by chart rendering
@@ -175,7 +170,7 @@ export const buildMeasure = ({
 type MeasureConfigLike = {
     aggregate?: Aggregate;
     columnId?: string;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 };
 
 /**

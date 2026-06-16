@@ -6,7 +6,7 @@ import type {
 } from '@qualification-work/types';
 import { Fragment, type ReactNode } from 'react';
 
-import { AGGREGATE_LABELS, FILTER_OP_SHORT, GRANULARITY_LABELS } from '../../lib/labels';
+import { aggregateLabels, FILTER_OP_SHORT, GRANULARITY_LABELS } from '../../lib/labels';
 
 import styles from './ChartConfigSummary.module.scss';
 
@@ -69,7 +69,7 @@ export const ChartConfigSummary = ({
 
     const renderMeasure = (m: MeasureLike | undefined): ReactNode => {
         const agg = m?.aggregate;
-        const label = agg ? (AGGREGATE_LABELS[agg] ?? agg) : '?';
+        const label = agg ? (aggregateLabels[agg] ?? agg) : '?';
         if (agg === 'count') {
             return (
                 <>

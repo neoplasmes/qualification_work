@@ -1,6 +1,6 @@
 export type { ChartKind } from './lib';
 export {
-    AGGREGATE_LABELS,
+    aggregateLabels,
     FILTER_OP_LABELS,
     FILTER_OP_SHORT,
     GRANULARITY_LABELS,

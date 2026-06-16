@@ -11,12 +11,11 @@ import {
     buildMeasure,
     createFilterResult,
     createMeasureDraft,
+    getAcceptableColumnsForSelectedAggregationType,
     getActiveAnalysisColumnId,
-    getActiveMeasure,
     getGroupingModes,
     isAnalysisColumnEnabled,
     measureConfigToDraft,
-    normalizeGroupingMode,
     validateMeasureColumns,
 } from '../../common/model';
 import { createLineChartDraft, type LineChartDraft } from './lineChartConfig';
@@ -49,12 +48,12 @@ export const configToLineChartDraft = (config: ChartConfig): LineChartDraft => {
     };
 };
 
-export const createLineChartOutput = ({
+export const draftToLineChartBuilderOutput = ({
     draft,
     appearance,
     columns,
     editMode,
-}: ChartTypeOutputInput<LineChartDraft>): ChartBuilderOutput => {
+}: ChartTypeOutputInput<LineChartDraft>): ChartBuilderOutput<LineChartConfig> => {
     const activeDimensionColumnId = getActiveAnalysisColumnId(
         columns,
         draft.dimensionColumnId,
@@ -63,12 +62,18 @@ export const createLineChartOutput = ({
     const activeDimensionColumn = columns.find(
         column => column.id === activeDimensionColumnId
     );
-    const groupingMode = normalizeGroupingMode(
-        draft.dimensionGroupingMode,
-        getGroupingModes(activeDimensionColumn?.dataType)
-    );
-    const activeMeasures = draft.measures.map((measure, index) =>
-        getActiveMeasure(columns, measure.aggregate, measure.columnId, editMode, index)
+    const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
+    const groupingMode = groupingModes.includes(draft.dimensionGroupingMode)
+        ? draft.dimensionGroupingMode
+        : 'none';
+    const acceptableColumnsByMeasure = draft.measures.map((measure, index) =>
+        getAcceptableColumnsForSelectedAggregationType(
+            columns,
+            measure.aggregate,
+            measure.columnId,
+            editMode,
+            index
+        )
     );
     const activeBreakdownColumnId = getActiveAnalysisColumnId(
         columns,
@@ -79,7 +84,7 @@ export const createLineChartOutput = ({
     if (
         !activeDimensionColumnId ||
         !isAnalysisColumnEnabled(columns, activeDimensionColumnId) ||
-        !validateMeasureColumns(draft.measures, activeMeasures) ||
+        !validateMeasureColumns(draft.measures, acceptableColumnsByMeasure) ||
         (draft.breakdownEnabled &&
             (!activeBreakdownColumnId ||
                 !isAnalysisColumnEnabled(columns, activeBreakdownColumnId)))
@@ -139,7 +144,7 @@ export const createLineChartOutput = ({
         measures: draft.measures.map((measure, index) =>
             buildMeasure({
                 ...measure,
-                columnId: activeMeasures[index]?.activeColumnId ?? '',
+                columnId: acceptableColumnsByMeasure[index]?.activeColumnId ?? '',
             })
         ),
     };

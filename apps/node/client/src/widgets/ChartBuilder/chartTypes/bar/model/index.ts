@@ -5,5 +5,5 @@ export {
 } from './barChartConfig';
 export {
     configToBarChartDraft,
-    createBarChartOutput,
+    draftToBarChartBuilderOutput,
 } from './barChartConfigTransformers';

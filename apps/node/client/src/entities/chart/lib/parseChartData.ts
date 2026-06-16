@@ -1,8 +1,4 @@
-import type {
-    ChartResultColumn,
-    MeasureValueFormat,
-    TimeGranularity,
-} from '@qualification-work/types';
+import type { ChartResultColumn, TimeGranularity } from '@qualification-work/types';
 
 import type { ChartKind } from './chartKind';
 
@@ -10,7 +6,7 @@ export type ChartDataPoint = {
     label: string;
     value: number;
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 };
 export type ChartSeries = { name: string; points: ChartDataPoint[] };
 
@@ -24,7 +20,7 @@ export type ChartViewModel = {
     series: ChartSeries[];
     labels: string[];
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
     warnings: string[];
 };
 

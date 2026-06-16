@@ -1,1 +1,0 @@
-export { ValuesBarChartSection } from './ValuesBarChartSection';

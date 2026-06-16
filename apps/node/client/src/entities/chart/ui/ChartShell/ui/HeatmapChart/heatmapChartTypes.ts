@@ -1,8 +1,4 @@
-import type {
-    ChartResultColumn,
-    MeasureValueFormat,
-    TimeGranularity,
-} from '@qualification-work/types';
+import type { ChartResultColumn, TimeGranularity } from '@qualification-work/types';
 
 export type HeatmapCell = {
     x: string;
@@ -12,5 +8,5 @@ export type HeatmapCell = {
     yType?: ChartResultColumn['type'];
     xTimeGranularity?: TimeGranularity;
     yTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 };

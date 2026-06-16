@@ -7,10 +7,13 @@ import {
     createNumberInputBind,
     getActiveAnalysisColumnId,
 } from '../../common/model';
-import { BreakdownSettingsSection, FilterSettingsSection } from '../../common/ui';
+import {
+    BreakdownSettingsSection,
+    FilterSettingsSection,
+    ValueSectionDefault,
+} from '../../common/ui';
 import type { LineChartDraft } from '../model';
 import { ChartLineChartSection } from './ChartLineChartSection';
-import { ValuesLineChartSection } from './ValuesLineChartSection';
 
 const lineChartSettingsBinds = {
     breakdownColumnId: (activeColumnId: string) =>
@@ -49,11 +52,7 @@ export const LineChartSettings = ({
                 columns={columns}
                 editMode={editMode}
             />
-            <ValuesLineChartSection
-                config={config}
-                columns={columns}
-                editMode={editMode}
-            />
+            <ValueSectionDefault config={config} columns={columns} editMode={editMode} />
 
             <BreakdownSettingsSection
                 config={config}

@@ -18,8 +18,6 @@ import {
 
 import type { BarChartDraft } from '../../model';
 
-import styles from './ChartBarChartSection.module.scss';
-
 const chartBarChartSectionBinds = {
     dimensionColumnId: (columns: DatasetColumn[], activeColumnId: string) =>
         createAxisColumnBind<BarChartDraft>(
@@ -60,7 +58,7 @@ export const ChartBarChartSection = ({
     const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
 
     return (
-        <config.Section name="Chart" className={styles['section']}>
+        <config.Section name="Chart">
             <FormField label="X axis">
                 <config.Select
                     bind={chartBarChartSectionBinds.dimensionColumnId(

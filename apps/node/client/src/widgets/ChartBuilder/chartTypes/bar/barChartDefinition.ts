@@ -3,7 +3,7 @@ import {
     barChartConfig,
     configToBarChartDraft,
     createBarChartDraft,
-    createBarChartOutput,
+    draftToBarChartBuilderOutput,
     type BarChartDraft,
 } from './model';
 import { BarChartSettings } from './ui';
@@ -14,6 +14,6 @@ export const barChartDefinition: ChartTypeDefinition<BarChartDraft> = {
     config: barChartConfig,
     createDraft: createBarChartDraft,
     configToDraft: configToBarChartDraft,
-    createOutput: createBarChartOutput,
+    createOutput: draftToBarChartBuilderOutput,
     Settings: BarChartSettings,
 };

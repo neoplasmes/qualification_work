@@ -1,4 +1,3 @@
-import type { MeasureValueFormat } from '@qualification-work/types';
 import { scaleBand } from '@visx/scale';
 import { DataContext } from '@visx/xychart';
 import { useContext } from 'react';
@@ -65,7 +64,7 @@ export const ValueLabels = ({
     valueFormat,
 }: {
     series: ChartSeries[];
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 }) => {
     const scales = useScales();
     const totalBars = series.reduce((sum, item) => sum + item.points.length, 0);

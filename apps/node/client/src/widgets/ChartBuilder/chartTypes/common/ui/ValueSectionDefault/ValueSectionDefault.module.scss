@@ -1,0 +1,53 @@
+@use '../../../../../../shared/ui/styles/typography.scss' as t;
+
+.value-section.value-section {
+    > config-section-body {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+}
+
+.measure {
+    position: relative;
+
+    config-section-body {
+        padding-left: var(--spacing-md);
+
+        &::before {
+            content: '';
+            width: 1px;
+            height: 60%;
+            position: absolute;
+            top: 40%;
+            left: 0;
+            background-color: var(--color-outline-new);
+
+            transform-origin: left center;
+            transition: all 0.2s ease;
+        }
+
+        &:hover {
+            &::before {
+                background-color: var(--color-on-surface);
+
+                transform: scaleX(1.5);
+            }
+        }
+    }
+}
+
+.measure-header {
+    min-height: 30px;
+}
+
+.measure-label {
+    @include t.text-uppercase-xs;
+}
+
+.measure-remove {
+    color: var(--color-outline);
+}
+
+.add-measure {
+    align-self: flex-start;
+}

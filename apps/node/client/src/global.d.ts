@@ -65,4 +65,13 @@ declare module 'react' {
         'data-flex'?: boolean | '';
         'data-display'?: Display;
     }
+
+    namespace JSX {
+        interface IntrinsicElements {
+            'config-section-body': DetailedHTMLProps<
+                HTMLAttributes<HTMLElement>,
+                HTMLElement
+            >;
+        }
+    }
 }

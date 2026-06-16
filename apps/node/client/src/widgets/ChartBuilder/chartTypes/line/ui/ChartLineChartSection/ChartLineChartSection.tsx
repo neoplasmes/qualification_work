@@ -18,8 +18,6 @@ import {
 
 import type { LineChartDraft } from '../../model';
 
-import styles from './ChartLineChartSection.module.scss';
-
 const chartLineChartSectionBinds = {
     dimensionColumnId: (columns: DatasetColumn[], activeColumnId: string) =>
         createAxisColumnBind<LineChartDraft>(
@@ -60,7 +58,7 @@ export const ChartLineChartSection = ({
     const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
 
     return (
-        <config.Section name="Chart" className={styles['section']}>
+        <config.Section name="Chart">
             <FormField label="X axis">
                 <config.Select
                     bind={chartLineChartSectionBinds.dimensionColumnId(

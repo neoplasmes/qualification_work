@@ -18,8 +18,6 @@ import {
 
 import type { HeatmapChartDraft } from '../../model';
 
-import styles from './ChartHeatmapChartSection.module.scss';
-
 const chartHeatmapChartSectionBinds = {
     xColumnId: (columns: DatasetColumn[], activeColumnId: string) =>
         createAxisColumnBind<HeatmapChartDraft>(
@@ -73,7 +71,7 @@ export const ChartHeatmapChartSection = ({
     const yGroupingModes = getGroupingModes(activeYColumn?.dataType);
 
     return (
-        <config.Section name="Chart" className={styles['section']}>
+        <config.Section name="Chart">
             <FormField label="X axis">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.xColumnId(

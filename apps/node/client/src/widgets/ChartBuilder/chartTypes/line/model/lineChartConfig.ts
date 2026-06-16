@@ -4,7 +4,7 @@ import { createConfig } from '@/features/Config';
 
 import {
     createMeasureDraft,
-    getDefaultGranularity,
+    defaultGranularity,
     type GroupingMode,
     type MeasureDraft,
 } from '../../common/model';
@@ -27,7 +27,7 @@ export type LineChartDraft = {
 export const createLineChartDraft = (): LineChartDraft => ({
     dimensionColumnId: '',
     dimensionGroupingMode: 'none',
-    dimensionGranularity: getDefaultGranularity(),
+    dimensionGranularity: defaultGranularity,
     dimensionStep: 10,
     measures: [createMeasureDraft()],
     breakdownEnabled: false,

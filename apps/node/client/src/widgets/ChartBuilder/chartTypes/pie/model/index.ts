@@ -5,5 +5,5 @@ export {
 } from './pieChartConfig';
 export {
     configToPieChartDraft,
-    createPieChartOutput,
+    draftToPieChartBuilderOutput,
 } from './pieChartConfigTransformers';

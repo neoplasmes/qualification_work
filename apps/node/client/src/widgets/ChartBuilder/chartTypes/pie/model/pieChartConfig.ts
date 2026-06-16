@@ -1,21 +1,20 @@
-import type {
-    ChartConfig,
-    PieChartConfig,
-    TimeGranularity,
-} from '@qualification-work/types';
+import type { ChartConfig, TimeGranularity } from '@qualification-work/types';
 
 import { createConfig } from '@/features/Config';
 
-import { getDefaultGranularity, type GroupingMode } from '../../common/model';
+import {
+    createMeasureDraft,
+    defaultGranularity,
+    type GroupingMode,
+    type MeasureDraft,
+} from '../../common/model';
 
 export type PieChartDraft = {
     dimensionColumnId: string;
     dimensionGroupingMode: GroupingMode;
     dimensionGranularity: TimeGranularity;
     dimensionStep: number;
-    measureAggregate: PieChartConfig['measure']['aggregate'];
-    measureColumnId: string;
-    measureValueFormat: NonNullable<PieChartConfig['measure']['valueFormat']>;
+    measures: MeasureDraft[];
     topN: number;
     filterEnabled: boolean;
     filterColumnId: string;
@@ -26,11 +25,9 @@ export type PieChartDraft = {
 export const createPieChartDraft = (): PieChartDraft => ({
     dimensionColumnId: '',
     dimensionGroupingMode: 'none',
-    dimensionGranularity: getDefaultGranularity(),
+    dimensionGranularity: defaultGranularity,
     dimensionStep: 10,
-    measureAggregate: 'count',
-    measureColumnId: '',
-    measureValueFormat: '',
+    measures: [createMeasureDraft()],
     topN: 12,
     filterEnabled: false,
     filterColumnId: '',

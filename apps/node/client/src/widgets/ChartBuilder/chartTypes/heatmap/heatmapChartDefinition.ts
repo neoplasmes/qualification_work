@@ -2,7 +2,7 @@ import type { ChartTypeDefinition } from '../../model';
 import {
     configToHeatmapChartDraft,
     createHeatmapChartDraft,
-    createHeatmapChartOutput,
+    draftToHeatmapChartBuilderOutput,
     heatmapChartConfig,
     type HeatmapChartDraft,
 } from './model';
@@ -14,6 +14,6 @@ export const heatmapChartDefinition: ChartTypeDefinition<HeatmapChartDraft> = {
     config: heatmapChartConfig,
     createDraft: createHeatmapChartDraft,
     configToDraft: configToHeatmapChartDraft,
-    createOutput: createHeatmapChartOutput,
+    createOutput: draftToHeatmapChartBuilderOutput,
     Settings: HeatmapChartSettings,
 };

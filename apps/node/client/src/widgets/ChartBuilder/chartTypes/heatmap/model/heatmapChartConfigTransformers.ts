@@ -11,13 +11,12 @@ import {
     buildMeasure,
     createFilterResult,
     createMeasureDraft,
+    getAcceptableColumnsForSelectedAggregationType,
     getActiveAnalysisColumnId,
-    getActiveMeasure,
     getGroupingModes,
     isAnalysisColumnEnabled,
     measureConfigToDraft,
-    normalizeGroupingMode,
-    validateMeasureColumn,
+    validateMeasureColumns,
 } from '../../common/model';
 import { createHeatmapChartDraft, type HeatmapChartDraft } from './heatmapChartConfig';
 
@@ -40,9 +39,7 @@ export const configToHeatmapChartDraft = (config: ChartConfig): HeatmapChartDraf
         yGroupingMode: y.groupingMode,
         yGranularity: y.granularity,
         yStep: y.step,
-        measureAggregate: measure.aggregate,
-        measureColumnId: measure.columnId,
-        measureValueFormat: measure.valueFormat,
+        measures: [measure],
         filterEnabled: Boolean(filter),
         filterColumnId: filter?.columnId ?? '',
         filterOperation: filter?.op ?? 'eq',
@@ -52,12 +49,12 @@ export const configToHeatmapChartDraft = (config: ChartConfig): HeatmapChartDraf
     };
 };
 
-export const createHeatmapChartOutput = ({
+export const draftToHeatmapChartBuilderOutput = ({
     draft,
     appearance,
     columns,
     editMode,
-}: ChartTypeOutputInput<HeatmapChartDraft>): ChartBuilderOutput => {
+}: ChartTypeOutputInput<HeatmapChartDraft>): ChartBuilderOutput<HeatmapChartConfig> => {
     const activeXColumnId = getActiveAnalysisColumnId(columns, draft.xColumnId, editMode);
     const activeYColumnId = getActiveAnalysisColumnId(
         columns,
@@ -69,17 +66,17 @@ export const createHeatmapChartOutput = ({
     const activeYColumn = columns.find(column => column.id === activeYColumnId);
     const xGroupingModes = getGroupingModes(activeXColumn?.dataType);
     const yGroupingModes = getGroupingModes(activeYColumn?.dataType);
-    const xGroupingMode = normalizeGroupingMode(draft.xGroupingMode, xGroupingModes);
-    const yGroupingMode = normalizeGroupingMode(draft.yGroupingMode, yGroupingModes);
-    const measure = createMeasureDraft({
-        aggregate: draft.measureAggregate,
-        columnId: draft.measureColumnId,
-        valueFormat: draft.measureValueFormat,
-    });
-    const activeMeasure = getActiveMeasure(
+    const xGroupingMode = xGroupingModes.includes(draft.xGroupingMode)
+        ? draft.xGroupingMode
+        : 'none';
+    const yGroupingMode = yGroupingModes.includes(draft.yGroupingMode)
+        ? draft.yGroupingMode
+        : 'none';
+    const measure = draft.measures[0] ?? createMeasureDraft();
+    const acceptableMeasureColumns = getAcceptableColumnsForSelectedAggregationType(
         columns,
-        draft.measureAggregate,
-        draft.measureColumnId,
+        measure.aggregate,
+        measure.columnId,
         editMode
     );
 
@@ -97,7 +94,7 @@ export const createHeatmapChartOutput = ({
         !activeYColumnId ||
         !isAnalysisColumnEnabled(columns, activeXColumnId) ||
         !isAnalysisColumnEnabled(columns, activeYColumnId) ||
-        !validateMeasureColumn(measure, activeMeasure)
+        !validateMeasureColumns(measure, [acceptableMeasureColumns])
     ) {
         return {
             ...appearance,
@@ -156,7 +153,7 @@ export const createHeatmapChartOutput = ({
         ...(filterResult.filter ? { filters: [filterResult.filter] } : {}),
         measure: buildMeasure({
             ...measure,
-            columnId: activeMeasure.activeColumnId,
+            columnId: acceptableMeasureColumns.activeColumnId,
         }),
     };
 

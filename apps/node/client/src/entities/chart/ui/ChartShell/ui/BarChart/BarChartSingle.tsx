@@ -1,4 +1,4 @@
-import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+import type { TimeGranularity } from '@qualification-work/types';
 import { Axis, BarSeries, Grid, XYChart, type EventHandlerParams } from '@visx/xychart';
 import { useMemo, useState } from 'react';
 
@@ -37,7 +37,7 @@ type BarChartSingleInnerProps = {
     series: ChartSeries;
     labels: string[];
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
     color?: string;
     width: number;
     height: number;
@@ -233,7 +233,7 @@ type BarChartSingleProps = {
     series: ChartSeries;
     labels: string[];
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
     color?: string;
     height?: ChartFrameHeight;
     aspectRatioConstraint?: ChartAspectRatioConstraint;

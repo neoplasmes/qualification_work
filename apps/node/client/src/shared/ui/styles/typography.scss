@@ -1,3 +1,11 @@
+@mixin text-uppercase-xs {
+    color: var(--color-outline);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 @mixin text-xs-medium {
     font-family: var(--font-body);
     font-size: var(--font-size-xs);

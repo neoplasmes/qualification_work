@@ -4,8 +4,6 @@ import type { DatasetColumn } from '@/entities/dataset';
 
 import { FormField } from '@/shared/ui';
 
-import styles from './BreakdownSettingsSection.module.scss';
-
 type BreakdownSettingsSectionProps<T extends object> = {
     config: Config<T>;
     enabledField: ConfigFieldKey<T, boolean>;
@@ -26,11 +24,7 @@ export const BreakdownSettingsSection = <T extends object>({
     showOtherBucket,
 }: BreakdownSettingsSectionProps<T>) => {
     return (
-        <config.Section
-            name="Breakdown"
-            enabledField={enabledField}
-            className={styles['section']}
-        >
+        <config.Section name="Breakdown" enabledField={enabledField}>
             <FormField label="Split by">
                 <config.Select bind={columnBind}>
                     {columns.map(column => (

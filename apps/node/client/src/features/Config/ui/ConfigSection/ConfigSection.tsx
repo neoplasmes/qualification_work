@@ -93,9 +93,7 @@ export const ConfigSection = <T extends object>({
                 )}
             </div>
             {checked && (
-                <div data-config-section-body data-stack="v" data-gap="sm">
-                    {children}
-                </div>
+                <config-section-body data-stack="v">{children}</config-section-body>
             )}
         </section>
     );

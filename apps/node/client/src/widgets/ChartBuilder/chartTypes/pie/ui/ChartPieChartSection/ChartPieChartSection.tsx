@@ -18,8 +18,6 @@ import {
 
 import type { PieChartDraft } from '../../model';
 
-import styles from './ChartPieChartSection.module.scss';
-
 const chartPieChartSectionBinds = {
     dimensionColumnId: (columns: DatasetColumn[], activeColumnId: string) =>
         createAxisColumnBind<PieChartDraft>(
@@ -60,7 +58,7 @@ export const ChartPieChartSection = ({
     const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
 
     return (
-        <config.Section name="Chart" className={styles['section']}>
+        <config.Section name="Chart">
             <FormField label="Slice by">
                 <config.Select
                     bind={chartPieChartSectionBinds.dimensionColumnId(

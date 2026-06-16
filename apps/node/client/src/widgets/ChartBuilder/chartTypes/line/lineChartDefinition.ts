@@ -2,7 +2,7 @@ import type { ChartTypeDefinition } from '../../model';
 import {
     configToLineChartDraft,
     createLineChartDraft,
-    createLineChartOutput,
+    draftToLineChartBuilderOutput,
     lineChartConfig,
     type LineChartDraft,
 } from './model';
@@ -14,6 +14,6 @@ export const lineChartDefinition: ChartTypeDefinition<LineChartDraft> = {
     config: lineChartConfig,
     createDraft: createLineChartDraft,
     configToDraft: configToLineChartDraft,
-    createOutput: createLineChartOutput,
+    createOutput: draftToLineChartBuilderOutput,
     Settings: LineChartSettings,
 };

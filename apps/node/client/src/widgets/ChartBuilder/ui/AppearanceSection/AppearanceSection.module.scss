@@ -1,5 +1,5 @@
-@use '../../ChartBuilder.mixins' as chartBuilder;
+@use '../../../../shared/ui/styles/typography.scss' as t;
 
-.section {
-    @include chartBuilder.section;
+.header {
+    @include t.text-uppercase-xs;
 }

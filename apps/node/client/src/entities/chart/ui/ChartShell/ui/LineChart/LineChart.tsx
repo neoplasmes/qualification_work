@@ -1,4 +1,4 @@
-import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+import type { TimeGranularity } from '@qualification-work/types';
 
 import { DEFAULT_CHART_COLOR } from '../../../../lib';
 import type { ChartSeries } from '../../../../lib/parseChartData';
@@ -21,7 +21,7 @@ type LineChartProps = {
     series: ChartSeries[];
     labels: string[];
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
     color?: string;
     height?: ChartFrameHeight;
     aspectRatioConstraint?: ChartAspectRatioConstraint;

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import {
+    ChartBuilder,
     configToBuilderDraft,
     createChartBuilderDraft,
     type ChartBuilderDraft,
@@ -49,10 +50,7 @@ import {
     type ChartsWorkspaceMode,
 } from '../model';
 import { useChartDataResult, useChartsWorkspaceRouteSync } from './lib';
-import {
-    CreateChartBuilderSection,
-    EditChartBuilderSection,
-} from './ui/ChartBuilderSection';
+import { CreateChartBuilderSection } from './ui/ChartBuilderSection';
 import { CreateChartModal } from './ui/CreateChartModal';
 import { SavedChartDetails } from './ui/SavedChartDetails';
 
@@ -305,13 +303,14 @@ export const ChartsWorkspace = () => {
                             editDataset &&
                             org &&
                             editBuilderDraft && (
-                                <EditChartBuilderSection
+                                <ChartBuilder
+                                    key={`edit-${selectedChart.id}`}
                                     orgId={org.id}
-                                    chart={selectedChart}
-                                    dataset={editDataset}
-                                    draft={editBuilderDraft}
+                                    selectedDataset={editDataset}
+                                    editChartId={selectedChart.id}
+                                    value={editBuilderDraft}
                                     actionsContainer={actionsEl}
-                                    onDraftChange={handleEditDraftChange}
+                                    onChange={handleEditDraftChange}
                                     onOutputChange={handleEditOutputChange}
                                     onChartUpdated={chartId =>
                                         void handleChartUpdated(chartId)

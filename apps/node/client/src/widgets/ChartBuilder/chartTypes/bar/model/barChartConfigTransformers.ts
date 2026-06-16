@@ -11,12 +11,11 @@ import {
     buildMeasure,
     createFilterResult,
     createMeasureDraft,
+    getAcceptableColumnsForSelectedAggregationType,
     getActiveAnalysisColumnId,
-    getActiveMeasure,
     getGroupingModes,
     isAnalysisColumnEnabled,
     measureConfigToDraft,
-    normalizeGroupingMode,
     validateMeasureColumns,
 } from '../../common/model';
 import { createBarChartDraft, type BarChartDraft } from './barChartConfig';
@@ -50,12 +49,12 @@ export const configToBarChartDraft = (config: ChartConfig): BarChartDraft => {
     };
 };
 
-export const createBarChartOutput = ({
+export const draftToBarChartBuilderOutput = ({
     draft,
     appearance,
     columns,
     editMode,
-}: ChartTypeOutputInput<BarChartDraft>): ChartBuilderOutput => {
+}: ChartTypeOutputInput<BarChartDraft>): ChartBuilderOutput<BarChartConfig> => {
     const activeDimensionColumnId = getActiveAnalysisColumnId(
         columns,
         draft.dimensionColumnId,
@@ -64,12 +63,18 @@ export const createBarChartOutput = ({
     const activeDimensionColumn = columns.find(
         column => column.id === activeDimensionColumnId
     );
-    const groupingMode = normalizeGroupingMode(
-        draft.dimensionGroupingMode,
-        getGroupingModes(activeDimensionColumn?.dataType)
-    );
-    const activeMeasures = draft.measures.map((measure, index) =>
-        getActiveMeasure(columns, measure.aggregate, measure.columnId, editMode, index)
+    const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
+    const groupingMode = groupingModes.includes(draft.dimensionGroupingMode)
+        ? draft.dimensionGroupingMode
+        : 'none';
+    const acceptableColumnsByMeasure = draft.measures.map((measure, index) =>
+        getAcceptableColumnsForSelectedAggregationType(
+            columns,
+            measure.aggregate,
+            measure.columnId,
+            editMode,
+            index
+        )
     );
     const activeBreakdownColumnId = getActiveAnalysisColumnId(
         columns,
@@ -80,7 +85,7 @@ export const createBarChartOutput = ({
     if (
         !activeDimensionColumnId ||
         !isAnalysisColumnEnabled(columns, activeDimensionColumnId) ||
-        !validateMeasureColumns(draft.measures, activeMeasures) ||
+        !validateMeasureColumns(draft.measures, acceptableColumnsByMeasure) ||
         (draft.breakdownEnabled &&
             (!activeBreakdownColumnId ||
                 !isAnalysisColumnEnabled(columns, activeBreakdownColumnId)))
@@ -141,7 +146,7 @@ export const createBarChartOutput = ({
         measures: draft.measures.map((measure, index) =>
             buildMeasure({
                 ...measure,
-                columnId: activeMeasures[index]?.activeColumnId ?? '',
+                columnId: acceptableColumnsByMeasure[index]?.activeColumnId ?? '',
             })
         ),
     };

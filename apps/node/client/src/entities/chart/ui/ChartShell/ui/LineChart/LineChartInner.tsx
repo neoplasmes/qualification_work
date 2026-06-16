@@ -1,4 +1,4 @@
-import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+import type { TimeGranularity } from '@qualification-work/types';
 import { curveMonotoneX } from '@visx/curve';
 import {
     AreaSeries,
@@ -31,7 +31,7 @@ type LineChartInnerProps = {
     series: ChartSeries[];
     labels: string[];
     labelTimeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
     color: string;
     width: number;
     height: number;

@@ -1,4 +1,4 @@
-import type { MeasureValueFormat, TimeGranularity } from '@qualification-work/types';
+import type { TimeGranularity } from '@qualification-work/types';
 
 import { decorateFormattedNumber } from '@/shared/lib/formatNumberSuffix';
 import { formatNumberWithSpaces } from '@/shared/lib/formatNumberWithSpaces';
@@ -19,7 +19,7 @@ const formatIsoDate = (value: string): string => {
 
 type FormatChartCellOptions = {
     timeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 };
 
 const formatPlainNumber = (value: number, fractionDigits = 2): string =>
@@ -27,7 +27,7 @@ const formatPlainNumber = (value: number, fractionDigits = 2): string =>
         Number.isInteger(value) ? String(value) : value.toFixed(fractionDigits)
     );
 
-const decorateNumber = (value: string, format?: MeasureValueFormat) =>
+const decorateNumber = (value: string, format?: string) =>
     decorateFormattedNumber(value, format);
 
 const getDateParts = (value: string) => {
@@ -106,10 +106,7 @@ export const formatChartCell = (
 };
 
 // compact format for Y axis ticks: 1500000 -> "1.5M", 75000 -> "75K"
-export const formatAxisNumber = (
-    value: number,
-    valueFormat?: MeasureValueFormat
-): string => {
+export const formatAxisNumber = (value: number, valueFormat?: string): string => {
     const abs = Math.abs(value);
     let formatted: string;
 
@@ -128,10 +125,7 @@ export const formatAxisNumber = (
     return decorateNumber(formatted, valueFormat);
 };
 
-export const formatCompactChartNumber = (
-    value: number,
-    valueFormat?: MeasureValueFormat
-): string => {
+export const formatCompactChartNumber = (value: number, valueFormat?: string): string => {
     const abs = Math.abs(value);
     const unit =
         abs >= 1_000_000_000

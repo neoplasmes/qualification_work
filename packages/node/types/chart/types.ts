@@ -22,13 +22,11 @@ export type AxisGrouping =
 
 export type Aggregate = (typeof aggregates)[number];
 
-export type MeasureValueFormat = string;
-
 export type Measure = {
     columnId?: string;
     aggregate: Aggregate;
     alias?: string;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 };
 
 export type FilterOperation = (typeof filterOperations)[number];
@@ -112,7 +110,7 @@ export type ChartResultColumn = {
     role: ChartResultColumnRole;
     type: Extract<ColumnDataType, 'number' | 'string' | 'date' | 'day_of_week'>;
     timeGranularity?: TimeGranularity;
-    valueFormat?: MeasureValueFormat;
+    valueFormat?: string;
 };
 
 export type ChartResultRow = Array<string | number | null>;

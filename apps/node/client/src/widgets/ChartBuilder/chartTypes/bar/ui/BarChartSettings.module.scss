@@ -1,10 +1,3 @@
-@use '../../../ChartBuilder.mixins' as chartBuilder;
-
-.section,
-.add-measure {
-    @include chartBuilder.section;
-}
-
 .add-measure {
     align-self: flex-start;
 }

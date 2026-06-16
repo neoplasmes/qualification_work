@@ -1,7 +1,8 @@
 import type { DatasetColumn } from '@/entities/dataset';
 
 /**
- * resolves the column that can safely participate in chart analysis
+ * some columns are disabled from being included in charts definitions, so this function
+ * filters such columns out
  */
 export const getActiveAnalysisColumnId = (
     columns: DatasetColumn[],

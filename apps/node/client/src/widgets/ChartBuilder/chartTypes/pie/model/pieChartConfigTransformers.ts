@@ -10,11 +10,11 @@ import {
     buildMeasure,
     createFilterResult,
     createMeasureDraft,
+    getAcceptableColumnsForSelectedAggregationType,
     getActiveAnalysisColumnId,
-    getActiveMeasure,
     isAnalysisColumnEnabled,
     measureConfigToDraft,
-    validateMeasureColumn,
+    validateMeasureColumns,
 } from '../../common/model';
 import { createPieChartDraft, type PieChartDraft } from './pieChartConfig';
 
@@ -34,9 +34,7 @@ export const configToPieChartDraft = (config: ChartConfig): PieChartDraft => {
         dimensionGroupingMode: dimension.groupingMode,
         dimensionGranularity: dimension.granularity,
         dimensionStep: dimension.step,
-        measureAggregate: measure.aggregate,
-        measureColumnId: measure.columnId,
-        measureValueFormat: measure.valueFormat,
+        measures: [measure],
         topN: config.slice.topN ?? 12,
         filterEnabled: Boolean(filter),
         filterColumnId: filter?.columnId ?? '',
@@ -47,33 +45,29 @@ export const configToPieChartDraft = (config: ChartConfig): PieChartDraft => {
     };
 };
 
-export const createPieChartOutput = ({
+export const draftToPieChartBuilderOutput = ({
     draft,
     appearance,
     columns,
     editMode,
-}: ChartTypeOutputInput<PieChartDraft>): ChartBuilderOutput => {
+}: ChartTypeOutputInput<PieChartDraft>): ChartBuilderOutput<PieChartConfig> => {
     const activeDimensionColumnId = getActiveAnalysisColumnId(
         columns,
         draft.dimensionColumnId,
         editMode
     );
-    const measure = createMeasureDraft({
-        aggregate: draft.measureAggregate,
-        columnId: draft.measureColumnId,
-        valueFormat: draft.measureValueFormat,
-    });
-    const activeMeasure = getActiveMeasure(
+    const measure = draft.measures[0] ?? createMeasureDraft();
+    const acceptableMeasureColumns = getAcceptableColumnsForSelectedAggregationType(
         columns,
-        draft.measureAggregate,
-        draft.measureColumnId,
+        measure.aggregate,
+        measure.columnId,
         editMode
     );
 
     if (
         !activeDimensionColumnId ||
         !isAnalysisColumnEnabled(columns, activeDimensionColumnId) ||
-        !validateMeasureColumn(measure, activeMeasure)
+        !validateMeasureColumns(measure, [acceptableMeasureColumns])
     ) {
         return {
             ...appearance,
@@ -113,7 +107,7 @@ export const createPieChartOutput = ({
         ...(filterResult.filter ? { filters: [filterResult.filter] } : {}),
         measure: buildMeasure({
             ...measure,
-            columnId: activeMeasure.activeColumnId,
+            columnId: acceptableMeasureColumns.activeColumnId,
         }),
     };
 

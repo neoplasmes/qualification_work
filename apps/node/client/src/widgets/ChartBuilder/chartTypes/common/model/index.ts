@@ -8,19 +8,14 @@ export {
     createChartTypeBind,
     createNumberInputBind,
 } from './commonBindShortcuts';
-export type { BreakdownDraft } from './breakdownConfig';
 export {
-    createMeasureAggregateBind,
-    createMeasureColumnIdBind,
+    createMeasureBinds,
     createMeasureDraft,
-    createMeasureValueFormatBind,
-    getActiveMeasure,
+    getAcceptableColumnsForSelectedAggregationType,
     maxMeasures,
-    needsColumn,
-    validateMeasureColumn,
     validateMeasureColumns,
 } from './measureConfig';
-export type { ActiveMeasure, MeasureDraft } from './measureConfig';
+export type { AcceptableMeasureColumns, MeasureDraft } from './measureConfig';
 export {
     createAxisColumnBind,
     axisConfigToDraftFields,
@@ -37,10 +32,8 @@ export {
 export {
     buildGrouping,
     createGroupingModeBind,
-    getDefaultGranularity,
-    getGroupingMode,
+    defaultGranularity,
     getGroupingModes,
-    normalizeGroupingMode,
     type GroupingMode,
 } from './groupingConfig';
 export { buildMeasure, measureConfigToDraft } from './measureConfig';

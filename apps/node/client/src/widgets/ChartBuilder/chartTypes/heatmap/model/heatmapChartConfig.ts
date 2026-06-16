@@ -1,12 +1,13 @@
-import type {
-    ChartConfig,
-    HeatmapChartConfig,
-    TimeGranularity,
-} from '@qualification-work/types';
+import type { ChartConfig, TimeGranularity } from '@qualification-work/types';
 
 import { createConfig } from '@/features/Config';
 
-import { getDefaultGranularity, type GroupingMode } from '../../common/model';
+import {
+    createMeasureDraft,
+    defaultGranularity,
+    type GroupingMode,
+    type MeasureDraft,
+} from '../../common/model';
 
 export type HeatmapChartDraft = {
     xColumnId: string;
@@ -17,9 +18,7 @@ export type HeatmapChartDraft = {
     yGroupingMode: GroupingMode;
     yGranularity: TimeGranularity;
     yStep: number;
-    measureAggregate: HeatmapChartConfig['measure']['aggregate'];
-    measureColumnId: string;
-    measureValueFormat: NonNullable<HeatmapChartConfig['measure']['valueFormat']>;
+    measures: MeasureDraft[];
     filterEnabled: boolean;
     filterColumnId: string;
     filterOperation: NonNullable<ChartConfig['filters']>[number]['op'];
@@ -29,15 +28,13 @@ export type HeatmapChartDraft = {
 export const createHeatmapChartDraft = (): HeatmapChartDraft => ({
     xColumnId: '',
     xGroupingMode: 'none',
-    xGranularity: getDefaultGranularity(),
+    xGranularity: defaultGranularity,
     xStep: 10,
     yColumnId: '',
     yGroupingMode: 'none',
-    yGranularity: getDefaultGranularity(),
+    yGranularity: defaultGranularity,
     yStep: 10,
-    measureAggregate: 'count',
-    measureColumnId: '',
-    measureValueFormat: '',
+    measures: [createMeasureDraft()],
     filterEnabled: false,
     filterColumnId: '',
     filterOperation: 'eq',

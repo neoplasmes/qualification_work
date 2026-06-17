@@ -1,0 +1,1 @@
+export { DashboardsRightPanel } from './DashboardsRightPanel';

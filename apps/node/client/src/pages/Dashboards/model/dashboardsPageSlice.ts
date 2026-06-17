@@ -38,8 +38,6 @@ export type DashboardsPageState = {
     workspaceMetricTimeBucket: MetricTimeBucket | '';
 };
 
-type StateWithDashboardsPage = { dashboardsPage: DashboardsPageState };
-
 const emptyMetricExtras = {
     workspaceMetricTarget: '',
     workspaceMetricValueMultiplier: '1',
@@ -116,30 +114,3 @@ export const {
     clearWorkspaceMetricForm,
     setWorkspaceMetricForm,
 } = dashboardsPageSlice.actions;
-
-export const selectSelectedDashboardId = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.selectedDashboardId;
-export const selectDashboardsRightPanelTab = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.dashboardsRightPanelTab;
-export const selectWorkspaceDraftDashboardId = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceDraftDashboardId;
-export const selectDashboardsWorkspaceDraftName = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceDraftName;
-export const selectWorkspaceMetricName = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricName;
-export const selectWorkspaceMetricExpression = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricExpression;
-export const selectWorkspaceMetricFormat = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricFormat;
-export const selectWorkspaceMetricValueMultiplier = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricValueMultiplier;
-export const selectWorkspaceMetricTarget = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricTarget;
-export const selectWorkspaceMetricTargetDirection = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricTargetDirection;
-export const selectWorkspaceMetricShowTrend = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricShowTrend;
-export const selectWorkspaceMetricTimeColumn = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricTimeColumn;
-export const selectWorkspaceMetricTimeBucket = (state: StateWithDashboardsPage) =>
-    state.dashboardsPage.workspaceMetricTimeBucket;

@@ -1,0 +1,25 @@
+@use '../../shared/ui/styles/layout.scss' as layout;
+@use '../../shared/ui/styles/typography.scss' as typography;
+
+.panel {
+    overflow: hidden;
+}
+
+.scroll-area {
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.top-line-block {
+    @include layout.top-line-block;
+}
+
+.eyebrow {
+    @include typography.text-uppercase-xs;
+}
+
+.title {
+    @include typography.text-heading-2xl;
+
+    overflow-wrap: anywhere;
+}

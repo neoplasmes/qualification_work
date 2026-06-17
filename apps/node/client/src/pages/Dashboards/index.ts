@@ -1,9 +1,5 @@
-export {
-    DashboardsPage,
-    DashboardsLeftPanel,
-    DashboardsWorkspace,
-    DashboardsWorkspaceRightPanel,
-} from './ui';
+export { DashboardsPage } from './DashboardsPage';
+export { DashboardsLeftPanel, DashboardsRightPanel } from './ui';
 export {
     dashboardsWorkspaceIndexPath,
     getDashboardIdFromSearch,
@@ -15,6 +11,5 @@ export {
     dashboardsPageInitialState,
     dashboardsPagePersistence,
     selectDashboard,
-    selectSelectedDashboardId,
 } from './model';
 export type { DashboardsPageState } from './model';

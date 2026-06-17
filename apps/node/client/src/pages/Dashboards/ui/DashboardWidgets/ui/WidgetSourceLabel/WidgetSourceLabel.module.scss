@@ -1,0 +1,16 @@
+.source-line {
+    display: flex;
+    width: 100%;
+}
+
+.source-name {
+    overflow: hidden;
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-on-surface-variant);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -71,14 +71,14 @@ const DashboardsLeftPanel = lazy(() =>
         default: module.DashboardsLeftPanel,
     }))
 );
-const DashboardsWorkspace = lazy(() =>
+const DashboardsPage = lazy(() =>
     import('@/pages/Dashboards').then(module => ({
-        default: module.DashboardsWorkspace,
+        default: module.DashboardsPage,
     }))
 );
-const DashboardsWorkspaceRightPanel = lazy(() =>
+const DashboardsRightPanel = lazy(() =>
     import('@/pages/Dashboards').then(module => ({
-        default: module.DashboardsWorkspaceRightPanel,
+        default: module.DashboardsRightPanel,
     }))
 );
 
@@ -108,8 +108,8 @@ const workspaceSlots: Record<string, WorkspaceSlots> = {
     },
     '/dashboards': {
         Left: DashboardsLeftPanel,
-        Center: DashboardsWorkspace,
-        Right: DashboardsWorkspaceRightPanel,
+        Center: DashboardsPage,
+        Right: DashboardsRightPanel,
     },
 };
 

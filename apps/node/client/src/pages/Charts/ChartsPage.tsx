@@ -24,14 +24,14 @@ import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 import { useAppSelector } from '@/shared/model';
 import { PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
 
-import { chartsTestIds } from '../const';
+import { chartsTestIds } from './const';
 import {
     chartsWorkspaceIndexPath,
     chartsWorkspaceNewPath,
     getChartWorkspaceUrl,
     useChartDataResult,
     useChartsWorkspaceRouteSync,
-} from '../lib';
+} from './lib';
 import {
     clearChartCreateDraft,
     clearChartEditDraft,
@@ -45,10 +45,10 @@ import {
     setChartsWorkspaceMode,
     setShowDatasetPicker,
     type ChartsWorkspaceMode,
-} from '../model';
-import { CreateChartBuilderSection } from './ChartBuilderSection';
-import { SavedChartDetails } from './SavedChartDetails';
-import { SelectDatasetForChartModal } from './SelectDatasetForChartModal';
+} from './model';
+import { CreateChartBuilderSection } from './ui/ChartBuilderSection';
+import { SavedChartDetails } from './ui/SavedChartDetails';
+import { SelectDatasetForChartModal } from './ui/SelectDatasetForChartModal';
 
 import styles from './ChartsPage.module.scss';
 
@@ -197,127 +197,125 @@ export const ChartsPage = () => {
     };
 
     return (
-        <>
-            <section
-                className={styles['panel']}
-                data-stack="v"
-                data-gap="sm"
-                data-flex
-                data-test-id={chartsTestIds.workspace}
-                aria-label="Chart details"
-            >
-                {!selectedChartId && !createDraft && !builderDataset && (
-                    <PanelPlaceholder>
-                        Select a chart or create a new one.
-                    </PanelPlaceholder>
-                )}
+        <section
+            className={styles['panel']}
+            data-stack="v"
+            data-gap="sm"
+            data-flex
+            data-test-id={chartsTestIds.workspace}
+            aria-label="Chart details"
+        >
+            {!selectedChartId && !createDraft && !builderDataset && (
+                <PanelPlaceholder>Select a chart or create a new one.</PanelPlaceholder>
+            )}
 
-                {createDraft && !builderDataset && (
-                    <StatusMessage>Loading dataset...</StatusMessage>
-                )}
+            {createDraft && !builderDataset && (
+                // TODO: create <SkeletonLoader /> component
+                <StatusMessage>Loading dataset...</StatusMessage>
+            )}
 
-                {selectedChartId && selectedChartQuery.isLoading && (
-                    <StatusMessage>Loading chart...</StatusMessage>
-                )}
+            {selectedChartId && selectedChartQuery.isLoading && (
+                // TODO: create <SkeletonLoader /> component
+                <StatusMessage>Loading chart...</StatusMessage>
+            )}
 
-                {selectedChartId && selectedChartQuery.isError && (
-                    <StatusMessage tone="error">Unable to load this chart.</StatusMessage>
-                )}
+            {selectedChartId && selectedChartQuery.isError && (
+                <StatusMessage tone="error">Unable to load this chart.</StatusMessage>
+            )}
 
-                {createDraft && builderDataset && org && (
-                    <CreateChartBuilderSection
-                        orgId={org.id}
-                        dataset={builderDataset}
-                        draft={createDraft.draft}
-                        onChangeDataset={() => {
-                            dispatch(setShowDatasetPicker(true));
-                            navigate(chartsWorkspaceNewPath);
-                        }}
-                        onCancel={() => {
-                            dispatch(clearChartCreateDraft());
-                            navigate(chartsWorkspaceIndexPath);
-                        }}
-                        onDraftChange={handleCreateDraftChange}
-                        onOutputChange={handleCreateOutputChange}
-                        onChartCreated={chartId => void handleChartCreated(chartId)}
-                    />
-                )}
+            {createDraft && builderDataset && org && (
+                <CreateChartBuilderSection
+                    orgId={org.id}
+                    dataset={builderDataset}
+                    draft={createDraft.draft}
+                    onChangeDataset={() => {
+                        dispatch(setShowDatasetPicker(true));
+                        navigate(chartsWorkspaceNewPath);
+                    }}
+                    onCancel={() => {
+                        dispatch(clearChartCreateDraft());
+                        navigate(chartsWorkspaceIndexPath);
+                    }}
+                    onDraftChange={handleCreateDraftChange}
+                    onOutputChange={handleCreateOutputChange}
+                    onChartCreated={chartId => void handleChartCreated(chartId)}
+                />
+            )}
 
-                {selectedChart && !builderDataset && (
-                    <>
+            {selectedChart && !builderDataset && (
+                <>
+                    <div
+                        className={styles['top-line-block']}
+                        data-stack="h"
+                        data-align="center"
+                    >
+                        <h2 className={styles['title']}>{chartTitle}</h2>
+                    </div>
+
+                    <Separator />
+
+                    <div
+                        className={styles['tabs-row']}
+                        data-stack="h"
+                        data-gap="sm"
+                        data-align="center"
+                    >
+                        <WorkspaceModeTabs
+                            value={workspaceMode}
+                            options={chartsWorkspaceModeTabs}
+                            layoutId="charts-workspace-mode"
+                            onChange={handleWorkspaceModeChange}
+                        />
                         <div
-                            className={styles['top-line-block']}
-                            data-stack="h"
-                            data-align="center"
-                        >
-                            <h2 className={styles['title']}>{chartTitle}</h2>
-                        </div>
-
-                        <Separator />
-
-                        <div
-                            className={styles['tabs-row']}
+                            ref={setActionsEl}
+                            className={styles['tabs-actions']}
                             data-stack="h"
                             data-gap="sm"
                             data-align="center"
+                        />
+                    </div>
+
+                    {workspaceMode === 'view' && (
+                        <div
+                            className={styles['scroll-area']}
+                            data-stack="v"
+                            data-gap="sm"
+                            data-flex
                         >
-                            <WorkspaceModeTabs
-                                value={workspaceMode}
-                                options={chartsWorkspaceModeTabs}
-                                layoutId="charts-workspace-mode"
-                                onChange={handleWorkspaceModeChange}
-                            />
-                            <div
-                                ref={setActionsEl}
-                                className={styles['tabs-actions']}
-                                data-stack="h"
-                                data-gap="sm"
-                                data-align="center"
+                            <SavedChartDetails
+                                chart={selectedChart}
+                                columns={editDataset?.columns ?? []}
+                                chartResult={chartData.chartResult}
+                                error={chartData.error}
+                                isLoadingData={chartData.isFetching}
                             />
                         </div>
+                    )}
 
-                        {workspaceMode === 'view' && (
-                            <div
-                                className={styles['scroll-area']}
-                                data-stack="v"
-                                data-gap="sm"
-                                data-flex
-                            >
-                                <SavedChartDetails
-                                    chart={selectedChart}
-                                    columns={editDataset?.columns ?? []}
-                                    chartResult={chartData.chartResult}
-                                    error={chartData.error}
-                                    isLoadingData={chartData.isFetching}
-                                />
-                            </div>
+                    {workspaceMode === 'edit' && !editDataset && (
+                        <StatusMessage>Loading dataset...</StatusMessage>
+                    )}
+
+                    {workspaceMode === 'edit' &&
+                        editDataset &&
+                        org &&
+                        editBuilderDraft && (
+                            <ChartBuilder
+                                key={`edit-${selectedChart.id}`}
+                                orgId={org.id}
+                                selectedDataset={editDataset}
+                                editChartId={selectedChart.id}
+                                value={editBuilderDraft}
+                                actionsContainer={actionsEl}
+                                onChange={handleEditDraftChange}
+                                onOutputChange={handleEditOutputChange}
+                                onChartUpdated={chartId =>
+                                    void handleChartUpdated(chartId)
+                                }
+                            />
                         )}
-
-                        {workspaceMode === 'edit' && !editDataset && (
-                            <StatusMessage>Loading dataset...</StatusMessage>
-                        )}
-
-                        {workspaceMode === 'edit' &&
-                            editDataset &&
-                            org &&
-                            editBuilderDraft && (
-                                <ChartBuilder
-                                    key={`edit-${selectedChart.id}`}
-                                    orgId={org.id}
-                                    selectedDataset={editDataset}
-                                    editChartId={selectedChart.id}
-                                    value={editBuilderDraft}
-                                    actionsContainer={actionsEl}
-                                    onChange={handleEditDraftChange}
-                                    onOutputChange={handleEditOutputChange}
-                                    onChartUpdated={chartId =>
-                                        void handleChartUpdated(chartId)
-                                    }
-                                />
-                            )}
-                    </>
-                )}
-            </section>
+                </>
+            )}
 
             {showDatasetPicker && (
                 <SelectDatasetForChartModal
@@ -331,6 +329,6 @@ export const ChartsPage = () => {
                     }}
                 />
             )}
-        </>
+        </section>
     );
 };

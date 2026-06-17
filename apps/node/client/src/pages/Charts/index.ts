@@ -1,4 +1,5 @@
-export { ChartsPage, ChartsLeftPanel, ChartsRightPanel } from './ui';
+export { ChartsPage } from './ChartsPage';
+export { ChartsLeftPanel, ChartsRightPanel } from './ui';
 export {
     chartsWorkspaceNewPath,
     chartsWorkspaceIndexPath,

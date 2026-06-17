@@ -10,9 +10,9 @@ import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { chartsTestIds } from '../const';
-import { chartsPageInitialState, chartsPageSlice, type ChartsPageState } from '../model';
 import { ChartsPage } from './ChartsPage';
+import { chartsTestIds } from './const';
+import { chartsPageInitialState, chartsPageSlice, type ChartsPageState } from './model';
 
 const mocks = vi.hoisted(() => ({
     getChartDataQuery: vi.fn(),

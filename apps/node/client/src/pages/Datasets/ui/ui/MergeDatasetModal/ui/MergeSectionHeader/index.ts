@@ -1,1 +1,0 @@
-export { MergeSectionHeader } from './MergeSectionHeader';

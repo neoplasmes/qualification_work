@@ -1,0 +1,25 @@
+.grid-container {
+    position: relative;
+}
+
+.scroll-bottom-anchor {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: 50%;
+    z-index: 16;
+    transform: translateX(-50%);
+}
+
+.scroll-bottom {
+    border: 1px solid var(--color-outline-new);
+    border-radius: 50%;
+
+    background: var(--color-surface-container-high);
+    box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
+
+    &.scroll-bottom:hover,
+    &.scroll-bottom:focus-visible {
+        border-color: var(--color-on-surface);
+        background: var(--color-surface-container-high);
+    }
+}

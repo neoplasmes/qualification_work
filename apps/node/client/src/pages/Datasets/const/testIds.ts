@@ -16,8 +16,6 @@ export const datasetsTestIds = {
     deleteRowMenuItem: 'datasets-delete-row-menu-item',
     clearSelectedMenuItem: 'datasets-clear-selected-menu-item',
     deleteSelectedRowsMenuItem: 'datasets-delete-selected-rows-menu-item',
-    confirmInsertButton: 'datasets-confirm-insert-button',
-    cancelInsertButton: 'datasets-cancel-insert-button',
     confirmDeleteRowButton: 'datasets-confirm-delete-row-button',
     cancelDeleteRowButton: 'datasets-cancel-delete-row-button',
     rightPanel: 'datasets-right-panel',

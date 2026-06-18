@@ -4,20 +4,20 @@ import {
     type Theme,
 } from '@glideapps/glide-data-grid';
 
-export const ROWS_PAGE_SIZE = 200;
+export const rowsPageSize = 200;
 
 // empty native grid selection; used as initial state and to reset after bulk actions
-export const EMPTY_GRID_SELECTION: GridSelection = {
+export const emptyGridSelection: GridSelection = {
     columns: CompactSelection.empty(),
     rows: CompactSelection.empty(),
     current: undefined,
 };
-export const HEADER_H = 40;
-export const ROW_H = 34;
-export const MAX_GRID_H = 520;
+export const headerHeight = 40;
+export const rowHeight = 34;
+export const maxGridHeight = 520;
 
 // values mirror shared/ui/styles/colors.scss (brand #910e2f = rgb(145,14,47))
-export const GRID_THEME: Partial<Theme> = {
+export const gridTheme: Partial<Theme> = {
     accentColor: '#910e2f',
     accentFg: '#ffffff',
     accentLight: 'rgba(145,14,47,0.14)',

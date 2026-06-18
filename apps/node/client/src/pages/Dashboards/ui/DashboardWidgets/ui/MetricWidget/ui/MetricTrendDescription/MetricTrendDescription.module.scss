@@ -1,4 +1,4 @@
-@use '../../../../../../../../../shared/ui/styles/typography.scss' as typography;
+@use '../../../../../../../../shared/ui/styles/typography.scss' as typography;
 
 .description {
     @include typography.text-xs;

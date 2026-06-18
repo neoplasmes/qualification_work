@@ -1,0 +1,115 @@
+.menu {
+    position: fixed;
+    z-index: 20;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 192px;
+    max-width: calc(100vw - var(--spacing-md));
+    padding: var(--spacing-xs);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    background: var(--color-surface-container-high);
+    box-shadow: 0 18px 40px rgb(0 0 0 / 35%);
+}
+
+.menu-item {
+    cursor: pointer;
+
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 0;
+    border-radius: var(--radius-xs);
+
+    font: inherit;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-on-surface);
+    text-align: left;
+
+    background: transparent;
+
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
+
+    svg {
+        color: var(--color-on-surface-variant);
+        transition: color 0.15s ease;
+    }
+
+    &:hover {
+        background: rgb(var(--color-secondary-rgb) / 16%);
+
+        svg {
+            color: var(--color-on-surface);
+        }
+    }
+
+    &.danger:hover {
+        color: var(--color-on-surface);
+        background: var(--color-primary);
+
+        svg {
+            color: var(--color-on-surface);
+        }
+    }
+
+    & + .danger {
+        margin-top: var(--spacing-xs);
+
+        &::before {
+            content: '';
+
+            position: absolute;
+            top: calc(var(--spacing-xs) * -0.5 - 1px);
+            right: var(--spacing-xs);
+            left: var(--spacing-xs);
+
+            border-top: 1px solid var(--color-outline-new);
+        }
+    }
+}
+
+.danger {
+    position: relative;
+}
+
+.confirm {
+    display: flex;
+
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+}
+
+.confirm-copy {
+    font-family: var(--font-headline);
+    font-size: var(--font-size-lg);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--color-on-surface);
+    overflow-wrap: anywhere;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.confirm-delete-button.confirm-delete-button {
+    overflow: hidden;
+    flex-grow: 1;
+    padding: var(--spacing-xs) var(--spacing-md);
+
+    text-transform: none;
+    white-space: nowrap;
+}

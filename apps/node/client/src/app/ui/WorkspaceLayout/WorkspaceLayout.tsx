@@ -55,9 +55,9 @@ const DatasetsLeftPanel = lazy(() =>
         default: module.DatasetsLeftPanel,
     }))
 );
-const DatasetsWorkspace = lazy(() =>
+const DatasetsPage = lazy(() =>
     import('@/pages/Datasets').then(module => ({
-        default: module.DatasetsWorkspace,
+        default: module.DatasetsPage,
     }))
 );
 const DatasetsRightPanel = lazy(() =>
@@ -103,7 +103,7 @@ const workspaceSlots: Record<string, WorkspaceSlots> = {
     },
     '/datasets': {
         Left: DatasetsLeftPanel,
-        Center: DatasetsWorkspace,
+        Center: DatasetsPage,
         Right: DatasetsRightPanel,
     },
     '/dashboards': {

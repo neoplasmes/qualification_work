@@ -4,12 +4,10 @@ export type DatasetsPageState = {
     selectedDatasetId: string | null;
     showUpload: boolean;
     // per-dataset counter bumped when something external invalidates the preview
-    // (e.g. merge commit). drives the DatasetPreview key so it fully remounts and
+    // (e.g. merge commit). drives the DatasetWorkspace key so it fully remounts and
     // refetches rows without resetting on unrelated metadata changes like rename
     datasetReloadVersions: Record<string, number>;
 };
-
-type StateWithDatasetsPage = { datasetsPage: DatasetsPageState };
 
 export const datasetsPageInitialState: DatasetsPageState = {
     selectedDatasetId: null,
@@ -36,13 +34,3 @@ export const datasetsPageSlice = createSlice({
 
 export const { selectDataset, setShowUpload, bumpDatasetReloadVersion } =
     datasetsPageSlice.actions;
-
-export const selectSelectedDatasetId = (state: StateWithDatasetsPage) =>
-    state.datasetsPage.selectedDatasetId;
-export const selectShowUpload = (state: StateWithDatasetsPage) =>
-    state.datasetsPage.showUpload;
-export const selectDatasetReloadVersion =
-    (datasetId: string | null) => (state: StateWithDatasetsPage) =>
-        datasetId === null
-            ? 0
-            : (state.datasetsPage.datasetReloadVersions[datasetId] ?? 0);

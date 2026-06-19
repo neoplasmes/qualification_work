@@ -1,8 +1,0 @@
-export { ActionEditor } from './ActionEditor';
-export { ActionsHistory } from './ActionsHistory';
-export { ActionsProperties } from './ActionsProperties';
-export { ActionsRightPanel } from './ActionsRightPanel';
-export { ConfigureForm } from './ConfigureForm';
-export { EffectEditor } from './EffectEditor';
-export { RunForm } from './RunForm';
-export { WorkspaceTabs } from './WorkspaceTabs';

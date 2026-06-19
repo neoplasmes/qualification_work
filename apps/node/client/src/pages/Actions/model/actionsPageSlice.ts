@@ -10,8 +10,6 @@ export type ActionsPageState = {
     rightPanelTab: ActionsRightPanelTab;
 };
 
-type StateWithActionsPage = { actionsPage: ActionsPageState };
-
 export const actionsPageInitialState: ActionsPageState = {
     selectedActionId: null,
     isCreatingAction: false,
@@ -70,12 +68,3 @@ export const {
     setActionsWorkspaceMode,
     startCreateAction,
 } = actionsPageSlice.actions;
-
-export const selectSelectedActionId = (state: StateWithActionsPage) =>
-    state.actionsPage.selectedActionId;
-export const selectIsCreatingAction = (state: StateWithActionsPage) =>
-    state.actionsPage.isCreatingAction;
-export const selectActionsWorkspaceMode = (state: StateWithActionsPage) =>
-    state.actionsPage.workspaceMode;
-export const selectActionsRightPanelTab = (state: StateWithActionsPage) =>
-    state.actionsPage.rightPanelTab;

@@ -23,9 +23,9 @@ const ActionsLeftPanel = lazy(() =>
         default: module.ActionsLeftPanel,
     }))
 );
-const ActionsWorkspace = lazy(() =>
+const ActionsPage = lazy(() =>
     import('@/pages/Actions').then(module => ({
-        default: module.ActionsWorkspace,
+        default: module.ActionsPage,
     }))
 );
 const ActionsRightPanel = lazy(() =>
@@ -93,7 +93,7 @@ type WorkspaceSlots = {
 const workspaceSlots: Record<string, WorkspaceSlots> = {
     '/actions': {
         Left: ActionsLeftPanel,
-        Center: ActionsWorkspace,
+        Center: ActionsPage,
         Right: ActionsRightPanel,
     },
     '/charts': {

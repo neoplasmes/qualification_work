@@ -1,4 +1,5 @@
-export { ActionsLeftPanel, ActionsPage, ActionsRightPanel, ActionsWorkspace } from './ui';
+export { ActionsPage } from './ActionsPage';
+export { ActionsLeftPanel, ActionsRightPanel } from './ui';
 export {
     actionsPageInitialState,
     actionsPagePersistence,
@@ -6,10 +7,6 @@ export {
     cancelCreateAction,
     openActionRoute,
     selectAction,
-    selectActionsRightPanelTab,
-    selectActionsWorkspaceMode,
-    selectIsCreatingAction,
-    selectSelectedActionId,
     setActionsRightPanelTab,
     setActionsWorkspaceMode,
     startCreateAction,

@@ -6,6 +6,7 @@ export {
     getActionWorkspaceUrl,
     isActionsWorkspacePath,
 } from './actionWorkspaceRoute';
+export { useActionsWorkspaceRouteSync } from './useActionsWorkspaceRouteSync';
 export {
     coerceRunValues,
     getDefaultRunValues,

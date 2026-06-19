@@ -1,8 +1,11 @@
+import {
+    parseActionBuilderDraftValue,
+    valueToActionBuilderDraftString,
+} from '@/widgets/ActionBuilder';
+
 import type { ActionParameter, ActionParameterType } from '@/entities/action';
 
 import { isDayOfWeekValue } from '@/shared/lib/dayOfWeek';
-
-import { parseDraftValue, valueToDraftString } from './draftValues';
 
 const numberInputPattern = /^-?(?:\d+)?(?:\.\d*)?$/;
 const numberValuePattern = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
@@ -31,7 +34,7 @@ const isValidDateValue = (value: string) => {
 };
 
 const formatDateForRunInput = (value: unknown) => {
-    const raw = valueToDraftString(value);
+    const raw = valueToActionBuilderDraftString(value);
     const match = isoDateValuePattern.exec(raw);
 
     return match ? `${match[3]}-${match[2]}-${match[1]}` : raw;
@@ -67,7 +70,7 @@ export const getDefaultRunValues = (parameters: ActionParameter[]) =>
             acc[parameter.key] =
                 parameter.type === 'date'
                     ? formatDateForRunInput(parameter.defaultValue)
-                    : valueToDraftString(parameter.defaultValue);
+                    : valueToActionBuilderDraftString(parameter.defaultValue);
 
             return acc;
         }, {});
@@ -81,7 +84,7 @@ export const coerceRunValues = (
         .reduce<Record<string, unknown>>((acc, parameter) => {
             const raw = values[parameter.key] ?? '';
             const value = parameter.type === 'date' ? formatDateForRunPayload(raw) : raw;
-            const parsed = parseDraftValue(parameter.type, value);
+            const parsed = parseActionBuilderDraftValue(parameter.type, value);
             if (parsed !== undefined || raw.trim() !== '') {
                 acc[parameter.key] = parsed;
             }

@@ -1,0 +1,66 @@
+@use '../../../../shared/ui/styles/typography.scss' as typography;
+
+.parameter-row {
+    grid-template-columns: minmax(200px, 2fr) minmax(120px, 1fr) minmax(144px, auto) auto;
+}
+
+.required-control {
+    min-height: 40px;
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+    background-color: var(--color-surface-container-low);
+
+    span {
+        @include typography.text-uppercase-xs-strong;
+    }
+}
+
+.key-hint {
+    > span {
+        font-family: var(--font-body);
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--color-outline);
+        white-space: nowrap;
+    }
+
+    > input {
+        min-height: 24px;
+        padding: 0 6px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-xs);
+        font-family: monospace;
+        font-size: 11px;
+        color: var(--color-outline);
+        background: transparent;
+
+        &:hover {
+            border-color: var(--color-outline-new);
+        }
+
+        &:focus {
+            border-color: var(--color-outline);
+            outline: none;
+            color: var(--color-on-surface-variant);
+        }
+    }
+}
+
+@media (width <= 900px) {
+    .parameter-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@container (width >= 960px) {
+    .parameter-row {
+        grid-template-columns:
+            1fr minmax(120px, 0.45fr)
+            minmax(144px, auto) auto;
+        align-items: end;
+    }
+
+    .parameter-remove {
+        align-self: end;
+    }
+}

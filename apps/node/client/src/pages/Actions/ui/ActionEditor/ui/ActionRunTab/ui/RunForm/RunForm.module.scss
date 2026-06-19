@@ -1,0 +1,25 @@
+@use '../../../../../../../../shared/ui/styles/typography.scss' as typography;
+
+.form {
+    p {
+        font-size: var(--font-size-sm);
+        line-height: 1.5;
+        color: var(--color-on-surface-variant);
+    }
+}
+
+.section-title {
+    @include typography.text-heading-lg;
+}
+
+.placeholder {
+    min-height: 240px;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: rgb(255 255 255 / 25%);
+}
+
+.run-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    align-items: end;
+}

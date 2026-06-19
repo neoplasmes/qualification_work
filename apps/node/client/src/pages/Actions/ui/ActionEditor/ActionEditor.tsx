@@ -1,44 +1,30 @@
-import { skipToken } from '@reduxjs/toolkit/query';
 import { Play, Save, X } from 'lucide-react';
-import { useCallback, useState, type SubmitEvent } from 'react';
+import { useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import {
-    useCreateActionMutation,
-    useExecuteActionMutation,
-    usePatchActionMutation,
-} from '@/features/manageActions';
+    actionToBuilderDraft,
+    createActionBuilderDraft,
+    type ActionBuilderDraft,
+} from '@/widgets/ActionBuilder';
 
 import type { Action } from '@/entities/action';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { useAppSelector } from '@/shared/model';
 import { Button, Separator, StatusMessage } from '@/shared/ui';
 
 import { actionsTestIds } from '../../const';
-import {
-    actionToDraft,
-    canMutate,
-    coerceRunValues,
-    createBlankActionDraft,
-    draftToActionPayload,
-    getActionWorkspaceUrl,
-    getDefaultRunValues,
-    validateRunValues,
-} from '../../lib';
+import { canMutate, getActionWorkspaceUrl } from '../../lib';
 import {
     cancelCreateAction,
     selectAction,
     setActionsWorkspaceMode,
-    type ActionDraft,
     type ActionsWorkspaceMode,
 } from '../../model';
-import { ConfigureForm } from '../ConfigureForm';
-import { RunForm } from '../RunForm';
 import { WorkspaceTabs } from '../WorkspaceTabs';
-import { useActionDraftUpdaters } from './lib';
+import { ActionConfigureTab } from './ui/ActionConfigureTab';
+import { ActionRunTab } from './ui/ActionRunTab';
 
 import styles from '../../ActionsPage.module.scss';
 
@@ -63,112 +49,31 @@ export const ActionEditor = ({
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const workspaceMode = useAppSelector(state => state.actionsPage.workspaceMode);
-    const [draft, setDraft] = useState<ActionDraft>(() =>
-        selectedAction ? actionToDraft(selectedAction) : createBlankActionDraft()
+    const [draft, setDraft] = useState<ActionBuilderDraft>(() =>
+        selectedAction ? actionToBuilderDraft(selectedAction) : createActionBuilderDraft()
     );
-    const [runValues, setRunValues] = useState<Record<string, string>>(() =>
-        selectedAction ? getDefaultRunValues(selectedAction.parameters) : {}
-    );
-    const [error, setError] = useState('');
-    const [lastRunMessage, setLastRunMessage] = useState('');
+    const [configureSaving, setConfigureSaving] = useState(false);
+    const [runExecuting, setRunExecuting] = useState(false);
 
-    const datasetsQuery = useListDatasetsQuery(orgId ?? skipToken);
     const editable = canMutate(orgRole);
-    const [createAction, createState] = useCreateActionMutation();
-    const [patchAction, patchState] = usePatchActionMutation();
-    const [executeAction, executeState] = useExecuteActionMutation();
-    const { updateEffect, updateMapping, updateParameter } =
-        useActionDraftUpdaters(setDraft);
 
-    const handleSave = useCallback(
-        async (event: SubmitEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            if (!orgId || !editable) {
-                return;
-            }
-
-            try {
-                setError('');
-                const payload = draftToActionPayload(draft);
-                if (isCreatingAction) {
-                    const created = await createAction({ orgId, ...payload }).unwrap();
-                    dispatch(cancelCreateAction());
-                    dispatch(selectAction(created.id));
-                    navigate(getActionWorkspaceUrl(created.id, 'view'));
-                } else if (selectedAction) {
-                    await patchAction({
-                        actionId: selectedAction.id,
-                        ...payload,
-                    }).unwrap();
-                    dispatch(selectAction(selectedAction.id));
-                }
-                await refetchActions();
-            } catch (saveError) {
-                setError(
-                    saveError instanceof Error
-                        ? saveError.message
-                        : getApiErrorMessage(saveError, 'Unable to save this action.')
-                );
-            }
+    const handleActionCreated = useCallback(
+        async (actionId: string) => {
+            dispatch(cancelCreateAction());
+            dispatch(selectAction(actionId));
+            navigate(getActionWorkspaceUrl(actionId, 'view'));
+            await refetchActions();
         },
-        [
-            createAction,
-            dispatch,
-            draft,
-            editable,
-            isCreatingAction,
-            navigate,
-            orgId,
-            patchAction,
-            refetchActions,
-            selectedAction,
-        ]
+        [dispatch, navigate, refetchActions]
     );
 
-    const handleRun = useCallback(
-        async (event: SubmitEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            if (!selectedAction || !editable) {
-                return;
-            }
-
-            try {
-                setError('');
-                setLastRunMessage('');
-                const validationError = validateRunValues(
-                    selectedAction.parameters,
-                    runValues
-                );
-                if (validationError) {
-                    setError(validationError);
-
-                    return;
-                }
-
-                const parameters = coerceRunValues(selectedAction.parameters, runValues);
-                const result = await executeAction({
-                    actionId: selectedAction.id,
-                    parameters,
-                }).unwrap();
-                setLastRunMessage(
-                    result.status === 'success'
-                        ? `Run completed with ${result.changes.length} changes.`
-                        : (result.errorMessage ?? 'Run failed.')
-                );
-            } catch (runError) {
-                setError(
-                    runError instanceof Error
-                        ? runError.message
-                        : getApiErrorMessage(runError, 'Unable to run this action.')
-                );
-            }
+    const handleActionUpdated = useCallback(
+        async (actionId: string) => {
+            dispatch(selectAction(actionId));
+            await refetchActions();
         },
-        [editable, executeAction, runValues, selectedAction]
+        [dispatch, refetchActions]
     );
-
-    const handleRunValueChange = useCallback((key: string, value: string) => {
-        setRunValues(current => ({ ...current, [key]: value }));
-    }, []);
 
     const handleTabChange = useCallback(
         (mode: ActionsWorkspaceMode) => {
@@ -181,7 +86,6 @@ export const ActionEditor = ({
         [dispatch, navigate, selectedAction]
     );
 
-    const saving = createState.isLoading || patchState.isLoading;
     const saveFormId = workspaceMode === 'edit' && editable ? configureFormId : undefined;
     const workspaceTitle =
         (isCreatingAction ? draft.name : (selectedAction?.name ?? '')).trim() ||
@@ -225,8 +129,8 @@ export const ActionEditor = ({
                             form={saveFormId}
                             size="sm"
                             data-test-id={actionsTestIds.saveButton}
-                            disabled={!editable || saving}
-                            isLoading={saving}
+                            disabled={!editable || configureSaving}
+                            isLoading={configureSaving}
                         >
                             <Save size={16} />
                             Save
@@ -238,8 +142,8 @@ export const ActionEditor = ({
                             form={runFormId}
                             size="sm"
                             data-test-id={actionsTestIds.runButton}
-                            disabled={!editable || executeState.isLoading}
-                            isLoading={executeState.isLoading}
+                            disabled={!editable || runExecuting}
+                            isLoading={runExecuting}
                         >
                             <Play size={16} />
                             Run
@@ -259,7 +163,6 @@ export const ActionEditor = ({
             </div>
 
             <div className={styles['scroll-area']} data-stack="v" data-gap="sm" data-flex>
-                {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
                 {!editable && (
                     <StatusMessage>
                         Viewer role can inspect actions and history, but can not edit or
@@ -268,26 +171,24 @@ export const ActionEditor = ({
                 )}
 
                 {workspaceMode === 'edit' ? (
-                    <ConfigureForm
+                    <ActionConfigureTab
                         draft={draft}
-                        datasets={datasetsQuery.data ?? []}
-                        disabled={!editable || saving}
+                        editable={editable}
                         formId={configureFormId}
-                        onSubmit={handleSave}
+                        isCreatingAction={isCreatingAction}
+                        orgId={orgId}
+                        selectedAction={selectedAction}
+                        onActionCreated={handleActionCreated}
+                        onActionUpdated={handleActionUpdated}
                         onDraftChange={setDraft}
-                        onUpdateParameter={updateParameter}
-                        onUpdateEffect={updateEffect}
-                        onUpdateMapping={updateMapping}
+                        onSavingChange={setConfigureSaving}
                     />
                 ) : (
-                    <RunForm
+                    <ActionRunTab
                         action={selectedAction}
+                        editable={editable}
                         formId={runFormId}
-                        runValues={runValues}
-                        disabled={!editable || executeState.isLoading}
-                        lastRunMessage={lastRunMessage}
-                        onRunValueChange={handleRunValueChange}
-                        onSubmit={handleRun}
+                        onRunningChange={setRunExecuting}
                     />
                 )}
             </div>

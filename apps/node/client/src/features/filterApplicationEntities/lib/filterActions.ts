@@ -1,19 +1,19 @@
 import type { Action } from '@/entities/action';
 
+import type { FilterApplicationEntityValues } from '../types';
+
 type FilterActionsParams = {
     actions: Action[] | undefined;
-    datasetIds: string[];
-    effectKinds: string[];
+    values: Pick<FilterApplicationEntityValues, 'datasets' | 'effects'>;
 };
 
-export const filterActions = ({
-    actions,
-    datasetIds,
-    effectKinds,
-}: FilterActionsParams) => {
+export const filterActions = ({ actions, values }: FilterActionsParams) => {
     if (!actions) {
         return actions;
     }
+
+    const datasetIds = values.datasets;
+    const effectKinds = values.effects;
 
     const datasetIdSet = datasetIds.length > 0 ? new Set<string>(datasetIds) : null;
     const effectKindSet = effectKinds.length > 0 ? new Set<string>(effectKinds) : null;

@@ -15,13 +15,7 @@ import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
 import { useAppSelector } from '@/shared/model';
-import {
-    Button,
-    EditableText,
-    PanelPlaceholder,
-    StatusMessage,
-    Table,
-} from '@/shared/ui';
+import { Button, EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../const';
 import { bumpDatasetReloadVersion, selectDataset } from '../../model';
@@ -96,7 +90,17 @@ export const DatasetsPropertiesPanel = () => {
     };
 
     if (!selectedDataset) {
-        return <PanelPlaceholder>Select a dataset to view properties.</PanelPlaceholder>;
+        return (
+            <p
+                className={styles['placeholder']}
+                data-stack="h"
+                data-align="center"
+                data-justify="center"
+                data-flex
+            >
+                Select a dataset to view properties.
+            </p>
+        );
     }
 
     return (

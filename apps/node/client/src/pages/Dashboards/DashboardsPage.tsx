@@ -25,7 +25,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
 import { useAppSelector } from '@/shared/model';
-import { Button, PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
+import { Button, Separator, StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from './const';
 import { useDashboardsWorkspaceRouteSync } from './lib';
@@ -219,11 +219,27 @@ export const DashboardsPage = () => {
             aria-label="Dashboard details"
         >
             {!selectedListDashboard && (
-                <PanelPlaceholder>Select or create a dashboard.</PanelPlaceholder>
+                <p
+                    className={styles['placeholder']}
+                    data-stack="h"
+                    data-align="center"
+                    data-justify="center"
+                    data-flex
+                >
+                    Select or create a dashboard.
+                </p>
             )}
 
             {isDashboardLoading && (
-                <PanelPlaceholder>Loading dashboard...</PanelPlaceholder>
+                <p
+                    className={styles['placeholder']}
+                    data-stack="h"
+                    data-align="center"
+                    data-justify="center"
+                    data-flex
+                >
+                    Loading dashboard...
+                </p>
             )}
 
             {dashboard && (

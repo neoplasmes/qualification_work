@@ -17,17 +17,13 @@ import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
 import { useAppSelector } from '@/shared/model';
-import {
-    Button,
-    EditableText,
-    PanelPlaceholder,
-    StatusMessage,
-    Table,
-} from '@/shared/ui';
+import { Button, EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../const';
 import { dashboardsWorkspaceIndexPath } from '../../lib';
 import { selectDashboard } from '../../model';
+
+import styles from './DashboardsPropertiesPanel.module.scss';
 
 export const DashboardsPropertiesPanel = () => {
     const dispatch = useDispatch();
@@ -103,12 +99,30 @@ export const DashboardsPropertiesPanel = () => {
 
     if (!selectedListDashboard) {
         return (
-            <PanelPlaceholder>Select a dashboard to view properties.</PanelPlaceholder>
+            <p
+                className={styles['placeholder']}
+                data-stack="h"
+                data-align="center"
+                data-justify="center"
+                data-flex
+            >
+                Select a dashboard to view properties.
+            </p>
         );
     }
 
     if (!selectedDashboard) {
-        return <PanelPlaceholder>Loading dashboard...</PanelPlaceholder>;
+        return (
+            <p
+                className={styles['placeholder']}
+                data-stack="h"
+                data-align="center"
+                data-justify="center"
+                data-flex
+            >
+                Loading dashboard...
+            </p>
+        );
     }
 
     const widgetsCount = selectedDashboard.items.length;

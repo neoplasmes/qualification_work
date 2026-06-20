@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Action } from '@/entities/action';
 
-import { filterApplicationEntitiesInitialState } from '../model';
-import { filterApplicationEntities } from './filterApplicationEntities';
+import { filterActions } from './filterActions';
 
 const baseAction: Action = {
     id: 'action-1',
@@ -39,14 +38,12 @@ const otherAction: Action = {
     effects: [{ ...baseAction.effects[0], datasetId: 'dataset-2' }],
 };
 
-describe('filterApplicationEntities', () => {
+describe('filterActions', () => {
     it('filters actions by dataset and effect without search text', () => {
         expect(
-            filterApplicationEntities({
-                scope: 'actions',
+            filterActions({
                 actions: [baseAction, otherAction],
                 values: {
-                    ...filterApplicationEntitiesInitialState.values.actions,
                     datasets: ['dataset-1'],
                     effects: ['updateRowsByMatch'],
                 },

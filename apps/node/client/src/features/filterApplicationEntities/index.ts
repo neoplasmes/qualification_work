@@ -1,5 +1,5 @@
 export { filterApplicationEffectKinds, filterApplicationEntityConfigs } from './const';
-export { filterApplicationEntities } from './lib';
+export { filterActions, filterCharts, filterDashboards, filterDatasets } from './lib';
 export {
     clearFilterApplicationScopeValues,
     filterApplicationEntitiesInitialState,

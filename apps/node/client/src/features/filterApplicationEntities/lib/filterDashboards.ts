@@ -2,22 +2,25 @@ import type { Chart } from '@qualification-work/types';
 
 import type { Dashboard } from '@/entities/dashboard';
 
+import type { FilterApplicationEntityValues } from '../types';
+
 type FilterDashboardsParams = {
     dashboards: Dashboard[] | undefined;
     charts: Chart[] | undefined;
-    chartIds: string[];
-    datasetIds: string[];
+    values: Pick<FilterApplicationEntityValues, 'charts' | 'datasets'>;
 };
 
 export const filterDashboards = ({
     dashboards,
     charts,
-    chartIds,
-    datasetIds,
+    values,
 }: FilterDashboardsParams) => {
     if (!dashboards) {
         return dashboards;
     }
+
+    const chartIds = values.charts;
+    const datasetIds = values.datasets;
 
     let result = dashboards;
 

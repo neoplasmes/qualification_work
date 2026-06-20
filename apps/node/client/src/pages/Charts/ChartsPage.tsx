@@ -22,7 +22,7 @@ import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { useAppSelector } from '@/shared/model';
-import { PanelPlaceholder, Separator, StatusMessage } from '@/shared/ui';
+import { Separator, StatusMessage } from '@/shared/ui';
 
 import { chartsTestIds } from './const';
 import {
@@ -206,7 +206,15 @@ export const ChartsPage = () => {
             aria-label="Chart details"
         >
             {!selectedChartId && !createDraft && !builderDataset && (
-                <PanelPlaceholder>Select a chart or create a new one.</PanelPlaceholder>
+                <p
+                    className={styles['placeholder']}
+                    data-stack="h"
+                    data-align="center"
+                    data-justify="center"
+                    data-flex
+                >
+                    Select a chart or create a new one.
+                </p>
             )}
 
             {createDraft && !builderDataset && (

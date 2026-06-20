@@ -60,8 +60,10 @@ describe('filterDashboards', () => {
             filterDashboards({
                 dashboards,
                 charts,
-                chartIds: ['chart-1'],
-                datasetIds: ['dataset-1'],
+                values: {
+                    charts: ['chart-1'],
+                    datasets: ['dataset-1'],
+                },
             })
         ).toEqual([dashboards[0]]);
     });

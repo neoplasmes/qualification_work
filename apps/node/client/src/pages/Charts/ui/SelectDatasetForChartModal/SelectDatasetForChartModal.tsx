@@ -3,13 +3,7 @@ import { Sheet } from 'lucide-react';
 import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-    EmptyState,
-    Modal,
-    SelectableList,
-    StatusMessage,
-    WorkspaceLeftPanelItem,
-} from '@/shared/ui';
+import { EmptyState, Modal, StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { chartsTestIds } from '../../const';
 
@@ -31,7 +25,7 @@ export const SelectDatasetForChartModal = ({
         closeButtonTestId={chartsTestIds.modalCloseButton}
         onClose={onClose}
     >
-        <SelectableList>
+        <div data-stack="v" data-gap="xs">
             {!datasets && <StatusMessage centered>Loading...</StatusMessage>}
             {datasets?.length === 0 && (
                 <EmptyState>No datasets. Upload one first.</EmptyState>
@@ -50,6 +44,6 @@ export const SelectDatasetForChartModal = ({
                     onClick={() => onSelect(item)}
                 />
             ))}
-        </SelectableList>
+        </div>
     </Modal>
 );

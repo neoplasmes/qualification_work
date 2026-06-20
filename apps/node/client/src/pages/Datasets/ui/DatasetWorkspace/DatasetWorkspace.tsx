@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
 
-import { PanelPlaceholder, StatusMessage } from '@/shared/ui';
+import { StatusMessage } from '@/shared/ui';
 
 import { headerHeight, rowHeight, rowsPageSize } from '../../const';
 import { DatasetGrid } from '../DatasetGrid';
@@ -113,7 +113,15 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
             aria-label="Dataset preview"
         >
             {!selectedDataset && (
-                <PanelPlaceholder>Select a dataset to preview rows.</PanelPlaceholder>
+                <p
+                    className={styles['placeholder']}
+                    data-stack="h"
+                    data-align="center"
+                    data-justify="center"
+                    data-flex
+                >
+                    Select a dataset to preview rows.
+                </p>
             )}
 
             {selectedDataset && totalRows === 0 && loadedChunks.size === 0 && (

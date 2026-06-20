@@ -7,7 +7,7 @@ import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
-    filterApplicationEntities,
+    filterDatasets,
     selectFilterApplicationValues,
 } from '@/features/filterApplicationEntities';
 
@@ -44,8 +44,7 @@ export const DatasetsLeftPanel = () => {
 
     const filteredDatasets = useMemo(
         () =>
-            filterApplicationEntities({
-                scope: 'datasets',
+            filterDatasets({
                 datasets: datasetsQuery.data,
                 charts: chartsQuery.data,
                 dashboards: dashboardsQuery.data,

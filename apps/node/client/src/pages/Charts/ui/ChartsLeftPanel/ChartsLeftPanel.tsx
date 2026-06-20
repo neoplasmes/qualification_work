@@ -8,7 +8,7 @@ import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
-    filterApplicationEntities,
+    filterCharts,
     selectFilterApplicationValues,
 } from '@/features/filterApplicationEntities';
 
@@ -39,8 +39,7 @@ export const ChartsLeftPanel = () => {
     const selectedChartId = useAppSelector(state => state.chartsPage.selectedChartId);
     const filterValues = useAppSelector(selectFilterApplicationValues('charts'));
 
-    const filteredCharts = filterApplicationEntities({
-        scope: 'charts',
+    const filteredCharts = filterCharts({
         charts: chartsQuery.data,
         dashboards: dashboardsQuery.data,
         values: filterValues,

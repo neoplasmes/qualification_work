@@ -63,6 +63,10 @@ export const Modal = ({
         return () => document.removeEventListener('keydown', handler);
     }, [closeOnEscape, onClose]);
 
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
     const content = (
         <div
             data-stack="h"
@@ -111,10 +115,6 @@ export const Modal = ({
             </div>
         </div>
     );
-
-    if (typeof document === 'undefined') {
-        return content;
-    }
 
     return createPortal(content, document.body);
 };

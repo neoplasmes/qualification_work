@@ -79,8 +79,10 @@ describe('filterDatasets', () => {
                 datasets,
                 charts,
                 dashboards,
-                chartIds: ['chart-1'],
-                dashboardIds: ['dashboard-1'],
+                values: {
+                    charts: ['chart-1'],
+                    dashboards: ['dashboard-1'],
+                },
             })
         ).toEqual([datasets[0]]);
     });

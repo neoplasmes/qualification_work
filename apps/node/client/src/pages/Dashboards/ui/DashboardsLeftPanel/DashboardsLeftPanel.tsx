@@ -8,7 +8,7 @@ import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
-    filterApplicationEntities,
+    filterDashboards,
     selectFilterApplicationValues,
 } from '@/features/filterApplicationEntities';
 import { useCreateDashboardMutation } from '@/features/manageDashboards';
@@ -43,8 +43,7 @@ export const DashboardsLeftPanel = () => {
 
     const filteredDashboards = useMemo(
         () =>
-            filterApplicationEntities({
-                scope: 'dashboards',
+            filterDashboards({
                 dashboards: dashboardsQuery.data,
                 charts: chartsQuery.data,
                 values: filterValues,

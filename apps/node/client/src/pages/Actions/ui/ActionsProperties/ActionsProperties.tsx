@@ -12,15 +12,7 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import {
-    Badge,
-    Button,
-    Card,
-    EditableText,
-    PanelPlaceholder,
-    StatusMessage,
-    Table,
-} from '@/shared/ui';
+import { Badge, Button, Card, EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { actionsTestIds } from '../../const';
 import { actionsWorkspaceIndexPath, canMutate } from '../../lib';
@@ -113,7 +105,17 @@ export const ActionsProperties = ({
     };
 
     if (!selectedAction) {
-        return <PanelPlaceholder>Select an action to view properties.</PanelPlaceholder>;
+        return (
+            <p
+                className={styles['properties-placeholder']}
+                data-stack="h"
+                data-align="center"
+                data-justify="center"
+                data-flex
+            >
+                Select an action to view properties.
+            </p>
+        );
     }
 
     let titleContent: ReactNode;

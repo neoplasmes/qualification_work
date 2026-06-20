@@ -17,7 +17,6 @@ import {
     EmptyState,
     IconButton,
     SegmentedControl,
-    SelectableList,
     StatusMessage,
     WorkspaceLeftPanelItem,
     type SegmentedControlOption,
@@ -156,7 +155,9 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
                 </IconButton>
             </div>
 
-            <SelectableList>{content}</SelectableList>
+            <div data-stack="v" data-gap="xs">
+                {content}
+            </div>
         </aside>
     );
 };

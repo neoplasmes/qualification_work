@@ -11,11 +11,9 @@ import {
 import { getApiErrorMessage } from '@/shared/api';
 import {
     Button,
-    Dropzone,
     FormField,
     IconButton,
     Modal,
-    SegmentedTabs,
     StatusMessage,
     TextInput,
 } from '@/shared/ui';
@@ -179,29 +177,55 @@ export const UploadDatasetModal = ({
 
     return (
         <Modal title="Upload dataset" padding="md" onClose={onClose}>
-            <Dropzone
-                accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                aria-label="Dataset file"
-                multiple
-                onFiles={handleFiles}
+            <label
+                data-stack="v"
+                data-gap="sm"
+                data-align="start"
+                data-p="md"
+                className={styles['dropzone']}
+                onDragOver={event => event.preventDefault()}
+                onDrop={event => {
+                    event.preventDefault();
+                    handleFiles(Array.from(event.dataTransfer.files));
+                }}
             >
                 <UploadCloud size={28} />
                 <strong>Drop CSV or XLSX files</strong>
                 <span className={styles['muted']}>
                     Wide files are fine. The first rows are used for type inference.
                 </span>
-            </Dropzone>
+                <input
+                    className={styles['file-input']}
+                    type="file"
+                    accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    multiple
+                    aria-label="Dataset file"
+                    onChange={event => {
+                        handleFiles(Array.from(event.currentTarget.files ?? []));
+                        event.currentTarget.value = '';
+                    }}
+                />
+            </label>
 
             {selectedFiles.length > 1 && (
                 <div className={styles['mode-section']}>
                     <span className={styles['section-title']}>Upload mode</span>
-                    <SegmentedTabs
-                        value={uploadMode}
-                        columns={2}
-                        options={uploadModeOptions}
-                        disabled={isLoading}
-                        onChange={setUploadMode}
-                    />
+                    <div data-stack="h" data-gap="xs">
+                        {uploadModeOptions.map(option => (
+                            <button
+                                key={option.value}
+                                type="button"
+                                data-px="sm"
+                                data-py="xs"
+                                className={`${styles['tab']} ${option.value === uploadMode ? styles['active'] : ''}`}
+                                disabled={isLoading}
+                                aria-pressed={option.value === uploadMode}
+                                onClick={() => setUploadMode(option.value)}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
                     {uploadMode === 'single' && (
                         <>
                             <FormField

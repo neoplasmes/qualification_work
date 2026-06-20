@@ -3,24 +3,27 @@ import type { Chart } from '@qualification-work/types';
 import type { Dashboard } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
 
+import type { FilterApplicationEntityValues } from '../types';
+
 type FilterDatasetsParams = {
     datasets: DatasetMetadata[] | undefined;
     charts: Chart[] | undefined;
     dashboards: Dashboard[] | undefined;
-    chartIds: string[];
-    dashboardIds: string[];
+    values: Pick<FilterApplicationEntityValues, 'charts' | 'dashboards'>;
 };
 
 export const filterDatasets = ({
     datasets,
     charts,
     dashboards,
-    chartIds,
-    dashboardIds,
+    values,
 }: FilterDatasetsParams) => {
     if (!datasets) {
         return datasets;
     }
+
+    const chartIds = values.charts;
+    const dashboardIds = values.dashboards;
 
     let result = datasets;
 

@@ -8,7 +8,7 @@ import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
 import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
-    filterApplicationEntities,
+    filterActions,
     selectFilterApplicationValues,
 } from '@/features/filterApplicationEntities';
 
@@ -35,8 +35,7 @@ export const ActionsLeftPanel = () => {
 
     const filteredActions = useMemo(
         () =>
-            filterApplicationEntities({
-                scope: 'actions',
+            filterActions({
                 actions: actionsQuery.data,
                 values: filterValues,
             }) ?? [],

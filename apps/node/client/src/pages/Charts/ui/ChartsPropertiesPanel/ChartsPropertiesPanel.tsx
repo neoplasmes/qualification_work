@@ -13,17 +13,13 @@ import { useListDatasetsQuery } from '@/entities/dataset';
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { useAppSelector } from '@/shared/model';
-import {
-    Button,
-    EditableText,
-    PanelPlaceholder,
-    StatusMessage,
-    Table,
-} from '@/shared/ui';
+import { Button, EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { chartsTestIds } from '../../const';
 import { chartsWorkspaceIndexPath } from '../../lib';
 import { selectChart } from '../../model';
+
+import styles from './ChartsPropertiesPanel.module.scss';
 
 export const ChartsPropertiesPanel = () => {
     const dispatch = useDispatch();
@@ -105,7 +101,17 @@ export const ChartsPropertiesPanel = () => {
             );
         }
 
-        return <PanelPlaceholder>Select a chart to view properties.</PanelPlaceholder>;
+        return (
+            <p
+                className={styles['placeholder']}
+                data-stack="h"
+                data-align="center"
+                data-justify="center"
+                data-flex
+            >
+                Select a chart to view properties.
+            </p>
+        );
     }
 
     return (

@@ -10,6 +10,15 @@
     scrollbar-gutter: stable;
 }
 
+.placeholder {
+    min-height: 240px;
+
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: rgb(255 255 255 / 25%);
+    text-align: center;
+}
+
 .tabs-row {
     > :first-child {
         width: auto;

@@ -17,6 +17,8 @@ allowBuilds:
 linkWorkspacePackages: true
 
 catalogs:
+  common:
+    es-toolkit: ^1.47.0
   postgres:
     pg: ^8.20.0
     "@types/pg": ^8.18.0

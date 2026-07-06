@@ -25,11 +25,11 @@ moon run root:setup
 ```
 
 `.prototools` owns standalone CLIs and runtimes, including Node LTS, pnpm, Go,
-Nushell, Moon, hk, Cocogitto, dprint, golangci-lint, swag and Kubernetes tools.
+Nushell, Moon, Lefthook, Cocogitto, dprint, golangci-lint, swag and Kubernetes tools.
 `package.json` and `pnpm-lock.yaml` own Node dependencies. Docker Engine and
 Compose are installed separately by the operating system.
 
-hk installs the Git hooks from `hk.pkl`. Cocogitto checks Conventional Commit
+Lefthook installs the Git hooks from `lefthook.yaml`. Cocogitto checks Conventional Commit
 messages. Run `moon run :check` for formatting, lint fixes and type checking;
 run `moon run :test-unit openresty-discovery:test-int` for tests without Docker.
 Container integration tests and end-to-end tests are separate `test-int` and
@@ -411,7 +411,7 @@ Service-side architecture is hexagonal: each Node service has `core/` (domain + 
 **Shared platform**
 - pnpm workspaces with catalog version pinning (`pg`, `redis`, `zod`, build tools)
 - moon as the task runner across Node + Go packages
-- oxlint (TS), Stylelint (SCSS), Prettier; hk + Cocogitto for git hooks
+- oxlint (TS), Stylelint (SCSS), Prettier; Lefthook + Cocogitto for git hooks
 - vitest for unit/integration; Playwright for browser E2E
 - Conventional Commits enforced by Cocogitto
 

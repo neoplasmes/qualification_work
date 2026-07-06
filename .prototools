@@ -8,13 +8,13 @@ k9s = "0.51.0"
 kubectl = "1.37.1"
 helm = "3.22.0"
 helmfile = "1.8.1"
-hk = "2.5.0"
 pkl = "0.32.1"
 cocogitto = "7.0.0"
 golangci-lint = "2.14.0"
 swag = "2.0.0-rc6"
 dprint = "0.60.1"
 codebase-memory-mcp = "0.11.0"
+lefthook = "2.1.6"
 
 [tools.nu]
 plugin = "file://./.proto/plugins/nu.toml"
@@ -34,9 +34,6 @@ plugin = "file://./.proto/plugins/helm.toml"
 [tools.helmfile]
 plugin = "file://./.proto/plugins/helmfile.toml"
 
-[tools.hk]
-plugin = "file://./.proto/plugins/hk.toml"
-
 [tools.pkl]
 plugin = "file://./.proto/plugins/pkl.toml"
 
@@ -54,3 +51,6 @@ plugin = "file://./.proto/plugins/dprint.toml"
 
 [tools.codebase-memory-mcp]
 plugin = "file://./.proto/plugins/codebase-memory-mcp.toml"
+
+[tools.lefthook]
+plugin = "file://./.proto/plugins/lefthook.toml"

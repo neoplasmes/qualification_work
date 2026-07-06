@@ -49,7 +49,7 @@ Infrastructure and publishing tasks (`root:cluster-*`, `root:migrate`, `root:dep
 
 ## Git hooks
 
-`hk.pkl` replaces Lefthook. `root:setup` installs hk hooks. Pre-commit runs affected Moon checks, preserving unstaged changes and staging fixes. Commit-msg delegates Conventional Commit validation to Cocogitto (`cog.toml`). Pre-push runs type checks; it does not start Docker.
+`lefthook.yaml` configures Git hooks, and `root:setup` installs them. Pre-commit runs affected Moon checks and stages fixes. Commit-msg delegates Conventional Commit validation to Cocogitto (`cog.toml`). Pre-push runs type checks; it does not start Docker.
 
 ## Nushell
 

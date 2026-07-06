@@ -28,7 +28,7 @@ tasks:
       cache: false
       runInCI: false
   setup-hooks:
-    command: hk install
+    command: lefthook install
     deps:
     - root:setup-tools
     options:
@@ -67,9 +67,9 @@ tasks:
     inputs:
     - '@group(tools-nu)'
   lint-hooks:
-    command: hk validate
+    command: lefthook validate
     inputs:
-    - hk.pkl
+    - lefthook.yaml
   check:
     command: noop
     inputs: []

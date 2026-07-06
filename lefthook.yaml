@@ -1,0 +1,18 @@
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: false
+  jobs:
+    - name: moon-check
+      run: moon run :check --affected --status staged
+      stage_fixed: true
+
+commit-msg:
+  jobs:
+    - name: cocogitto
+      run: cog --quiet verify --file {1}
+
+pre-push:
+  jobs:
+    - name: typecheck
+      run: moon run :typecheck

@@ -26,7 +26,7 @@
         "@visx/tooltip": "^3.12.0",
         "@visx/visx": "^3.12.0",
         "@visx/xychart": "3.12.0",
-        "es-toolkit": "^1.47.0",
+        "es-toolkit": "catalog:common",
         "gridstack": "^12.6.0",
         "idb": "^8.0.3",
         "lucide-react": "^1.14.0",
@@ -53,8 +53,8 @@
         "sass": "^1.97.3",
         "stylelint": "^17.6.0",
         "stylelint-config-standard-scss": "^17.0.0",
-        "tsup": "^8.5.1",
-        "tsx": "^4.21.0",
+        "tsup": "catalog:devtools",
+        "tsx": "catalog:devtools",
         "vite": "^8.0.10"
     }
 }

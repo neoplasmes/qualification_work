@@ -12,7 +12,7 @@
     "dependencies": {
         "@qualification-work/microservice-utils": "workspace:*",
         "@qualification-work/types": "workspace:*",
-        "es-toolkit": "^1.46.1",
+        "es-toolkit": "catalog:common",
         "fast-json-stringify": "^6.3.0",
         "jsep": "catalog:backend",
         "pg": "catalog:postgres",

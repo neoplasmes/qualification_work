@@ -1,149 +1,176 @@
-language: "typescript"
+language: typescript
+layer: application
 tags:
-  - "client"
-  - "node"
-
+- node
+- css
 dependsOn:
-  - "primitive-server"
-
+- primitive-server
+- types
+- eslint-plugin-fsd
 fileGroups:
-  cfg:
-    - "package.json"
-    - "tsconfig.json"
-    - "*.config.{js,ts}"
   src:
-    - "{src,server,vite}/**/*"
-    - "!**/*.test.{js,ts,tsx}"
-  test:
-    - "{src,server}/*.test.{js,ts,tsx}"
-    - "test/**/*"
-
+  - '{src,server,vite}/**/*.{ts,tsx}'
+  - '!**/*.test.{ts,tsx}'
+  - '!src/test/**'
+  - '!src/**/test/**'
+  test-unit:
+  - '{src,server}/**/*.test.{ts,tsx}'
+  - src/test/**/*.ts
+  - src/**/test/**/*.{ts,tsx}
+  test-int: []
+  cfg:
+  - package.json
+  - tsconfig.json
+  - tsup.config.ts
+  - vitest.config.ts
+  - oxlint.config.ts
+  - prettier.config.js
+  - vite.config.ts
+  - stylelint.config.js
+  cfg-code:
+  - tsup.config.ts
+  - vitest.config.ts
+  - oxlint.config.ts
+  - prettier.config.js
+  - vite.config.ts
+  - stylelint.config.js
+  cfg-lint:
+  - oxlint.config.ts
+  - /packages/node/microservice-config/oxlint.ts
+  assets:
+  - index.html
+  - server/*.html
+  - public/**/*.{svg,png,jpg,ico,woff,woff2}
+  css:
+  - src/**/*.scss
 tasks:
-  dev:
-    command: "pnpm dev"
-    deps:
-      - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-      - ".env"
-    options:
-      cache: false
-      persistent: true
-      outputStyle: "stream"
-
-  dev-compose-up:
-    command: "docker compose -f docker-compose.dev.yaml up -d --build --wait --wait-timeout 300"
-    toolchain: system
-    inputs:
-      - "docker-compose.dev.yaml"
-      - "docker-compose/**/*"
-    options:
-      cache: false
-      outputStyle: "stream"
-
-  dev-compose-down:
-    command: "docker compose -f docker-compose.dev.yaml down --rmi local"
-    toolchain: system
-    options:
-      cache: false
-      outputStyle: "stream"
-
-  build:
-    command: "pnpm build"
-    deps:
-      - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-      - "index.html"
-    outputs:
-      - "dist"
-
-  build-client:
-    command: "pnpm build:client"
-    inputs:
-      - "src/**/*"
-      - "vite.config.ts"
-      - "index.html"
-    outputs:
-      - "dist/client"
-
-  build-server:
-    command: "pnpm build:server"
-    deps:
-      - "^:build"
-    inputs:
-      - "server/**/*"
-      - "src/**/*"
-      - "tsup.config.ts"
-      - "vite.config.ts"
-    outputs:
-      - "dist/server"
-      - "dist/server.js"
-
-  preview:
-    command: "pnpm preview"
-    deps:
-      - "~:build"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-    options:
-      cache: false
-      persistent: true
-      outputStyle: "stream"
-
-  start:
-    command: "pnpm start"
-    deps:
-      - "~:build"
-    inputs:
-      - "dist/**/*"
-    options:
-      cache: false
-      persistent: true
-      outputStyle: "stream"
-
-  fmt:
-    command: "pnpm prettier"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-    options:
-      cache: false
-
-  typecheck:
-    command: "pnpm typecheck"
-    deps:
-      - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-
-  test:
-    command: "pnpm test"
-    deps:
-      - "^:build"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-
   lint:
-    command: "pnpm lint"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-
+    command: pnpm exec oxlint --config oxlint.config.ts --no-error-on-unmatched-pattern @files(src) @files(test-unit)
+      @files(test-int) @files(cfg-code)
+    options:
+      mergeArgs: replace
   lint-fix:
-    command: "pnpm lint:fix"
+    command: pnpm exec oxlint --config oxlint.config.ts --no-error-on-unmatched-pattern @files(src) @files(test-unit)
+      @files(test-int) @files(cfg-code)
+    args: --fix
+    options:
+      mergeArgs: replace
+  typecheck:
+    deps: &id003
+    - target: primitive-server:build
+      cacheStrategy: outputs
     inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
+    - &id001
+      project: types
+      group: src
+    - &id002
+      project: eslint-plugin-fsd
+      group: src
+  test-unit:
+    command: pnpm exec vitest run --maxWorkers 2
+    inputs:
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(cfg)'
+    - '@group(css)'
+    - *id001
+    - *id002
+    deps: *id003
+  dev:
+    command: pnpm exec tsx server/server.ts
+    preset: server
+    deps:
+    - primitive-server:build
+    - client:typecheck
+    options:
+      envFile: .env
+  build-host:
+    command: pnpm exec tsup
+    inputs:
+    - '@group(src)'
+    - '@group(cfg)'
+    - &id004
+      project: types
+      group: src
+    - &id005
+      project: eslint-plugin-fsd
+      group: src
+    outputs:
+    - dist/server.js
+    - dist/server.js.map
+    deps: *id003
+    options:
+      internal: true
+  build-server:
+    command: pnpm exec vite build --ssr src/entry.server.tsx --outDir dist/server
+    inputs:
+    - '@group(src)'
+    - '@group(cfg)'
+    - '@group(css)'
+    - '@group(assets)'
+    - *id004
+    - *id005
+    outputs:
+    - dist/server
+    deps:
+    - client:build-host
+    options:
+      internal: true
+  build-client:
+    command: pnpm exec vite build
+    inputs:
+    - '@group(src)'
+    - '@group(cfg)'
+    - '@group(css)'
+    - '@group(assets)'
+    - *id004
+    - *id005
+    outputs:
+    - dist/client
+    deps:
+    - client:build-host
+    options:
+      internal: true
+  build-assets:
+    command: nu --no-config-file $workspaceRoot/tools/build-client/copy-assets.nu
+    inputs:
+    - '@group(assets)'
+    - /tools/build-client/copy-assets.nu
+    outputs:
+    - dist/renderError.html
+    deps:
+    - client:build-host
+    options:
+      internal: true
+  build:
+    command: noop
+    inputs: []
+    deps:
+    - client:build-client
+    - client:build-server
+    - client:build-assets
+  start:
+    command: proto run node -- dist/server.js
+    preset: server
+    deps:
+    - client:build
+    env:
+      NODE_ENV: production
+    options:
+      envFile: .env
+  compose-up:
+    command: docker compose -f docker-compose.dev.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
+      300
     options:
       cache: false
+      runInCI: false
+  compose-down:
+    command: docker compose -f docker-compose.dev.yaml down -v --rmi local
+    options:
+      cache: false
+      runInCI: false
+  compose-logs:
+    command: docker compose -f docker-compose.dev.yaml logs --tail=200
+    options:
+      cache: false
+      runInCI: false

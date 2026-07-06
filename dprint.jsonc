@@ -1,0 +1,56 @@
+{
+    "includes": ["**/*.{js,ts,tsx,json,jsonc,css,scss,html,go,yaml,yml,md}"],
+    "excludes": [
+        "**/node_modules",
+        "**/dist",
+        "**/bin",
+        ".git",
+        ".moon/cache",
+        ".agents",
+        ".claude",
+        "docs",
+        "generation",
+        "diplom-notes",
+        "**/test-results",
+        "**/playwright-report",
+    ],
+    "exec": {
+        "cwd": "${configDir}",
+        "commands": [
+            {
+                "command": "proto run node -- node_modules/prettier/bin/prettier.cjs --stdin-filepath {{file_path}}",
+                "exts": [
+                    "js",
+                    "ts",
+                    "tsx",
+                    "json",
+                    "jsonc",
+                    "css",
+                    "scss",
+                    "html",
+                    "yaml",
+                    "yml",
+                    "md",
+                ],
+                "cacheKeyFiles": [
+                    "prettier.config.js",
+                    "pnpm-lock.yaml",
+                    "apps/node/client/prettier.config.js",
+                    "packages/node/microservice-config/prettier.js",
+                    "apps/node/server/prettier.config.js",
+                    "apps/node/data-service/prettier.config.js",
+                    ".prettierignore",
+                    ".prototools",
+                ],
+            },
+            {
+                "command": "proto run go --exe gofmt",
+                "exts": ["go"],
+                "cacheKeyFiles": [".prototools"],
+            },
+        ],
+    },
+    "plugins": [
+        "https://github.com/dprint/dprint-plugin-exec/releases/download/0.7.3/plugin.json@a7898d5f1897e77bff474cec3d948c3ec3a7f455e32de2cc60c8adb9a5dd24aa",
+    ],
+}

@@ -3,15 +3,6 @@
     "version": "1.0.0",
     "type": "module",
     "main": "index.js",
-    "scripts": {
-        "dev": "pnpm dotenv -e .env -- tsx watch src/index.ts",
-        "build": "tsup",
-        "start": "pnpm dotenv -e .env -- node dist/index.js",
-        "lint": "oxlint -c oxlint.config.ts src/",
-        "lint:fix": "oxlint -c oxlint.config.ts --fix src/",
-        "typecheck": "tsc --noEmit",
-        "test": "pnpm dotenv -e .env.test -- vitest run"
-    },
     "keywords": [],
     "author": "",
     "license": "ISC",

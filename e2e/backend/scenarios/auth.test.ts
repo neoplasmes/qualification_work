@@ -42,9 +42,9 @@ describe('auth: registration, login, session lifecycle', () => {
         expect(me.email).toBe(user.email);
         expect(me.isInitializing).toBe(false);
         expect(me.organizations.length).toBeGreaterThanOrEqual(1);
-        expect(me.organizations.some(o => o.id === user.orgId && o.role === 'owner')).toBe(
-            true
-        );
+        expect(
+            me.organizations.some(o => o.id === user.orgId && o.role === 'owner')
+        ).toBe(true);
     });
 
     it('/me without cookie -> 401', async () => {

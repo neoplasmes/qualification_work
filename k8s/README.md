@@ -1,6 +1,6 @@
 # k3s/k3d deploy
 
-End-to-end deploy targeting k3s (production) and k3d (local). All images come from ghcr.io/neoplasmes/qualification_work and pinned to the `:custom` tag (see `scripts/ghcr.deploy.sh`).
+End-to-end deploy targeting k3s (production) and k3d (local). All images come from ghcr.io/neoplasmes/qualification_work and pinned to the `:custom` tag (see `nu --no-config-file tools/registry/deploy.nu`).
 
 ## Layout
 
@@ -67,11 +67,11 @@ curl -fsS http://localhost/_gateway/health
 ## Building and pushing images
 
 ```bash
-scripts/ghcr.deploy.sh apps/node/client
-scripts/ghcr.deploy.sh apps/node/server
-scripts/ghcr.deploy.sh apps/node/data-service
-scripts/ghcr.deploy.sh apps/go/auth
-scripts/ghcr.deploy.sh packages/go/openresty-discovery
+nu --no-config-file tools/registry/deploy.nu apps/node/client
+nu --no-config-file tools/registry/deploy.nu apps/node/server
+nu --no-config-file tools/registry/deploy.nu apps/node/data-service
+nu --no-config-file tools/registry/deploy.nu apps/go/auth
+nu --no-config-file tools/registry/deploy.nu packages/go/openresty-discovery
 ```
 
 ## Service map (resolved by the discovery sidecar)

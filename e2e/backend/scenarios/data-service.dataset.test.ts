@@ -86,16 +86,22 @@ describe('data-service /api/data/datasets', () => {
             csv: 'name,age\nAlice,30',
         });
 
-        const insert = await api(`/api/data/datasets/${dataset.id}/rows?orgId=${user.orgId}`, {
-            method: 'POST',
-            cookie: user.cookie,
-            body: JSON.stringify({ data: { name: 'Bob', age: 25 } }),
-        });
+        const insert = await api(
+            `/api/data/datasets/${dataset.id}/rows?orgId=${user.orgId}`,
+            {
+                method: 'POST',
+                cookie: user.cookie,
+                body: JSON.stringify({ data: { name: 'Bob', age: 25 } }),
+            }
+        );
         expect(insert.status).toBe(201);
 
-        const rows = await api(`/api/data/datasets/${dataset.id}/rows?offset=0&limit=10`, {
-            cookie: user.cookie,
-        });
+        const rows = await api(
+            `/api/data/datasets/${dataset.id}/rows?offset=0&limit=10`,
+            {
+                cookie: user.cookie,
+            }
+        );
         const body = (await rows.json()) as RowsPage;
         expect(body.rows.some(r => r.data.name === 'Bob')).toBe(true);
     });

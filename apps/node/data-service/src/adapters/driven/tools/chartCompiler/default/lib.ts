@@ -3,7 +3,6 @@ import type {
     ChartConfig,
     FilterClause,
     Measure,
-    MeasureValueFormat,
     TimeGranularity,
 } from '@qualification-work/types';
 
@@ -166,7 +165,7 @@ export function measureExpr(
     m: Measure,
     columnsById: Map<string, ColumnMeta>,
     alias: string
-): { sql: string; alias: string; valueFormat?: MeasureValueFormat } {
+): { sql: string; alias: string; valueFormat?: Measure['valueFormat'] } {
     if (m.aggregate === 'count') {
         return { sql: `count(*)::numeric`, alias, valueFormat: m.valueFormat };
     }

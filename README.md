@@ -17,51 +17,33 @@ node.js version - 24.14.0 (LTS на март 2026)
 
 ### commands for configuring k3s environment:
 
-1. kubectl (kubernetes control) installation:
+Install proto, then provision the pinned workspace tools and Node dependencies:
+
 ```bash
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
-kubectl version --client
+proto install
+moon run root:setup
 ```
 
-2. Helm (k8s package manager) installation:
-```bash
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-helm version
-```
+`.prototools` owns standalone CLIs and runtimes, including Node LTS, pnpm, Go,
+Nushell, Moon, hk, Cocogitto, dprint, golangci-lint, swag and Kubernetes tools.
+`package.json` and `pnpm-lock.yaml` own Node dependencies. Docker Engine and
+Compose are installed separately by the operating system.
 
-3. k3d (k3s in docker - for local development) installation
-```bash
-curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-k3d version
-```
-
-to create local cluster - use `moon run k3s-local-create`
-
-4. Helmfile (tool for replayable helm's installations) installation:
-```bash
-# you will need mise package manager
-mise use -g helmfile@latest
-
-# plugin for helmfile's normal work
-helm plugin install https://github.com/databus23/helm-diff
-
-# check:
-cd k8s
-helmfile list
-```
+hk installs the Git hooks from `hk.pkl`. Cocogitto checks Conventional Commit
+messages. Run `moon run :check` for formatting, lint fixes and type checking;
+run `moon run :test-unit openresty-discovery:test-int` for tests without Docker.
+Container integration tests and end-to-end tests are separate `test-int` and
+`test-e2e` tasks. See [repository tooling](ARCHITECTURE.repo.md).
 
 ### To build image locally and push to ghcr.io
 
 1. login to ghcr.io registry via `docker login`
-2. `chmod +x ./scripts/ghcr.deploy.sh`
-3. use `moon run deploy-to-registry -- <path-to-dockerfile>`
+3. use `moon run deploy-to-registry -- <image-directory>`
 
 
 ### To run k3d locally:
 
-At first, you have to get token for pulling images from repository, or change container registry in k8s files to yours, push all images to your registry via `/scripts/ghcr.deploy.sh` and then generate ghcr/secret.yaml with the following command:
+At first, you have to get token for pulling images from repository, or change container registry in k8s files to yours, push all images to your registry via `nu --no-config-file tools/registry/deploy.nu` and then generate ghcr/secret.yaml with the following command:
 
 ```bash
 kubectl create secret docker-registry ghcr-secret \
@@ -101,11 +83,11 @@ Before either recipe, push images to ghcr and prepare credentials:
 
 ```bash
 # from the repo root
-scripts/ghcr.deploy.sh apps/node/client
-scripts/ghcr.deploy.sh apps/node/server
-scripts/ghcr.deploy.sh apps/node/data-service
-scripts/ghcr.deploy.sh apps/go/auth
-scripts/ghcr.deploy.sh packages/go/openresty-discovery
+nu --no-config-file tools/registry/deploy.nu apps/node/client
+nu --no-config-file tools/registry/deploy.nu apps/node/server
+nu --no-config-file tools/registry/deploy.nu apps/node/data-service
+nu --no-config-file tools/registry/deploy.nu apps/go/auth
+nu --no-config-file tools/registry/deploy.nu packages/go/openresty-discovery
 
 # build k8s/ghcr/secret.yaml as shown above
 # build k8s/app/secret.yaml from k8s/app/secret.example.yaml
@@ -396,7 +378,7 @@ Two language workspaces sit side by side: Node packages are wired through `pnpm`
 ├── infrastructure/                  Postgres schema + PgBouncer config baked into images
 ├── k8s/                             Manifests + helmfile for k3s (single-node + multi-node recipes)
 ├── deploy/                          Compose-based VPS deploy recipes (currently client)
-├── scripts/                         ghcr.io image push, kustomize-driven migration apply
+├── tools/                           Nushell build, registry, migration and validation scripts
 └── generation/                      Code-gen utilities (e.g. tests / fixtures)
 ```
 
@@ -419,7 +401,7 @@ Service-side architecture is hexagonal: each Node service has `core/` (domain + 
 - `zod` validation; `jose` for internal service-to-service JWTs
 
 **Auth service** (`apps/go/auth`)
-- Go 1.26 + gin; `pgx/v5` for Postgres, `go-redis/v9` for Redis, argon2id passwords
+- Go 1.27 + gin; `pgx/v5` for Postgres, `go-redis/v9` for Redis, argon2id passwords
 - RS256 JWT issuance; key loaded from a k8s secret
 
 **Edge / discovery**
@@ -429,9 +411,9 @@ Service-side architecture is hexagonal: each Node service has `core/` (domain + 
 **Shared platform**
 - pnpm workspaces with catalog version pinning (`pg`, `redis`, `zod`, build tools)
 - moon as the task runner across Node + Go packages
-- oxlint (TS), Stylelint (SCSS), Prettier; commitlint + lefthook for git hooks
+- oxlint (TS), Stylelint (SCSS), Prettier; hk + Cocogitto for git hooks
 - vitest for unit/integration; Playwright for browser E2E
-- Conventional Commits enforced by commitlint config
+- Conventional Commits enforced by Cocogitto
 
 **Build / deploy**
 - tsup for service bundles, Vite for the SSR client

@@ -1,6 +1,6 @@
 # run only from the root of the repo
 
-ARG GO_VERSION=1.26.3
+ARG GO_VERSION=1.27.1
 
 FROM golang:${GO_VERSION}-alpine AS builder
 

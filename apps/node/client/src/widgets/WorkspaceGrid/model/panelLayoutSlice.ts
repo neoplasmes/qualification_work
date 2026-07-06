@@ -18,7 +18,10 @@ export const panelLayoutSlice = createSlice({
     name: 'panelLayout',
     initialState,
     reducers: {
-        setPanelSizes(state, action: PayloadAction<{ pageKey: string; sizes: number[] }>) {
+        setPanelSizes(
+            state,
+            action: PayloadAction<{ pageKey: string; sizes: number[] }>
+        ) {
             state.sizes[action.payload.pageKey] = action.payload.sizes;
         },
         toggleLeftPanel(state) {
@@ -30,7 +33,8 @@ export const panelLayoutSlice = createSlice({
     },
 });
 
-export const { setPanelSizes, toggleLeftPanel, toggleRightPanel } = panelLayoutSlice.actions;
+export const { setPanelSizes, toggleLeftPanel, toggleRightPanel } =
+    panelLayoutSlice.actions;
 
 export const selectPanelSizes =
     (pageKey: string) =>

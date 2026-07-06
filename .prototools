@@ -1,3 +1,56 @@
-moon = "2.3.3"
-go = "1.26.3"
-node = "24.14.0"
+moon = "2.6.0"
+node = "24.21.0"
+pnpm = "11.1.2"
+go = "1.27.1"
+nu = "0.116.0"
+k3d = "5.9.0"
+k9s = "0.51.0"
+kubectl = "1.37.1"
+helm = "3.22.0"
+helmfile = "1.8.1"
+hk = "2.5.0"
+pkl = "0.32.1"
+cocogitto = "7.0.0"
+golangci-lint = "2.14.0"
+swag = "2.0.0-rc6"
+dprint = "0.60.1"
+codebase-memory-mcp = "0.11.0"
+
+[tools.nu]
+plugin = "file://./.proto/plugins/nu.toml"
+
+[tools.k3d]
+plugin = "file://./.proto/plugins/k3d.toml"
+
+[tools.k9s]
+plugin = "file://./.proto/plugins/k9s.toml"
+
+[tools.kubectl]
+plugin = "file://./.proto/plugins/kubectl.toml"
+
+[tools.helm]
+plugin = "file://./.proto/plugins/helm.toml"
+
+[tools.helmfile]
+plugin = "file://./.proto/plugins/helmfile.toml"
+
+[tools.hk]
+plugin = "file://./.proto/plugins/hk.toml"
+
+[tools.pkl]
+plugin = "file://./.proto/plugins/pkl.toml"
+
+[tools.cocogitto]
+plugin = "file://./.proto/plugins/cocogitto.toml"
+
+[tools.golangci-lint]
+plugin = "file://./.proto/plugins/golangci-lint.toml"
+
+[tools.swag]
+plugin = "file://./.proto/plugins/swag.toml"
+
+[tools.dprint]
+plugin = "file://./.proto/plugins/dprint.toml"
+
+[tools.codebase-memory-mcp]
+plugin = "file://./.proto/plugins/codebase-memory-mcp.toml"

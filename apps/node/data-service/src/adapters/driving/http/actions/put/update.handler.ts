@@ -7,7 +7,7 @@ import type { UpdateActionCommand } from '@/core/commands';
 
 import type { RequestHandlerType } from '@/shared/appState';
 
-import { actionDefinitionSchema } from '../schemas';
+import { actionDefinitionSchema } from '../zod';
 
 export function createUpdateActionHandler(
     handler: UpdateActionCommand

@@ -1,6 +1,6 @@
 # Run only from the workspace root
 
-ARG NODE_VERSION=24.14.0-alpine3.23
+ARG NODE_VERSION=24.21.0-alpine3.23
 ARG PNPM_VERSION=11.1.2
 
 FROM node:${NODE_VERSION} AS base
@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
-# disable lefthook scripts
+# disable interactive installation prompts
 ENV CI=true
 
 FROM base AS deps
@@ -35,8 +35,8 @@ COPY packages/node/primitive-server/    ./packages/node/primitive-server/
 COPY packages/node/microservice-config/ ./packages/node/microservice-config/
 COPY packages/node/microservice-utils/  ./packages/node/microservice-utils/
 
-#* reminder: --if-present runs build command in dependency packages only if it is present
-RUN pnpm -F server... --if-present build
+# build the runtime package before its consumer
+RUN pnpm -F primitive-server exec tsup && pnpm -F server exec tsup
 
 FROM builder AS pruned
 

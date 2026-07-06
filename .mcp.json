@@ -1,0 +1,33 @@
+{
+    "mcpServers": {
+        "codebase-memory-mcp": {
+            "type": "stdio",
+            "command": "proto",
+            "args": [
+                "run",
+                "codebase-memory-mcp",
+                "--log",
+                "error",
+                "--reporter",
+                "text",
+                "--"
+            ],
+            "env": {}
+        },
+        "kubernetes": {
+            "command": "npx",
+            "args": ["-y", "kubernetes-mcp-server@latest"],
+            "env": {
+                "KUBECONFIG": "/home/neoplasmes/.kube/config"
+            }
+        },
+        "moon": {
+            "type": "stdio",
+            "command": "moon",
+            "args": ["mcp"],
+            "env": {
+                "MOON_WORKSPACE_ROOT": "/home/neoplasmes/qualification_work"
+            }
+        }
+    }
+}

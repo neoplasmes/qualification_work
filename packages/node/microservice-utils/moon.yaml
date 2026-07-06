@@ -1,55 +1,40 @@
-language: "typescript"
-
+language: typescript
+layer: library
 tags:
-  - "node"
-
+- node
 fileGroups:
-  cfg:
-    - "package.json"
-    - "tsconfig.json"
-    - "*.config.{js,ts}"
   src:
-    - "src/**/*.ts"
-  test:
-    - "**/*.test.ts"
-    - "src/test-utils/**/*.ts"
-
+  - src/**/*.ts
+  - '!src/**/*.test.ts'
+  - '!src/**/*.loadtest.ts'
+  - '!src/test-utils/**/*.ts'
+  - '!src/redis/redisCache.test.ts'
+  test-unit:
+  - src/**/*.test.ts
+  - src/test-utils/**/*.ts
+  - '!src/redis/redisCache.test.ts'
+  cfg:
+  - package.json
+  - tsconfig.json
+  - vitest.config.ts
+  cfg-code:
+  - vitest.config.ts
+  test-int:
+  - src/redis/redisCache.test.ts
+dependsOn:
+- microservice-config
 tasks:
-  typecheck:
-    command: "pnpm typecheck"
+  test-unit:
+    command: pnpm exec vitest run --exclude src/redis/redisCache.test.ts
     inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-
-  lint:
-    command: "pnpm lint"
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(cfg)'
+  test-int:
+    command: pnpm exec vitest run src/redis/redisCache.test.ts
     inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-
-  lint-fix:
-    command: "pnpm lint:fix"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
+    - '@group(src)'
+    - '@group(test-int)'
+    - '@group(cfg)'
     options:
-      cache: false
-
-  fmt:
-    command: "pnpm prettier"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
-    options:
-      cache: false
-
-  test:
-    command: "pnpm test"
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "@group(cfg)"
+      mutex: docker-tests

@@ -3,14 +3,6 @@
     "version": "0.0.0",
     "private": true,
     "type": "module",
-    "scripts": {
-        "test": "vitest run",
-        "test:watch": "vitest",
-        "prettier": "prettier --write . --ignore-path ../../.prettierignore",
-        "lint": "oxlint .",
-        "lint:fix": "oxlint --fix .",
-        "typecheck": "tsc --noEmit"
-    },
     "devDependencies": {
         "zod": "catalog:backend"
     }

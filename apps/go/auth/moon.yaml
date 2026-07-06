@@ -1,146 +1,83 @@
 language: go
-
-tags:
-  - go
-
-project: 
-  swagger-ui-container-name: auth-swagger
-
+layer: application
+dependsOn:
+- root
 fileGroups:
   src:
-    - "{cmd,internal}/**/*.go"
-    - "!**/*_test.go"
-  test:
-    - "**/*_test.go"
-
+  - '{cmd,internal}/**/*.go'
+  - '!**/*_test.go'
+  test-unit:
+  - '{cmd,internal}/**/*_test.go'
+  test-int:
+  - test/integration/**/*.go
+  cfg:
+  - go.mod
+  - go.sum
+  fixtures:
+  - test/integration/**/*.{conf,ini,pem}
+  - docker-compose.test.yaml
+  - .env.test
 tasks:
-  dev:
-    script: "echo $PWD && set -a; source .env; set +a; go run ./cmd/auth/main.go"
-    toolchain: system
-    deps: 
-      - root:development-compose-up
-    options:
-      cache: false
-      outputStyle: stream
-
-  build:
-    command: "go build -o ./bin/auth ./cmd/auth"
-    toolchain: system
+  test-unit:
+    command: go test -count 1 ./cmd/... ./internal/...
     inputs:
-      - "@group(src)"
-      - "go.mod"
-      - "go.sum"
-    options:
-      outputStyle: stream
-
-  tidy:
-    command: "go mod tidy -v"
-    toolchain: system
-    inputs: 
-      - go.mod
-      - go.sum
-  
-  test-compose-up:
-    script: |
-      docker compose -f docker-compose.test.yaml up -d \
-        --renew-anon-volumes \
-        --build \
-        --wait \
-        --wait-timeout 300
-    toolchain: system
-    options:
-      cache: false
-      outputStyle: stream
-
-  test-compose-down:
-    command: "docker compose -f docker-compose.test.yaml down -v --rmi local"
-    toolchain: system
-    options:
-      cache: false
-      outputStyle: stream
-
-  test:
-    script: |
-      docker compose -f docker-compose.test.yaml up -d \
-        --renew-anon-volumes --build --wait --wait-timeout 300
-      RC=0
-      go test -tags=integration -count=1 ./test/integration/... || RC=$?
-      docker compose -f docker-compose.test.yaml down -v --rmi local
-      exit $RC
-    toolchain: system
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(cfg)'
+  test-int:
+    command: nu --no-config-file $workspaceRoot/tools/compose-test/compose-test.nu docker-compose.test.yaml go test
+      -tags integration -count 1 ./test/integration/...
     inputs:
-      - "@group(src)"
-      - "@group(test)"
-      - "docker-compose.test.yaml"
-      - "test/integration/openresty/**/*"
-      - "test/integration/pgbouncer/**/*"
+    - '@group(src)'
+    - '@group(test-int)'
+    - '@group(cfg)'
+    - '@group(fixtures)'
+    - /tools/compose-test/compose-test.nu
     options:
-      cache: false
       mutex: docker-tests
-
-  fmt:
-    command: "golangci-lint fmt --config ../../../.golangci.yaml ./..."
-    toolchain: system
-    options:
-      cache: false
-
-  lint:
-    command: "golangci-lint run --config ../../../.golangci.yaml ./..."
-    toolchain: system
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-
-  lint-fix:
-    command: "golangci-lint run --fix --config ../../../.golangci.yaml ./..."
-    toolchain: system
-    inputs:
-      - "@group(src)"
-      - "@group(test)"
-    options:
-      cache: false
-
-  swagger:
-    script: |
-      swag init \
-        -d cmd/auth,internal/adapters/driving/http/auth,internal/adapters/driving/http/_helpers,internal/adapters/driving/http/gateway,internal/adapters/driving/http/health \
-        -g main.go \
-        -o docs \
-        --v3.1 \
-        --parseInternal \
-        --outputTypes json
-    toolchain: system
-    inputs:
-      - "@group(src)"
-      - "go.mod"
-      - "go.sum"
-    outputs:
-      - "docs"
-
-  swagger-start:
-    script: |
-      docker rm -f @meta(swagger-ui-container-name) >/dev/null 2>&1 || true
-      docker run --rm -d \
-        --name @meta(swagger-ui-container-name) \
-        --cpus 0.10 \
-        --memory 64m \
-        --memory-swap 64m \
-        -p 13002:8080 \
-        -e SWAGGER_JSON=/docs/swagger.json \
-        -v "$PWD/docs:/docs:ro" \
-        swaggerapi/swagger-ui:v5.32.6
-    toolchain: system
+  dev:
+    command: go run ./cmd/auth
+    preset: server
     deps:
-      - swagger
+    - root:compose-up
+    options:
+      envFile: .env
+  build:
+    command: go build -o bin/auth ./cmd/auth
     inputs:
-      - "docs/**/*"
+    - '@group(src)'
+    - '@group(cfg)'
+    outputs:
+    - bin/auth
+  swagger:
+    command: swag init -d cmd/auth,internal/adapters/driving/http/auth,internal/adapters/driving/http/_helpers,internal/adapters/driving/http/gateway,internal/adapters/driving/http/health
+      -g main.go -o docs --v3.1 --parseInternal --outputTypes json
+    inputs:
+    - '@group(src)'
+    - '@group(cfg)'
+    outputs:
+    - docs/swagger.json
+  start-swagger:
+    command: nu --no-config-file $workspaceRoot/tools/swagger/start-swagger.nu
+    preset: utility
+    deps:
+    - auth:swagger
+  stop-swagger:
+    command: docker rm -f auth-swagger
+    preset: utility
+  compose-up:
+    command: docker compose -f docker-compose.test.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
+      300
     options:
       cache: false
-      outputStyle: stream
-
-  swagger-stop:
-    command: "docker rm -f @meta(swagger-ui-container-name)"
-    toolchain: system
+      runInCI: false
+  compose-down:
+    command: docker compose -f docker-compose.test.yaml down -v --rmi local
     options:
       cache: false
-      outputStyle: stream
+      runInCI: false
+  compose-logs:
+    command: docker compose -f docker-compose.test.yaml logs --tail=200
+    options:
+      cache: false
+      runInCI: false

@@ -1,0 +1,96 @@
+{
+        "file_types": {
+                "TOML": [
+                        ".prototools",
+                        "*.prototools"
+                ]
+        },
+        "formatter": {
+                "external": {
+                        "command": "dprint",
+                        "arguments": [
+                                "fmt",
+                                "--stdin",
+                                "{buffer_path}"
+                        ]
+                }
+        },
+        "prettier": {
+                "allowed": false
+        },
+        "format_on_save": "on",
+        "languages": {
+                "TypeScript": {
+                        "language_servers": [
+                                "typescript-ls",
+                                "!vtsls",
+                                "!typescript-language-server",
+                                "!tailwindcss-language-server",
+                                "!tailwindcss-intellisense-css",
+                                "..."
+                        ]
+                },
+                "TSX": {
+                        "language_servers": [
+                                "typescript-ls",
+                                "!vtsls",
+                                "!typescript-language-server",
+                                "!tailwindcss-language-server",
+                                "!tailwindcss-intellisense-css",
+                                "..."
+                        ]
+                },
+                "JavaScript": {
+                        "language_servers": [
+                                "typescript-ls",
+                                "!vtsls",
+                                "!typescript-language-server",
+                                "!tailwindcss-language-server",
+                                "!tailwindcss-intellisense-css",
+                                "..."
+                        ]
+                },
+                "JSX": {
+                        "language_servers": [
+                                "typescript-ls",
+                                "!vtsls",
+                                "!typescript-language-server",
+                                "!tailwindcss-language-server",
+                                "!tailwindcss-intellisense-css",
+                                "..."
+                        ]
+                },
+                "HTML": {
+                        "language_servers": [
+                                "!tailwindcss-language-server",
+                                "!tailwindcss-intellisense-css",
+                                "..."
+                        ]
+                },
+                "Markdown": {
+                        "enable_language_server": false,
+                        "format_on_save": "off",
+                        "formatter": "none"
+                },
+                "CSS": {
+                        "language_servers": [
+                                "vscode-css-language-server",
+                                "!tailwindcss-intellisense-css",
+                                "!tailwindcss-language-server",
+                                "..."
+                        ]
+                },
+                "TOML": {
+                        "formatter": {
+                                "external": {
+                                        "command": "dprint",
+                                        "arguments": [
+                                                "fmt",
+                                                "--stdin",
+                                                "toml"
+                                        ]
+                                }
+                        }
+                }
+        }
+}

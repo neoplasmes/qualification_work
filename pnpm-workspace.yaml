@@ -10,7 +10,6 @@ allowBuilds:
   argon2: true
   cpu-features: false
   esbuild: true
-  lefthook: true
   msw: true
   protobufjs: false
   ssh2: false

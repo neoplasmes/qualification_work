@@ -1,51 +1,117 @@
-project:
-  k3d-cluster-name: "local-development"
-  anchors:
-    common-task: &common-task
-      toolchain: "system"
-      options:
-        cache: false
-        outputStyle: "stream"
-
+language: unknown
+layer: configuration
+fileGroups:
+  tools-nu:
+  - tools/**/*.nu
+  cfg-code:
+  - oxlint.config.ts
+  - prettier.config.js
+  fmt:
+  - '*.json'
+  - '*.jsonc'
+  - '*.yaml'
+  - '*.md'
+  - .moon/**/*.yaml
+  - .github/**/*.yaml
+  cfg-fmt:
+  - dprint.jsonc
+  - prettier.config.js
+  - .prettierignore
+  cfg-lint:
+  - oxlint.config.ts
+  - package.json
+  - pnpm-lock.yaml
 tasks:
-  deploy-to-registry:
-    description: "builds image from the Dockerfile at <path-to-Dockerfile> provided and pushes it to ghcr.io (see README.md for more details)"
-    command: "./scripts/ghcr.deploy.sh"
-    toolchain: "system"
+  setup-tools:
+    command: proto install
     options:
-      interactive: true
       cache: false
-      outputStyle: stream
-
-  development-compose-up:
-    description: "locally runs a stack of data storage technologies, used in production, fo local development purposes"
-    command: "docker compose -f docker-compose.database.yaml up -d"
-    <<: *common-task
-  
-  development-compose-down:
-    command: "docker compose -f docker-compose.database.yaml down"
-    <<: *common-task
-  # TODO: universality or delete
-  # postgres-migrate-init:
-  #   description: "runs the init PostgreSQL migration job in kubernetes"
-  #   command: "./scripts/applyMigration.sh k8s/postgres/migrations/init/job.yaml infrastructure/postgres/init"
-  #   <<: *common-task
-
-  # k3d managment for local testing of kubernetes (k3s) (not for weak machines)
-  # TODO: as project will grow, this set of command should be deleted probably??
-  k3s-local-create:
-    description: "creates k3s kubernetes cluster on localhost for testing the deployment part of the ecosystem"
-    command: "k3d cluster create @meta(k3d-cluster-name) --config ./k8s/k3d.config.yaml"
-    <<: *common-task
-
-  k3s-local-run:
-    command: "k3d cluster start @meta(k3d-cluster-name)"
-    <<: *common-task
-  
-  k3s-local-stop:
-    command: "k3d cluster stop @meta(k3d-cluster-name)"
-    <<: *common-task
-  
-  k3s-local-delete:
-    command: "k3d cluster delete @meta(k3d-cluster-name)"
-    <<: *common-task
+      runInCI: false
+  setup-hooks:
+    command: hk install
+    deps:
+    - root:setup-tools
+    options:
+      cache: false
+      runInCI: false
+  setup:
+    command: pnpm install --frozen-lockfile
+    deps:
+    - root:setup-hooks
+    options:
+      cache: false
+      runInCI: false
+  lock:
+    command: pnpm install --lockfile-only
+    options:
+      cache: false
+      runInCI: false
+  fmt:
+    command: dprint fmt @files(fmt) @files(cfg-code)
+    inputs:
+    - '@group(fmt)'
+    - '@group(cfg-code)'
+    - '@group(cfg-fmt)'
+    deps:
+    - root:lint-fix
+  lint:
+    command: pnpm exec oxlint --config oxlint.config.ts @files(cfg-code)
+    inputs:
+    - '@group(cfg-code)'
+    - '@group(cfg-lint)'
+  lint-fix:
+    extends: lint
+    args: --fix
+  lint-nu:
+    command: nu --no-config-file tools/nu-check/nu-check.nu @files(tools-nu)
+    inputs:
+    - '@group(tools-nu)'
+  lint-hooks:
+    command: hk validate
+    inputs:
+    - hk.pkl
+  check:
+    command: noop
+    inputs: []
+    deps:
+    - root:fmt
+    - root:lint-fix
+    - root:lint-nu
+    - root:lint-hooks
+  deploy-to-registry:
+    command: nu --no-config-file tools/registry/deploy.nu
+    preset: utility
+  # todo: universality or delete
+  migrate:
+    command: nu --no-config-file tools/migrations/apply-migration.nu
+    preset: utility
+  compose-up:
+    command: docker compose -f docker-compose.database.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
+      300
+    options:
+      cache: false
+      runInCI: false
+  compose-down:
+    command: docker compose -f docker-compose.database.yaml down -v --rmi local
+    options:
+      cache: false
+      runInCI: false
+  compose-logs:
+    command: docker compose -f docker-compose.database.yaml logs --tail=200
+    options:
+      cache: false
+      runInCI: false
+  # k3d management for local testing of kubernetes (k3s) (not for weak machines)
+  # todo: as project grows, this set of commands should be reconsidered
+  cluster-create:
+    command: k3d cluster create local-development --config k8s/k3d.config.yaml
+    preset: utility
+  cluster-run:
+    command: k3d cluster start local-development
+    preset: utility
+  cluster-stop:
+    command: k3d cluster stop local-development
+    preset: utility
+  cluster-delete:
+    command: k3d cluster delete local-development
+    preset: utility

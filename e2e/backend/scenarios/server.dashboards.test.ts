@@ -2,11 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { api } from '../utils/api.js';
 import { registerAndLogin } from '../utils/auth.js';
-import {
-    createBarChart,
-    createDashboard,
-    uploadCsvDataset,
-} from '../utils/factories.js';
+import { createBarChart, createDashboard, uploadCsvDataset } from '../utils/factories.js';
 
 type DashboardItem = {
     id: string;

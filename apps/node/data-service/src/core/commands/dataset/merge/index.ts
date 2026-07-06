@@ -12,8 +12,4 @@ export {
     type PreviewMergeInput,
 } from './preview.command';
 export type { PreviewMergeCommandIO } from './preview.command';
-export type {
-    MergeConflict,
-    MergePreviewResult,
-    MergePreviewStatistics,
-} from './types';
+export type { MergeConflict, MergePreviewResult, MergePreviewStatistics } from './types';

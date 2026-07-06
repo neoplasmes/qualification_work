@@ -1,5 +1,56 @@
 inheritedBy:
-  tags: "go"
-
-implicitInputs:
-  - "/.golangci.yaml"
+  languages: go
+fileGroups:
+  test-unit: []
+  test-int: []
+  cfg-lint-go:
+  - /.golangci.yaml
+taskOptions:
+  runFromWorkspaceRoot: false
+tasks:
+  setup:
+    command: go mod download
+    options:
+      cache: false
+  lock:
+    command: go mod tidy
+    options:
+      cache: false
+      runInCI: false
+  fmt:
+    command: dprint fmt @files(src) @files(test-unit) @files(test-int)
+    inputs:
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(test-int)'
+    - '@group(cfg)'
+    - /dprint.jsonc
+    deps:
+    - ~:lint-fix
+  lint:
+    command: golangci-lint run --config $workspaceRoot/.golangci.yaml ./...
+    inputs:
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(test-int)'
+    - '@group(cfg)'
+    - '@group(cfg-lint-go)'
+    options:
+      mutex: golangci-lint
+  lint-fix:
+    extends: lint
+    args: --fix
+  typecheck:
+    command: go vet ./...
+    inputs:
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(test-int)'
+    - '@group(cfg)'
+  check:
+    command: noop
+    inputs: []
+    deps:
+    - ~:fmt
+    - ~:lint-fix
+    - ~:typecheck

@@ -1,6 +1,6 @@
 # Run only from the workspace root
 
-ARG NODE_VERSION=24.14.0-alpine3.23
+ARG NODE_VERSION=24.21.0-alpine3.23
 ARG PNPM_VERSION=11.1.2
 
 FROM node:${NODE_VERSION} AS base
@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
-# disable lefthook scripts
+# disable interactive installation prompts
 ENV CI=true
 
 FROM base AS deps
@@ -32,11 +32,11 @@ COPY packages/node/types/              ./packages/node/types/
 COPY packages/node/eslint-plugin-fsd/  ./packages/node/eslint-plugin-fsd/
 COPY packages/node/primitive-server/   ./packages/node/primitive-server/
 
-# explanation: <pattern>... - these 3 dots means that build command will be performed for "client" package
-# and all packages from which "client" depends.
-# --if-present: Avoid exiting with a non-zero exit code when the script is undefined
-# thus, there will be built ALL packages for "client", so yeah, we managed to save a whole 15 characters
-RUN pnpm -F client... --if-present build
+# build the runtime package before its consumer
+# pnpm exec resolves the tool from workspace dependencies
+# each command runs inside its package
+# keep the host bundle before vite because tsup cleans dist
+RUN pnpm -F primitive-server exec tsup && pnpm -F client exec tsup && cp apps/node/client/server/renderError.html apps/node/client/dist/ && pnpm -F client exec vite build --ssr src/entry.server.tsx --outDir dist/server && pnpm -F client exec vite build
 
 FROM builder AS pruned
 

@@ -1,0 +1,7 @@
+implicitInputs:
+- /.prototools
+taskOptions:
+  shell: true
+  unixShell: nu
+  windowsShell: nu
+  runFromWorkspaceRoot: true

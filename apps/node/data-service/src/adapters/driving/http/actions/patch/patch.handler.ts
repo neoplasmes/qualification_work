@@ -7,7 +7,11 @@ import type { PatchActionCommand } from '@/core/commands';
 
 import type { RequestHandlerType } from '@/shared/appState';
 
-import { patchActionSchema } from '../schemas';
+import { actionDefinitionSchema } from '../zod';
+
+const patchActionSchema = actionDefinitionSchema
+    .partial()
+    .refine(value => Object.keys(value).length > 0, { message: 'patch body is empty' });
 
 export function createPatchActionHandler(
     handler: PatchActionCommand

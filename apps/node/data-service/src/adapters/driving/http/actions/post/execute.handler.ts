@@ -7,7 +7,9 @@ import type { ExecuteActionCommand } from '@/core/commands';
 
 import type { RequestHandlerType } from '@/shared/appState';
 
-import { executeActionSchema } from '../schemas';
+const executeActionSchema = z.object({
+    parameters: z.record(z.string(), z.unknown()).default({}),
+});
 
 export function createExecuteActionHandler(
     handler: ExecuteActionCommand

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { getInternalIdentity } from '@qualification-work/microservice-utils/auth';
 import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 
@@ -5,13 +7,15 @@ import type { GetActionsByOrgIdQuery } from '@/core/queries';
 
 import type { RequestHandlerType } from '@/shared/appState';
 
-import { actionRunsQuerySchema } from '../schemas';
+const getActionsByOrgIdSchema = z.object({
+    orgId: z.uuid(),
+});
 
 export function createGetActionsByOrgIdHandler(
     handler: GetActionsByOrgIdQuery
 ): RequestHandlerType {
     return async ({ request, response }) => {
-        const input = parseWithZod(actionRunsQuerySchema.pick({ orgId: true }), {
+        const input = parseWithZod(getActionsByOrgIdSchema, {
             orgId: request.query.orgId,
         });
         const identity = getInternalIdentity(request);

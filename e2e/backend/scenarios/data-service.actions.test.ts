@@ -66,9 +66,12 @@ describe('data-service /api/data/actions', () => {
         expect(run).toMatchObject({ actionId, status: 'success' });
         expect(run.changes[0].kind).toBe('insertRow');
 
-        const rows = await api(`/api/data/datasets/${dataset.id}/rows?offset=0&limit=10`, {
-            cookie: user.cookie,
-        });
+        const rows = await api(
+            `/api/data/datasets/${dataset.id}/rows?offset=0&limit=10`,
+            {
+                cookie: user.cookie,
+            }
+        );
         const body = (await rows.json()) as RowsPage;
         expect(body.rows.some(r => r.data.name === 'Bob')).toBe(true);
     });
@@ -86,7 +89,12 @@ describe('data-service /api/data/actions', () => {
                 orgId: user.orgId,
                 name: 'update age',
                 parameters: [
-                    { key: 'targetId', label: 'targetId', type: 'string', required: true },
+                    {
+                        key: 'targetId',
+                        label: 'targetId',
+                        type: 'string',
+                        required: true,
+                    },
                     { key: 'newAge', label: 'newAge', type: 'string', required: true },
                 ],
                 effects: [
@@ -144,10 +152,9 @@ describe('data-service /api/data/actions', () => {
         });
         expect(execute.status).toBeGreaterThanOrEqual(400);
 
-        const runs = await api(
-            `/api/data/actions/${actionId}/runs?orgId=${user.orgId}`,
-            { cookie: user.cookie }
-        );
+        const runs = await api(`/api/data/actions/${actionId}/runs?orgId=${user.orgId}`, {
+            cookie: user.cookie,
+        });
         expect(runs.status).toBe(200);
         const list = (await runs.json()) as ActionRun[];
         expect(list.some(r => r.status === 'failed')).toBe(true);

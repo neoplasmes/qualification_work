@@ -7,7 +7,11 @@ import type { ListActionRunsQuery } from '@/core/queries';
 
 import type { RequestHandlerType } from '@/shared/appState';
 
-import { actionRunsQuerySchema } from '../schemas';
+const actionRunsQuerySchema = z.object({
+    orgId: z.uuid(),
+    offset: z.coerce.number().int().min(0).default(0),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+});
 
 export function createListOrgActionRunsHandler(
     handler: ListActionRunsQuery

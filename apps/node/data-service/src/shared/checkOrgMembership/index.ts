@@ -1,4 +1,1 @@
-export {
-    checkOrgMembership,
-    checkWritableOrgMembership,
-} from './checkOrgMembership';
+export { checkOrgMembership, checkWritableOrgMembership } from './checkOrgMembership';

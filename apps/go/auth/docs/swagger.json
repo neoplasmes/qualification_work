@@ -15,6 +15,10 @@
                         "example": "user_123",
                         "type": "string"
                     },
+                    "isInitializing": {
+                        "example": true,
+                        "type": "boolean"
+                    },
                     "name": {
                         "example": "Jane",
                         "type": "string"
@@ -58,7 +62,10 @@
                         "type": "string"
                     }
                 },
-                "required": ["email", "password"],
+                "required": [
+                    "email",
+                    "password"
+                ],
                 "type": "object"
             },
             "auth.signUpBody": {
@@ -83,7 +90,12 @@
                         "type": "string"
                     }
                 },
-                "required": ["email", "family", "name", "password"],
+                "required": [
+                    "email",
+                    "family",
+                    "name",
+                    "password"
+                ],
                 "type": "object"
             },
             "auth.signUpResponse": {
@@ -91,6 +103,10 @@
                     "id": {
                         "example": "018f2f8f-7a0d-7a8c-9d31-0c05f4d90123",
                         "type": "string"
+                    },
+                    "isInitializing": {
+                        "example": true,
+                        "type": "boolean"
                     }
                 },
                 "type": "object"
@@ -177,16 +193,9 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/auth.signInBody",
-                                        "summary": "payload",
-                                        "description": "Credentials"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/auth.signInBody",
+                                "summary": "payload",
+                                "description": "Credentials"
                             }
                         }
                     },
@@ -254,7 +263,9 @@
                     }
                 },
                 "summary": "Sign in",
-                "tags": ["auth"]
+                "tags": [
+                    "auth"
+                ]
             }
         },
         "/api/auth/logout": {
@@ -296,7 +307,9 @@
                     }
                 ],
                 "summary": "Log out",
-                "tags": ["auth"]
+                "tags": [
+                    "auth"
+                ]
             }
         },
         "/api/auth/me": {
@@ -340,7 +353,9 @@
                     }
                 ],
                 "summary": "Get current user",
-                "tags": ["auth"]
+                "tags": [
+                    "auth"
+                ]
             }
         },
         "/api/auth/register": {
@@ -350,16 +365,9 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/auth.signUpBody",
-                                        "summary": "payload",
-                                        "description": "Registration payload"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/auth.signUpBody",
+                                "summary": "payload",
+                                "description": "Registration payload"
                             }
                         }
                     },
@@ -409,7 +417,9 @@
                     }
                 },
                 "summary": "Register a user",
-                "tags": ["auth"]
+                "tags": [
+                    "auth"
+                ]
             }
         },
         "/gateway/.well-known/jwks.json": {
@@ -438,7 +448,9 @@
                     }
                 },
                 "summary": "Get JWKS",
-                "tags": ["gateway"]
+                "tags": [
+                    "gateway"
+                ]
             }
         },
         "/gateway/jwt": {
@@ -490,7 +502,9 @@
                     }
                 ],
                 "summary": "Issue internal JWT",
-                "tags": ["gateway"]
+                "tags": [
+                    "gateway"
+                ]
             }
         },
         "/health": {
@@ -512,7 +526,9 @@
                     }
                 },
                 "summary": "Health check",
-                "tags": ["health"]
+                "tags": [
+                    "health"
+                ]
             }
         },
         "/ready": {
@@ -547,7 +563,9 @@
                     }
                 },
                 "summary": "Readiness check",
-                "tags": ["health"]
+                "tags": [
+                    "health"
+                ]
             }
         }
     },

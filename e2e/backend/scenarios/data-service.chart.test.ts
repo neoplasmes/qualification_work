@@ -160,9 +160,7 @@ describe('data-service /api/data/charts', () => {
         const columns = await fetchDatasetColumns(user, dataset.id);
         const categoryCol = columns.find(c => c.key === 'category')!;
 
-        const filterOverrides = [
-            { columnId: categoryCol.id, op: 'eq', value: 'A' },
-        ];
+        const filterOverrides = [{ columnId: categoryCol.id, op: 'eq', value: 'A' }];
         const encoded = Buffer.from(JSON.stringify(filterOverrides)).toString(
             'base64url'
         );

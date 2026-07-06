@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { getInternalIdentity } from '@qualification-work/microservice-utils/auth';
 import { parseWithZod } from '@qualification-work/microservice-utils/validation';
 
@@ -5,7 +7,11 @@ import type { CreateActionCommand } from '@/core/commands';
 
 import type { RequestHandlerType } from '@/shared/appState';
 
-import { createActionSchema } from '../schemas';
+import { actionDefinitionSchema } from '../zod';
+
+const createActionSchema = actionDefinitionSchema.extend({
+    orgId: z.uuid(),
+});
 
 export function createCreateActionHandler(
     handler: CreateActionCommand

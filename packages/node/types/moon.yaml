@@ -1,32 +1,12 @@
-language: "typescript"
-
+language: typescript
+layer: library
 tags:
-  - "node"
-
+- node
 fileGroups:
-  cfg:
-    - "package.json"
-    - "tsconfig.json"
   src:
-    - "*.ts"
-
-tasks:
-  typecheck:
-    command: "pnpm typecheck"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-
-  lint:
-    command: "pnpm lint"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-
-  lint-fix:
-    command: "pnpm lint:fix"
-    inputs:
-      - "@group(src)"
-      - "@group(cfg)"
-    options:
-      cache: false
+  - '**/*.ts'
+  test-unit: []
+  cfg:
+  - package.json
+  - tsconfig.json
+  cfg-code: []

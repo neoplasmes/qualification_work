@@ -17,7 +17,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: server
-          image: "ghcr.io/neoplasmes/qualification_work/apps_node_server:custom"
+          image: "ghcr.io/neoplasmes/qualification_work/apps_server:custom"
           imagePullPolicy: Always
           ports:
             - containerPort: 3001

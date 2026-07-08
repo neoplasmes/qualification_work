@@ -67,11 +67,11 @@ curl -fsS http://localhost/_gateway/health
 ## Building and pushing images
 
 ```bash
-nu --no-config-file tools/registry/deploy.nu apps/node/client
-nu --no-config-file tools/registry/deploy.nu apps/node/server
-nu --no-config-file tools/registry/deploy.nu apps/node/data-service
-nu --no-config-file tools/registry/deploy.nu apps/go/auth
-nu --no-config-file tools/registry/deploy.nu packages/go/openresty-discovery
+nu --no-config-file tools/registry/deploy.nu apps/client
+nu --no-config-file tools/registry/deploy.nu apps/server
+nu --no-config-file tools/registry/deploy.nu apps/data-service
+nu --no-config-file tools/registry/deploy.nu apps/auth
+nu --no-config-file tools/registry/deploy.nu apps/openresty-discovery
 ```
 
 ## Service map (resolved by the discovery sidecar)

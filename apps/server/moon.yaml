@@ -1,0 +1,141 @@
+language: typescript
+layer: application
+tags:
+- node
+dependsOn:
+- primitive-server
+- types
+- microservice-config
+- microservice-utils
+- root
+fileGroups:
+  src:
+  - src/**/*.ts
+  - '!**/*.test.{ts,tsx}'
+  - '!src/test/**'
+  test-unit:
+  - src/**/*.test.ts
+  - '!src/test/**'
+  test-int:
+  - src/test/**/*.ts
+  cfg:
+  - package.json
+  - tsconfig.json
+  - tsup.config.ts
+  - vitest.config.ts
+  - oxlint.config.ts
+  - prettier.config.js
+  cfg-code:
+  - tsup.config.ts
+  - vitest.config.ts
+  - oxlint.config.ts
+  - prettier.config.js
+  cfg-lint:
+  - oxlint.config.ts
+  - /packages/microservice-config/oxlint.ts
+  assets: []
+  fixtures:
+  - src/test/**/*.csv
+  - src/test/**/*.xlsx
+  - test/**/*.{ini,pem,conf}
+  - docker-compose.test.yaml
+  - .env.test
+  - /infrastructure/**/*.{sql,ini,conf}
+  - Dockerfile
+# database startup moved from package scripts to the root compose task
+tasks:
+  lint:
+    command: pnpm exec oxlint --config oxlint.config.ts --no-error-on-unmatched-pattern @files(src) @files(test-unit)
+      @files(test-int) @files(cfg-code)
+    options:
+      mergeArgs: replace
+  lint-fix:
+    command: pnpm exec oxlint --config oxlint.config.ts --no-error-on-unmatched-pattern @files(src) @files(test-unit)
+      @files(test-int) @files(cfg-code)
+    args: --fix
+    options:
+      mergeArgs: replace
+  typecheck:
+    deps: &id004
+    - target: primitive-server:build
+      cacheStrategy: outputs
+    inputs:
+    - &id001
+      project: types
+      group: src
+    - &id002
+      project: microservice-config
+      group: src
+    - &id003
+      project: microservice-utils
+      group: src
+  test-unit:
+    command: pnpm exec vitest run --exclude 'src/test/**'
+    inputs:
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(cfg)'
+    - *id001
+    - *id002
+    - *id003
+    deps: *id004
+  test-int:
+    command: nu --no-config-file $workspaceRoot/tools/compose-test/compose-test.nu docker-compose.test.yaml pnpm
+      exec vitest run src/test
+    inputs:
+    - '@group(src)'
+    - '@group(test-int)'
+    - '@group(cfg)'
+    - '@group(fixtures)'
+    - /tools/compose-test/compose-test.nu
+    - *id001
+    - *id002
+    - *id003
+    deps: *id004
+    options:
+      envFile: .env.test
+      mutex: docker-tests
+  dev:
+    command: pnpm exec tsx watch src/index.ts
+    preset: server
+    deps:
+    - primitive-server:build
+    - root:compose-up
+    options:
+      envFile: .env
+  build:
+    command: pnpm exec tsup
+    inputs:
+    - '@group(src)'
+    - '@group(cfg)'
+    - *id001
+    - *id002
+    - *id003
+    outputs:
+    - dist
+    deps: *id004
+  start:
+    command: proto run node -- dist/index.js
+    preset: server
+    deps:
+    - server:build
+    env:
+      NODE_ENV: production
+    options:
+      envFile: .env
+  compose-up:
+    command: docker compose -f docker-compose.test.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
+      300
+    options:
+      cache: false
+      runInCI: false
+  compose-down:
+    command: docker compose -f docker-compose.test.yaml down -v --rmi local
+    options:
+      cache: false
+      runInCI: false
+  compose-logs:
+    command: docker compose -f docker-compose.test.yaml logs --tail=200
+    options:
+      cache: false
+      runInCI: false

@@ -45,7 +45,7 @@ services:
   auth:
     build:
       context: ../..
-      dockerfile: apps/go/auth/Dockerfile
+      dockerfile: apps/auth/Dockerfile
     environment:
       AUTH_PORT: '3002'
       AUTH_LOG_LEVEL: info
@@ -76,7 +76,7 @@ services:
   server:
     build:
       context: ../..
-      dockerfile: apps/node/server/Dockerfile
+      dockerfile: apps/server/Dockerfile
     environment:
       NODE_ENV: production
       SERVER_PORT: '3001'
@@ -99,7 +99,7 @@ services:
   data-service:
     build:
       context: ../..
-      dockerfile: apps/node/data-service/Dockerfile
+      dockerfile: apps/data-service/Dockerfile
     environment:
       NODE_ENV: production
       DATA_SERVICE_PORT: '3003'

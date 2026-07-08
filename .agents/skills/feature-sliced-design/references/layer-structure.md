@@ -4,9 +4,7 @@ Detailed folder structures, code examples, and naming conventions for each
 FSD layer. Use this reference when creating, reviewing, or reorganizing
 project structure.
 
----
-
-## App Layer
+## App layer
 
 App-wide initialization: providers, routing, global styles, entry point.
 Organized by segments only, no slices.
@@ -56,9 +54,7 @@ routing setup, global styles, error boundaries, analytics initialization.
 
 **Does not belong:** Feature-specific code, business logic, page-level UI.
 
----
-
-## Pages Layer
+## Pages layer
 
 Route-level composition. In v2.1, pages **own substantial logic**: they are
 not thin wrappers. In early project stages, most code lives here.
@@ -92,28 +88,28 @@ pages/
 state management, business logic, API integrations. Even code that looks
 reusable stays here if it is simpler to keep local.
 
-**Does not belong:** Code that is currently being reused across multiple
-pages with stable boundaries (extract to a lower layer when reuse is
-confirmed, not anticipated).
+**Does not belong:** Code that is already reused across multiple pages,
+has a stable focused responsibility, and must have one shared home.
+Extract when all three hold, not when reuse alone appears.
 
-### Page Layout Patterns
+### Page layout patterns
 
-A typical page composes widgets, features, and entities from lower layers,
-plus its own local UI components:
+A typical page composes features and entities from lower layers, plus its own
+local UI components:
 
 ```typescript
 // pages/product-detail/ui/ProductDetailPage.tsx
-import { Header } from '@/widgets/header';
 import { AddToCart } from '@/features/add-to-cart';
-import { Product } from '@/entities/product';
+import { ProductCard } from '@/entities/product';
+import { PageHeader } from './PageHeader'; // local to this page
 
 export const ProductDetailPage = ({ productId }) => {
   const product = useProductDetail(productId); // local hook in this page
 
   return (
     <>
-      <Header />
-      <Product.Card data={product} />
+      <PageHeader />
+      <ProductCard data={product} />
       <AddToCart productId={productId} />
       <RelatedProducts products={product.related} /> {/* local component */}
     </>
@@ -137,13 +133,29 @@ export const AboutPage = () => (
 );
 ```
 
----
+## Widgets layer (discouraged)
 
-## Widgets Layer
+Widgets are a layer for placing reusable UI blocks. They can be composed from
+multiple UI elements into a meaningful section of a screen and then used in
+upper layers such as Pages or App.
 
-Composite UI blocks with their own logic, **reused across multiple pages**.
-Add this layer only when UI blocks actually appear in 2+ pages and sharing
-provides clear value.
+> **The official layer reference discourages using the Widgets layer**, and
+> this skill follows it. The reasoning, and where each kind of UI block
+> goes instead, is in `SKILL.md`, Section 1.
+
+One edge case: multiple flows from the Features layer may need to be composed
+together, the kind of case that previously would have been placed in Widgets.
+In most cases this can be resolved by taking a different approach to
+composition. The parent (`pages` or `app`) imports the features and connects
+them, which is Strategy C in `references/cross-import-patterns.md`. Still,
+there may be edge cases that are genuinely hard to resolve. When that happens,
+document the situation in
+[feature-sliced/skills#7](https://github.com/feature-sliced/skills/issues/7).
+
+Discouraging the layer does not mean removing it entirely. It means
+recommending against actively adopting it. Projects already using widgets can
+keep using them as before, and the standard slice/segment and public API rules
+apply just as on any other layer:
 
 ```text
 widgets/
@@ -157,36 +169,94 @@ widgets/
     api/
       fetch-notifications.ts
     index.ts
-  sidebar/
-    ui/
-      Sidebar.tsx
-    model/
-      sidebar.ts
-    index.ts
 ```
 
-**Belongs in widgets:** Navigation bars, sidebars, dashboards, footers,
-complex card layouts that combine data from multiple entities/features.
+**If you still use widgets:** Navigation bars, sidebars, dashboards, and
+footers are the typical examples. Simple UI primitives belong in `shared/ui/`,
+and single-use page sections stay in the page.
 
-**Does not belong:** Simple UI primitives (→ `shared/ui/`), single-use
-page sections (→ keep in the page).
+## Where should layouts be placed?
 
----
+Layout components often need to compose data handling, state management,
+access control and user actions that are shared across multiple routes.
 
-## Features Layer
+In React Router nested child routes may share a common URL path such as
+`/users`, `/users/:id` and `/users/:id/settings`. Instead of repeating the
+same handling in each page you can use the router's nesting capabilities to
+apply a common layout and route-level logic in one place.
 
-Independent, reusable user interactions. **Create only when used in 2+ places.**
+The location of a layout should be determined based on its **scope and
+responsibility** rather than its structural complexity.
+
+- Layouts responsible for the entire application or routing structure should
+  be placed in `app`.
+- Layouts specific to a particular page or route group should be placed in
+  `pages`.
+- Layout UI that is reusable without business context can be placed in
+  `shared/ui`.
+- Layouts centered around a specific user action or user flow and reused
+  across multiple pages can be implemented in the corresponding `features`
+  slice.
+
+A layout in `shared` that directly imports from `features`, `entities` or
+`pages` violates the layer import rule. Modules in `app` and `pages` can
+import modules from lower layers to compose a screen.
+
+> A module can only import modules from layers below the layer it belongs to.
+
+Before extracting a layout into a separate module consider the following:
+
+- Is this layout actually reused across multiple routes?
+- Is it specific to a particular page or route structure?
+- Is the layout itself the reusable unit or is it only the user action used
+  within the layout?
+
+A layout used by only a small number of pages and tied to a particular screen
+structure may be simpler to define directly in the corresponding `page` or
+route configuration.
+
+1. **Configure a route layout in the App layer**
+   You can group multiple routes with a common URL path using the router's
+   nesting capabilities and assign a single layout in `app`.
+   A layout located in `app` can compose modules from `pages`, `features`,
+   `entities` and `shared` without violating the layer import rule.
+
+2. **Pass feature UI through render props or slots**
+   In React you can use the render props pattern. In Vue you can use slots.
+   In this approach the layout in `shared` provides only the common UI
+   structure while the required feature UI is passed from `app` or `pages`.
+   This allows the layout to compose the required screen without directly
+   depending on a specific feature.
+
+3. **Define it directly in a page**
+   A layout used only by a specific page can be defined directly in the
+   corresponding `page` without introducing a separate abstraction.
+   When there is little duplicated code and the layout is unlikely to change
+   frequently there is no need to extract it into a shared module.
+
+## Features layer
+
+Independent, reusable user interactions. Create a feature when an
+interaction is already reused across consumers, has a focused
+responsibility, and needs one shared implementation. A second consumer on
+its own does not require one (the extraction rule in `SKILL.md`).
 
 ```text
 features/
-  auth/
+  auth/                     ← Signing in
     ui/
       LoginForm.tsx
-      RegisterForm.tsx
     model/
-      auth.ts               ← Auth state + logic
+      auth.ts               ← Session state + logic
     api/
       login.ts
+    index.ts
+  register/                 ← Signing up, a separate use case
+    ui/
+      RegisterForm.tsx
+    model/
+      register.ts
+    api/
       register.ts
     index.ts
   add-to-cart/
@@ -209,7 +279,7 @@ features/
 higher layers:
 
 ```typescript
-// widgets/post-card/ui/PostCard.tsx
+// pages/feed/ui/PostCard.tsx  (composition lives in the page that uses it)
 import { UserAvatar } from '@/entities/user';
 import { LikeButton } from '@/features/like-post';
 import { CommentButton } from '@/features/comment-create';
@@ -227,12 +297,12 @@ export const PostCard = ({ post }) => (
 );
 ```
 
----
+## Entities layer
 
-## Entities Layer
-
-Reusable business domain models. **Create only when used in 2+ places. Starting
-without this layer is completely valid.**
+Reusable business domain models. Create an entity when domain logic or
+state is already reused across consumers, has a focused responsibility,
+and needs one authoritative home (the extraction rule in `SKILL.md`).
+**Starting without this layer is completely valid.**
 
 ```text
 // Minimal entity: model only (most common form)
@@ -242,10 +312,10 @@ entities/user/
   index.ts
 
 // Entity with UI (use with caution)
-// ⚠️ Adding UI to entities increases cross-import risk.
+// Caution: adding UI to entities increases cross-import risk.
 // Other entities may want to import this UI, leading to @x dependencies.
-// Entity UI should only be imported from higher layers (features, widgets,
-// pages), never from other entities.
+// Entity UI should only be imported from higher layers (features, pages,
+// app), never from other entities.
 entities/product/
   model/
     product.ts
@@ -254,9 +324,7 @@ entities/product/
   index.ts
 ```
 
----
-
-## Shared Layer Structure
+## Shared layer structure
 
 Infrastructure with no business logic. Organized by segments only (no slices).
 Segments may import from each other.
@@ -268,8 +336,19 @@ shared/
   api/               ← API client, route constants, CRUD helpers, base types
   auth/              ← Auth tokens, login utilities, session management
   config/            ← Environment variables, app settings
-  assets/            ← Branding assets shared across the app (use sparingly)
 ```
+
+There is no `assets/` segment here. Assets live with the code that uses
+them, and a shared presentation asset goes to `shared/ui/` with the
+component that owns it (`references/asset-handling.md`).
+
+The official API requests guide groups request functions under
+`shared/api/endpoints/` and re-exports them from `shared/api/index.ts`.
+The examples in this skill also show flat domain-named files (`client.ts`,
+`product.ts`) and per-controller folders (`example/get-example.ts`); treat
+those as variations of the same idea, not competing standards. Whatever the
+internal shape, consumers import from the segment index, or from a
+component folder's own index where Rule 4-2 allows one.
 
 ```typescript
 // shared/ui/Button/Button.tsx
@@ -284,14 +363,13 @@ export { Button } from './Button';
 export type { ButtonProps } from './Button';
 ```
 
-Shared **may** contain application-aware code (route constants, API endpoints,
-branding assets, common types). It must **never** contain business logic,
-feature-specific code, or entity-specific code.
+Shared **may** contain application-aware code: route constants, API
+endpoints, branding assets, and transport types such as `ProductDTO`.
+It must **never** hold the business rules an entity or feature owns, nor
+import from those layers.
 
 For asset placement specifically (images, icons, fonts, PDFs), see
 `references/asset-handling.md`.
-
----
 
 ## Segments
 
@@ -314,7 +392,7 @@ Segment names describe **purpose**, not the kind of code they hold. This
 is the desegmentation principle:
 
 ```text
-// ❌ BAD: grouping by technical kind (what the code is)
+// BAD: grouping by technical kind (what the code is)
 shared/
   components/         ← What kind of components?
   hooks/              ← Which feature do they serve?
@@ -323,7 +401,7 @@ shared/
   helpers/            ← Same problem
   actions/            ← Redux actions for what?
 
-// ✅ GOOD: grouping by purpose (what the code is for)
+// GOOD: grouping by purpose (what the code is for)
 shared/
   ui/                 ← For displaying UI
   api/                ← For talking to the backend
@@ -339,26 +417,30 @@ technical role.
 This rule applies everywhere: in `shared/`, in slices, and when designing
 new custom segments.
 
-## Naming Conventions
+## Naming conventions
 
 ### Domain-based file naming
 
-Within a segment, name files after the business domain, not the technical
-role:
+Within a segment, name files after what they are for, the concern or
+domain they serve, not after their technical mechanism:
 
 ```text
-// ❌ Technical-role naming: mixes domains
+// BAD: technical-role naming mixes domains
 model/types.ts          ← Which types? User? Order?
 model/utils.ts
-api/endpoints.ts
+api/endpoints.ts        ← Every domain's requests in one file
 model/selectors.ts
 
-// ✅ Domain-based naming: each file owns one domain
+// GOOD: domain-based naming, each file owns one domain
 model/user.ts           ← User types + logic + store
 model/order.ts          ← Order types + logic + store
 api/fetch-profile.ts    ← Clear what this API does
 model/todo.ts           ← Redux slice + selectors + thunks
 ```
+
+The fault in `api/endpoints.ts` is the single file, not the word. An
+`endpoints/` directory holding one file per domain is the shape the
+official API requests guide uses.
 
 ### Single-concern segments
 
@@ -381,9 +463,7 @@ export { UserAvatar } from "./ui/UserAvatar";
 export { useUser, type User } from "./model/user";
 ```
 
----
-
-## Slice Groups
+## Slice groups
 
 A **slice group** is a folder that contains related slices on the same
 layer, used purely to make the structure easier to navigate as the number
@@ -407,7 +487,7 @@ grouping criterion.
 
 - Names alone are enough for quick navigation.
 - There is no natural grouping criterion.
-- Only two or three slices would end up in the group.
+- The group would hold too few slices to make the layer easier to scan.
 
 ### Example: grouping payment-related entities
 
@@ -444,30 +524,31 @@ entities and lack a natural grouping criterion. A group like
 helpers) until it stops being a navigation aid and starts acting as the
 home for the entire cart domain, which weakens the principle that
 features are split by use case. Before grouping features, check that the
-group contains only feature slices and that two or three slices is not the
-entire content.
+group contains only feature slices and that the grouping earns its keep in
+navigation.
 
 ### Anti-patterns
 
 - **Do not put `index.ts` on the group folder.** That promotes the group
   to a slice and breaks the layer's contract.
 - **Do not put shared `utils.ts`, `constants.ts`, or `types.ts` files
-  inside the group.** A slice group has no shared code. Extract reusable
-  code to `shared/` instead. If the layer is `entities` and the shared
+  inside the group.** A slice group has no shared code. Move reusable
+  infrastructure to `shared/`. If the layer is `entities` and the shared
   logic is genuinely domain logic, consider whether the boundaries are
   too granular and the slices should be merged into one isolated entity
   (see `references/excessive-entities.md`). The `@x` notation does not
   apply to slice groups. It is a cross-import surface between entity
   slices, not a sharing mechanism for siblings within a group.
-- **Do not relax slice isolation inside the group.** If two slices in the
-  same group need to share code, extract it one layer down rather than
-  adding a `_common/` file.
+- **Do not relax slice isolation inside the group.** Grouping is
+  navigation; it creates no sharing boundary. Siblings that need to depend
+  on each other are resolved the same way as ungrouped slices, through
+  `references/cross-import-patterns.md`, not with a `_common/` file.
 
----
+## Path aliases
 
-## Path Aliases
-
-Configure path aliases so imports follow the `@/layer/slice` pattern:
+Configure path aliases so imports follow the `@/layer/slice` pattern. Add
+an entry only for a layer the project actually has; an alias for a layer
+that does not exist invites someone to fill it.
 
 ```json
 // tsconfig.json
@@ -477,14 +558,14 @@ Configure path aliases so imports follow the `@/layer/slice` pattern:
     "paths": {
       "@/app/*": ["src/app/*"],
       "@/pages/*": ["src/pages/*"],
-      "@/widgets/*": ["src/widgets/*"],
-      "@/features/*": ["src/features/*"],
-      "@/entities/*": ["src/entities/*"],
       "@/shared/*": ["src/shared/*"]
     }
   }
 }
 ```
+
+That is the three-layer project from Section 5-3. Add `@/features/*`,
+`@/entities/*`, or `@/widgets/*` when those layers appear, not before.
 
 For framework-specific alias configuration (Vite, Next.js, Nuxt, Astro),
 see `references/framework-integration.md`.

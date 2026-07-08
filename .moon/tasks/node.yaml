@@ -16,7 +16,7 @@ fileGroups:
   - /dprint.jsonc
   - /prettier.config.js
   - /.prettierignore
-  - /packages/node/microservice-config/prettier.js
+  - /packages/microservice-config/prettier.js
   cfg-lint:
   - /oxlint.config.ts
 taskOptions:

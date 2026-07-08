@@ -65,7 +65,7 @@ spec:
             periodSeconds: 10
         # Our sidecar for the restarts
         - name: discovery
-          image: ghcr.io/neoplasmes/qualification_work/packages_go_openresty-discovery:custom
+          image: ghcr.io/neoplasmes/qualification_work/apps_openresty-discovery:custom
           imagePullPolicy: Always
           env:
             # comma-separated upstream:port:service[:algo]; service names match k8s Services in this namespace

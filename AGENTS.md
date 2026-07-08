@@ -28,11 +28,12 @@ Use only camelCase for constants in .ts, .js, .tsx, .jsx files.
 
 #### Package manager
 
-pnpm instead of npm always should be used
+pnpm instead of npm always should be used; proto should be used for the ecosystem-agnostic tools;
+specifically a binary downloads through proto plugins should be preferred instead of downloads through pnpm/npm, if a tool does not used in typescript development; for example - lefthook can be downloaded through pnpm, but in this repo it MUST be downloaded through protoools; 
 
 #### monorepo managment
 
-Use Moon as the only task runner. Read `.agents/skills/moon-tasks/SKILL.md` before editing Moon configuration or package manifests. Call tools directly from Moon tasks; do not add `scripts` to `package.json`. Standalone CLI tools and runtimes belong in `.prototools`; Node libraries and development dependencies belong in pnpm. JavaScript tools run on Node LTS through `pnpm exec`.
+Use Moon as the only task runner. Apply `skills/moonrepo`, when managing moonrepo tasks, commands, settings and integration; Call tools directly from Moon tasks; do not add `scripts` to `package.json`. Standalone CLI tools and runtimes belong in `.prototools`; Node libraries and development dependencies belong in pnpm. JavaScript tools run on Node LTS through `pnpm exec`.
 
 #### Refactoring and re-exports
 
@@ -83,7 +84,7 @@ symbols from another package merely to avoid updating imports.
 
 ---
 
-### Rules in apps/node/client
+### Rules in apps/client
 
 1. Размеры файлов не должны превышать 350 строк (можно разве что чуть-чуть). Если больше - проводится декомпозиция по функциям, UI компонентам, возможно что-то выносится в переиспользуемый хук и т.д.
 2. Соблюдение принципов FSD. Настройка api - в api папочке. Модели данных и Redux - в model. Общие типы (не props и не прочие локальные) - в types, константы - в const. Везде должен быть определён index.ts файл и реэкспорт из него. Тестируемые утилиты - в lib. Смешивать слайсы НЕ НАДО. НЕ НАДО в файле .tsx писать гигантские хелперы например.
@@ -143,4 +144,4 @@ Apply SOLID pragmatically: clarity, explicitness, and simple code are more impor
 ```
 6. Пиши комментарии и описания тестов очень кратко.
 7. Не пиши дерьмовый с точки зрения производительности код. Всегда взвешивай, как улучшить производительность, следи за количеством аллокаций и так далее.
-8. В `apps/node/client` главный React-компонент слайса/модуля всегда должен лежать на уровне папки слайса/модуля, а не внутри `ui`. В `ui` кладутся вспомогательные компоненты главного компонента.
+8. В `apps/client` главный React-компонент слайса/модуля всегда должен лежать на уровне папки слайса/модуля, а не внутри `ui`. В `ui` кладутся вспомогательные компоненты главного компонента.

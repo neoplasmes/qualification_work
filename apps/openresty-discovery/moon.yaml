@@ -1,0 +1,25 @@
+language: go
+layer: application
+fileGroups:
+  src:
+  - '*.go'
+  - '!*_test.go'
+  test-int:
+  - '*_test.go'
+  cfg:
+  - go.mod
+  - go.sum
+tasks:
+  test-int:
+    command: go test -count 1 ./...
+    inputs:
+    - '@group(src)'
+    - '@group(test-int)'
+    - '@group(cfg)'
+  build:
+    command: go build -o bin/openresty-discovery .
+    inputs:
+    - '@group(src)'
+    - '@group(cfg)'
+    outputs:
+    - bin/openresty-discovery

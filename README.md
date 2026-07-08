@@ -83,11 +83,11 @@ Before either recipe, push images to ghcr and prepare credentials:
 
 ```bash
 # from the repo root
-nu --no-config-file tools/registry/deploy.nu apps/node/client
-nu --no-config-file tools/registry/deploy.nu apps/node/server
-nu --no-config-file tools/registry/deploy.nu apps/node/data-service
-nu --no-config-file tools/registry/deploy.nu apps/go/auth
-nu --no-config-file tools/registry/deploy.nu packages/go/openresty-discovery
+nu --no-config-file tools/registry/deploy.nu apps/client
+nu --no-config-file tools/registry/deploy.nu apps/server
+nu --no-config-file tools/registry/deploy.nu apps/data-service
+nu --no-config-file tools/registry/deploy.nu apps/auth
+nu --no-config-file tools/registry/deploy.nu apps/openresty-discovery
 
 # build k8s/ghcr/secret.yaml as shown above
 # build k8s/app/secret.yaml from k8s/app/secret.example.yaml
@@ -386,21 +386,21 @@ Service-side architecture is hexagonal: each Node service has `core/` (domain + 
 
 # Tech stack
 
-**Frontend** (`apps/node/client`)
+**Frontend** (`apps/client`)
 - React 19 + React Router 7 with custom Node SSR entrypoint (Vite SSR build, hydration via `entry.client.tsx`)
 - Redux Toolkit + RTK Query for data fetching and tag-based cache invalidation
 - Visx for charts (line/bar/heatmap/pie); `@glideapps/glide-data-grid` for the dataset grid
 - SCSS modules + Stylelint; lucide-react icons; framer/motion for transitions
 - FSD architecture enforced by a local oxlint plugin
 
-**Backend** (`apps/node/server`, `apps/node/data-service`)
+**Backend** (`apps/server`, `apps/data-service`)
 - TypeScript 6 on Node 24 LTS, ESM only
 - `primitive-server` (in-house, zero-dep HTTP framework) instead of Fastify/Express
 - Postgres via `pg` (catalog-pinned) over PgBouncer; Redis via `node-redis`
 - `csv-parse` + `exceljs` for ingestion; streaming merges with on-disk tmp storage
 - `zod` validation; `jose` for internal service-to-service JWTs
 
-**Auth service** (`apps/go/auth`)
+**Auth service** (`apps/auth`)
 - Go 1.27 + gin; `pgx/v5` for Postgres, `go-redis/v9` for Redis, argon2id passwords
 - RS256 JWT issuance; key loaded from a k8s secret
 

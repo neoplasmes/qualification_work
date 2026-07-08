@@ -13,6 +13,102 @@
       "skillPath": "skills/engineering/codebase-design/SKILL.md",
       "computedHash": "b2888e4f4e8c0af3bfd557575a64b905c44e6248c3101d72077816882b3a92b9"
     },
+    "ddd-api-designer": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-api-designer/SKILL.md",
+      "computedHash": "8c30bf2422b4dc0cb0b6c23ebda4453b18d45c7ff2edfffdadaa5b9a169f743e"
+    },
+    "ddd-architecture-awesome": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-awesome/SKILL.md",
+      "computedHash": "2aff76daf2522ec98b1ecef8493232f34209d0ef6798fa40a27efe0bc2d4a222"
+    },
+    "ddd-architecture-clean": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-clean/SKILL.md",
+      "computedHash": "cc9e909ac5e04f2b17252ee779a5d17a0212e6a72cf4c7f66109b26f12d7ccf7"
+    },
+    "ddd-architecture-doc": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-doc/SKILL.md",
+      "computedHash": "1f5ca11429fce906ec200a926d675f97ac0d771264187edc39748c8277765c0d"
+    },
+    "ddd-architecture-evaluator": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-evaluator/SKILL.md",
+      "computedHash": "60c2c3bfa632186a95a57665f5466d4e7ef8923050ff31cb880ddd27f10cdc02"
+    },
+    "ddd-architecture-hexagonal": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-hexagonal/SKILL.md",
+      "computedHash": "c4050d1e8ae4c32746a613f9ca1f0210f8157c629b30faa7f8c7b82a66eb2097"
+    },
+    "ddd-architecture-layered": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-layered/SKILL.md",
+      "computedHash": "730cc1858e3e2cb7edfd30ec7d6a5b6beeb2629827c4e07b5caa20f41867ca9e"
+    },
+    "ddd-architecture-selector": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-architecture-selector/SKILL.md",
+      "computedHash": "75b3ea81da398b08366d94ecb13e886da84738b5fb682912f9c54c631cd70d74"
+    },
+    "ddd-code-reviewer": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-code-reviewer/SKILL.md",
+      "computedHash": "8c251948afd7869461e260fa535c532d77338ef3f0a8f9a76596f14fcfc12260"
+    },
+    "ddd-cqrs-architecture": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-cqrs-architecture/SKILL.md",
+      "computedHash": "2ab676e57c87e824fcd3b9ef3bd345bd1a6efaefe3cbe1204ce6bba525a1bedf"
+    },
+    "ddd-devops-integration": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-devops-integration/SKILL.md",
+      "computedHash": "c891cc77c9b6aa0a6029d820d3397318e525aef1b4bbad300c59e2659c0269ae"
+    },
+    "ddd-domain-designer": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-domain-designer/SKILL.md",
+      "computedHash": "5deb5b7d4a5ff68939623bae7a6416f712f2f40745b29f7220841b9372a90cd2"
+    },
+    "ddd-event-storming": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-event-storming/SKILL.md",
+      "computedHash": "cbc1f30acdd53dc8f231ee62d09388a80186ce9e6c8787a046cc12ec4a1d30b8"
+    },
+    "ddd-testing-strategist": {
+      "source": "full-stack-skills/ddd-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ddd-testing-strategist/SKILL.md",
+      "computedHash": "db0464d90baa884114d896d2f5ea21345a1faaea913e21fcb0499583216535b0"
+    },
+    "design": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/design/SKILL.md",
+      "computedHash": "5323cb84852303e2cbd76c909e3165a3b63f4e4f81a85ab0a549481fc3d5f86f"
+    },
+    "design-system": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/design-system/SKILL.md",
+      "computedHash": "c50a1a77394e988b2593ed97f95ae28b5167eb8a826385b5996d67e398d15b6a"
+    },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -23,13 +119,25 @@
       "source": "feature-sliced/skills",
       "sourceType": "github",
       "skillPath": "feature-sliced-design/SKILL.md",
-      "computedHash": "c57a32d524addae35b41b07bbfdd35eea3d85b3d0bd8f4779032eb31b62e5ce9"
+      "computedHash": "ee5a0a74e2c5715c9b4573fbc2c64a72db5c6bd51415ad0734dab47ced77edcd"
     },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
+    "moonrepo": {
+      "source": "neoplasmes/moonrepo",
+      "sourceType": "github",
+      "skillPath": "skills/moonrepo/SKILL.md",
+      "computedHash": "d01424617adadfb5cd91f106d2214acc5072cfda3a27ca37f8cb4042befb8ae9"
+    },
+    "principal-software-architect": {
+      "source": "diogoX451/principal-software-architect",
+      "sourceType": "github",
+      "skillPath": "skills/principal-software-architect/SKILL.md",
+      "computedHash": "1173087089634ffcc81fb1471745a4b3672a7377ab266a861426f5266d6ed4b9"
     },
     "receiving-code-review": {
       "source": "obra/superpowers",
@@ -55,6 +163,12 @@
       "skillPath": "skills/test-driven-development/SKILL.md",
       "computedHash": "3cfe4ebb6fa7288f668d87880d279c8e48f7a92b63415e296857060f5ce22e05"
     },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "27b1e8c953e26f962e3314281601959b04787edf3fd7fccadce176ff844c688d"
+    },
     "using-superpowers": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -65,7 +179,7 @@
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/composition-patterns/SKILL.md",
-      "computedHash": "f98931159fa9c7fed043bcd18a891a46dcf89ababa38df13a4c5b7b30dc0ce07"
+      "computedHash": "575757e3e25761c8c562d6e395d29f0b76c98b1273c0bd72d88e6ab1bc9c7d42"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
@@ -77,7 +191,7 @@
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/web-design-guidelines/SKILL.md",
-      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
+      "computedHash": "f3bc47f890f42a44db1007ab390709ec368e4b8c089baee6b0007182236ac474"
     },
     "webapp-testing": {
       "source": "anthropics/skills",

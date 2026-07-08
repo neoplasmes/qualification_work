@@ -25,7 +25,7 @@ mdnDocsHeaders.html
 package-lock.json
 test-results
 playwright-report
-apps/node/client/tests
+apps/client/tests
 
 # moon
 .moon/cache
@@ -34,3 +34,7 @@ apps/node/client/tests
 diplom-notes
 generation
 docs
+
+migration-plan
+
+.agents/skills/**/__pycache__/

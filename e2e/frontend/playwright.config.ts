@@ -2,7 +2,7 @@ import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'https://localhost:8443';
-const clientDir = path.resolve(import.meta.dirname, '../../apps/node/client');
+const clientDir = path.resolve(import.meta.dirname, '../../apps/client');
 
 export default defineConfig({
     testDir: './scenarios',

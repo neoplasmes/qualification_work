@@ -17,7 +17,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: data-service
-          image: "ghcr.io/neoplasmes/qualification_work/apps_node_data-service:custom"
+          image: "ghcr.io/neoplasmes/qualification_work/apps_data-service:custom"
           imagePullPolicy: Always
           ports:
             - containerPort: 3003

@@ -1,5 +1,11 @@
 {
         "file_types": {
+                "Nginx": [
+                        "*.conf"
+                ],
+                "YAML": [
+                        "*.yaml.gotmpl"
+                ],
                 "TOML": [
                         ".prototools",
                         "*.prototools"
@@ -80,6 +86,13 @@
                                 "..."
                         ]
                 },
+                "Go": {
+                        "language_servers": [
+                                "gopls",
+                                "golangci-lint",
+                                "..."
+                        ]
+                },
                 "TOML": {
                         "formatter": {
                                 "external": {
@@ -89,6 +102,72 @@
                                                 "--stdin",
                                                 "toml"
                                         ]
+                                }
+                        }
+                }
+        },
+        "auto_install_extensions": {
+                "nginx": true,
+                "golangci-lint": true
+        },
+        "lsp": {
+                "gopls": {
+                        "initialization_options": {
+                                "buildFlags": [
+                                        "-tags=integration"
+                                ]
+                        }
+                },
+                "golangci-lint": {
+                        "initialization_options": {
+                                "command": [
+                                        "golangci-lint",
+                                        "run",
+                                        "--fast",
+                                        "--config",
+                                        ".golangci.yaml",
+                                        "--output.json.path",
+                                        "stdout",
+                                        "--show-stats=false",
+                                        "--output.text.path="
+                                ]
+                        }
+                },
+                "yaml-language-server": {
+                        "settings": {
+                                "yaml": {
+                                        "schemas": {
+                                                "./.moon/cache/schemas/workspace.json": [
+                                                        ".moon/workspace.yaml",
+                                                        ".moon/workspace.yml"
+                                                ],
+                                                "./.moon/cache/schemas/toolchains.json": [
+                                                        ".moon/toolchains.yaml",
+                                                        ".moon/toolchains.yml"
+                                                ],
+                                                "./.moon/cache/schemas/tasks.json": [
+                                                        ".moon/tasks.yaml",
+                                                        ".moon/tasks.yml",
+                                                        ".moon/tasks/**/*.yaml",
+                                                        ".moon/tasks/**/*.yml"
+                                                ],
+                                                "./.moon/cache/schemas/project.json": [
+                                                        "**/moon.yaml",
+                                                        "**/moon.yml"
+                                                ],
+                                                "./.moon/cache/schemas/extensions.json": [
+                                                        ".moon/extensions.yaml",
+                                                        ".moon/extensions.yml"
+                                                ],
+                                                "./.moon/cache/schemas/template.json": [
+                                                        "**/template.yaml",
+                                                        "**/template.yml"
+                                                ],
+                                                "./.moon/cache/schemas/toolchain.json": [
+                                                        ".moon/toolchain.yaml",
+                                                        ".moon/toolchain.yml"
+                                                ]
+                                        }
                                 }
                         }
                 }

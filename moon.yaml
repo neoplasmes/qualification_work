@@ -41,6 +41,12 @@ tasks:
     options:
       cache: false
       runInCI: false
+  install-dependencies:
+    command: pnpm install --frozen-lockfile
+    preset: utility
+    options:
+      cache: false
+      runInCI: false
   lock:
     command: pnpm install --lockfile-only
     options:

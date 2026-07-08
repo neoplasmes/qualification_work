@@ -15,9 +15,7 @@ fileGroups:
   - playwright.config.ts
   stack:
   - /e2e/docker-compose/**/*.{yaml,conf,ini,pem,sql}
-  - /apps/node/*/Dockerfile
-  - /apps/go/auth/Dockerfile
-  - /packages/go/openresty-discovery/Dockerfile
+  - /apps/*/Dockerfile
   - /infrastructure/**/*.{sql,ini,conf}
 tasks:
   browser:

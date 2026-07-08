@@ -17,7 +17,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: auth
-          image: "ghcr.io/neoplasmes/qualification_work/apps_go_auth:custom"
+          image: "ghcr.io/neoplasmes/qualification_work/apps_auth:custom"
           imagePullPolicy: Always
           ports:
             - containerPort: 3002

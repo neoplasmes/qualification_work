@@ -138,3 +138,11 @@ tasks:
     options:
       cache: false
       runInCI: false
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - src/**/*
+      - package.json
+      - tsconfig.json
+      - tsup.config.ts

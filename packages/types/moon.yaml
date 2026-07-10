@@ -10,3 +10,10 @@ fileGroups:
   - package.json
   - tsconfig.json
   cfg-code: []
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - "**/*.ts"
+      - package.json
+      - tsconfig.json

@@ -121,3 +121,10 @@ tasks:
   cluster-delete:
     command: k3d cluster delete local-development
     preset: utility
+
+# server and data-service depend on the root project; without this the whole
+# repository would be copied into their images
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - tsconfig.json

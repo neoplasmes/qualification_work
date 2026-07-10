@@ -38,3 +38,10 @@ tasks:
     - '@group(cfg)'
     options:
       mutex: docker-tests
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - src/**/*
+      - package.json
+      - tsconfig.json

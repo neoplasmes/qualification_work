@@ -12,3 +12,9 @@ fileGroups:
   cfg:
   - package.json
   cfg-code: []
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - src/**/*
+      - package.json

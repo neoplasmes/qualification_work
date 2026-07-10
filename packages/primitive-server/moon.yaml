@@ -39,3 +39,11 @@ tasks:
   loadtest:
     command: pnpm exec tsx src/Application.loadtest.ts
     preset: utility
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - src/**/*
+      - package.json
+      - tsconfig.json
+      - tsup.config.ts

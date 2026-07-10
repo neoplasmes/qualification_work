@@ -174,3 +174,15 @@ tasks:
     options:
       cache: false
       runInCI: false
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - src/**/*
+      - server/**/*
+      - vite/**/*
+      - index.html
+      - package.json
+      - tsconfig.json
+      - tsup.config.ts
+      - vite.config.ts

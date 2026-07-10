@@ -42,3 +42,18 @@ hasher:
   ignoreMissingPatterns:
     - "**/.env"
     - "**/.env.*"
+
+# Docker images: moon docker scaffold copies only moon configs by default (no toolchains
+# are configured), so every file pnpm and the build tasks need before sources is listed here.
+docker:
+  scaffold:
+    configsPhaseGlobs:
+      - .prototools
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - tsconfig.json
+      - apps/*/package.json
+      - packages/*/package.json
+      # root script used by client:build-assets; client does not depend on the root project
+      - tools/build-client/*.nu

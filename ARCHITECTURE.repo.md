@@ -281,6 +281,24 @@ Other tool configuration belongs in `tools/` or `env/`.
 - Tooling that must not affect application dependencies may keep its own
   workspace root and lockfile in its `tools/` project, stated in its `AGENTS.md`.
 
+## Containers: Docker
+
+- Every application has its own `Dockerfile` and image; packages, tools, and tests
+  have none.
+- The build context is the repository root; the `image` task names the Dockerfile.
+- Dockerfiles are multi-stage, cache dependency downloads, copy only needed
+  manifests, lockfile, and members, and ship only runtime artifacts.
+- Base images are pinned to versions matching `.prototools`.
+- Processes run unprivileged; every image has a health endpoint or command.
+- The root `.dockerignore` excludes secrets, local state, caches, dependencies,
+  and build output.
+- Images are tagged by commit and deployed by digest. The tested image is promoted
+  between environments, never rebuilt.
+- Runtime configuration comes from environment variables and mounted files, never
+  baked in. Build-time settings that bind an image to one environment are
+  documented.
+- The local stack lives in `env/local/compose.yaml`, started by a moon task.
+
 ## Agents
 
 - The root `AGENTS.md` is every agent's entry point: communication and working

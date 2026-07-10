@@ -1,21 +1,31 @@
+# Docker build context. Images are assembled by `moon docker scaffold`, which reads
+# the moon configs of every project, so moon.yaml files must stay in the context.
+
 .git
 .github
 .moon/cache
 .moon/docker
+
+# editor, agent and planning files
+.agents
+.claude
+.zed
+.vscode
+migration-plan
 
 node_modules
 **/node_modules
 dist
 **/dist
 deploy
+**/bin
 
 .env
 .env.*
 **/.env
 **/.env.*
 
-k8s/**/secret.yml
-k8s/**/secret.yaml
+k8s
 
 *-logs
 coverage
@@ -23,7 +33,6 @@ test-results
 playwright-report
 mdnDocsHeaders.html
 
-moon.yaml
 lefthook.yaml
 oxlint.config.ts
 vitest.config.ts

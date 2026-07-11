@@ -158,6 +158,21 @@ the `env` project. Aggregation uses `moon run :<task>`, not hand-listed projects
 - **Frontend tool tasks** run from the workspace root, pass their project
   directory explicitly, declare `repo` as a dependency, and run JavaScript tools as
   `bun --bun <tool>`.
+- **CSS.** Plain CSS Modules and PostCSS Preset Env, cascade order
+  `reset, tokens, primitives, typography, components`. No Tailwind or Sass; CSS
+  Modules `composes` is prohibited. Typography classes from the global
+  `typography.css` are attached in JSX. `packages/design-system/src/theme/tokens.css`
+  is the hand-maintained token source. The root `postcss.config.js` is shared by
+  Vite and Storybook; it runs `postcss-preset-env` against the root Browserslist
+  and prepends the layer order from `theme.css` to every stylesheet, so CSS loaded
+  before the theme keeps the cascade. Lightning CSS minifies. Feature policy:
+  `docs/adr/minor/adr-minor-postcss-preset-env.md`.
+- **CSS linting.** Stylelint runs on Bun with the root `stylelint.config.js` and
+  the root-owned `stylelint-use-nesting` and `stylelint-order` plugins; there is no
+  project-specific plugin. Token rules use regexps built at config load by
+  `tools/exctract-tokens-to-stylelint`, which reads `tokens.css` and writes no
+  files. Frontend CSS checks depend on the design-system CSS check, so token
+  changes invalidate them.
 
 ## HTTP API tests
 

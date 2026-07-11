@@ -1,0 +1,12 @@
+@layer components {
+    .iconButton {
+        width: 44px;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .danger {
+        color: var(--red-ink);
+        border-color: var(--red-ink);
+    }
+}

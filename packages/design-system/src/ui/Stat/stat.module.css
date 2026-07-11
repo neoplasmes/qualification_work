@@ -1,0 +1,6 @@
+@layer components {
+    .stat {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+}

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Журнал операций</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bt/tokens.css">
+<link rel="stylesheet" href="ds/bt/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&amp;family=Golos+Text:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Old+Standard+TT:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+</style>
+</helmet>
+<div class="bt" style="min-height: 100vh; background: var(--canvas)">
+
+<nav class="bt-nav" aria-label="Разделы">
+<a class="bt-nav__brand" href="Start.dc.html">BI Tool</a>
+<div class="bt-nav__links">
+<sc-for list="{{nav}}" as="item" hint-placeholder-count="5"><a class="bt-link bt-link--block" href="{{item.href}}" aria-current="{{item.cur}}">{{item.label}}</a></sc-for>
+</div>
+<div class="bt-nav__side">
+<button type="button" class="bt-link bt-link--block bt-link--quiet">egor's organization</button>
+<button type="button" class="bt-link bt-link--block bt-link--quiet">Егор</button>
+</div>
+</nav>
+
+<div style="display: flex; flex-direction: column; gap: 20px; padding: 8px 24px 48px">
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0 32px; min-height: 52px; border-bottom: 1px solid var(--ink)">
+<h1 class="bt-serif" style="margin: 0; padding-bottom: 6px; font-size: 36px; line-height: 1.1">Журнал</h1>
+<p class="bt-lead" style="padding-bottom: 6px; text-align: right">Всё, что меняло данные: кто, когда и что именно. Любую запись можно <em>отменить</em>.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div class="bt-choice" role="group" aria-label="Тип записей">
+<button type="button" aria-pressed="true">Все</button><button type="button" aria-pressed="false">Действия</button><button type="button" aria-pressed="false">Правки вручную</button><button type="button" aria-pressed="false">Загрузки файлов</button>
+</div>
+<button type="button" class="bt-token">все сотрудники</button>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px 32px">
+
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div class="bt-label">27 мая 2026</div>
+<div style="overflow-x: auto">
+<table class="bt-table" style="min-width: 560px">
+<thead><tr><th class="bt-l">Время</th><th class="bt-l">Кто</th><th class="bt-l">Что сделано</th><th>Состояние</th></tr></thead>
+<tbody>
+<sc-for list="{{entries}}" as="e" hint-placeholder-count="7">
+<tr aria-selected="{{e.sel}}">
+<td class="bt-l">{{e.time}}</td>
+<td class="bt-l">{{e.who}}</td>
+<td class="bt-l" style="font-family: var(--font-sans); font-size: 16px"><button type="button" class="bt-link" style="text-align: left">{{e.title}}</button><div class="bt-hint" style="color: var(--ink-3)">{{e.sub}}</div></td>
+<td>
+<sc-if value="{{e.ok}}" hint-placeholder-val="{{true}}"><span class="bt-stamp">Выполнено</span></sc-if>
+<sc-if value="{{e.off}}" hint-placeholder-val="{{false}}"><span class="bt-stamp bt-stamp--void">Отменено</span></sc-if>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<button type="button" class="bt-link bt-link--block bt-link--quiet" style="align-self: flex-start; margin-top: 8px">Показать 26 мая</button>
+</main>
+
+<aside class="bt-sheet bt-sheet--raised" style="flex: 1 1 420px; min-width: 0">
+<div class="bt-sheet__head"><h2 class="bt-sheet__title">Запустить промо-день кофейни</h2><span class="bt-stamp">Выполнено</span></div>
+<p class="bt-hint" style="margin: 0 0 20px">Егор, 27 мая 2026 в 09:57</p>
+
+<div class="bt-label">С какими значениями запустили</div>
+<dl style="margin: 8px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 12px 20px">
+<sc-for list="{{values}}" as="v" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column"><dt class="bt-hint">{{v.k}}</dt><dd class="bt-mono" style="margin: 0">{{v.v}}</dd></div>
+</sc-for>
+</dl>
+
+<hr class="bt-rule" style="margin: 20px 0">
+
+<div class="bt-label">Что изменилось</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 0">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px"><span>Таблица «Реклама и заявки»</span><span class="bt-hint">добавлена 1 строка</span></div>
+<span class="bt-mark bt-mono" style="align-self: flex-start; font-size: 14px">27.05.2026, Два капучино, 4 500 ₽, 38 заявок</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px dashed var(--rule-dash)">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px"><span>Таблица «Выручка»</span><span class="bt-hint">изменена 1 строка</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px">
+<span class="bt-hint bt-mono">выручка за 27.05.2026</span>
+<span class="bt-diff"><del>18 300 ₽</del><span aria-label="стало">→</span><ins>30 700 ₽</ins></span>
+</div>
+</div>
+
+<hr class="bt-rule" style="margin: 12px 0 20px">
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<button type="button" class="bt-btn bt-btn--lg bt-btn--wide">Отменить эту операцию</button>
+<span class="bt-hint">Вернём обе таблицы к значениям до 09:57. Более поздние записи останутся как есть. Отмена тоже попадёт в журнал.</span>
+<button type="button" class="bt-btn bt-btn--ghost bt-btn--wide">Повторить с этими значениями</button>
+</div>
+</aside>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  nav(active) {
+    const items = [['Данные', 'Datasets.dc.html'], ['Графики', 'Charts.dc.html'], ['Дашборды', 'Dashboard.dc.html'], ['Действия', 'Main.dc.html'], ['Журнал', 'Journal.dc.html']];
+    return items.map((i) => ({ label: i[0], href: i[1], cur: i[0] === active ? 'page' : undefined }));
+  }
+  renderVals() {
+    const raw = [
+      ['14:40', 'Егор', 'Массово обновить статус ремонта', 'Действие, изменена 1 строка', 0],
+      ['13:51', 'Анна', 'Массово обновить статус ремонта', 'Действие, изменена 1 строка', 0],
+      ['13:08', 'Анна', 'Массово обновить статус ремонта', 'Действие, изменена 1 строка', 0],
+      ['11:20', 'Егор', 'Правка в таблице «Закупки данные»', 'Вручную, изменена 1 ячейка', 0],
+      ['09:57', 'Егор', 'Запустить промо-день кофейни', 'Действие, изменены 2 таблицы', 1],
+      ['09:54', 'Анна', 'Массово обновить статус ремонта', 'Действие, отменила Анна в 09:56', 2],
+      ['08:54', 'Егор', 'Загружен файл в «Реклама и заявки»', 'Загрузка файла, новая таблица', 0]
+    ];
+    return {
+      nav: this.nav('Журнал'),
+      entries: raw.map((r) => ({ time: r[0], who: r[1], title: r[2], sub: r[3], sel: r[4] === 1, off: r[4] === 2, ok: r[4] !== 2 })),
+      values: [
+        { k: 'Дата промо', v: '27.05.2026' },
+        { k: 'Кампания', v: 'Два капучино' },
+        { k: 'Расход', v: '4 500 ₽' },
+        { k: 'Заявки', v: '38' },
+        { k: 'Покупки', v: '31' },
+        { k: 'Выручка', v: '12 400 ₽' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

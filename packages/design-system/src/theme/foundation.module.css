@@ -1,0 +1,15 @@
+@layer components {
+    .paletteItem { width: 120px; }
+
+    .swatch {
+        height: 64px;
+        border: var(--border-hair) solid var(--rule);
+    }
+
+    .spaceLabel { width: 40px; }
+
+    .spaceBar {
+        height: 12px;
+        background: var(--marker);
+    }
+}

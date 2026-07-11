@@ -1,0 +1,10 @@
+@layer typography {
+    :where([data-theme='paper']) {
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: var(--font-size-body);
+        font-weight: var(--font-weight-body);
+        line-height: var(--line-height-body);
+        letter-spacing: var(--letter-spacing-body);
+    }
+}

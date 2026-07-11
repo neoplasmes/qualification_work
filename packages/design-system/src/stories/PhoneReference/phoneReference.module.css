@@ -1,0 +1,60 @@
+@layer components {
+    .phone {
+        width: 100%;
+        max-width: 390px;
+        min-height: 844px;
+        background: var(--paper);
+    }
+
+    .header {
+        padding-top: var(--space-48);
+        padding-inline: var(--space-20);
+        padding-bottom: var(--space-16);
+        border-bottom: var(--border-hair) solid var(--ink);
+    }
+
+    .back {
+        align-self: flex-start;
+    }
+
+    .body {
+        flex: 1 1 auto;
+        padding: var(--space-20);
+    }
+
+    .preview {
+        padding-block: var(--space-16);
+        padding-inline: var(--space-20);
+    }
+
+    .previewLabel {
+        padding-bottom: var(--space-8);
+    }
+
+    .previewRow {
+        padding-block: var(--space-8);
+        border-top: var(--border-hair) dashed var(--rule-dash);
+    }
+
+    .lastRow {
+        padding-top: var(--space-8);
+        border-top: var(--border-hair) dashed var(--rule-dash);
+    }
+
+
+    .marker {
+        font-family: var(--font-mono);
+        font-size: var(--font-size-typed);
+        font-weight: var(--font-weight-typed);
+        line-height: var(--line-height-typed);
+        letter-spacing: normal;
+    }
+
+    .footer {
+        padding-top: var(--space-16);
+        padding-inline: var(--space-20);
+        padding-bottom: var(--space-32);
+        border-top: var(--border-hair) solid var(--ink);
+    }
+
+}

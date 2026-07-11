@@ -1,0 +1,36 @@
+@layer components {
+    .sentence {
+        max-width: 100%;
+    }
+
+    .positioner {
+        z-index: 2;
+    }
+
+    .popup {
+        max-width: calc(100vw - var(--space-40));
+        padding: var(--space-8);
+        border: var(--border-hair) solid var(--ink);
+        border-radius: var(--radius-none);
+        background: var(--paper-raised);
+        color: var(--ink);
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding-inline: var(--space-12);
+        overflow-wrap: anywhere;
+        cursor: pointer;
+
+        &[data-checked] {
+            text-decoration: underline;
+            text-underline-offset: var(--space-4);
+        }
+
+        &[data-highlighted] {
+            background: var(--marker);
+        }
+    }
+}

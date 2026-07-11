@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>График - линия</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bt/tokens.css">
+<link rel="stylesheet" href="ds/bt/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&amp;family=Golos+Text:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Old+Standard+TT:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+</style>
+</helmet>
+<div class="bt" style="min-height: 100vh; background: var(--canvas)">
+
+<nav class="bt-nav" aria-label="Разделы">
+<a class="bt-nav__brand" href="Start.dc.html">BI Tool</a>
+<div class="bt-nav__links">
+<sc-for list="{{nav}}" as="item" hint-placeholder-count="5"><a class="bt-link bt-link--block" href="{{item.href}}" aria-current="{{item.cur}}">{{item.label}}</a></sc-for>
+</div>
+<div class="bt-nav__side">
+<button type="button" class="bt-link bt-link--block bt-link--quiet">egor's organization</button>
+<button type="button" class="bt-link bt-link--block bt-link--quiet">Егор</button>
+</div>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px 48px; padding: 8px 24px 48px">
+
+<aside style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 12px">
+<div class="bt-label" style="display: flex; align-items: flex-end; height: 48px; padding-bottom: 8px; border-bottom: 1px solid var(--ink)">Графики</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{charts}}" as="c" hint-placeholder-count="7">
+<a href="{{c.href}}" aria-current="{{c.cur}}" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-bottom: 1px dashed var(--rule-dash); text-decoration: none; background: {{c.bg}}; color: {{c.fg}}">
+<span style="text-underline-offset: 4px; text-decoration: {{c.deco}}">{{c.name}}</span>
+<span style="font-size: 14px; line-height: 1.5; color: {{c.subFg}}">{{c.sub}}</span>
+</a>
+</sc-for>
+</div>
+<button type="button" class="bt-btn bt-btn--ghost" style="align-self: flex-start; margin-top: 8px">Новый график</button>
+</aside>
+
+<main style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 32px; min-height: 47px; padding-bottom: 2px; border-bottom: 1px solid var(--ink)">
+<h1 class="bt-serif" style="margin: 0; font-size: 28px; line-height: 1.1">График</h1>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px">
+<button type="button" class="bt-link bt-link--block">Скачать картинкой</button>
+<a class="bt-btn" href="Dashboard.dc.html">Добавить на дашборд</a>
+</div>
+</div>
+
+<section class="bt-sheet">
+<div class="bt-label" style="padding-bottom: 8px">Что показывает график</div>
+<div class="bt-sentence">
+<sc-for list="{{sentence}}" as="p" hint-placeholder-count="10">
+<sc-if value="{{p.isText}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if>
+<sc-if value="{{p.isToken}}" hint-placeholder-val="{{false}}"><button type="button" class="bt-token">{{p.t}}</button></sc-if>
+</sc-for>
+<button type="button" class="bt-token bt-token--add">+ условие</button>
+</div>
+
+<hr class="bt-rule" style="margin: 24px 0">
+
+<div class="bt-label" style="padding-bottom: 4px">Тыс. ₽, первый квартал 2026</div>
+<svg viewBox="0 0 800 300" role="img" aria-label="Линейный график: продажи магазина и сайта за январь, февраль и март 2026" style="display: block; width: 100%; height: auto; max-height: 380px">
+<path d="M60 40H780M60 84H780M60 128H780M60 172H780M60 216H780" fill="none" stroke-dasharray="3 5" style="stroke: var(--rule-dash)"></path>
+<path d="M60 260H780" fill="none" style="stroke: var(--ink)"></path>
+<text x="48" y="44" text-anchor="end" style="font: 11px var(--font-mono); fill: var(--ink-2)">50</text>
+<text x="48" y="88" text-anchor="end" style="font: 11px var(--font-mono); fill: var(--ink-2)">40</text>
+<text x="48" y="132" text-anchor="end" style="font: 11px var(--font-mono); fill: var(--ink-2)">30</text>
+<text x="48" y="176" text-anchor="end" style="font: 11px var(--font-mono); fill: var(--ink-2)">20</text>
+<text x="48" y="220" text-anchor="end" style="font: 11px var(--font-mono); fill: var(--ink-2)">10</text>
+<text x="48" y="264" text-anchor="end" style="font: 11px var(--font-mono); fill: var(--ink-2)">0</text>
+<path d="M100 75.2L400 163.2L700 31.2" fill="none" stroke-width="2" style="stroke: var(--ink)"></path>
+<path d="M100 110.4L400 57.6L700 114.8" fill="none" stroke-width="2" stroke-dasharray="8 5" style="stroke: var(--accent-orange)"></path>
+<rect x="95" y="70.2" width="10" height="10" style="fill: var(--ink)"></rect><rect x="395" y="158.2" width="10" height="10" style="fill: var(--ink)"></rect><rect x="695" y="26.2" width="10" height="10" style="fill: var(--ink)"></rect>
+<circle cx="100" cy="110.4" r="5.5" style="fill: var(--accent-orange)"></circle><circle cx="400" cy="57.6" r="5.5" style="fill: var(--accent-orange)"></circle><circle cx="700" cy="114.8" r="5.5" style="fill: var(--accent-orange)"></circle>
+<text x="100" y="60" text-anchor="middle" style="font: 12px var(--font-mono); fill: var(--ink)">42</text>
+<text x="400" y="186" text-anchor="middle" style="font: 12px var(--font-mono); fill: var(--ink)">22</text>
+<text x="700" y="18" text-anchor="middle" style="font: 12px var(--font-mono); fill: var(--ink)">52</text>
+<text x="100" y="132" text-anchor="middle" style="font: 12px var(--font-mono); fill: var(--ink)">34</text>
+<text x="400" y="44" text-anchor="middle" style="font: 12px var(--font-mono); fill: var(--ink)">46</text>
+<text x="700" y="136" text-anchor="middle" style="font: 12px var(--font-mono); fill: var(--ink)">33</text>
+<text x="716" y="35" style="font: 13px var(--font-sans); fill: var(--ink)">Магазин</text>
+<text x="716" y="119" style="font: 13px var(--font-sans); fill: var(--ink)">Сайт</text>
+<text x="100" y="282" text-anchor="middle" style="font: 11px var(--font-mono); fill: var(--ink-2)">01.2026</text>
+<text x="400" y="282" text-anchor="middle" style="font: 11px var(--font-mono); fill: var(--ink-2)">02.2026</text>
+<text x="700" y="282" text-anchor="middle" style="font: 11px var(--font-mono); fill: var(--ink-2)">03.2026</text>
+</svg>
+
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 32px; padding-top: 12px">
+<span>В марте магазин принёс <span class="bt-mono">52 тыс. ₽</span>, сайт <span class="bt-mono">33 тыс. ₽</span>. В феврале было наоборот.</span>
+<span class="bt-hint">Сплошная линия и квадраты: магазин. Пунктир и круги: сайт.</span>
+</div>
+
+<hr class="bt-rule" style="margin: 20px 0 16px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px">
+<span class="bt-label" id="kind">Показать по-другому</span>
+<div class="bt-choice" role="group" aria-labelledby="kind">
+<sc-for list="{{kinds}}" as="k" hint-placeholder-count="6"><button type="button" aria-pressed="{{k.on}}">{{k.label}}</button></sc-for>
+</div>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const CUR = 0;
+    const KIND = 'Линия';
+    const text = (t) => ({ t: t, isText: true, isToken: false });
+    const token = (t) => ({ t: t, isText: false, isToken: true });
+    const nav = [['Данные', 'Datasets.dc.html'], ['Графики', 'Charts.dc.html'], ['Дашборды', 'Dashboard.dc.html'], ['Действия', 'Main.dc.html'], ['Журнал', 'Journal.dc.html']]
+      .map((i) => ({ label: i[0], href: i[1], cur: i[0] === 'Графики' ? 'page' : undefined }));
+    const charts = [
+      ['График', 'Линия, «Продажи квартал 1»', 'ChartLine.dc.html'],
+      ['Аренда оборудования line', 'Линия, «Аренда оборудования»', 'ChartLine.dc.html'],
+      ['Расход по площадкам на рекламу', 'Сравнение, «Реклама и заявки»', 'ChartGroups.dc.html'],
+      ['Качество поставок', 'Круг, «Закупки данные»', 'ChartPie.dc.html'],
+      ['Выручка bar', 'Столбцы, «Выручка»', 'Charts.dc.html'],
+      ['Выручка heatmap', 'Тепловая карта, «Выручка»', 'ChartHeat.dc.html'],
+      ['Средний чек', 'Одно число, «Выручка»', 'ChartNumber.dc.html']
+    ].map((c, i) => {
+      const on = i === CUR;
+      return { name: c[0], sub: c[1], href: c[2], cur: on ? 'page' : undefined, bg: on ? 'var(--ink)' : 'transparent', fg: on ? 'var(--on-ink)' : 'var(--ink)', subFg: on ? 'var(--on-ink)' : 'var(--ink-3)', deco: on ? 'none' : 'underline' };
+    });
+    const kinds = ['Столбцы', 'Сравнение', 'Линия', 'Круг', 'Тепловая карта', 'Одно число'].map((l) => ({ label: l, on: l === KIND }));
+    return {
+      nav: nav,
+      charts: charts,
+      kinds: kinds,
+      sentence: [
+        text('Показать'), token('сумму'), text('столбца'), token('Продажи'), text('по'), token('Дата'),
+        token('по месяцам'), text('отдельной линией для каждого'), token('Канал')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

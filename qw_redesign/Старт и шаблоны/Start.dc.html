@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Старт и шаблоны</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bt/tokens.css">
+<link rel="stylesheet" href="ds/bt/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&amp;family=Golos+Text:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Old+Standard+TT:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+</style>
+</helmet>
+<div class="bt" style="min-height: 100vh; background: var(--canvas)">
+
+<nav class="bt-nav" aria-label="Разделы">
+<a class="bt-nav__brand" href="Start.dc.html">BI Tool</a>
+<div class="bt-nav__links">
+<sc-for list="{{nav}}" as="item" hint-placeholder-count="5"><a class="bt-link bt-link--block" href="{{item.href}}" aria-current="{{item.cur}}">{{item.label}}</a></sc-for>
+</div>
+<div class="bt-nav__side">
+<button type="button" class="bt-link bt-link--block bt-link--quiet">egor's organization</button>
+<button type="button" class="bt-link bt-link--block bt-link--quiet">Егор</button>
+</div>
+</nav>
+
+<div style="max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; padding: 8px 24px 64px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px 64px">
+<h1 class="bt-serif" style="flex: 1 1 360px; margin: 0; font-size: 54px; line-height: 1.1; letter-spacing: -1.998px">С чего <em>начнём?</em></h1>
+<p class="bt-lead" style="flex: 1 1 420px"><span class="bt-dropcap" aria-hidden="true">З</span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">З</span>агрузите таблицу, которую уже ведёте, или возьмите готовый набор и замените пример своими данными. Графики и первые действия появятся сразу.</p>
+</div>
+
+<button type="button" class="bt-sheet bt-sheet--well" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; text-align: left; cursor: pointer; font: inherit; color: inherit">
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span class="bt-serif" style="font-size: 36px; line-height: 1.1">Перетащите сюда Excel или CSV</span>
+<span style="color: var(--ink-3)">Файл не нужно готовить. Покажем таблицу и предложим первые графики.</span>
+</span>
+<span class="bt-btn bt-btn--lg">Выбрать файл</span>
+</button>
+
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div class="bt-label" style="padding-bottom: 8px; border-bottom: 1px solid var(--ink)">Или готовый набор</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 24px">
+<sc-for list="{{templates}}" as="t" hint-placeholder-count="4">
+<article class="bt-sheet" style="display: flex; flex-direction: column; gap: 16px; padding: 28px">
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; align-items: end; height: 56px; border-bottom: 1px solid var(--ink)">
+<sc-for list="{{t.spark}}" as="s" hint-placeholder-count="7"><div style="height: {{s.h}}px; background: {{s.bg}}"></div></sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 class="bt-sheet__title">{{t.name}}</h2>
+<span class="bt-hint">{{t.answer}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-top: 12px; border-top: 1px dashed var(--rule-dash)">
+<span class="bt-label">Действия внутри</span>
+<span class="bt-mono" style="font-size: 14px">{{t.actions}}</span>
+</div>
+<button type="button" class="bt-link bt-link--block" style="align-self: flex-start; margin-top: auto">{{t.cta}}</button>
+</article>
+</sc-for>
+</div>
+<span class="bt-hint" style="color: var(--ink-3)">В каждом наборе есть таблица с примером, графики, дашборд и действия. Всё можно менять и удалять.</span>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  nav(active) {
+    const items = [['Данные', 'Datasets.dc.html'], ['Графики', 'Charts.dc.html'], ['Дашборды', 'Dashboard.dc.html'], ['Действия', 'Main.dc.html'], ['Журнал', 'Journal.dc.html']];
+    return items.map((i) => ({ label: i[0], href: i[1], cur: i[0] === active ? 'page' : undefined }));
+  }
+  renderVals() {
+    const spark = (hs, hot) => hs.map((h, i) => ({ h: h, bg: i === hot ? 'var(--accent-orange)' : 'var(--ink)' }));
+    return {
+      nav: this.nav(''),
+      templates: [
+        { name: 'Продажи', answer: 'Сколько заработали, средний чек, что продаётся лучше.', actions: 'Оформить продажу, Оформить возврат', cta: 'Взять «Продажи»', spark: spark([18, 24, 21, 30, 27, 38, 46], 6) },
+        { name: 'Денежный поток', answer: 'Приход и расход по неделям, на что уходят деньги.', actions: 'Записать расход, Записать поступление', cta: 'Взять «Денежный поток»', spark: spark([32, 19, 37, 16, 42, 22, 35], 4) },
+        { name: 'Склад', answer: 'Что заканчивается, что лежит без движения.', actions: 'Приход товара, Продажа, Списание', cta: 'Взять «Склад»', spark: spark([46, 40, 33, 28, 20, 13, 8], 6) },
+        { name: 'Клиентская база', answer: 'Новые и повторные клиенты, кто давно не приходил.', actions: 'Добавить клиента, Записать визит', cta: 'Взять «Клиентскую базу»', spark: spark([14, 18, 23, 25, 30, 36, 44], 6) }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

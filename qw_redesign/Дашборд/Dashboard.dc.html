@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Дашборд</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bt/tokens.css">
+<link rel="stylesheet" href="ds/bt/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&amp;family=Golos+Text:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Old+Standard+TT:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+.viewers-pop{display:none}
+.viewers:hover .viewers-pop,.viewers:focus-within .viewers-pop{display:block}
+</style>
+</helmet>
+<div class="bt" style="min-height: 100vh; background: var(--canvas)">
+
+<nav class="bt-nav" aria-label="Разделы">
+<a class="bt-nav__brand" href="Start.dc.html">BI Tool</a>
+<div class="bt-nav__links">
+<sc-for list="{{nav}}" as="item" hint-placeholder-count="5"><a class="bt-link bt-link--block" href="{{item.href}}" aria-current="{{item.cur}}">{{item.label}}</a></sc-for>
+</div>
+<div class="bt-nav__side">
+<button type="button" class="bt-link bt-link--block bt-link--quiet">egor's organization</button>
+<button type="button" class="bt-link bt-link--block bt-link--quiet">Егор</button>
+</div>
+</nav>
+
+<div style="display: flex; flex-direction: column; gap: 28px; padding: 8px 24px 48px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0 32px; min-height: 52px; border-bottom: 1px solid var(--ink)">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 20px">
+<h1 class="bt-serif" style="margin: 0; padding-bottom: 6px; font-size: 36px; line-height: 1.1">Test dashboard</h1>
+<div class="viewers" style="position: relative">
+<button type="button" aria-label="Сейчас смотрят 2 человека: Егор и Анна" aria-describedby="viewers-pop" style="display: flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; border-radius: 0; background: transparent; color: var(--ink-3); font: 500 14px/1 var(--font-mono); cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+<span>2</span>
+</button>
+<div id="viewers-pop" class="viewers-pop bt-sheet bt-sheet--raised" role="tooltip" style="position: absolute; z-index: 3; top: 100%; left: 0; width: 220px; padding: 12px 16px; border-color: var(--ink)">
+<div class="bt-label" style="padding-bottom: 4px">Сейчас смотрят</div>
+<div>Егор, это вы</div>
+<div>Анна</div>
+</div>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 12px; margin-left: auto; padding-bottom: 4px">
+<button type="button" class="bt-btn bt-btn--ghost" aria-expanded="false" aria-haspopup="menu">
+<span>Быстрые действия</span>
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 9l7 7 7-7"></path></svg>
+</button>
+<button type="button" class="bt-token">2025 год</button>
+<button type="button" class="bt-btn bt-btn--ghost">Добавить график или число</button>
+<button type="button" aria-label="Требует внимания: 1. Стул Рига, осталось 2 шт. при минимуме 5" title="Стул Рига: осталось 2 шт. при минимуме 5" style="display: flex; align-items: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border: 1px solid var(--red-ink); border-radius: 0; color: var(--red-ink); font: 500 14px/1 var(--font-mono); cursor: pointer; background-color: #E9E9ED00">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M12 3L22 20H2zM12 10v5M12 17.5v.5"></path></svg>
+<span>1</span>
+</button>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 24px">
+<div class="bt-sheet bt-stat" style="position: relative; flex: 0 1 320px; padding: 20px 48px 20px 24px"><button type="button" aria-label="Переместить карточку" title="Переместить" style="position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 0; background: transparent; color: var(--ink-3); cursor: grab"><svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor" aria-hidden="true"><rect x="2" y="2" width="3" height="3"></rect><rect x="9" y="2" width="3" height="3"></rect><rect x="2" y="8" width="3" height="3"></rect><rect x="9" y="8" width="3" height="3"></rect><rect x="2" y="14" width="3" height="3"></rect><rect x="9" y="14" width="3" height="3"></rect></svg></button><span class="bt-label">Средний чек</span><span class="bt-stat__fig">396,48 ₽</span><span class="bt-stat__delta">+13,3% к прошлому месяцу</span></div>
+<div class="bt-sheet bt-stat" style="position: relative; flex: 0 1 320px; padding: 20px 48px 20px 24px"><button type="button" aria-label="Переместить карточку" title="Переместить" style="position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 0; background: transparent; color: var(--ink-3); cursor: grab"><svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor" aria-hidden="true"><rect x="2" y="2" width="3" height="3"></rect><rect x="9" y="2" width="3" height="3"></rect><rect x="2" y="8" width="3" height="3"></rect><rect x="9" y="8" width="3" height="3"></rect><rect x="2" y="14" width="3" height="3"></rect><rect x="9" y="14" width="3" height="3"></rect></svg></button><span class="bt-label">Доплата за поставку</span><span class="bt-stat__fig">352,21 ₽</span><span class="bt-stat__delta bt-neg">+76,1%, расход вырос</span></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+
+<section class="bt-sheet" style="flex: 2 1 560px; min-width: 0">
+<div class="bt-sheet__head"><h2 class="bt-sheet__title">Выручка по месяцам</h2><a class="bt-link" href="Charts.dc.html">Открыть график</a></div>
+<div class="bt-label" style="padding-bottom: 8px">Сумма по понедельникам, тыс. ₽, 2025</div>
+<div style="overflow-x: auto">
+<div style="min-width: 520px">
+<div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; align-items: end; height: 240px; border-bottom: 1px solid var(--ink)">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12">
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%">
+<span class="bt-mono" style="font-size: 14px">{{b.v}}</span>
+<div style="width: 100%; height: {{b.h}}px; background: {{b.bg}}"></div>
+</div>
+</sc-for>
+</div>
+<div class="bt-mono" style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; padding-top: 6px; text-align: center; font-size: 14px; color: var(--ink-2)">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12"><span>{{b.m}}</span></sc-for>
+</div>
+</div>
+</div>
+</section>
+
+<section class="bt-sheet" style="flex: 1 1 340px; min-width: 0">
+<div class="bt-sheet__head"><h2 class="bt-sheet__title">Продажи, квартал 1</h2></div>
+<div class="bt-label" style="padding-bottom: 8px">По каналам, тыс. ₽</div>
+<svg viewBox="0 0 400 200" role="img" aria-label="Линейный график продаж по двум каналам за январь, февраль и март 2026" style="width: 100%; height: auto">
+<path d="M30 20H370M30 73H370M30 127H370" fill="none" stroke-dasharray="3 5" style="stroke: var(--rule-dash)"></path>
+<path d="M30 180H370" fill="none" style="stroke: var(--ink)"></path>
+<path d="M30 45.6L200 109.6L370 13.6" fill="none" stroke-width="2" style="stroke: var(--ink)"></path>
+<path d="M30 71.2L200 32.8L370 74.4" fill="none" stroke-width="2" stroke-dasharray="8 5" style="stroke: var(--accent-orange)"></path>
+<rect x="26" y="41.6" width="8" height="8" style="fill: var(--ink)"></rect><rect x="196" y="105.6" width="8" height="8" style="fill: var(--ink)"></rect><rect x="366" y="9.6" width="8" height="8" style="fill: var(--ink)"></rect>
+<circle cx="30" cy="71.2" r="4.5" style="fill: var(--accent-orange)"></circle><circle cx="200" cy="32.8" r="4.5" style="fill: var(--accent-orange)"></circle><circle cx="370" cy="74.4" r="4.5" style="fill: var(--accent-orange)"></circle>
+</svg>
+<div class="bt-mono" style="display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-2)"><span>01.2026</span><span>02.2026</span><span>03.2026</span></div>
+<hr class="bt-rule">
+<div style="display: flex; flex-wrap: wrap; gap: 8px 24px">
+<span style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 24px; height: 0; border-top: 2px solid var(--ink)"></span>Магазин</span>
+<span style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 24px; height: 0; border-top: 2px dashed var(--accent-orange)"></span>Сайт</span>
+</div>
+</section>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  nav(active) {
+    const items = [['Данные', 'Datasets.dc.html'], ['Графики', 'Charts.dc.html'], ['Дашборды', 'Dashboard.dc.html'], ['Действия', 'Main.dc.html'], ['Журнал', 'Journal.dc.html']];
+    return items.map((i) => ({ label: i[0], href: i[1], cur: i[0] === active ? 'page' : undefined }));
+  }
+  renderVals() {
+    const vals = [214, 308, 366, 273, 514, 372, 371, 276, 540, 389, 350, 397];
+    const bars = vals.map((v, i) => {
+      const m = i + 1;
+      return { v: v, m: (m < 10 ? '0' + m : '' + m), h: Math.round(v / 540 * 190), bg: v === 540 ? 'var(--accent-orange)' : 'var(--ink)' };
+    });
+    return { nav: this.nav('Дашборды'), bars: bars };
+  }
+}
+</script>
+</body>
+</html>

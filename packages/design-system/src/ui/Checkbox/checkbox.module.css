@@ -1,0 +1,13 @@
+@layer components {
+    .control {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--ink);
+        cursor: pointer;
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+}

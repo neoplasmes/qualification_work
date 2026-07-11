@@ -1,0 +1,18 @@
+@layer components {
+    .notice {
+        row-gap: var(--space-8);
+        padding-block: var(--space-16);
+        padding-inline: var(--space-20);
+        border: var(--border-hair) solid var(--red-ink);
+        background: transparent;
+        color: var(--ink);
+    }
+
+    .danger {
+        border-color: var(--red-ink);
+    }
+
+    .info {
+        border-color: var(--ink);
+    }
+}

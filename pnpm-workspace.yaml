@@ -7,6 +7,7 @@ packages:
   - 'packages/microservice-utils'
   - 'packages/primitive-server'
   - 'packages/types'
+  - 'packages/design-system'
   - 'e2e/backend'
   - 'e2e/frontend'
   - 'generation'

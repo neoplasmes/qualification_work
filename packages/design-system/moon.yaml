@@ -1,0 +1,70 @@
+language: typescript
+layer: library
+tags:
+- node
+- css
+fileGroups:
+  src:
+  - src/**/*.{ts,tsx}
+  stories:
+  - src/**/*.stories.tsx
+  theme:
+  - src/theme/*.{css,json}
+  fonts:
+  - /pnpm-lock.yaml
+  test-unit:
+  - tests/**/*.{ts,tsx}
+  cfg:
+  - package.json
+  - tsconfig.json
+  - vite.config.ts
+  - vitest.config.ts
+  - .storybook/*.{ts,tsx,css}
+  - /postcss.config.js
+  - /.browserslistrc
+  cfg-code:
+  - vite.config.ts
+  - vitest.config.ts
+  - .storybook/*.{ts,tsx}
+  - /postcss.config.js
+  - /stylelint.config.js
+  css:
+  - src/**/*.css
+  - .storybook/*.css
+  - tests/**/*.css
+tasks:
+  dev:
+    command: pnpm exec storybook dev --port 6006 --no-open --disable-telemetry
+    preset: server
+  build:
+    command: pnpm exec storybook build --output-dir dist/storybook --disable-telemetry
+    inputs:
+    - '@group(src)'
+    - '@group(stories)'
+    - '@group(css)'
+    - '@group(theme)'
+    - '@group(fonts)'
+    - '@group(cfg)'
+    outputs:
+    - dist/storybook
+  typecheck:
+    inputs:
+    - '@group(stories)'
+  lint:
+    options:
+      runFromWorkspaceRoot: true
+    inputs:
+    - '@group(stories)'
+  lint-fix:
+    options:
+      runFromWorkspaceRoot: true
+  test-unit:
+    command: pnpm exec vitest run --config vitest.config.ts
+    inputs:
+    - '@group(cfg-css)'
+    - '@group(src)'
+    - '@group(test-unit)'
+    - '@group(css)'
+    - '@group(theme)'
+    - '@group(fonts)'
+    - '@group(cfg)'

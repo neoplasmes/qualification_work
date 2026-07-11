@@ -9,6 +9,7 @@ projects:
   auth: "apps/auth"
   primitive-server: "packages/primitive-server"
   types: "packages/types"
+  design-system: "packages/design-system"
   eslint-plugin-fsd: "packages/eslint-plugin-fsd"
   microservice-config: "packages/microservice-config"
   microservice-utils: "packages/microservice-utils"
@@ -53,6 +54,11 @@ docker:
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
       - tsconfig.json
+      - postcss.config.js
+      - stylelint.config.js
+      - .browserslistrc
+      - packages/design-system/src/theme/theme.css
+      - packages/design-system/src/theme/tokens.json
       - apps/*/package.json
       - packages/*/package.json
       # root script used by client:build-assets; client does not depend on the root project

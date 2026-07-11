@@ -26,14 +26,17 @@ fileGroups:
   - oxlint.config.ts
   - prettier.config.js
   - vite.config.ts
-  - stylelint.config.js
+  - /stylelint.config.js
+  - /postcss.config.js
+  - /.browserslistrc
+  - /packages/design-system/src/theme/theme.css
   cfg-code:
   - tsup.config.ts
   - vitest.config.ts
   - oxlint.config.ts
   - prettier.config.js
   - vite.config.ts
-  - stylelint.config.js
+  - /stylelint.config.js
   cfg-lint:
   - oxlint.config.ts
   - /packages/microservice-config/oxlint.ts

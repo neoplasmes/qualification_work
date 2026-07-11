@@ -1,0 +1,18 @@
+@layer reset {
+    :where([data-theme='paper'], [data-theme='paper'] *) {
+        box-sizing: border-box;
+    }
+
+    :where([data-theme='paper']) :where(h1, h2, h3, h4, h5, h6, p, figure) {
+        margin: 0;
+    }
+
+    :where([data-theme='paper']) :where(button, input, select, textarea) {
+        font: inherit;
+    }
+
+    :where([data-theme='paper']) :focus-visible {
+        outline: var(--border-hair) solid var(--ink);
+        outline-offset: var(--space-4);
+    }
+}

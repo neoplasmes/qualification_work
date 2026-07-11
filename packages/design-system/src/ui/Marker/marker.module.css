@@ -1,0 +1,9 @@
+@layer components {
+    .marker {
+        padding-block: 0;
+        padding-inline: var(--space-4);
+        border-radius: var(--radius-sm);
+        background: var(--marker);
+        color: var(--ink);
+    }
+}

@@ -2,7 +2,8 @@ inheritedBy:
   tags: css
 fileGroups:
   cfg-css:
-  - stylelint.config.js
+  - /stylelint.config.js
+  - /packages/design-system/src/theme/tokens.json
 tasks:
   fmt:
     deps:

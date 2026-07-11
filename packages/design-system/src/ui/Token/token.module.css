@@ -1,0 +1,52 @@
+@layer components {
+    .token {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-8);
+        min-height: 44px;
+        max-width: 100%;
+        padding-block: 0;
+        padding-inline: var(--space-12);
+        border: var(--border-hair) dashed var(--ink);
+        border-radius: var(--radius-none);
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-size: var(--font-size-typed);
+        font-weight: var(--font-weight-typed);
+        line-height: var(--line-height-typed);
+        letter-spacing: normal;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+
+        &:where(:hover):enabled {
+            background: var(--marker);
+        }
+
+        &:disabled {
+            border-color: var(--rule-dash);
+            background: var(--rule);
+            color: var(--ink-3);
+            cursor: not-allowed;
+        }
+    }
+
+    .value {
+        background: var(--paper-raised);
+    }
+
+    .field {
+        border-style: solid;
+        background: var(--marker);
+
+        &:where(:hover):enabled {
+            background: var(--paper-raised);
+        }
+    }
+
+    .add {
+        border-color: var(--ink-3);
+        background: transparent;
+        color: var(--ink-3);
+    }
+}

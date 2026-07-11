@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Действия - запуск</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bt/tokens.css">
+<link rel="stylesheet" href="ds/bt/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&amp;family=Golos+Text:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Old+Standard+TT:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+</style>
+</helmet>
+<div class="bt" style="min-height: 100vh; background: var(--canvas)">
+
+<nav class="bt-nav" aria-label="Разделы">
+<a class="bt-nav__brand" href="Start.dc.html">BI Tool</a>
+<div class="bt-nav__links" style="position: relative">
+<sc-for list="{{nav}}" as="item" hint-placeholder-count="5"><a class="bt-link bt-link--block" href="{{item.href}}" aria-current="{{item.cur}}">{{item.label}}</a></sc-for>
+</div>
+<div class="bt-nav__side">
+<button type="button" class="bt-link bt-link--block bt-link--quiet">egor's organization</button>
+<button type="button" class="bt-link bt-link--block bt-link--quiet">Егор</button>
+</div>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px 48px; padding: 32px 24px 48px; position: relative; padding-top: 8px">
+
+<aside style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 12px; padding-top: 14px">
+<div class="bt-label" style="padding-bottom: 8px; border-bottom: 1px solid var(--ink)">Действия</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{actions}}" as="a" hint-placeholder-count="4">
+<a href="Main.dc.html" aria-current="{{a.cur}}" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-bottom: 1px dashed var(--rule-dash); text-decoration: none; background: {{a.bg}}; color: {{a.fg}}">
+<span style="text-underline-offset: 4px; text-decoration: {{a.deco}}">{{a.name}}</span>
+<span style="font-size: 14px; line-height: 1.5; color: {{a.subFg}}">{{a.touches}}</span>
+</a>
+</sc-for>
+</div>
+<button type="button" class="bt-btn bt-btn--ghost" style="align-self: flex-start; margin-top: 8px">Новое действие</button>
+</aside>
+
+<main style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0 32px; min-height: 52px; border-bottom: 1px solid var(--ink)">
+<h1 class="bt-serif" style="margin: 0; padding-bottom: 6px; font-size: 36px; line-height: 1.1">Продать стул Рига</h1>
+<div style="display: flex; gap: 4px; margin-left: auto">
+<a class="bt-link bt-link--block" href="Main.dc.html" aria-current="page" style="margin: 0; padding: 0 12px">Запуск</a>
+<a class="bt-link bt-link--block" href="ActionEdit.dc.html" style="margin: 0; padding: 0 12px">Настройка</a>
+<a class="bt-link bt-link--block" href="Journal.dc.html" style="margin: 0; padding: 0 12px">История</a>
+</div>
+</div>
+<p class="bt-lead">Списывает товар со склада и добавляет строку в продажи.</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+
+<section class="bt-sheet" style="flex: 1 1 340px; min-width: 0">
+<div class="bt-sheet__head"><h2 class="bt-sheet__title">Бланк запуска</h2><span class="bt-label">Заполните</span></div>
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div class="bt-field"><label for="order">Номер заказа</label><input id="order" class="bt-input" type="text" value="З-1042" readonly=""></div>
+<div class="bt-field">
+<span class="bt-field__label" id="qty-l">Количество</span>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px">
+<div class="bt-stepper" role="group" aria-labelledby="qty-l">
+<button type="button" aria-label="Меньше" onClick="{{dec}}">−</button>
+<output aria-live="polite">{{qty}}</output>
+<button type="button" aria-label="Больше" onClick="{{inc}}">+</button>
+</div>
+<span class="bt-hint">На складе 14 шт.</span>
+</div>
+</div>
+<div class="bt-field">
+<span class="bt-field__label" id="ch-l">Канал</span>
+<div class="bt-choice" role="group" aria-labelledby="ch-l">
+<sc-for list="{{channels}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for>
+</div>
+</div>
+<div class="bt-field" style="max-width: 200px"><label for="date">Дата</label><input id="date" class="bt-input" type="text" value="07.10.2026" readonly=""><span class="bt-hint">Сегодня</span></div>
+
+<sc-if value="{{notDone}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px">
+<button type="button" class="bt-btn bt-btn--lg bt-btn--wide" onClick="{{run}}">Продать {{qty}} шт.</button>
+<span class="bt-hint">Любой запуск можно отменить в журнале.</span>
+</div>
+</sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+<div class="bt-night" role="status" style="display: flex; flex-direction: column; gap: 12px">
+<p class="bt-lead">Продано {{qty}} шт. Склад и продажи обновлены.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<button type="button" class="bt-btn" onClick="{{again}}">Продать ещё</button>
+<button type="button" class="bt-btn bt-btn--ghost" onClick="{{undo}}">Отменить</button>
+</div>
+</div>
+</sc-if>
+</div>
+</section>
+
+<section class="bt-sheet bt-sheet--raised" aria-label="Предпросмотр изменений" style="flex: 1.4 1 420px; min-width: 0">
+<div class="bt-sheet__head"><h2 class="bt-sheet__title">{{previewTitle}}</h2><span class="bt-label">{{previewTag}}</span></div>
+<p class="bt-hint" style="margin: 0 0 20px">{{previewSub}}</p>
+
+<div class="bt-label">Таблица «склад», изменится 1 строка</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; padding: 8px 0">
+<div style="display: flex; flex-direction: column">
+<span>Стул Рига</span>
+<span class="bt-hint bt-mono">MF-007, количество_на_складе</span>
+</div>
+<span class="bt-diff" style="font-size: 24px"><del>14</del><span aria-label="станет">→</span><ins>{{after}}</ins></span>
+</div>
+<sc-if value="{{low}}" hint-placeholder-val="{{false}}">
+<div class="bt-notice" role="status" style="margin-top: 8px">
+<div class="bt-notice__body"><span class="bt-label">Мало на складе</span><span>Останется {{after}} шт. при минимуме 5.</span></div>
+<button type="button" class="bt-link bt-link--block">Заказать у поставщика</button>
+</div>
+</sc-if>
+
+<hr class="bt-rule" style="margin: 20px 0">
+
+<div class="bt-label">Таблица «продажи», добавится 1 строка</div>
+<div style="overflow-x: auto; padding-top: 4px">
+<table class="bt-table" style="min-width: 440px">
+<thead><tr><th class="bt-l">номер_заказа</th><th class="bt-l">артикул</th><th>количество</th><th class="bt-l">канал</th><th>дата</th></tr></thead>
+<tbody><tr aria-selected="true"><td class="bt-l">З-1042</td><td class="bt-l">MF-007</td><td>{{qty}}</td><td class="bt-l">{{channel}}</td><td>07.10.2026</td></tr></tbody>
+</table>
+</div>
+
+<hr class="bt-rule" style="margin: 20px 0 12px">
+<span class="bt-hint">Графики и дашборды на этих таблицах пересчитаются сразу.</span>
+</section>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 4px">
+<div class="bt-label">Недавние запуски</div>
+<div style="overflow-x: auto">
+<table class="bt-table" style="min-width: 520px">
+<thead><tr><th class="bt-l">Когда</th><th class="bt-l">Кто</th><th class="bt-l">С какими значениями</th><th></th></tr></thead>
+<tbody>
+<sc-for list="{{runs}}" as="r" hint-placeholder-count="3">
+<tr><td class="bt-l">{{r.when}}</td><td class="bt-l">{{r.who}}</td><td class="bt-l">{{r.what}}</td><td style="padding-top: 0; padding-bottom: 0"><button type="button" class="bt-link bt-link--block" style="font-family: var(--font-sans)">Отменить</button></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { qty: 2, channel: 'Магазин', done: false };
+  }
+  nav(active) {
+    const items = [['Данные', 'Datasets.dc.html'], ['Графики', 'Charts.dc.html'], ['Дашборды', 'Dashboard.dc.html'], ['Действия', 'Main.dc.html'], ['Журнал', 'Journal.dc.html']];
+    return items.map((i) => ({ label: i[0], href: i[1], cur: i[0] === active ? 'page' : undefined }));
+  }
+  renderVals() {
+    const s = this.state;
+    const stock = 14;
+    const after = stock - s.qty;
+    const channels = ['Магазин', 'Авито', 'Сайт'].map((c) => ({
+      label: c,
+      on: c === s.channel,
+      pick: () => this.setState({ channel: c, done: false })
+    }));
+    const actions = [
+      ['Продать стул Рига', 'Меняет склад, дополняет продажи'],
+      ['Запустить промо-день кофейни', '6 полей, меняет 2 таблицы'],
+      ['Оформить гарантийный ремонт', '6 полей, меняет 1 таблицу'],
+      ['Массово обновить статус ремонта', '4 поля, меняет 1 таблицу']
+    ].map((a, i) => {
+      const on = i === 0;
+      return { name: a[0], touches: a[1], cur: on ? 'page' : undefined, bg: on ? 'var(--ink)' : 'transparent', fg: on ? 'var(--on-ink)' : 'var(--ink)', subFg: on ? 'var(--on-ink)' : 'var(--ink-3)', deco: on ? 'none' : 'underline' };
+    });
+    return {
+      nav: this.nav('Действия'),
+      actions: actions,
+      runs: [
+        { when: 'Сегодня, 14:40', who: 'Анна', what: '1 шт., Авито, З-1041' },
+        { when: 'Сегодня, 11:05', who: 'Егор', what: '4 шт., Магазин, З-1040' },
+        { when: 'Вчера, 18:22', who: 'Анна', what: '2 шт., Сайт, З-1039' }
+      ],
+      channels: channels,
+      channel: s.channel,
+      qty: s.qty,
+      after: after,
+      low: after < 5,
+      done: s.done,
+      notDone: !s.done,
+      previewTitle: s.done ? 'Что изменилось' : 'Что изменится',
+      previewTag: s.done ? 'Записано' : 'Предпросмотр',
+      previewSub: s.done ? 'Запись уже в журнале. Отмена вернёт обе таблицы как были.' : 'Данные не тронуты, пока вы не нажали кнопку.',
+      inc: () => this.setState({ qty: Math.min(stock, s.qty + 1), done: false }),
+      dec: () => this.setState({ qty: Math.max(1, s.qty - 1), done: false }),
+      run: () => this.setState({ done: true }),
+      undo: () => this.setState({ done: false }),
+      again: () => this.setState({ done: false, qty: 1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

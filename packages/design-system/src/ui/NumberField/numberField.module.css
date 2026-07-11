@@ -1,0 +1,82 @@
+@layer components {
+    .root {
+        width: 100%;
+    }
+
+    .group {
+        display: flex;
+        align-items: stretch;
+        border: var(--border-hair) solid var(--ink);
+    }
+
+    .button {
+        width: 44px;
+        min-height: 44px;
+        flex-shrink: 0;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-none);
+        background: transparent;
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: var(--font-size-ui);
+        line-height: var(--line-height-ui);
+        font-weight: var(--font-weight-ui);
+        letter-spacing: var(--letter-spacing-ui);
+        cursor: pointer;
+
+        &:hover:where(:not([aria-disabled='true'])) {
+            background: var(--marker);
+        }
+
+        &[aria-disabled='true'] {
+            color: var(--ink-3);
+            cursor: not-allowed;
+        }
+    }
+
+    .input {
+        width: calc(100% - 88px);
+        border: 0;
+        border-inline: var(--border-hair) solid var(--ink);
+        border-radius: var(--radius-none);
+        padding: 0;
+        background: transparent;
+        color: var(--ink);
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: var(--font-size-typed);
+        line-height: var(--line-height-typed);
+        font-weight: var(--font-weight-typed);
+        letter-spacing: normal;
+    }
+
+    .root[data-disabled] .group {
+        background: var(--rule);
+        border-color: var(--rule-dash);
+    }
+
+    .input[aria-invalid='true'] {
+        border-color: var(--red-ink);
+    }
+
+    .regular {
+        width: 100%;
+    }
+
+    .large {
+        .button {
+            width: 72px;
+            min-height: 52px;
+        }
+
+        .input {
+            width: calc(100% - 144px);
+        }
+    }
+
+    .root[data-disabled] .input {
+        color: var(--ink-3);
+    }
+
+}

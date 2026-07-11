@@ -1,0 +1,11 @@
+@layer components {
+    .gallery {
+        max-width: 1100px;
+        padding: var(--space-24);
+    }
+
+    .fields > * {
+        flex: 1 1 280px;
+        max-width: 100%;
+    }
+}

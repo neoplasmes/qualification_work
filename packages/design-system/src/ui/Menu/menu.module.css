@@ -1,0 +1,52 @@
+@layer components {
+    .positioner {
+        z-index: 2;
+    }
+
+    .popup {
+        display: flex;
+        flex-direction: column;
+        width: 340px;
+        max-width: calc(100vw - var(--space-40));
+        padding-block: var(--space-16);
+        padding-inline: var(--space-20);
+        border: var(--border-hair) solid var(--ink);
+        background: var(--paper-raised);
+        color: var(--ink);
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        width: fit-content;
+        min-height: 44px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        text-decoration: underline;
+        text-underline-offset: var(--space-4);
+        cursor: pointer;
+
+        &[data-highlighted] {
+            background: var(--marker);
+        }
+
+        &[data-disabled] {
+            color: var(--ink-3);
+            cursor: not-allowed;
+        }
+    }
+
+    .quiet {
+        color: var(--ink-3);
+        text-decoration-style: dashed;
+    }
+
+    .separator {
+        margin-top: var(--space-8);
+        margin-bottom: var(--space-4);
+        border-top: var(--border-hair) dashed var(--rule-dash);
+    }
+}

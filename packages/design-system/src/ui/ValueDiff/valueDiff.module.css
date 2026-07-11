@@ -1,0 +1,26 @@
+@layer components {
+    .diff {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--space-8);
+        font-family: var(--font-mono);
+        font-size: var(--font-size-data);
+        line-height: var(--line-height-data);
+        font-weight: var(--font-weight-data);
+        letter-spacing: normal;
+        font-variant-numeric: tabular-nums;
+
+        > del {
+            color: var(--ink-2);
+            text-decoration: line-through;
+        }
+
+        > ins {
+            padding-block: 0;
+            padding-inline: var(--space-4);
+            border-radius: var(--radius-sm);
+            background: var(--marker);
+            text-decoration: none;
+        }
+    }
+}

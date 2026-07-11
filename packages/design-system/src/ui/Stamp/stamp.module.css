@@ -1,0 +1,31 @@
+@layer components {
+    .stamp {
+        display: inline-block;
+        padding-block: var(--space-4);
+        padding-inline: var(--space-8);
+        border: var(--border-hair) solid var(--ink);
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-weight: var(--font-weight-label);
+        font-size: var(--font-size-label);
+        line-height: var(--line-height-label);
+        letter-spacing: var(--letter-spacing-label);
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .done {
+        border-style: solid;
+    }
+
+    .draft {
+        border-style: dashed;
+        border-color: var(--ink-3);
+        color: var(--ink-3);
+    }
+
+    .void {
+        border-color: var(--red-ink);
+        color: var(--red-ink);
+    }
+}

@@ -1,0 +1,7 @@
+@import '@qualification-work/design-system/theme.css';
+
+@layer components {
+    body {
+        background: var(--paper);
+    }
+}

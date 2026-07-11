@@ -1,0 +1,37 @@
+@layer components {
+    .control {
+        width: 100%;
+        min-height: 44px;
+        padding-block: 0;
+        padding-inline: var(--space-4);
+        border: 0;
+        border-bottom: var(--border-hair) solid var(--ink);
+        border-radius: var(--radius-none);
+        background: transparent;
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-weight: var(--font-weight-typed);
+        font-size: var(--font-size-typed);
+        line-height: var(--line-height-typed);
+        letter-spacing: normal;
+
+        &::placeholder {
+            color: var(--ink-2);
+        }
+
+        &:focus {
+            background: var(--marker);
+        }
+
+        &[aria-invalid='true'] {
+            border-color: var(--red-ink);
+        }
+
+        &:disabled {
+            color: var(--ink-3);
+            border-color: var(--rule-dash);
+            cursor: not-allowed;
+            background: var(--rule);
+        }
+    }
+}

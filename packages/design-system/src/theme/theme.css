@@ -1,0 +1,13 @@
+@layer reset, tokens, primitives, typography, components;
+
+@import '@fontsource/old-standard-tt/400.css' layer(primitives);
+@import '@fontsource/old-standard-tt/400-italic.css' layer(primitives);
+@import '@fontsource/geist/400.css' layer(primitives);
+@import '@fontsource/geist/500.css' layer(primitives);
+@import '@fontsource/golos-text/400.css' layer(primitives);
+@import '@fontsource/golos-text/500.css' layer(primitives);
+@import '@fontsource/ibm-plex-mono/400.css' layer(primitives);
+@import '@fontsource/ibm-plex-mono/500.css' layer(primitives);
+@import './tokens.css';
+@import './reset.css';
+@import './typography.css';

@@ -1,0 +1,65 @@
+@layer components {
+    .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-8);
+        min-height: 44px;
+        padding-block: 0;
+        padding-inline: var(--space-24);
+        border: var(--border-hair) solid var(--ink);
+        border-radius: var(--radius-none);
+        background: var(--ink);
+        color: var(--on-ink);
+        font-family: var(--font-sans);
+        font-weight: var(--font-weight-ui);
+        font-size: var(--font-size-ui);
+        line-height: var(--line-height-ui);
+        letter-spacing: var(--letter-spacing-ui);
+        cursor: pointer;
+
+        &:where(:hover):enabled {
+            background: var(--ink-hover);
+        }
+
+        &[data-wide] {
+            width: 100%;
+        }
+
+        &:disabled {
+            background: var(--rule);
+            border-color: var(--rule-dash);
+            color: var(--ink-3);
+            cursor: not-allowed;
+        }
+    }
+
+    .ghost {
+        background: transparent;
+        color: var(--ink);
+        border-style: dashed;
+
+        &:where(:hover):enabled {
+            background: var(--marker);
+            border-style: solid;
+        }
+    }
+
+    .danger {
+        background: var(--red-ink);
+        border-color: var(--red-ink);
+
+        &:where(:hover):enabled {
+            background: var(--ink);
+        }
+    }
+
+    .large {
+        min-height: 52px;
+        padding-inline: var(--space-32);
+    }
+
+    .regular {
+        min-height: 44px;
+    }
+}

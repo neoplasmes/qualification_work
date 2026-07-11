@@ -1,0 +1,13 @@
+@layer components {
+    .field {
+        width: 100%;
+    }
+
+    .label {
+        font-family: var(--font-sans);
+        font-weight: var(--font-weight-ui);
+        font-size: var(--font-size-body-sm);
+        line-height: var(--line-height-body-sm);
+        letter-spacing: var(--letter-spacing-body-sm);
+    }
+}

@@ -1,0 +1,199 @@
+@layer components {
+    .page {
+        min-height: 100vh;
+        background: var(--canvas);
+    }
+
+    .nav {
+        row-gap: var(--space-8);
+        padding-block: var(--space-16);
+        padding-inline: var(--space-24);
+        border-bottom: var(--border-hair) solid var(--ink);
+        background: var(--paper);
+    }
+
+    .brand {
+        text-decoration: none;
+    }
+
+    .navLinks {
+        flex: 1 1 auto;
+        row-gap: var(--space-4);
+    }
+
+    .layout {
+        row-gap: var(--space-32);
+        padding-top: var(--space-8);
+        padding-inline: var(--space-24);
+        padding-bottom: var(--space-48);
+    }
+
+    .sidebar {
+        flex: 1 1 240px;
+    }
+
+    .sidebarTitle {
+        display: flex;
+        align-items: flex-end;
+        height: 48px;
+        padding-bottom: var(--space-8);
+        border-bottom: var(--border-hair) solid var(--ink);
+    }
+
+    .tableLink {
+        gap: var(--space-4);
+        padding-block: var(--space-12);
+        padding-inline: var(--space-12);
+        border-bottom: var(--border-hair) dashed var(--rule-dash);
+        text-decoration: none;
+
+        &[aria-current] {
+            background: var(--ink);
+        }
+    }
+
+    .tableName {
+        text-decoration: underline;
+        text-underline-offset: var(--space-4);
+    }
+
+    .tableLink[aria-current] .tableName {
+        text-decoration: none;
+    }
+
+    .upload {
+        margin-top: var(--space-12);
+        padding-block: var(--space-24);
+        padding-inline: var(--space-16);
+        text-align: center;
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+    }
+
+    .uploadTitle {
+        display: block;
+        line-height: var(--line-height-lead);
+    }
+
+    .uploadHint {
+        display: block;
+        padding-top: var(--space-8);
+    }
+
+    .main {
+        flex: 999 1 640px;
+        width: calc(100% - 288px);
+        max-width: calc(100% - 288px);
+    }
+
+    .heading {
+        row-gap: var(--space-4);
+    }
+
+
+    .filters {
+        row-gap: var(--space-4);
+    }
+
+    .search {
+        width: 200px;
+    }
+
+    .toolbar {
+        row-gap: var(--space-8);
+        padding-block: var(--space-8);
+        border-block: var(--border-hair) solid var(--ink);
+    }
+
+    .selection {
+        flex: 1 1 140px;
+    }
+
+    .menuTrigger {
+        width: 248px;
+    }
+
+    .tableSurface {
+        padding-top: var(--space-20);
+        padding-inline: var(--space-28);
+        padding-bottom: var(--space-28);
+    }
+
+    .tableScroll {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        min-width: 680px;
+        border-collapse: collapse;
+        font-family: var(--font-mono);
+        font-size: var(--font-size-data);
+        line-height: var(--line-height-data);
+        letter-spacing: normal;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .table th {
+        font-weight: var(--font-weight-data);
+    }
+
+    .table thead th {
+        padding-block: var(--space-8);
+        padding-inline: var(--space-12);
+        border-bottom: var(--border-hair) solid var(--ink);
+        font-size: var(--font-size-label);
+        line-height: var(--line-height-label);
+        letter-spacing: var(--letter-spacing-label);
+        text-transform: uppercase;
+        color: var(--ink-3);
+        text-align: right;
+        vertical-align: bottom;
+    }
+
+    .table tbody th, .table td {
+        padding-block: var(--space-12);
+        padding-inline: var(--space-12);
+        border-bottom: var(--border-hair) dashed var(--rule-dash);
+        text-align: right;
+    }
+
+    .table tr[aria-selected='true'] > * {
+        background: var(--marker);
+    }
+
+    .table .left {
+        text-align: left;
+    }
+
+    .table tfoot td, .table tfoot th {
+        border-top: var(--border-hair) solid var(--ink);
+        border-bottom: var(--border-total) double var(--ink);
+        font-weight: var(--font-weight-ui);
+    }
+
+    .notes {
+        row-gap: var(--space-8);
+    }
+
+    .editHint {
+        flex: 1 1 600px;
+    }
+
+    .chartHint {
+        flex: 0 1 346px;
+    }
+
+    @media (width <= 1000px) {
+        .main {
+            flex-basis: 100%;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .sidebar {
+            flex-basis: 100%;
+        }
+    }
+}

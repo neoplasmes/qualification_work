@@ -1,0 +1,11 @@
+@layer components {
+    .probe {
+        --fixture-paper: #f7f6f3;
+        color: oklch(50% 0.1 20deg);
+        background: var(--fixture-paper);
+
+        &:hover {
+            color: #1a1614;
+        }
+    }
+}

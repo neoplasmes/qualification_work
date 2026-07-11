@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Запуск действия с телефона</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/bt/tokens.css">
+<link rel="stylesheet" href="ds/bt/components/bundle.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&amp;family=Golos+Text:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Old+Standard+TT:ital,wght@0,400;1,400&amp;display=swap">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+</style>
+</helmet>
+<div class="bt" style="width: 390px; height: 844px; display: flex; flex-direction: column; background: var(--paper)">
+
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 56px 20px 16px; border-bottom: 1px solid var(--ink)">
+<a class="bt-link bt-link--block bt-link--quiet" href="Main.dc.html" style="align-self: flex-start">Все действия</a>
+<h1 class="bt-serif" style="margin: 0; font-size: 36px; line-height: 1.1">Продать стул Рига</h1>
+</div>
+
+<div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 20px; padding: 20px">
+<div class="bt-field"><label for="p-order">Номер заказа</label><input id="p-order" class="bt-input" type="text" value="З-1042" readonly=""></div>
+
+<div class="bt-field">
+<span class="bt-field__label" id="p-qty">Количество</span>
+<div class="bt-stepper" role="group" aria-labelledby="p-qty" style="display: flex">
+<button type="button" aria-label="Меньше" style="width: 72px; min-height: 52px">−</button>
+<output style="flex: 1 1 auto; font-size: 22px">2</output>
+<button type="button" aria-label="Больше" style="width: 72px; min-height: 52px">+</button>
+</div>
+<span class="bt-hint">На складе 14 шт.</span>
+</div>
+
+<div class="bt-field">
+<span class="bt-field__label" id="p-ch">Канал</span>
+<div class="bt-choice" role="group" aria-labelledby="p-ch" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+<button type="button" aria-pressed="true" style="min-height: 52px; padding: 0">Магазин</button><button type="button" aria-pressed="false" style="min-height: 52px; padding: 0">Авито</button><button type="button" aria-pressed="false" style="min-height: 52px; padding: 0">Сайт</button>
+</div>
+</div>
+
+<section class="bt-sheet bt-sheet--raised" style="padding: 16px 20px; border-style: dashed; border-color: var(--rule-dash)">
+<div class="bt-label" style="padding-bottom: 8px">Что изменится</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px dashed var(--rule-dash)">
+<span>Остаток на складе</span>
+<span class="bt-diff" style="font-size: 20px"><del>14</del><span aria-label="станет">→</span><ins>12</ins></span>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 0; border-top: 1px dashed var(--rule-dash)">
+<span>Таблица «продажи»</span>
+<span class="bt-mark bt-mono">+1 строка</span>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 20px 34px; border-top: 1px solid var(--ink)">
+<button type="button" class="bt-btn bt-btn--lg bt-btn--wide" style="min-height: 56px">Продать 2 шт.</button>
+<span class="bt-hint" style="text-align: center">Можно отменить в журнале</span>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

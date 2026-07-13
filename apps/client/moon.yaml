@@ -24,6 +24,7 @@ fileGroups:
   - tsup.config.ts
   - vitest.config.ts
   - oxlint.config.ts
+  - architecture.config.ts
   - prettier.config.js
   - vite.config.ts
   - /stylelint.config.js
@@ -34,11 +35,12 @@ fileGroups:
   - tsup.config.ts
   - vitest.config.ts
   - oxlint.config.ts
+  - architecture.config.ts
   - prettier.config.js
   - vite.config.ts
-  - /stylelint.config.js
   cfg-lint:
   - oxlint.config.ts
+  - architecture.config.ts
   - /packages/microservice-config/oxlint.ts
   assets:
   - index.html
@@ -46,6 +48,7 @@ fileGroups:
   - public/**/*.{svg,png,jpg,ico,woff,woff2}
   css:
   - src/**/*.scss
+  - src/**/*.css
 tasks:
   lint:
     command: pnpm exec oxlint --config oxlint.config.ts --no-error-on-unmatched-pattern @files(src) @files(test-unit)

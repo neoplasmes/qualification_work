@@ -1,4 +1,6 @@
-const FSDLayers = ['entities', 'features', 'widgets', 'pages'];
+import { importedPath, legacyPath, sourcePath } from './frontend-architecture.js';
+
+const fsdLayers = ['entities', 'features', 'widgets', 'pages'];
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
@@ -15,20 +17,26 @@ const rule = {
     create(context) {
         return {
             ImportDeclaration(node) {
-                const importPath = node.source.value;
+                const from = sourcePath(context);
 
-                if (!importPath.startsWith('@/')) {
+                if (!from || !legacyPath(from)) {
                     return;
                 }
 
-                const parts = importPath.split('/');
+                const to = importedPath(from, node.source.value);
+
+                if (!to || from.startsWith(`${to.split('/').slice(0, 2).join('/')}/`)) {
+                    return;
+                }
+
+                const parts = ['@', ...to.split('/')];
 
                 // [0] - @
                 const layer = parts[1];
                 const slice = parts[2];
                 const hasDeepPath = parts.length > 3; // есть что-то после слайса
 
-                if (!FSDLayers.includes(layer)) {
+                if (!fsdLayers.includes(layer)) {
                     return;
                 }
                 if (!slice || !hasDeepPath) {

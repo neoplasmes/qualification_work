@@ -1,6 +1,6 @@
-import path from 'path';
+import { importedPath, legacyPath, sourcePath } from './frontend-architecture.js';
 
-const FSDLayers = ['entities', 'features', 'widgets', 'pages'];
+const fsdLayers = ['entities', 'features', 'widgets', 'pages'];
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
@@ -17,31 +17,25 @@ const rule = {
     create(context) {
         return {
             ImportDeclaration(node) {
-                const importPath = node.source.value;
+                const from = sourcePath(context);
 
-                if (!importPath.startsWith('@/')) {
+                if (!from || !legacyPath(from)) {
                     return;
                 }
 
-                const currentFilePath = context.filename;
-                const parts = currentFilePath.split(path.sep);
+                const to = importedPath(from, node.source.value);
 
-                const currentLayerIndex = parts.findIndex(part =>
-                    FSDLayers.includes(part)
-                );
-
-                if (currentLayerIndex === -1) {
+                if (!to) {
                     return;
                 }
 
-                const currentLayer = parts[currentLayerIndex];
-                const currentSlice = parts[currentLayerIndex + 1];
+                const [currentLayer, currentSlice] = from.split('/');
 
-                if (!currentSlice) {
+                if (!fsdLayers.includes(currentLayer) || !currentSlice) {
                     return;
                 }
 
-                const importParts = importPath.split('/');
+                const importParts = ['@', ...to.split('/')];
                 // [0] - @
                 const importedLayer = importParts[1];
                 const importedSlice = importParts[2];

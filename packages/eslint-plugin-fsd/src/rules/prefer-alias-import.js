@@ -1,6 +1,6 @@
-import path from 'path';
+import { importedPath, legacyPath, sourcePath } from './frontend-architecture.js';
 
-const FSDLayers = ['shared', 'entities', 'features', 'widgets', 'pages'];
+const fsdLayers = ['shared', 'entities', 'features', 'widgets', 'pages'];
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
@@ -21,18 +21,17 @@ const rule = {
             ImportDeclaration(node) {
                 const importPath = node.source.value;
 
-                const currentFilePath = context.filename;
-                const parts = currentFilePath.split(path.sep);
+                const from = sourcePath(context);
 
-                const currentLayerIndex = parts.findIndex(part =>
-                    FSDLayers.includes(part)
-                );
-                if (currentLayerIndex === -1) {
+                if (!from || !legacyPath(from)) {
                     return;
                 }
 
-                const currentSlice = parts[currentLayerIndex + 1];
-                const currentLayer = parts[currentLayerIndex];
+                const [currentLayer, currentSlice] = from.split('/');
+
+                if (!fsdLayers.includes(currentLayer)) {
+                    return;
+                }
 
                 const isRelative = importPath.startsWith('.');
                 const isAlias = importPath.startsWith('@/');
@@ -42,18 +41,12 @@ const rule = {
                 }
 
                 if (isRelative) {
-                    const currentDir = path.dirname(currentFilePath);
-                    const resolved = path.resolve(currentDir, importPath);
-                    const resolvedParts = resolved.split(path.sep);
+                    const to = importedPath(from, importPath);
+                    const [importedLayer, importedSlice] = to.split('/');
 
-                    const importedLayerIndex = resolvedParts.findIndex(part =>
-                        FSDLayers.includes(part)
-                    );
-                    if (importedLayerIndex === -1) {
+                    if (!fsdLayers.includes(importedLayer)) {
                         return;
                     }
-
-                    const importedSlice = resolvedParts[importedLayerIndex + 1];
 
                     if (importedSlice !== currentSlice) {
                         context.report({ node, messageId: 'useAlias' });
@@ -67,7 +60,7 @@ const rule = {
                     const importedLayer = aliasParts[1];
                     const importedSlice = aliasParts[2];
 
-                    if (!FSDLayers.includes(importedLayer)) {
+                    if (!fsdLayers.includes(importedLayer)) {
                         return;
                     }
 

@@ -8,6 +8,8 @@ This is a clean (hexagonal) architecture with command/query separation, unified 
 
 > Every read is a `Query`. Every write is a `Command`. Entity content lives in the `EntityStore`, the composition of reads lives in the query cache.
 
+The current migration preserves React Router, browser history, redirects, workspace slots, existing URLs and the REST API. It adds no GraphQL client, backend endpoint or database change. Queries and commands are application operations; there is no separate `useCases` layer.
+
 Everything below is a consequence of this rule.
 
 ---
@@ -34,16 +36,23 @@ Everything below is a consequence of this rule.
 - **Processes** are business decisions spanning several entities. They only accept and return data.
 
 ```ts
-// core/entities/entityRef.ts
-export type EntityName = 'user' | 'cart' | 'order' | 'session';
+// core/entities/entityRef/entityRef.ts
+export type EntityName =
+  | 'user' | 'organization' | 'dataset' | 'datasetColumn' | 'datasetRow'
+  | 'chart' | 'dashboard' | 'dashboardItem' | 'action' | 'actionRun'
+  | 'session' | 'chartData' | 'metricPreview' | 'datasetTableOptions';
 export type EntityRef = EntityName | `${EntityName}:${string}`;
 //                      ^ collection  ^ concrete entity
 
-// core/entities/entity.ts
+// core/entities/entity/entity.ts
 export interface Entity {
 	readonly ref: EntityRef;
 }
 ```
+
+The first ten names identify stored record kinds. `session`, `chartData`, `metricPreview` and `datasetTableOptions` are dependency or value-result families, without artificial DB collections. Store writes accept concrete refs of the ten record kinds only. `datasetTableOptions` also identifies local IndexedDB preferences.
+
+Org-owned addresses include encoded organization and resource IDs, for example `dataset:<encodedOrgId>/<encodedDatasetId>` and `datasetRow:<encodedOrgId>/<encodedDatasetId>/<encodedRowId>`. Encode each segment separately. Dataset columns and dashboard items include their owner IDs in the same way. Server IDs identify users and organizations; row indexes, column keys and array positions are never IDs. Each authenticated session owns an isolated runtime.
 
 ### 1.2 App
 
@@ -57,7 +66,7 @@ export interface Entity {
 
 ### 1.3 Env
 
-- **`env/transport/`** - how data travels: `HttpTransport`, `WebSocketTransport`, later `GraphqlTransport`. One class per file.
+- **`env/transport/`** - how data travels: `HttpTransport`, `WebSocketTransport`. One class per file. GraphQL transport is outside the current migration.
 - **`env/repos/`** - how data is obtained and sent: network calls, response validation (zod), mapping DTO to entity. Every repo implements a port.
 - **`env/cache/`** - the data layer for the UI: `EntityStore`, normalization, `useRead`, `useCommand`, invalidation, realtime sync, high-frequency streams.
 - **`env/tools/`** - implementations of `app/ports/tools`.
@@ -236,7 +245,7 @@ main -> everything
 **The only exception** to the inward direction:
 
 ```
-ui -> env/cache        controllers use useRead, useCommand, EntityPatch
+ui -> env/cache        controllers use useRead and useCommand
 ```
 
 **Disallowed**
@@ -251,12 +260,16 @@ anything except main -> main
 anything except main -> env/repos        concrete repos are visible to main only
 ```
 
-These rules are enforced by a linter (`eslint-plugin-boundaries` or `dependency-cruiser`), not by this document.
+`apps/client/architecture.config.ts` defines allowed edges and exact temporary `legacyImports: Array<{from: string; to: string}>` pairs, relative to `apps/client/src`. The existing `eslint-plugin-fsd` package enforces them through `frontend-architecture`; its older rules continue protecting legacy roots. Paths are resolved relative to the configured source root, so a nested `core/entities` folder or an `entities` directory elsewhere in the checkout cannot be mistaken for a legacy root.
+
+During migration, `entities`, `features`, `widgets`, `pages`, `app/config`, `app/model` and `app/ui` retain their legacy classification. New `app/commands`, `app/queries` and `app/ports` obey strict application boundaries. New-to-legacy imports require one exact source/target pair; there is no general permission to import legacy code. These transitional roots are removed after the migration. The initial exact pairs retain the existing client/server entrypoint imports of `app/config` and `app/model`, the `global.d.ts` and `shared/model/useAppSelector` store types, and the React imports of `useHasMounted`, `useRafElementSize` and `useRafThrottle`. They are removed as composition, store consumers and shared UI hooks migrate; they are not permissions for neighboring files or modules.
+
+Repo implementations and their own tests may import schema and helper modules within the same repo. The main-only rule applies to external consumers of concrete repo APIs. Development tests and fixtures may construct real dependencies; this exception does not permit production modules to import concrete repos. External consumers import folder public APIs, including grouped page roots, rather than page internals or implementation files.
 
 ### 2.1 Framework boundaries
 
-- **React**: `ui`, `shared/ui`, `main`, hooks in `env/cache`.
-- **TanStack Query**: `env/cache` and `main` only. Controllers never import it; they use `useRead` and `useCommand`.
+- **React**: `ui`, `shared/ui`, `main`, hooks in `env/cache` (`use*` modules or `hooks/`). The existing `entry.client.tsx` and `entry.server.tsx` keep their React Router bootstrap imports until composition moves to `main`.
+- **TanStack DB/Query**: `env/cache` and `main` only. Controllers never import it; they use `useRead` and `useCommand`.
 - **Zustand**: `shared/model`, `ui/**/model`, `env/cache`, `main`.
 - **Browser APIs** (`window`, `location`, `localStorage`): not in `app` and `core`. If an operation needs such a value, `main` passes it through the constructor.
 
@@ -285,7 +298,7 @@ The transport does **not** deduplicate requests. TanStack Query already deduplic
 ### 3.1 Command
 
 ```ts
-// app/commands/command.ts
+// app/commands/command/command.ts
 export interface Command<I, O> {
 	execute(input: I): Promise<O>;
 	writes(input: I, output: O): EntityRef[];
@@ -300,14 +313,14 @@ export interface Command<I, O> {
 ### 3.2 Query
 
 ```ts
-// app/queries/query.ts
+// app/queries/query/query.ts
 export interface Query<I, O> {
 	readonly name: string;
 	execute(input: I, options?: ReadOptions): Promise<O>;
 	reads(input: I): EntityRef[];
 }
 
-// app/ports/repos/readOptions.ts
+// app/ports/repos/readOptions/readOptions.ts
 export type ReadOptions = {
 	signal?: AbortSignal;
 };
@@ -316,6 +329,7 @@ export type ReadOptions = {
 - `name` is the identity of the operation: logs, tracing, cache keys.
 - `reads` declares which data the operation depends on. It lives next to `execute`, so whoever changes what the query reads sees what it declares.
 - `options.signal` is passed down to ports. Reads are cancellable.
+- Query keys are `[query.name, input]`. Every org-scoped input includes `orgId`, even when the REST endpoint takes only a resource ID. Normalize defaults before key construction: row page 200, run page 50, offset 0. Session epochs guard result writes and are not secrets in query keys.
 
 ### 3.3 Ports and repos
 
@@ -361,7 +375,7 @@ A CI script (ts-morph) collects every `EntityRef` literal from `reads` and `writ
 
 | Storage                | Holds                                                                          |
 | ---------------------- | ------------------------------------------------------------------------------ |
-| `EntityStore`          | **Content** of entities, one record per `EntityRef`                            |
+| `EntityStore` (TanStack DB) | **Confirmed content** of entities, one record per concrete record `EntityRef`                            |
 | Query cache (TanStack) | **Composition** of reads: which refs a read returned, loading state, freshness |
 
 | Something changed...  | Mechanism                                                              |
@@ -382,18 +396,18 @@ class EntityStore {
 	upsert(ref: EntityRef, partial: Partial<Entity>): void;
 	remove(ref: EntityRef): void;
 	subscribe(ref: EntityRef, listener: () => void): Unsubscribe;
-	begin(): OptimisticLayer; // { apply(patches), discard() }
+	// deferred extension: begin(): OptimisticLayer - { apply(patches), discard() }
 }
 ```
 
 **Semantics:**
 
 - **Merge, not replace.** Different reads return different shapes of the same entity. A field that is absent (`undefined`) was not delivered and keeps its old value; a field that is `null` was explicitly cleared. Nested entities are normalized into their own records; nested plain objects (value objects) are replaced as a whole.
-- **Layers.** The store keeps a confirmed base and an ordered list of optimistic layers. A read sees the base with the layers applied. Server truth always goes to the base, so a realtime event that arrives while a command is in flight is not lost when the layer is discarded.
-- **Garbage collection/clean jobs** An entity is retained while it is referenced by a cached read or by an optimistic layer. When the query cache drops a read, entities referenced by nothing else are removed. Actually this mechanism shouldn't be overcomplicated unless it needs to: the goal here is to eventually have no unrefed objects, but not to not have them even for a second - there are actually can be a cases, when cached data is unrefed for a couple of seconds, but then it is needed again; probably mark-and-sweep should be used;
+- **Confirmed data.** TanStack DB owns the canonical confirmed records. The initial migration applies confirmed writes and keeps editable drafts in local Zustand state. Universal optimistic layers and custom patch rebasing are outside the current scope; the `begin` extension above is deferred.
+- **Garbage collection/clean jobs** An entity is retained while it is referenced by a cached read. Future optimistic layers would also retain their referenced entities. When the query cache drops a read, entities referenced by nothing else are removed. Actually this mechanism shouldn't be overcomplicated unless it needs to: the goal here is to eventually have no unrefed objects, but not to not have them even for a second - there are actually can be a cases, when cached data is unrefed for a couple of seconds, but then it is needed again; probably mark-and-sweep should be used;
 - **Referential stability.** Denormalized objects are memoized by entity version. An unchanged entity yields the same object reference, otherwise memoized components re-render everywhere.
 
-The store is implemented on top of a vanilla Zustand store and is covered by a test suite written before the store itself: merge rules, layers under concurrent events, reference stability, garbage collection. The contracts in `app` do not depend on the implementation: moving to TanStack DB after it stabilizes touches `env/cache` only.
+TanStack DB stores canonical confirmed entity data; Zustand owns UI state and editable drafts. Tests cover merge rules, concurrent confirmed writes, reference stability and retention. The contracts in `app` do not depend on either implementation.
 
 ### 4.3 Reads
 
@@ -410,13 +424,17 @@ useRead(query, input): { data, isPending, error }
   // useQuery(queryOptionsFor(...)) + denormalize with subscriptions to the refs in the result
 ```
 
-The same `queryOptionsFor` is used by router loaders and SSR prefetch: `queryClient.ensureQueryData(queryOptionsFor(query, input))`.
+The same `queryOptionsFor` is used by React Router loaders and SSR prefetch: `queryClient.ensureQueryData(queryOptionsFor(query, input))`.
 
 **Freshness** is not a property of an operation, it is a policy of the cache. A global default is set in `main/queryClient/queryClient.ts`; overrides by query name live in `env/cache/freshness.ts`.
 
 Cancellation path: `useRead` -> `queryFn({ signal })` -> `query.execute` -> port -> transport -> `fetch`. TanStack Query aborts only if `signal` is accessed in `queryFn`; `queryOptionsFor` always does.
 
 ### 4.4 Writes and optimistic UI
+
+The initial migration uses confirmed writes: execute the command, normalize its confirmed output into TanStack DB, then invalidate reads whose dependencies intersect `writes(input, output)`. Editable drafts live in local Zustand stores and do not replace confirmed data. A failed write leaves canonical confirmed records intact.
+
+The optimistic API and lifecycle below are deferred design notes, outside the current implementation scope. They do not require universal optimistic layers or custom patch rebasing during this migration.
 
 ```ts
 // env/cache/useCommand.ts
@@ -464,6 +482,10 @@ class CacheInvalidator {
 ```
 
 Used for the cases outside the command lifecycle: logout, realtime, host events from embedded packages.
+
+Read registration is explicit in `main`: `registerRead<I,O>(query, codec): void` and `registerCommand<I,O>(command, policy): void` register each stable operation instance once. An unregistered operation is a configuration error, with no fallback to an unnormalized query cache.
+
+`env/cache/normalize/normalize.ts` defines `ReadCodec<I,O>` with `normalize(output: O, input: I, store: EntityStore): Promise<NormalizedResult>` and `resolve(result: NormalizedResult, store: EntityStore): O`. `NormalizedResult` contains `{tree: CompositionNode, refs: readonly EntityRef[]}`. Its tree distinguishes entity refs, opaque values, arrays and objects. Codecs explicitly tag opaque JSON as a value; these cache types stay out of `app` and UI.
 
 ### 4.6 Typing
 
@@ -774,6 +796,8 @@ These are decided per feature by the team, not by this document:
 ---
 
 ## 13. Roadmap: migration to GraphQL
+
+This entire roadmap is a deferred exploration and is explicitly outside the active frontend migration. React Router and the existing REST API remain in use. No GraphQL, Apollo, Relay, new backend endpoints or database changes are authorized by this roadmap.
 
 **Goal:** switch the protocol, not the architecture. GraphQL is used as a transport; the query cache and the `EntityStore` stay ours.
 

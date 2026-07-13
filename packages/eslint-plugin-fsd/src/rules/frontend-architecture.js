@@ -1,45 +1,44 @@
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const browserGlobals = new Set([
-    'window',
-    'document',
-    'navigator',
-    'location',
-    'localStorage',
-    'sessionStorage',
-    'globalThis',
-    'self',
-    'fetch',
-    'WebSocket',
-    'XMLHttpRequest',
-    'indexedDB',
-    'Request',
-    'Response',
-    'Headers',
-    'FormData',
-    'File',
-    'Blob',
-    'URL',
-    'URLSearchParams',
-    'HTMLElement',
-    'Element',
-    'Node',
-    'Event',
-    'EventTarget',
-    'DOMParser',
-    'AbortSignal',
-    'AbortController',
-    'Storage',
-    'IDBDatabase',
-    'Worker',
-    'setTimeout',
-    'clearTimeout',
-    'setInterval',
-    'clearInterval',
-    'requestAnimationFrame',
-    'cancelAnimationFrame',
-    'performance',
+const pageSegments = new Set([
+    'model',
+    'ui',
+    'lib',
+    'api',
+    'types',
+    'const',
+    'config',
+    'assets',
+    'test',
 ]);
+
+const browserGlobals = new Set(['globalThis']);
+const standardGlobals = new Set();
+const typescriptLibrary = path.dirname(fileURLToPath(import.meta.resolve('typescript')));
+const declarations =
+    /^(?:declare\s+)?(?:abstract\s+)?(?:interface|type|var|let|const|function|class|enum|namespace)\s+([A-Za-z_$][\w$]*)/gm;
+
+for (const filename of readdirSync(typescriptLibrary)) {
+    const platformLibrary = /^lib\.(?:dom|webworker)(?:\.[\w.]+)?\.d\.ts$/.test(filename);
+    const standardLibrary = /^lib\.es[\w.]*\.d\.ts$/.test(filename);
+
+    if (!platformLibrary && !standardLibrary) {
+        continue;
+    }
+
+    const names = platformLibrary ? browserGlobals : standardGlobals;
+    const source = readFileSync(path.join(typescriptLibrary, filename), 'utf8');
+
+    for (const match of source.matchAll(declarations)) {
+        names.add(match[1]);
+    }
+}
+
+for (const name of standardGlobals) {
+    browserGlobals.delete(name);
+}
 
 export function sourcePath(context) {
     const filename = context.filename.replaceAll('\\', '/');
@@ -229,7 +228,7 @@ const rule = {
 
             if (to.startsWith('ui/pages/')) {
                 const segment = parts.findIndex(
-                    (part, index) => index > 2 && ['model', 'ui', 'lib'].includes(part)
+                    (part, index) => index > 2 && pageSegments.has(part)
                 );
                 const implementation = parts.findIndex(part => part.includes('.page'));
                 const boundary = segment >= 0 ? segment : implementation;

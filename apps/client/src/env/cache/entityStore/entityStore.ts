@@ -159,9 +159,11 @@ export class EntityStore {
         this.assertCurrent(guard);
 
         const staged = new Map<RecordRef, NormalizedRow | undefined>();
+        const removed = new Set<RecordRef>();
         for (const write of writes) {
             if (write.kind === 'remove') {
                 staged.set(write.ref, undefined);
+                removed.add(write.ref);
 
                 continue;
             }
@@ -190,7 +192,12 @@ export class EntityStore {
 
         const prepared = new Map<
             Binding,
-            Array<{ ref: RecordRef; row: NormalizedRow | undefined; exists: boolean }>
+            Array<{
+                ref: RecordRef;
+                row: NormalizedRow | undefined;
+                exists: boolean;
+                replaces: boolean;
+            }>
         >();
         for (const [ref, row] of staged) {
             const previous = this.get(ref);
@@ -206,6 +213,7 @@ export class EntityStore {
                 ref,
                 row: row && cleanRow(row),
                 exists: previous !== undefined,
+                replaces: previous !== undefined && removed.has(ref),
             });
         }
         const batches = [...prepared].map(([binding, operations]) => {
@@ -223,10 +231,13 @@ export class EntityStore {
             const receipts: SyncAppliedReceipt[] = [];
             for (const { controls, operations } of batches) {
                 controls.begin();
-                for (const { ref, row, exists } of operations) {
+                for (const { ref, row, exists, replaces } of operations) {
                     if (row) {
+                        if (replaces) {
+                            controls.write({ type: 'delete', key: ref });
+                        }
                         controls.write({
-                            type: exists ? 'update' : 'insert',
+                            type: exists && !replaces ? 'update' : 'insert',
                             value: row,
                         });
                     } else {

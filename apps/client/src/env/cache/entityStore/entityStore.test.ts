@@ -213,22 +213,27 @@ describe('entity store', () => {
         expect(store.get(actionFixture.ref)).toBeUndefined();
     });
 
-    it('coalesces repeated writes without keeping removed intermediate rows', async () => {
+    it('replaces an existing row after removal and partial reinsertion', async () => {
         const { store } = harness();
+        await store.upsert(actionFixture.ref, actionFixture);
+        const seen: unknown[] = [];
+        store.subscribe(actionFixture.ref, () => {
+            seen.push(
+                store
+                    .snapshot()
+                    .collections.find(chunk => chunk.collectionId === 'entities:action')
+                    ?.rows[0].value
+            );
+        });
         await store.apply([
-            { kind: 'upsert', ref: actionFixture.ref, patch: actionFixture },
             { kind: 'remove', ref: actionFixture.ref },
-            {
-                kind: 'upsert',
-                ref: actionFixture.ref,
-                patch: { ...actionFixture, name: 'final' },
-            },
-        ]);
-        expect(store.get(actionFixture.ref)?.name).toBe('final');
-        await store.apply([
+            { kind: 'upsert', ref: actionFixture.ref, patch: { name: 'new' } },
             { kind: 'upsert', ref: datasetFixture.ref, patch: datasetFixture },
             { kind: 'remove', ref: datasetFixture.ref },
         ]);
+        expect(store.get(actionFixture.ref)?.name).toBe('new');
+        expect(store.get(actionFixture.ref)).not.toHaveProperty('description');
+        expect(seen).toEqual([{ ref: actionFixture.ref, name: 'new' }]);
         expect(store.get(datasetFixture.ref)).toBeUndefined();
     });
 

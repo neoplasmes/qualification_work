@@ -1,0 +1,78 @@
+import type { Action } from '@/core/entities/action';
+import type { Dataset } from '@/core/entities/dataset';
+import type { DatasetRow } from '@/core/entities/datasetRow';
+import type {
+    ActionRun,
+    Chart,
+    Dashboard,
+    DashboardItem,
+    DatasetColumn,
+    Org,
+} from '@qualification-work/types';
+
+export interface RecordRowMap {
+    user: {
+        readonly ref: `user:${string}`;
+        id: string;
+        email: string;
+        name: string;
+        family: string;
+    };
+    organization: Org & { readonly ref: `organization:${string}` };
+    dataset: Dataset;
+    datasetColumn: DatasetColumn & { readonly ref: `datasetColumn:${string}` };
+    datasetRow: DatasetRow;
+    chart: Chart & { readonly ref: `chart:${string}` };
+    dashboard: Omit<Dashboard, 'items'> & {
+        readonly ref: `dashboard:${string}`;
+        items: RecordRef<'dashboardItem'>[];
+    };
+    dashboardItem: DashboardItem & { readonly ref: `dashboardItem:${string}` };
+    action: Action;
+    actionRun: ActionRun & { readonly ref: `actionRun:${string}` };
+}
+
+export type RecordKind = keyof RecordRowMap;
+export type RecordRef<K extends RecordKind = RecordKind> = `${K}:${string}`;
+export type NormalizedRowMap = {
+    [K in RecordKind]: Partial<RecordRowMap[K]> & { readonly ref: RecordRef<K> };
+};
+export type NormalizedRow = NormalizedRowMap[RecordKind];
+export type RecordPatch<K extends RecordKind = RecordKind> = {
+    [P in K]: Partial<RecordRowMap[P]>;
+}[K];
+export type StoreWrite = {
+    [K in RecordKind]:
+        | { kind: 'upsert'; ref: RecordRef<K>; patch: RecordPatch<K> }
+        | { kind: 'remove'; ref: RecordRef<K> };
+}[RecordKind];
+
+export interface WriteGuard {
+    isCurrent(): boolean;
+    signal?: AbortSignal;
+}
+
+export interface EntitySnapshot {
+    collections: Array<{
+        collectionId: string;
+        rows: Array<
+            {
+                [K in RecordKind]: {
+                    key: RecordRef<K>;
+                    value: NormalizedRowMap[K];
+                    metadata?: unknown;
+                };
+            }[RecordKind]
+        >;
+        syncMeta?: unknown;
+    }>;
+}
+
+export interface StagingStore {
+    get<K extends RecordKind>(ref: RecordRef<K>): NormalizedRowMap[K] | undefined;
+    upsert<K extends RecordKind>(
+        ref: RecordRef<K>,
+        patch: RecordPatch<NoInfer<K>>
+    ): Promise<void>;
+    remove(ref: RecordRef): Promise<void>;
+}

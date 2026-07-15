@@ -1,0 +1,1 @@
+export { GarbageCollector } from './garbageCollector';

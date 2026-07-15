@@ -155,7 +155,7 @@ const rule = {
                             layer === 'main' ||
                             layer === 'ui' ||
                             from.startsWith('shared/ui/') ||
-                            (isCache && isHook) ||
+                            (isCache && (isHook || /^env\/cache\/context\/(?:context\.ts|cacheProvider\.tsx)$/.test(from))) ||
                             /^entry\.(?:client|server)\.tsx$/.test(from)
                         )) ||
                     (isTanstack &&

@@ -1,0 +1,1 @@
+export { queryOptionsFor } from './queryOptionsFor';

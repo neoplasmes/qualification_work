@@ -26,6 +26,8 @@ const fixtures = [
     ['rejects controller query cache imports', 'ui/pages/home/model/home.ts', '@tanstack/react-query', 1],
     ['accepts cache query integration', 'env/cache/read/read.ts', '@tanstack/react-query', 0],
     ['accepts main database integration', 'main/runtime/runtime.ts', '@tanstack/db', 0],
+    ['accepts cache React context', 'env/cache/context/context.ts', 'react', 0],
+    ['accepts cache React provider', 'env/cache/context/cacheProvider.tsx', 'react', 0],
     ['accepts cache React hooks', 'env/cache/useRead/useRead.ts', 'react', 0],
     ['rejects React outside cache hooks', 'env/cache/normalize/normalize.ts', 'react', 1],
     ['rejects transport React imports', 'env/transport/http/http.ts', 'react', 1],

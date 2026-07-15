@@ -238,3 +238,58 @@ it('does not restart collection timers after disposed reads settle', async () =>
         vi.useRealTimers();
     }
 });
+
+it.each(['clear', 'abort', 'dispose'] as const)(
+    'rejects fresh cached delivery after immediate %s',
+    async mode => {
+        const { runtime, query, store, queryClient } = createReadHarness();
+        const fresh = { ...query, name: 'fresh' };
+        runtime.registerRead(fresh, datasetCodec, { staleTime: 30_000 });
+        await runtime.read(fresh, undefined);
+
+        const controller = new AbortController();
+        const pending = runtime.read(fresh, undefined, { signal: controller.signal });
+        let clearing: Promise<void> | undefined;
+        if (mode === 'abort') {
+            controller.abort();
+        } else {
+            clearing = mode === 'clear' ? runtime.clear() : runtime.dispose();
+        }
+
+        try {
+            await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+            await clearing;
+            if (mode !== 'abort') {
+                expect(store.get(datasetFixture.ref)).toBeUndefined();
+                expect(queryClient.getQueryData(['fresh', undefined])).toBeUndefined();
+            }
+        } finally {
+            await clearing;
+            await runtime.dispose();
+        }
+    }
+);
+
+it('rejects the old epoch before fetching an incomplete cached read', async () => {
+    let calls = 0;
+    const { runtime, query, store, queryClient } = createReadHarness(async () => {
+        calls++;
+
+        return datasetFixture;
+    });
+    await runtime.read(query, undefined);
+    await store.remove(datasetFixture.ref);
+
+    const pending = runtime.read(query, undefined);
+    const clearing = runtime.clear();
+    try {
+        await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+        await clearing;
+        expect(calls).toBe(1);
+        expect(store.get(datasetFixture.ref)).toBeUndefined();
+        expect(queryClient.getQueryData(['getDataset', undefined])).toBeUndefined();
+    } finally {
+        await clearing;
+        await runtime.dispose();
+    }
+});

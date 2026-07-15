@@ -270,7 +270,7 @@ export class CacheRuntime {
                 });
             }
         }
-        if (this.disposed || options?.signal?.aborted) {
+        if (this.disposed || epoch !== this.epoch || options?.signal?.aborted) {
             throw Object.assign(new Error('Read cancelled'), { name: 'AbortError' });
         }
         const observer = new QueryObserver(this.queryClient, {
@@ -294,6 +294,9 @@ export class CacheRuntime {
                 this.queryClient.fetchQuery(settings),
                 cancellation,
             ]);
+            if (this.disposed || epoch !== this.epoch || options?.signal?.aborted) {
+                throw Object.assign(new Error('Read cancelled'), { name: 'AbortError' });
+            }
 
             return this.resolve(query, result);
         } finally {

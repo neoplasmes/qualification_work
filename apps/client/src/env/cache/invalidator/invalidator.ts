@@ -5,14 +5,28 @@ import type { CacheRuntime } from '../runtime';
 export class CacheInvalidator {
     constructor(private readonly runtime: CacheRuntime) {}
 
-    async invalidate(refs: readonly EntityRef[]): Promise<void> {
-        this.runtime.fence(refs);
+    async invalidate(
+        refs: readonly EntityRef[],
+        options?: { fenced?: boolean; epoch?: number }
+    ): Promise<void> {
+        const epoch = options?.epoch ?? this.runtime.epoch;
+        if (epoch !== this.runtime.epoch) {
+            return;
+        }
+        if (!options?.fenced) {
+            this.runtime.fence(refs);
+        }
         const predicate = (query: Parameters<CacheRuntime['matches']>[0]) =>
             this.runtime.matches(query, refs);
-        await this.runtime.queryClient.cancelQueries({ predicate });
+        if (!options?.fenced) {
+            await this.runtime.queryClient.cancelQueries({ predicate });
+        }
+        if (epoch !== this.runtime.epoch) {
+            return;
+        }
         await this.runtime.queryClient.invalidateQueries(
             { predicate },
-            { throwOnError: true }
+            { throwOnError: true, cancelRefetch: !options?.fenced }
         );
     }
 

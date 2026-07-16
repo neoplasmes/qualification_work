@@ -6,9 +6,11 @@ import {
     type QueryClient,
 } from '@tanstack/react-query';
 
+import type { Command } from '@/app/commands/command';
 import type { ReadOptions } from '@/app/ports/repos/readOptions';
 import type { Query } from '@/app/queries/query';
 
+import { CommandRunner, type CommandOutcome, type CommandPolicy } from '../commandPolicy';
 import type { EntityStore, RecordRef } from '../entityStore';
 import { GarbageCollector } from '../garbageCollector';
 import { CacheInvalidator } from '../invalidator';
@@ -40,7 +42,8 @@ export class CacheRuntime {
     >();
     private readonly unsubscribe: () => void;
     private disposed = false;
-    private clearing?: Promise<void>;
+    clearing?: Promise<void>;
+    readonly commands = new CommandRunner(this);
     private cleanup?: Promise<void>;
 
     constructor(
@@ -114,6 +117,24 @@ export class CacheRuntime {
         policy?: ReadPolicy<I>
     ): void {
         this.registry.register(query, codec, policy);
+    }
+
+    registerCommand<I, O>(command: Command<I, O>, policy: CommandPolicy<I, O>): void {
+        this.commands.register(command, policy);
+    }
+
+    runCommand<I, O>(
+        command: Command<I, O>,
+        input: I,
+        epoch = this.epoch
+    ): Promise<CommandOutcome<O>> {
+        return this.commands.run(command, input, epoch);
+    }
+
+    async execute<I, O>(command: Command<I, O>, input: I): Promise<O> {
+        const result = await this.runCommand(command, input);
+
+        return result.data;
     }
 
     matches(query: CachedQuery, refs?: readonly EntityRef[]): boolean {
@@ -196,6 +217,10 @@ export class CacheRuntime {
             dependencies.every(
                 (ref, index) => (this.generations.get(ref) ?? 0) === generations[index]
             );
+        const barrier = this.commands.wait(dependencies, signal);
+        if (barrier) {
+            await barrier;
+        }
         if (this.clearing) {
             await this.clearing;
         }
@@ -308,6 +333,7 @@ export class CacheRuntime {
 
     clear(): Promise<void> {
         this.epoch++;
+        this.commands.retire(this.disposed);
         this.leases.clear();
         this.transientLeases.clear();
         for (const abort of this.waiters) {

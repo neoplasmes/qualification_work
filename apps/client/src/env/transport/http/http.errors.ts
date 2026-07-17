@@ -14,3 +14,10 @@ export class HttpError extends Error {
         this.name = 'HttpError';
     }
 }
+
+export class ContractViolationError extends Error {
+    constructor(message = 'Invalid response data', options?: ErrorOptions) {
+        super(message, options);
+        this.name = 'ContractViolationError';
+    }
+}

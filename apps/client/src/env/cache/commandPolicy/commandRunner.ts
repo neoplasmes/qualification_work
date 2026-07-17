@@ -108,10 +108,20 @@ export class CommandRunner {
             let data: O;
             let syncError: unknown = null;
             let writes = affected;
+            const cancelled = new Map<Parameters<CacheRuntime['matches']>[0], number>();
             try {
                 this.runtime.fence(affected);
                 await this.runtime.queryClient.cancelQueries({
-                    predicate: query => this.runtime.matches(query, affected),
+                    predicate: query => {
+                        if (!this.runtime.matches(query, affected)) {
+                            return false;
+                        }
+                        if (query.state.fetchStatus !== 'idle') {
+                            cancelled.set(query, query.state.dataUpdateCount);
+                        }
+
+                        return true;
+                    },
                 });
                 if (!isCurrent()) {
                     throw Object.assign(new Error('Command cancelled'), {
@@ -195,6 +205,25 @@ export class CommandRunner {
                         fenced: true,
                         epoch,
                     });
+                } catch (error) {
+                    syncError ??= error;
+                }
+                if (!isCurrent()) {
+                    throw Object.assign(new Error('Command cancelled'), {
+                        name: 'AbortError',
+                    });
+                }
+
+                try {
+                    await this.runtime.queryClient.refetchQueries(
+                        {
+                            type: 'active',
+                            predicate: query =>
+                                cancelled.get(query) === query.state.dataUpdateCount &&
+                                !this.runtime.matches(query, writes),
+                        },
+                        { cancelRefetch: false, throwOnError: true }
+                    );
                 } catch (error) {
                     syncError ??= error;
                 }

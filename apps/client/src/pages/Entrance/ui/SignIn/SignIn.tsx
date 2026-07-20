@@ -10,7 +10,7 @@ import signInStyles from './SignIn.module.scss';
 const styles = { ...formStyles, ...signInStyles };
 
 export const SignIn = () => {
-    const { login, waitForWorkspace, isPreparingWorkspace, session } =
+    const { login, waitForWorkspace, isPreparingWorkspace, session, lifetime } =
         useAuthentication();
     const [error, setError] = useState('');
     const isBusy = login.isPending || isPreparingWorkspace;
@@ -25,9 +25,15 @@ export const SignIn = () => {
 
         try {
             await session.reset();
+            if (!lifetime.active) {
+                return;
+            }
             await login.execute({ email, password });
             await waitForWorkspace();
         } catch (submitError) {
+            if (!lifetime.active) {
+                return;
+            }
             setError(getApiErrorMessage(submitError, 'Unable to sign in right now.'));
         }
     };

@@ -7,7 +7,7 @@ import { getApiErrorMessage } from '@/shared/api';
 import styles from '../form.module.scss';
 
 export const SignUp = () => {
-    const { login, register, waitForWorkspace, isPreparingWorkspace, session } =
+    const { login, register, waitForWorkspace, isPreparingWorkspace, session, lifetime } =
         useAuthentication();
     const [error, setError] = useState('');
     const isBusy = register.isPending || login.isPending || isPreparingWorkspace;
@@ -24,10 +24,19 @@ export const SignUp = () => {
 
         try {
             await register.execute({ email, password, name, family });
+            if (!lifetime.active) {
+                return;
+            }
             await session.reset();
+            if (!lifetime.active) {
+                return;
+            }
             await login.execute({ email, password });
             await waitForWorkspace();
         } catch (submitError) {
+            if (!lifetime.active) {
+                return;
+            }
             setError(
                 getApiErrorMessage(submitError, 'Unable to create account right now.')
             );

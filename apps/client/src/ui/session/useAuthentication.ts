@@ -8,9 +8,21 @@ export function useAuthentication() {
     const login = useCommand(dependencies.login);
     const register = useCommand(dependencies.register);
     const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(false);
+    const lifetime = useRef({ active: true }).current;
     const controller = useRef<AbortController | undefined>(undefined);
-    useEffect(() => () => controller.current?.abort(), []);
+    useEffect(() => {
+        lifetime.active = true;
+
+        return () => {
+            lifetime.active = false;
+            controller.current?.abort();
+        };
+    }, [lifetime]);
+
     const waitForWorkspace = async () => {
+        if (!lifetime.active) {
+            return;
+        }
         controller.current?.abort();
         const current = new AbortController();
         controller.current = current;
@@ -29,6 +41,7 @@ export function useAuthentication() {
         register,
         isPreparingWorkspace,
         waitForWorkspace,
+        lifetime: lifetime as Readonly<typeof lifetime>,
         session: dependencies.session,
     };
 }

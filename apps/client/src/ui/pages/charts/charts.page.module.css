@@ -1,0 +1,52 @@
+.panel {
+    overflow: hidden;
+}
+
+.scroll-area {
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.placeholder {
+    min-height: 240px;
+
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: rgb(255 255 255 / 25%);
+    text-align: center;
+}
+
+.tabs-row {
+    > :first-child {
+        width: auto;
+        flex: 0 1 auto;
+    }
+}
+
+.tabs-actions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    margin-left: auto;
+}
+
+.top-line-block {
+    height: var(--top-line-height);
+    min-height: var(--top-line-height);
+    max-height: var(--top-line-height);
+}
+
+.eyebrow {
+    color: var(--color-outline);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.title {
+    font-family: var(--font-headline);
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+}

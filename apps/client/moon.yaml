@@ -7,6 +7,7 @@ dependsOn:
 - primitive-server
 - types
 - eslint-plugin-fsd
+- design-system
 fileGroups:
   src:
   - '{src,server,vite}/**/*.{ts,tsx}'
@@ -72,6 +73,8 @@ tasks:
     - &id002
       project: eslint-plugin-fsd
       group: src
+    - project: design-system
+      group: src
   test-unit:
     command: pnpm exec vitest run --maxWorkers 2
     inputs:
@@ -81,6 +84,10 @@ tasks:
     - '@group(css)'
     - *id001
     - *id002
+    - project: design-system
+      group: src
+    - project: design-system
+      group: css
     deps: *id003
   dev:
     command: pnpm exec tsx server/server.ts
@@ -116,6 +123,10 @@ tasks:
     - '@group(assets)'
     - *id004
     - *id005
+    - project: design-system
+      group: src
+    - project: design-system
+      group: css
     outputs:
     - dist/server
     deps:
@@ -131,6 +142,10 @@ tasks:
     - '@group(assets)'
     - *id004
     - *id005
+    - project: design-system
+      group: src
+    - project: design-system
+      group: css
     outputs:
     - dist/client
     deps:

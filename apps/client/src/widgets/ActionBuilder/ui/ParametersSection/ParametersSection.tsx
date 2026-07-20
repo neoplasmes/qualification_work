@@ -1,6 +1,7 @@
+import { Button } from '@qualification-work/design-system';
 import { Plus } from 'lucide-react';
 
-import { Button, Card } from '@/shared/ui';
+import { Card } from '@/shared/ui';
 
 import { actionBuilderTestIds } from '../../const';
 import { actionBuilderConfig, createBlankParameterDraft } from '../../model';

@@ -1,6 +1,6 @@
 import type { ChartConfig, TimeGranularity } from '@qualification-work/types';
 
-import { createConfig } from '@/features/Config';
+import { createConfig } from '@/shared/ui/tools/Config';
 
 import {
     createMeasureDraft,

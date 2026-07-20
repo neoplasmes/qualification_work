@@ -1,4 +1,4 @@
-import { useRafElementSize } from '@/shared/lib/useRafElementSize';
+import { useRafElementSize } from '@/shared/ui/tools/useRafElementSize';
 
 type UseRafChartSizeOptions = {
     ignoreHeight?: boolean;

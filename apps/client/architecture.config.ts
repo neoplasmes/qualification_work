@@ -19,27 +19,402 @@ const architecture = {
         'app/ui',
     ],
     legacyImports: [
-        { from: 'main/router/routes.tsx', to: 'app/ui/Layout' },
-        { from: 'main/router/routes.tsx', to: 'app/ui/WorkspaceLayout' },
-        { from: 'main/router/routes.tsx', to: 'pages/Entrance' },
-        { from: 'main/router/routes.tsx', to: 'pages/Profile' },
-        { from: 'main/dependencies/dependencies.ts', to: 'app/model/store' },
-        { from: 'main/sessionLifecycle/sessionLifecycle.ts', to: 'app/model/store' },
+        {
+            from: 'ui/pages/charts/model/pageState/pageState.store.ts',
+            to: 'widgets/ChartBuilder',
+        },
+        {
+            from: 'main/dependencies/dependencies.ts',
+            to: 'app/model/store',
+        },
         {
             from: 'main/sessionLifecycle/sessionLifecycle.ts',
-            to: 'app/model/persistence',
+            to: 'app/model/store',
         },
-        { from: 'main/sessionLifecycle/sessionLifecycle.ts', to: 'pages/Actions' },
-        { from: 'main/sessionLifecycle/sessionLifecycle.ts', to: 'pages/Datasets' },
-        { from: 'main/sessionLifecycle/sessionLifecycle.ts', to: 'pages/Dashboards' },
         {
-            from: 'main/sessionLifecycle/sessionLifecycle.ts',
-            to: 'features/filterApplicationEntities',
+            from: 'ui/pages/actions/Actions.page.tsx',
+            to: 'entities/action',
         },
-        { from: 'shared/model/useAppSelector/useAppSelector.ts', to: 'app/model/store' },
-        { from: 'shared/lib/useHasMounted/useHasMounted.tsx', to: 'react' },
-        { from: 'shared/lib/useRafElementSize/useRafElementSize.ts', to: 'react' },
-        { from: 'shared/lib/useRafThrottle/useRafThrottle.ts', to: 'react' },
+        {
+            from: 'ui/pages/actions/const/testIds.ts',
+            to: 'widgets/ActionBuilder',
+        },
+        {
+            from: 'ui/pages/actions/lib/actionRunValues.ts',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/lib/actionRunValues.ts',
+            to: 'widgets/ActionBuilder',
+        },
+        {
+            from: 'ui/pages/actions/lib/uiHelpers.ts',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/lib/uiHelpers.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ActionEditor.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ActionEditor.tsx',
+            to: 'widgets/ActionBuilder',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
+            to: 'features/manageActions',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
+            to: 'widgets/ActionBuilder',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionRunTab/ActionRunTab.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionRunTab/ActionRunTab.tsx',
+            to: 'features/manageActions',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionRunTab/ui/RunForm/RunForm.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionsHistory/ActionsHistory.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionsLeftPanel/ActionsLeftPanel.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
+            to: 'features/manageActions',
+        },
+        {
+            from: 'ui/pages/actions/ui/ActionsRightPanel/ActionsRightPanel.tsx',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/pages/charts/Charts.page.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/charts/Charts.page.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/charts/Charts.page.tsx',
+            to: 'widgets/ChartBuilder',
+        },
+        {
+            from: 'ui/pages/charts/lib/useChartDataResult.ts',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartBuilderSection/CreateChartBuilderSection.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartBuilderSection/CreateChartBuilderSection.tsx',
+            to: 'widgets/ChartBuilder',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
+            to: 'features/buildChart',
+        },
+        {
+            from: 'ui/pages/charts/ui/SavedChartDetails/SavedChartDetails.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/charts/ui/SavedChartDetails/SavedChartDetails.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/charts/ui/SelectDatasetForChartModal/SelectDatasetForChartModal.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/Dashboards.page.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/dashboards/Dashboards.page.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/Dashboards.page.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/Dashboards.page.tsx',
+            to: 'features/manageDashboards',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/AddChartModal/AddChartModal.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/AddChartModal/AddChartModal.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/DashboardMetricModal.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/DashboardMetricModal.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/DashboardMetricModal.tsx',
+            to: 'widgets/MetricBuilder',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
+            to: 'features/manageDashboards',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
+            to: 'widgets/MetricBuilder',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/DashboardWidgets.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/DashboardWidgets.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/test/DashboardWidgets.testData.ts',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/ChartWidget/ChartWidget.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/ChartWidget/ChartWidget.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/MetricWidget.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/MetricWidget.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/lib/metricGoal.ts',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/lib/metricTrendDescription.ts',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/lib/metricTrendDescription.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardsLeftPanel/DashboardsLeftPanel.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardsLeftPanel/DashboardsLeftPanel.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardsLeftPanel/DashboardsLeftPanel.tsx',
+            to: 'features/manageDashboards',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardsPropertiesPanel/DashboardsPropertiesPanel.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/dashboards/ui/DashboardsPropertiesPanel/DashboardsPropertiesPanel.tsx',
+            to: 'features/manageDashboards',
+        },
+        {
+            from: 'ui/pages/datasets/Datasets.page.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetColumnContextMenu/DatasetColumnContextMenu.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetGrid/types.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetGrid/ui/DatasetGridEditor/DatasetGridEditor.tsx',
+            to: 'features/manageDatasetTableOptions',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/DatasetWorkspace.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetCellValue.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetCellValueHandlers.ts',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetDateCellValue.ts',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetCellEditing.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetColumnActions.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetRowActions.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetRowSelection.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetRowsCache.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/DatasetsPropertiesPanel/DatasetsPropertiesPanel.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/MergeDatasetModal/MergeDatasetModal.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/MergeDatasetModal/MergeDatasetModal.tsx',
+            to: 'features/uploadDataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/MergeDatasetModal/ui/MergeKeyChips/MergeKeyChips.tsx',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/MergeDatasetModal/ui/MergePreviewStep/MergePreviewStep.tsx',
+            to: 'features/uploadDataset',
+        },
+        {
+            from: 'ui/pages/datasets/ui/UploadDatasetModal/UploadDatasetModal.tsx',
+            to: 'features/uploadDataset',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/lib/createFilterPanelItems.ts',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/lib/createFilterPanelItems.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
+            to: 'entities/action',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
+            to: 'entities/chart',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
+            to: 'entities/dashboard',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
+            to: 'entities/dataset',
+        },
+        {
+            from: 'ui/widgets/FilterPanel/FilterPanel.widget.tsx',
+            to: 'entities/chart',
+        },
     ] satisfies Array<{ from: string; to: string }>,
 };
 

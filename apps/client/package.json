@@ -12,6 +12,7 @@
     ],
     "dependencies": {
         "@glideapps/glide-data-grid": "^6.0.3",
+        "@qualification-work/design-system": "workspace:*",
         "@qualification-work/types": "workspace:*",
         "@reduxjs/toolkit": "^2.11.2",
         "@tanstack/db": "0.15.1",
@@ -31,6 +32,7 @@
         "es-toolkit": "catalog:common",
         "gridstack": "^12.6.0",
         "idb": "^8.0.3",
+        "immer": "11.1.4",
         "lucide-react": "^1.14.0",
         "motion": "^12.38.0",
         "primitive-server": "workspace:*",

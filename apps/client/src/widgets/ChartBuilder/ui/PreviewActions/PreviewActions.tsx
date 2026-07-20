@@ -1,6 +1,5 @@
+import { Button } from '@qualification-work/design-system';
 import { PencilLine, Save } from 'lucide-react';
-
-import { Button } from '@/shared/ui';
 
 type PreviewActionsProps = {
     editMode: boolean;
@@ -16,15 +15,15 @@ export const PreviewActions = ({
     onSave,
 }: PreviewActionsProps) => (
     <div data-stack="h" data-gap="sm" data-align="center">
-        <Button type="button" size="sm" onClick={onBackToConfig}>
+        <Button type="button" size="regular" onClick={onBackToConfig}>
             <PencilLine size={16} />
             Edit
         </Button>
         <Button
             type="button"
-            size="sm"
+            size="regular"
             disabled={isSaving}
-            isLoading={isSaving}
+            aria-busy={isSaving}
             onClick={onSave}
         >
             <Save size={16} />

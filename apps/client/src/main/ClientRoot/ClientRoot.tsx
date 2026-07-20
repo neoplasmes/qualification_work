@@ -22,7 +22,11 @@ export function ClientRoot({
     return (
         <dependenciesContext.Provider value={runtime.dependencies}>
             <CacheProvider runtime={runtime.cache}>
-                <Provider store={runtime.legacyStore}>{content}</Provider>
+                <Provider store={runtime.legacyStore}>
+                    <div data-theme="paper" style={{ height: '100%' }}>
+                        {content}
+                    </div>
+                </Provider>
             </CacheProvider>
         </dependenciesContext.Provider>
     );

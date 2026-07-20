@@ -7,8 +7,8 @@ $spacing-map: (
     'lg': 32,
     'lg-plus': 48,
     'xl': 64,
-    '2xl': 128,
-    '3xl': 192,
+    '2xl': 80,
+    '3xl': 120,
 );
 
 :root {
@@ -16,11 +16,11 @@ $spacing-map: (
         --spacing-#{$key}: calc(#{$value} / 16 * 1rem);
     }
 
-    --radius-xs: 0.5rem;
-    --radius-sm: 1rem;
-    --radius-md: 1.5rem;
-    --radius-lg: 2rem;
-    --top-line-height: 2.25rem;
+    --radius-xs: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --top-line-height: 52px;
 }
 
 @mixin top-line-block {
@@ -29,7 +29,7 @@ $spacing-map: (
     max-height: var(--top-line-height);
 }
 
-$display-values: block, inline, inline-block, inline-flex, flex, grid, none;
+$display-values: block, inline, inline-block, inline-flex, flex, none;
 
 @each $value in $display-values {
     [data-display='#{$value}'] {

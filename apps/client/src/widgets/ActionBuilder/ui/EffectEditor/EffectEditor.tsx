@@ -1,9 +1,8 @@
+import { Button, Divider } from '@qualification-work/design-system';
 import { Plus } from 'lucide-react';
 import { Fragment, useMemo } from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
-
-import { Button, Separator } from '@/shared/ui';
 
 import { actionBuilderTestIds } from '../../const';
 import {
@@ -64,7 +63,7 @@ export const EffectEditor = ({
         <>
             <div
                 className={styles['effect-section']}
-                data-display="grid"
+                data-stack="v"
                 data-gap="md"
                 data-py="md"
                 data-test-id={actionBuilderTestIds.effectCard}
@@ -84,7 +83,7 @@ export const EffectEditor = ({
                     <>
                         <div
                             className={styles['form-grid']}
-                            data-display="grid"
+                            data-stack="v"
                             data-gap="sm"
                             data-align="start"
                         >
@@ -97,7 +96,7 @@ export const EffectEditor = ({
                             />
                         </div>
 
-                        <div data-display="grid" data-gap="sm">
+                        <div data-stack="v" data-gap="sm">
                             <div
                                 data-stack="h"
                                 data-gap="sm"
@@ -107,7 +106,7 @@ export const EffectEditor = ({
                                 <span className={styles['eyebrow']}>Column values</span>
                                 <Button
                                     className={styles['add-value-button']}
-                                    tone="transparent"
+                                    variant="ghost"
                                     data-test-id={actionBuilderTestIds.addValueButton}
                                     disabled={disabled}
                                     onClick={handleAddValue}
@@ -118,13 +117,13 @@ export const EffectEditor = ({
                             </div>
                             <div
                                 className={styles['values-card']}
-                                data-display="grid"
+                                data-stack="v"
                                 data-gap="sm"
                                 data-p="md"
                             >
                                 {effect.values.map((mapping, mappingIndex) => (
                                     <Fragment key={mapping.id}>
-                                        {mappingIndex > 0 && <Separator />}
+                                        {mappingIndex > 0 && <Divider />}
                                         <MappingRow
                                             effect={effect}
                                             mapping={mapping}
@@ -139,7 +138,7 @@ export const EffectEditor = ({
                     </>
                 )}
             </div>
-            {index < effectsCount - 1 && <Separator />}
+            {index < effectsCount - 1 && <Divider />}
         </>
     );
 };

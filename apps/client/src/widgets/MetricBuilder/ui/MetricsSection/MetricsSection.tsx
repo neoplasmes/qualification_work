@@ -1,6 +1,8 @@
+import { Field } from '@qualification-work/design-system';
+
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { FormField, Slider } from '@/shared/ui';
+import { Slider } from '@/shared/ui';
 
 import { metricBuilderTestIds } from '../../const';
 import { metricBuilderConfig } from '../../model';
@@ -53,7 +55,7 @@ export const MetricsSection = ({
 
     return (
         <metricBuilderConfig.Section name="Metrics" className={styles['section']}>
-            <FormField label="Dataset">
+            <Field label="Dataset">
                 <metricBuilderConfig.Select
                     field="datasetId"
                     data-test-id={metricBuilderTestIds.datasetSelect}
@@ -64,8 +66,8 @@ export const MetricsSection = ({
                         </option>
                     ))}
                 </metricBuilderConfig.Select>
-            </FormField>
-            <FormField label="Metric name">
+            </Field>
+            <Field label="Metric name">
                 <metricBuilderConfig.Input
                     field="name"
                     data-test-id={metricBuilderTestIds.nameInput}
@@ -74,8 +76,8 @@ export const MetricsSection = ({
                         onMetricNameDirtyChange(true);
                     }}
                 />
-            </FormField>
-            <FormField label="Format">
+            </Field>
+            <Field label="Format">
                 <metricBuilderConfig.Input
                     field="format"
                     data-test-id={metricBuilderTestIds.formatInput}
@@ -83,8 +85,8 @@ export const MetricsSection = ({
                     placeholder="%, ₽, шт"
                     onValueChange={handleFormatValueChange}
                 />
-            </FormField>
-            <FormField label="Multiplier">
+            </Field>
+            <Field label="Multiplier">
                 <div
                     className={styles['multiplier-row']}
                     data-stack="h"
@@ -112,7 +114,7 @@ export const MetricsSection = ({
                         }
                     />
                 </div>
-            </FormField>
+            </Field>
         </metricBuilderConfig.Section>
     );
 };

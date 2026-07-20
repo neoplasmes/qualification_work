@@ -1,0 +1,41 @@
+import type {
+    FilterApplicationEffectKind,
+    FilterApplicationScope,
+    FilterApplicationTabConfig,
+} from '@/core/processes/entityFiltering';
+
+type FilterApplicationEntityConfig = {
+    tabs: readonly FilterApplicationTabConfig[];
+};
+
+export const filterApplicationEntityConfigs = {
+    actions: {
+        tabs: [
+            { entity: 'datasets', label: 'Datasets' },
+            { entity: 'effects', label: 'Effects' },
+        ],
+    },
+    charts: {
+        tabs: [
+            { entity: 'datasets', label: 'Datasets' },
+            { entity: 'dashboards', label: 'Dashboards' },
+        ],
+    },
+    dashboards: {
+        tabs: [
+            { entity: 'charts', label: 'Charts' },
+            { entity: 'datasets', label: 'Datasets' },
+        ],
+    },
+    datasets: {
+        tabs: [
+            { entity: 'charts', label: 'Charts' },
+            { entity: 'dashboards', label: 'Dashboards' },
+        ],
+    },
+} as const satisfies Record<FilterApplicationScope, FilterApplicationEntityConfig>;
+
+export const filterApplicationEffectKinds = [
+    'insertRow',
+    'updateRowsByMatch',
+] as const satisfies readonly FilterApplicationEffectKind[];

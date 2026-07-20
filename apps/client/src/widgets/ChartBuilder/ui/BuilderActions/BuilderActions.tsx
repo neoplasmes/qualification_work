@@ -1,6 +1,5 @@
+import { Button } from '@qualification-work/design-system';
 import { Play, Save } from 'lucide-react';
-
-import { Button } from '@/shared/ui';
 
 type BuilderActionsProps = {
     canPreview: boolean;
@@ -23,9 +22,9 @@ export const BuilderActions = ({
         <Button
             type="submit"
             form={formId}
-            size="sm"
-            disabled={!canPreview || previewLoading}
-            isLoading={previewLoading}
+            size="regular"
+            disabled={!canPreview || previewLoading || previewLoading}
+            aria-busy={previewLoading}
         >
             <Play size={16} />
             Preview
@@ -33,9 +32,9 @@ export const BuilderActions = ({
         {editMode && (
             <Button
                 type="button"
-                size="sm"
-                disabled={!canPreview || isSaving}
-                isLoading={isSaving}
+                size="regular"
+                disabled={!canPreview || isSaving || isSaving}
+                aria-busy={isSaving}
                 onClick={onSaveWithoutPreview}
             >
                 <Save size={16} />

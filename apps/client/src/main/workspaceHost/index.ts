@@ -1,0 +1,1 @@
+export { WorkspaceHost } from './WorkspaceHost';

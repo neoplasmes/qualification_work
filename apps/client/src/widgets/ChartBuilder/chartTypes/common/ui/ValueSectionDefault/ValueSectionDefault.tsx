@@ -1,11 +1,10 @@
+import { Button, Field, IconButton } from '@qualification-work/design-system';
 import { aggregates } from '@qualification-work/types';
 import { Plus, Trash2 } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 import { aggregateLabels } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
-
-import { Button, FormField, IconButton } from '@/shared/ui';
 
 import type { ChartTypeSettingsProps } from '../../../../model';
 
@@ -102,7 +101,7 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                             >{`Y value ${index + 1}`}</span>
                             {canRemoveMeasure && (
                                 <IconButton
-                                    tone="nav"
+                                    variant="ghost"
                                     data-p="none"
                                     className={styles['measure-remove']}
                                     aria-label={`Remove Y value ${index + 1}`}
@@ -114,7 +113,7 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                         </div>
 
                         <config-section-body>
-                            <FormField label="Aggregation">
+                            <Field label="Aggregation">
                                 <config.Select bind={measureBinds.aggregate}>
                                     {aggregates.map(item => (
                                         <option key={item} value={item}>
@@ -122,10 +121,10 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                                         </option>
                                     ))}
                                 </config.Select>
-                            </FormField>
+                            </Field>
 
                             {measure.aggregate !== 'count' && (
-                                <FormField label="Column">
+                                <Field label="Column">
                                     <config.Select bind={measureBinds.columnId}>
                                         {acceptableMeasureColumns.columns.map(column => (
                                             <option
@@ -137,16 +136,16 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                                             </option>
                                         ))}
                                     </config.Select>
-                                </FormField>
+                                </Field>
                             )}
 
-                            <FormField label="Value format">
+                            <Field label="Value format">
                                 <config.Input
                                     bind={measureBinds.valueFormat}
                                     maxLength={measureValueFormatMaxLength}
                                     placeholder="%, ₽, шт"
                                 />
-                            </FormField>
+                            </Field>
 
                             {renderMeasureExtra?.(measure, index)}
                             {children}

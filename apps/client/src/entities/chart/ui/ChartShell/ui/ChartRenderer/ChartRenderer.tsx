@@ -1,7 +1,7 @@
 import type { ChartResultColumn } from '@qualification-work/types';
 import { lazy } from 'react';
 
-import { ClientOnlyDeffered } from '@/shared/ui/ClientOnlyDeffered';
+import { ClientOnlyDeffered } from '@/shared/ui/tools/ClientOnlyDeffered';
 
 import type { ChartKind } from '../../../../lib/chartKind';
 import type {

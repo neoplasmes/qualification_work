@@ -1,9 +1,8 @@
+import { Field } from '@qualification-work/design-system';
 import { metricTimeBuckets } from '@qualification-work/types';
 import { useMemo } from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
-
-import { FormField } from '@/shared/ui';
 
 import { metricBuilderConfig } from '../../model';
 
@@ -32,7 +31,7 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
             enabledField="showTrend"
             className={styles['section']}
         >
-            <FormField label="Time column">
+            <Field label="Time column">
                 <metricBuilderConfig.Select field="timeColumn">
                     <option value="">Auto</option>
                     {dateColumns.map(column => (
@@ -41,8 +40,8 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
                         </option>
                     ))}
                 </metricBuilderConfig.Select>
-            </FormField>
-            <FormField label="Bucket">
+            </Field>
+            <Field label="Bucket">
                 <metricBuilderConfig.Select field="timeBucket">
                     <option value="">Auto</option>
                     {metricTimeBuckets.map(bucket => (
@@ -51,7 +50,7 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
                         </option>
                     ))}
                 </metricBuilderConfig.Select>
-            </FormField>
+            </Field>
         </metricBuilderConfig.Section>
     );
 };

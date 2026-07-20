@@ -1,0 +1,17 @@
+.workspace-grid-group {
+    display: flex;
+    flex-flow: var(--direction, row) nowrap;
+    flex-grow: 1;
+    overflow: hidden;
+    gap: 0;
+    padding: var(--space-24);
+}
+
+@media (width <= 1000px) {
+    .workspace-grid-group {
+        flex-direction: column;
+        overflow: visible;
+        gap: var(--space-20);
+        padding: var(--space-20);
+    }
+}

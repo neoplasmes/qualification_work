@@ -1,8 +1,7 @@
+import { IconButton } from '@qualification-work/design-system';
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, X } from 'lucide-react';
 
 import { getEffectLabel } from '@/entities/action';
-
-import { IconButton } from '@/shared/ui';
 
 import { actionBuilderConfig, type ActionEffectDraft } from '../../model';
 
@@ -60,14 +59,14 @@ export const EffectHeader = ({
             </div>
             <div data-stack="h" data-gap="xs">
                 <IconButton
-                    tone="nav"
+                    variant="ghost"
                     aria-label={collapsed ? 'Expand effect' : 'Collapse effect'}
                     onClick={onToggleCollapse}
                 >
                     {collapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
                 </IconButton>
                 <IconButton
-                    tone="nav"
+                    variant="ghost"
                     aria-label="Move effect up"
                     disabled={disabled || index === 0}
                     onClick={handleMoveEffectUp}
@@ -75,7 +74,7 @@ export const EffectHeader = ({
                     <ArrowUp size={20} />
                 </IconButton>
                 <IconButton
-                    tone="nav"
+                    variant="ghost"
                     aria-label="Move effect down"
                     disabled={disabled || index === effectsCount - 1}
                     onClick={handleMoveEffectDown}
@@ -83,7 +82,7 @@ export const EffectHeader = ({
                     <ArrowDown size={20} />
                 </IconButton>
                 <IconButton
-                    tone="nav"
+                    variant="ghost"
                     aria-label="Remove effect"
                     disabled={disabled || effectsCount === 1}
                     onClick={handleRemoveEffect}

@@ -1,0 +1,15 @@
+.panel {
+    overflow: auto;
+
+    min-height: 0;
+}
+
+.toolbar {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+.entity-tabs {
+    flex: 1 1 auto;
+}

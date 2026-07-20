@@ -1,9 +1,8 @@
+import { Field } from '@qualification-work/design-system';
 import { timeGranularities } from '@qualification-work/types';
 
 import { GRANULARITY_LABELS } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
-
-import { FormField } from '@/shared/ui';
 
 import type { ChartTypeSettingsProps } from '../../../../model';
 import { groupingLabels } from '../../../common/const';
@@ -59,7 +58,7 @@ export const ChartPieChartSection = ({
 
     return (
         <config.Section name="Chart">
-            <FormField label="Slice by">
+            <Field label="Slice by">
                 <config.Select
                     bind={chartPieChartSectionBinds.dimensionColumnId(
                         columns,
@@ -76,9 +75,9 @@ export const ChartPieChartSection = ({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
-            <FormField label="Group by">
+            <Field label="Group by">
                 <config.Select
                     bind={chartPieChartSectionBinds.dimensionGroupingMode(groupingModes)}
                     disabled={groupingModes.length === 1}
@@ -89,10 +88,10 @@ export const ChartPieChartSection = ({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
             {draft.dimensionGroupingMode === 'time' && (
-                <FormField label="Time unit">
+                <Field label="Time unit">
                     <config.Select field="dimensionGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -100,17 +99,17 @@ export const ChartPieChartSection = ({
                             </option>
                         ))}
                     </config.Select>
-                </FormField>
+                </Field>
             )}
 
             {draft.dimensionGroupingMode === 'numeric' && (
-                <FormField label="Bucket size">
+                <Field label="Bucket size">
                     <config.Input
                         bind={chartPieChartSectionBinds.dimensionStep}
                         type="number"
                         min={1}
                     />
-                </FormField>
+                </Field>
             )}
         </config.Section>
     );

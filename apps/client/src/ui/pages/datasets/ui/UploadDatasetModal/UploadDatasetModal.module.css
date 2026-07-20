@@ -1,0 +1,116 @@
+.dropzone {
+    cursor: pointer;
+
+    border: 1px solid var(--color-outline);
+    border-radius: var(--radius-sm);
+
+    background: transparent;
+
+    transition: border-color 0.2s ease;
+
+    &:hover,
+    &:focus-within {
+        border-color: var(--color-on-surface);
+    }
+}
+
+.file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.muted {
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-on-surface-variant);
+}
+
+.mode-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.section-title {
+    color: var(--color-outline);
+    font-size: var(--font-size-xs);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tab {
+    cursor: pointer;
+
+    display: inline-flex;
+    flex: 1 1 0;
+    gap: var(--spacing-xs);
+    align-items: center;
+    justify-content: center;
+
+    min-height: 36px;
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    font-size: var(--font-size-xs);
+    font-weight: 800;
+    color: var(--color-on-surface-variant);
+
+    background-color: var(--color-surface-container-low);
+
+    &:focus {
+        outline: none;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &.active {
+        border-color: var(--color-on-surface);
+        color: var(--color-on-surface);
+        background-color: var(--color-surface-container);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        color: var(--color-outline);
+        background-color: var(--color-surface-container-lowest);
+    }
+}
+
+.schema-note {
+    font-size: var(--font-size-xs);
+    color: var(--color-on-surface-variant);
+}
+
+.file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.file-chip {
+    display: inline-flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+
+    max-width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-outline-new);
+    border-radius: var(--radius-xs);
+
+    color: var(--color-on-surface);
+
+    background-color: var(--color-surface-container);
+}
+
+.file-name {
+    overflow: hidden;
+
+    font-size: var(--font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

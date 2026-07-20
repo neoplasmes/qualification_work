@@ -1,0 +1,16 @@
+.page {
+    padding: var(--space-24);
+}
+
+.document {
+    max-width: 640px;
+    padding: var(--space-40);
+    overflow-wrap: anywhere;
+}
+
+@media (width <= 700px) {
+    .page,
+    .document {
+        padding: var(--space-20);
+    }
+}

@@ -1,8 +1,7 @@
+import { Divider, Field, Input, Select } from '@qualification-work/design-system';
 import type { ChartType } from '@qualification-work/types';
 
 import type { DatasetMetadata } from '@/entities/dataset';
-
-import { FormField, Select, Separator, TextInput } from '@/shared/ui';
 
 import { chartDefinitions, type ChartBuilderDraft } from '../../model';
 import { ColorPickerControl } from '../ColorPickerControl';
@@ -33,22 +32,22 @@ export const AppearanceSection = ({
             data-gap="sm"
             data-align="center"
         >
-            <Separator data-flex />
+            <Divider data-flex />
             <span>Appearance</span>
         </div>
 
         <config-section-body data-stack="v" data-gap="sm">
             {!editMode && (
-                <FormField label="Chart name">
-                    <TextInput
+                <Field label="Chart name">
+                    <Input
                         value={value.chartName}
                         placeholder={`${selectedDataset.dataset.name} chart`}
                         onChange={event => onNameChange(event.target.value)}
                     />
-                </FormField>
+                </Field>
             )}
 
-            <FormField label="Chart type">
+            <Field label="Chart type">
                 <Select
                     value={value.chartType}
                     onChange={event => onTypeChange(event.target.value as ChartType)}
@@ -59,7 +58,7 @@ export const AppearanceSection = ({
                         </option>
                     ))}
                 </Select>
-            </FormField>
+            </Field>
 
             <ColorPickerControl value={value.chartColor} onChange={onColorChange} />
         </config-section-body>

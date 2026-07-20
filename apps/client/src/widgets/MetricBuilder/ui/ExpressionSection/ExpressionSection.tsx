@@ -1,8 +1,9 @@
+import { Field } from '@qualification-work/design-system';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { FormField, SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
+import { SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
 
 import { metricBuilderTestIds } from '../../const';
 import { metricAggregateOptions, type MetricExpressionMode } from '../../lib';
@@ -98,7 +99,7 @@ export const ExpressionSection = ({
     ]);
 
     const metricPreviewField = (
-        <FormField label="Preview" className={styles['preview-field']}>
+        <Field label="Preview" className={styles['preview-field']}>
             <div
                 className={[styles['preview'], metricPreviewClassName].join(' ')}
                 data-stack="h"
@@ -109,11 +110,11 @@ export const ExpressionSection = ({
             >
                 {metricPreview.content}
             </div>
-        </FormField>
+        </Field>
     );
     const expressionRow = (
         <div className={styles['expression-row']}>
-            <FormField label="Expression" data-flex>
+            <Field label="Expression" data-flex>
                 <metricBuilderConfig.Input
                     field="expression"
                     data-test-id={metricBuilderTestIds.expressionInput}
@@ -126,7 +127,7 @@ export const ExpressionSection = ({
                             : markFormulaExpressionChange
                     }
                 />
-            </FormField>
+            </Field>
             {metricPreviewField}
         </div>
     );
@@ -136,7 +137,7 @@ export const ExpressionSection = ({
     if (expressionMode === 'builder') {
         expressionContent = (
             <>
-                <FormField label="Operation">
+                <Field label="Operation">
                     <metricBuilderConfig.Select
                         bind={aggregateBind}
                         data-test-id={metricBuilderTestIds.aggregateSelect}
@@ -147,8 +148,8 @@ export const ExpressionSection = ({
                             </option>
                         ))}
                     </metricBuilderConfig.Select>
-                </FormField>
-                <FormField label="Column">
+                </Field>
+                <Field label="Column">
                     <metricBuilderConfig.Select
                         bind={columnIdBind}
                         data-test-id={metricBuilderTestIds.columnSelect}
@@ -168,7 +169,7 @@ export const ExpressionSection = ({
                             </option>
                         ))}
                     </metricBuilderConfig.Select>
-                </FormField>
+                </Field>
                 {expressionRow}
             </>
         );
@@ -178,7 +179,7 @@ export const ExpressionSection = ({
 
     return (
         <metricBuilderConfig.Section name="Expression" className={styles['section']}>
-            <FormField label="Mode">
+            <Field label="Mode">
                 <div data-test-id={metricBuilderTestIds.expressionModeSelect}>
                     <SegmentedControl
                         className={styles['mode-control']}
@@ -188,7 +189,7 @@ export const ExpressionSection = ({
                         onChange={setExpressionMode}
                     />
                 </div>
-            </FormField>
+            </Field>
             {expressionContent}
         </metricBuilderConfig.Section>
     );

@@ -1,0 +1,23 @@
+.description {
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 400;
+    line-height: 1.4;
+
+    display: block;
+    overflow: hidden;
+    margin-top: var(--spacing-2xs);
+
+    color: var(--color-on-surface);
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.column-name {
+    color: var(--color-primary);
+}
+
+.bucket {
+    color: var(--color-on-surface-variant);
+}

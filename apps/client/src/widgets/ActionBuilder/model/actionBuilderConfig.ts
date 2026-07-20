@@ -1,4 +1,4 @@
-import { createConfig } from '@/features/Config';
+import { createConfig } from '@/shared/ui/tools/Config';
 
 import type { ActionBuilderDraft } from './actionBuilderDraft';
 

@@ -1,4 +1,4 @@
-import type { ConfigBind } from '@/features/Config';
+import type { ConfigBind } from '@/shared/ui/tools/Config';
 
 import type {
     ActionBuilderDraft,

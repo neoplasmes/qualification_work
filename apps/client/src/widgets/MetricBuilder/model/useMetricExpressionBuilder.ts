@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { ConfigBind } from '@/features/Config';
-
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
+
+import type { ConfigBind } from '@/shared/ui/tools/Config';
 
 import {
     buildMetricExpression,

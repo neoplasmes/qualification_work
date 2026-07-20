@@ -1,4 +1,4 @@
-import type { ConfigBind, ConfigFieldKey } from '@/features/Config';
+import type { ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 
 /**
  * connects Config controls to a plain draft field

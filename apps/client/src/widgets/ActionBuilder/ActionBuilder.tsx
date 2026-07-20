@@ -28,7 +28,7 @@ export const ActionBuilder = ({
     <actionBuilderConfig.Root
         id={formId}
         className={styles['root']}
-        data-display="grid"
+        data-stack="v"
         data-gap="sm"
         data-test-id={actionBuilderTestIds.configureForm}
         value={value}
@@ -36,7 +36,7 @@ export const ActionBuilder = ({
         onSubmit={onSubmit}
     >
         <ActionGeneralSection disabled={disabled} />
-        <div className={styles['layout']} data-display="grid" data-gap="sm">
+        <div className={styles['layout']} data-stack="v" data-gap="sm">
             <ParametersSection disabled={disabled} />
             <EffectsSection datasets={datasets} disabled={disabled} />
         </div>

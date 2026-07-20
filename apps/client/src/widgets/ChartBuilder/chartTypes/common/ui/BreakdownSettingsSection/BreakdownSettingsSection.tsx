@@ -1,8 +1,8 @@
-import type { Config, ConfigBind, ConfigFieldKey } from '@/features/Config';
+import { Field } from '@qualification-work/design-system';
 
 import type { DatasetColumn } from '@/entities/dataset';
 
-import { FormField } from '@/shared/ui';
+import type { Config, ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 
 type BreakdownSettingsSectionProps<T extends object> = {
     config: Config<T>;
@@ -25,7 +25,7 @@ export const BreakdownSettingsSection = <T extends object>({
 }: BreakdownSettingsSectionProps<T>) => {
     return (
         <config.Section name="Breakdown" enabledField={enabledField}>
-            <FormField label="Split by">
+            <Field label="Split by">
                 <config.Select bind={columnBind}>
                     {columns.map(column => (
                         <option
@@ -37,19 +37,19 @@ export const BreakdownSettingsSection = <T extends object>({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
-            <FormField label="Max categories">
+            <Field label="Max categories">
                 <config.Input bind={topNBind} type="number" min={1} max={50} />
-            </FormField>
+            </Field>
 
             {showOtherBucket && otherBucketBind && (
-                <FormField label="Group others">
+                <Field label="Group others">
                     <config.Select bind={otherBucketBind}>
                         <option value="on">On</option>
                         <option value="off">Off</option>
                     </config.Select>
-                </FormField>
+                </Field>
             )}
         </config.Section>
     );

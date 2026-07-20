@@ -1,4 +1,4 @@
-import { Select } from '@/shared/ui';
+import { Select } from '@qualification-work/design-system';
 
 import type { ActionParameterDraft } from '../../model';
 

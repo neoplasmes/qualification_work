@@ -1,8 +1,8 @@
 import type { MetricTargetDirection, MetricTimeBucket } from '@qualification-work/types';
 
-import { createConfig } from '@/features/Config';
-
 import type { DashboardMetricItem } from '@/entities/dashboard';
+
+import { createConfig } from '@/shared/ui/tools/Config';
 
 export type MetricBuilderDraft = {
     datasetId: string;

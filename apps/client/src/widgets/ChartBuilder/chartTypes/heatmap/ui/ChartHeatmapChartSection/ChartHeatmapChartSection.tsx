@@ -1,9 +1,8 @@
+import { Field } from '@qualification-work/design-system';
 import { timeGranularities } from '@qualification-work/types';
 
 import { GRANULARITY_LABELS } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
-
-import { FormField } from '@/shared/ui';
 
 import type { ChartTypeSettingsProps } from '../../../../model';
 import { groupingLabels } from '../../../common/const';
@@ -72,7 +71,7 @@ export const ChartHeatmapChartSection = ({
 
     return (
         <config.Section name="Chart">
-            <FormField label="X axis">
+            <Field label="X axis">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.xColumnId(
                         columns,
@@ -89,9 +88,9 @@ export const ChartHeatmapChartSection = ({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
-            <FormField label="Y axis">
+            <Field label="Y axis">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.yColumnId(
                         columns,
@@ -108,9 +107,9 @@ export const ChartHeatmapChartSection = ({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
-            <FormField label="Group X by">
+            <Field label="Group X by">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.xGroupingMode(xGroupingModes)}
                     disabled={xGroupingModes.length === 1}
@@ -121,10 +120,10 @@ export const ChartHeatmapChartSection = ({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
             {draft.xGroupingMode === 'time' && (
-                <FormField label="X time unit">
+                <Field label="X time unit">
                     <config.Select field="xGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -132,20 +131,20 @@ export const ChartHeatmapChartSection = ({
                             </option>
                         ))}
                     </config.Select>
-                </FormField>
+                </Field>
             )}
 
             {draft.xGroupingMode === 'numeric' && (
-                <FormField label="X bucket size">
+                <Field label="X bucket size">
                     <config.Input
                         bind={chartHeatmapChartSectionBinds.xStep}
                         type="number"
                         min={1}
                     />
-                </FormField>
+                </Field>
             )}
 
-            <FormField label="Group Y by">
+            <Field label="Group Y by">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.yGroupingMode(yGroupingModes)}
                     disabled={yGroupingModes.length === 1}
@@ -156,10 +155,10 @@ export const ChartHeatmapChartSection = ({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
             {draft.yGroupingMode === 'time' && (
-                <FormField label="Y time unit">
+                <Field label="Y time unit">
                     <config.Select field="yGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -167,17 +166,17 @@ export const ChartHeatmapChartSection = ({
                             </option>
                         ))}
                     </config.Select>
-                </FormField>
+                </Field>
             )}
 
             {draft.yGroupingMode === 'numeric' && (
-                <FormField label="Y bucket size">
+                <Field label="Y bucket size">
                     <config.Input
                         bind={chartHeatmapChartSectionBinds.yStep}
                         type="number"
                         min={1}
                     />
-                </FormField>
+                </Field>
             )}
         </config.Section>
     );

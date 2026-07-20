@@ -21,6 +21,7 @@ import { api } from '@/shared/api';
 import { createCacheBridge } from '../cacheBridge';
 import { createQueryClient } from '../queryClient';
 import { SessionLifecycle } from '../sessionLifecycle';
+import { createUiState } from '../uiState';
 import { sessionCodec, valueCodec } from './sessionCodec';
 
 export interface ApplicationRuntime {
@@ -42,6 +43,7 @@ export function createDependencies(options: {
     let scopeId = crypto.randomUUID() as string;
     let detach = () => {};
     let cleanup: Promise<void> | undefined;
+    const ui = createUiState(options.platform === 'browser');
     const cache = new CacheRuntime(
         createQueryClient(),
         new EntityStore(new DbClient(), [
@@ -59,7 +61,7 @@ export function createDependencies(options: {
         {
             onCommandConfirmed: event => {
                 bridge.confirmed(event);
-                const selected = session.activeOrgId;
+                const selected = ui.activeOrganization.getState().activeOrgId;
                 const selectedRef = selected
                     ? (`organization:${encodeURIComponent(selected)}` as const)
                     : undefined;
@@ -70,7 +72,7 @@ export function createDependencies(options: {
                     event.refs.includes(selectedRef)
                 ) {
                     cache.tombstones.add(selectedRef);
-                    session.setActiveOrgId(null);
+                    ui.activeOrganization.getState().setActiveOrgId(null);
                 }
             },
         }
@@ -81,7 +83,6 @@ export function createDependencies(options: {
     const legacyStore = createStore(undefined, {
         apiExtraArgument: { requestCookie: options.requestCookie },
         middleware: bridge.middleware,
-        persist: options.platform === 'browser',
     });
     bridge.attach(legacyStore.dispatch);
     const transport = new HttpTransport({
@@ -120,9 +121,10 @@ export function createDependencies(options: {
         store: legacyStore,
         browser: options.platform === 'browser',
         rotate,
+        ui,
     });
     rotate();
-    const dependencies: Dependencies = { ...operations, session };
+    const dependencies: Dependencies = { ...operations, session, ui };
     cache.registerRead(operations.getSession, sessionCodec, sessionFreshness);
     cache.registerCommand(operations.register, {
         conflictKey: () => 'session',
@@ -163,7 +165,7 @@ export function createDependencies(options: {
         detach();
         bridge.dispose();
         session.dispose();
-        legacyStore.disposePersistence();
+        ui.dispose();
         for (const read of legacyStore.dispatch(api.util.getRunningQueriesThunk())) {
             read.abort();
         }

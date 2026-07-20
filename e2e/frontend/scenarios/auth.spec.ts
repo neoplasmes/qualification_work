@@ -27,10 +27,10 @@ const signUpThroughUi = async (page: Page, user: TestUser) => {
     await page.goto('/sign-up');
     const form = page.getByRole('form', { name: 'Sign up' });
 
-    await form.getByLabel('First Name').fill(user.name);
-    await form.getByLabel('Last Name').fill(user.family);
-    await form.getByLabel('Email Address').fill(user.email);
-    await form.getByLabel('Password').fill(user.password);
+    await form.getByLabel('Имя').fill(user.name);
+    await form.getByLabel('Фамилия').fill(user.family);
+    await form.getByLabel('Электронная почта').fill(user.email);
+    await form.getByLabel('Пароль').fill(user.password);
 
     const registerRequest = page.waitForRequest(
         request =>
@@ -41,7 +41,7 @@ const signUpThroughUi = async (page: Page, user: TestUser) => {
             request.url().includes('/api/auth/login') && request.method() === 'POST'
     );
 
-    await form.getByRole('button', { name: /sign up/i }).click();
+    await form.getByRole('button', { name: /Зарегистрироваться/i }).click();
 
     await registerRequest;
     await loginRequest;
@@ -60,15 +60,15 @@ test.describe('auth through gateway', () => {
         await page.goto('/sign-in');
         const form = page.getByRole('form', { name: 'Sign in' });
 
-        await form.getByLabel('Email Address').fill(user.email);
-        await form.getByLabel('Password').fill(user.password);
+        await form.getByLabel('Электронная почта').fill(user.email);
+        await form.getByLabel('Пароль').fill(user.password);
 
         const loginRequest = page.waitForRequest(
             request =>
                 request.url().includes('/api/auth/login') && request.method() === 'POST'
         );
 
-        await form.getByRole('button', { name: /sign in/i }).click();
+        await form.getByRole('button', { name: /Войти/i }).click();
         await loginRequest;
         await expect(page).toHaveURL(/\/datasets$/, { timeout: 30_000 });
     });
@@ -78,10 +78,10 @@ test.describe('auth through gateway', () => {
         const form = page.getByRole('form', { name: 'Sign in' });
 
         await form
-            .getByLabel('Email Address')
+            .getByLabel('Электронная почта')
             .fill(`missing-${randomUUID()}@example.com`);
-        await form.getByLabel('Password').fill('WrongPassword!');
-        await form.getByRole('button', { name: /sign in/i }).click();
+        await form.getByLabel('Пароль').fill('WrongPassword!');
+        await form.getByRole('button', { name: /Войти/i }).click();
 
         await expect(page.getByRole('alert')).toBeVisible();
         await expect(page).toHaveURL(/\/sign-in$/);

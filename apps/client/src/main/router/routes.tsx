@@ -1,13 +1,14 @@
+import { SignIn } from '@/ui/pages/auth/signIn';
+import { SignUp } from '@/ui/pages/auth/signUp';
+import { ProfilePage } from '@/ui/pages/profile';
+import { Layout } from '@/ui/widgets/AppLayout';
+import { Entrance } from '@/ui/widgets/EntranceLayout';
 import { redirect, type RouteObject } from 'react-router';
 
 import { SessionError } from '@/app/ports/repos/session';
-import { Layout } from '@/app/ui/Layout';
-import { WorkspaceLayout } from '@/app/ui/WorkspaceLayout';
-
-import { Entrance, SignIn, SignUp } from '@/pages/Entrance';
-import { ProfilePage } from '@/pages/Profile';
 
 import type { ApplicationRuntime } from '../dependencies';
+import { WorkspaceHost } from '../workspaceHost';
 
 /**
  * auth guard
@@ -96,7 +97,7 @@ export const getRoutes = (runtime: ApplicationRuntime): RouteObject[] => [
                 ],
             },
             {
-                element: <WorkspaceLayout />,
+                element: <WorkspaceHost />,
                 loader: async ({ request }) => {
                     if (!(await isAuthenticated(runtime, request))) {
                         return redirect('/sign-in');

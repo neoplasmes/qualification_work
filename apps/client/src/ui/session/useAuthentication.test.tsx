@@ -1,12 +1,11 @@
 import { ClientRoot } from '@/main/ClientRoot';
 import { createDependencies } from '@/main/dependencies';
+import { SignIn } from '@/ui/pages/auth/signIn';
+import { SignUp } from '@/ui/pages/auth/signUp';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { createMemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
-
-import { SignIn } from '@/pages/Entrance/ui/SignIn';
-import { SignUp } from '@/pages/Entrance/ui/SignUp';
 
 const runtimes: ReturnType<typeof createDependencies>[] = [];
 const routers: ReturnType<typeof createMemoryRouter>[] = [];
@@ -75,17 +74,17 @@ it.each([
                 <ClientRoot runtime={runtime} router={router} />
             </StrictMode>
         );
-        fireEvent.change(screen.getByLabelText('Email Address'), {
+        fireEvent.change(screen.getByLabelText('Электронная почта'), {
             target: { value: 'a@b.com' },
         });
-        fireEvent.change(screen.getByLabelText('Password'), {
+        fireEvent.change(screen.getByLabelText('Пароль'), {
             target: { value: 'password123' },
         });
         if (page === 'Sign up') {
-            fireEvent.change(screen.getByLabelText('First Name'), {
+            fireEvent.change(screen.getByLabelText('Имя'), {
                 target: { value: 'A' },
             });
-            fireEvent.change(screen.getByLabelText('Last Name'), {
+            fireEvent.change(screen.getByLabelText('Фамилия'), {
                 target: { value: 'B' },
             });
         }

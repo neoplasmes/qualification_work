@@ -1,4 +1,4 @@
-import { FormField } from '@/shared/ui';
+import { Field } from '@qualification-work/design-system';
 
 import type { ChartTypeSettingsProps } from '../../../model';
 
@@ -42,14 +42,14 @@ export const PieChartSettings = ({
                 editMode={editMode}
                 maxMeasureCount={1}
             >
-                <FormField label="Max slices">
+                <Field label="Max slices">
                     <config.Input
                         bind={pieChartSettingsBinds.topN}
                         type="number"
                         min={1}
                         max={50}
                     />
-                </FormField>
+                </Field>
             </ValueSectionDefault>
 
             <FilterSettingsSection

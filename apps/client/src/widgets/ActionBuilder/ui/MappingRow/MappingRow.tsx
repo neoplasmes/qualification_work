@@ -1,8 +1,9 @@
+import { IconButton } from '@qualification-work/design-system';
 import { X } from 'lucide-react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { IconButton, SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
+import { SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
 
 import { actionBuilderTestIds } from '../../const';
 import {
@@ -199,7 +200,7 @@ export const MappingRow = ({
     return (
         <div
             className={styles['mapping-row']}
-            data-display="grid"
+            data-stack="v"
             data-gap="sm"
             data-align="end"
             data-test-id={actionBuilderTestIds.mappingRow}
@@ -242,7 +243,7 @@ export const MappingRow = ({
                 </div>
             </div>
             <IconButton
-                tone="nav"
+                variant="ghost"
                 data-test-id={actionBuilderTestIds.removeValueButton}
                 aria-label="Remove value"
                 disabled={disabled || effect.values.length === 1}

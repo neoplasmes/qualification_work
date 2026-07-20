@@ -1,11 +1,10 @@
+import { Field } from '@qualification-work/design-system';
 import { filterOperations, type FilterOperation } from '@qualification-work/types';
-
-import type { Config, ConfigBind, ConfigFieldKey } from '@/features/Config';
 
 import { FILTER_OP_LABELS } from '@/entities/chart';
 import type { DatasetColumn } from '@/entities/dataset';
 
-import { FormField } from '@/shared/ui';
+import type { Config, ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 
 import { isNullaryFilterOperation } from '../../model';
 
@@ -38,7 +37,7 @@ export const FilterSettingsSection = <T extends object>({
 
     return (
         <config.Section name="Filter" enabledField={enabledField}>
-            <FormField label="Filter column">
+            <Field label="Filter column">
                 <config.Select bind={columnBind}>
                     {columns.map(column => (
                         <option
@@ -50,9 +49,9 @@ export const FilterSettingsSection = <T extends object>({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
-            <FormField label="Condition">
+            <Field label="Condition">
                 <config.Select field={operationField}>
                     {filterOperations.map(operation => (
                         <option key={operation} value={operation}>
@@ -60,15 +59,15 @@ export const FilterSettingsSection = <T extends object>({
                         </option>
                     ))}
                 </config.Select>
-            </FormField>
+            </Field>
 
             {!isNullaryFilterOperation(operation) && (
-                <FormField label="Value">
+                <Field label="Value">
                     <config.Input
                         field={valueField}
                         placeholder={filterValuePlaceholder}
                     />
-                </FormField>
+                </Field>
             )}
         </config.Section>
     );

@@ -1,9 +1,10 @@
+import { Button } from '@qualification-work/design-system';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { Button, Card } from '@/shared/ui';
+import { Card } from '@/shared/ui';
 
 import { actionBuilderTestIds } from '../../const';
 import { actionBuilderConfig, createBlankEffectDraft } from '../../model';

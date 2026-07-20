@@ -1,4 +1,4 @@
-import { FormField } from '@/shared/ui';
+import { Field } from '@qualification-work/design-system';
 
 import { actionBuilderTestIds } from '../../const';
 import { actionBuilderConfig } from '../../model';
@@ -8,12 +8,12 @@ type ActionGeneralSectionProps = {
 };
 
 export const ActionGeneralSection = ({ disabled }: ActionGeneralSectionProps) => (
-    <FormField label="Name">
+    <Field label="Name">
         <actionBuilderConfig.Input
             data-test-id={actionBuilderTestIds.actionNameInput}
             field="name"
             disabled={disabled}
             placeholder="Close invoice"
         />
-    </FormField>
+    </Field>
 );

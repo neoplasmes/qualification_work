@@ -1,6 +1,8 @@
+import { Field } from '@qualification-work/design-system';
+
 import type { DatasetMetadata } from '@/entities/dataset';
 
-import { FormField, SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
+import { SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
 
 import { actionBuilderTestIds } from '../../const';
 import {
@@ -57,7 +59,7 @@ export const EffectFields = ({
 
         if (effect.matchSourceKind === 'parameter') {
             matchValueField = (
-                <FormField label="Match parameter">
+                <Field label="Match parameter">
                     <actionBuilderConfig.InputPropRenderer bind={matchParameterBind}>
                         {matchParameter => (
                             <ParameterSelect
@@ -69,24 +71,24 @@ export const EffectFields = ({
                             />
                         )}
                     </actionBuilderConfig.InputPropRenderer>
-                </FormField>
+                </Field>
             );
         } else {
             matchValueField = (
-                <FormField label="Match literal">
+                <Field label="Match literal">
                     <actionBuilderConfig.Input
                         data-test-id={actionBuilderTestIds.effectMatchLiteralInput}
                         bind={matchLiteralBind}
                         disabled={disabled}
                         placeholder="MF-001"
                     />
-                </FormField>
+                </Field>
             );
         }
 
         updateFields = (
             <>
-                <FormField label="Match column">
+                <Field label="Match column">
                     <actionBuilderConfig.InputPropRenderer bind={matchColumnBind}>
                         {matchColumn => (
                             <ColumnSelect
@@ -98,8 +100,8 @@ export const EffectFields = ({
                             />
                         )}
                     </actionBuilderConfig.InputPropRenderer>
-                </FormField>
-                <FormField label="Match source">
+                </Field>
+                <Field label="Match source">
                     <actionBuilderConfig.InputPropRenderer bind={matchSourceBind}>
                         {matchSource => (
                             <SegmentedControl
@@ -111,9 +113,9 @@ export const EffectFields = ({
                             />
                         )}
                     </actionBuilderConfig.InputPropRenderer>
-                </FormField>
+                </Field>
                 {matchValueField}
-                <FormField label="Max rows">
+                <Field label="Max rows">
                     <actionBuilderConfig.Input
                         data-test-id={actionBuilderTestIds.effectMaxRowsInput}
                         bind={maxRowsBind}
@@ -121,14 +123,14 @@ export const EffectFields = ({
                         min={1}
                         disabled={disabled}
                     />
-                </FormField>
+                </Field>
             </>
         );
     }
 
     return (
         <>
-            <FormField label="Type">
+            <Field label="Type">
                 <actionBuilderConfig.Select
                     data-test-id={actionBuilderTestIds.effectTypeSelect}
                     bind={kindBind}
@@ -137,8 +139,8 @@ export const EffectFields = ({
                     <option value="insertRow">Insert row</option>
                     <option value="updateRowsByMatch">Update rows by match</option>
                 </actionBuilderConfig.Select>
-            </FormField>
-            <FormField label="Dataset">
+            </Field>
+            <Field label="Dataset">
                 <actionBuilderConfig.Select
                     data-test-id={actionBuilderTestIds.effectDatasetSelect}
                     bind={datasetBind}
@@ -151,7 +153,7 @@ export const EffectFields = ({
                         </option>
                     ))}
                 </actionBuilderConfig.Select>
-            </FormField>
+            </Field>
             {updateFields}
         </>
     );

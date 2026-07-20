@@ -169,10 +169,10 @@ it('clears selection after the selected organization is confirmed removed', asyn
     const runtime = createDependencies({ platform: 'browser', apiBaseUrl: '/api' });
     runtimes.push(runtime);
     await runtime.cache.read(runtime.dependencies.getSession, undefined);
-    runtime.dependencies.session.setActiveOrgId('o');
+    runtime.dependencies.ui.activeOrganization.getState().setActiveOrgId('o');
     await runtime.cache.execute(runtime.dependencies.deleteOrganization, { orgId: 'o' });
     expect(runtime.cache.store.get('organization:o')).toBeUndefined();
-    expect(runtime.dependencies.session.activeOrgId).toBeNull();
+    expect(runtime.dependencies.ui.activeOrganization.getState().activeOrgId).toBeNull();
 });
 
 function ActiveOrganizationProbe() {
@@ -205,7 +205,7 @@ it('retires the selected organization even when confirmed removal ingestion fail
     const runtime = createDependencies({ platform: 'browser', apiBaseUrl: '/api' });
     runtimes.push(runtime);
     await runtime.cache.read(runtime.dependencies.getSession, undefined);
-    runtime.dependencies.session.setActiveOrgId('o');
+    runtime.dependencies.ui.activeOrganization.getState().setActiveOrgId('o');
     render(
         createElement(ClientRoot, { runtime }, createElement(ActiveOrganizationProbe))
     );
@@ -221,10 +221,10 @@ it('retires the selected organization even when confirmed removal ingestion fail
         );
         expect(outcome.syncError).toBe(failure);
     });
-    expect(runtime.dependencies.session.activeOrgId).toBeNull();
+    expect(runtime.dependencies.ui.activeOrganization.getState().activeOrgId).toBeNull();
     expect(runtime.cache.tombstones.has('organization:o')).toBe(true);
     await waitFor(() =>
         expect(screen.getByTestId('selected-org')).toHaveTextContent('none')
     );
-    expect(runtime.dependencies.session.activeOrgId).toBeNull();
+    expect(runtime.dependencies.ui.activeOrganization.getState().activeOrgId).toBeNull();
 });

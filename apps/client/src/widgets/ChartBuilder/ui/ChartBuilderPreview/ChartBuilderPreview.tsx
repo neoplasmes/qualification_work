@@ -1,9 +1,10 @@
+import { Field, Input } from '@qualification-work/design-system';
 import type { ChartConfig, ChartResponse } from '@qualification-work/types';
 
 import { ChartConfigSummary, ChartShell } from '@/entities/chart';
 import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
 
-import { FormField, StatusMessage, TextInput } from '@/shared/ui';
+import { StatusMessage } from '@/shared/ui';
 
 import { type ChartBuilderOutput } from '../../model';
 
@@ -34,13 +35,13 @@ export const ChartBuilderPreview = ({
         </div>
         <div data-stack="v" data-gap="sm">
             {!editMode && (
-                <FormField label="Chart name">
-                    <TextInput
+                <Field label="Chart name">
+                    <Input
                         value={output.chartName}
                         placeholder={`${selectedDataset.dataset.name} ${output.chartType}`}
                         onChange={event => onChartNameChange(event.target.value)}
                     />
-                </FormField>
+                </Field>
             )}
 
             <ChartShell

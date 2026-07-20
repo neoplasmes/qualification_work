@@ -8,49 +8,19 @@
     }
 }
 
-@layer base {
-    body {
-        font-family: var(--font-body);
-        color: var(--color-on-surface);
-    }
-}
-
 html,
 body,
 #root {
-    overflow: hidden;
     height: 100%;
 }
 
-* {
-    scrollbar-color: var(--color-outline) transparent;
-    scrollbar-width: thin;
-
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        border-radius: 10px;
-        background-color: var(--color-primary);
-    }
+body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
 }
 
-body {
-    background:
-        radial-gradient(
-            ellipse 1500px 600px at 33% -10%,
-            rgb(var(--color-secondary-rgb), 0.4) 0,
-            rgb(var(--color-secondary-rgb), 0.25) 20%,
-            rgb(var(--color-secondary-rgb), 0.1) 45%,
-            rgb(var(--color-secondary-rgb), 0.03) 65%,
-            transparent 84%
-        ),
-        #1d0002;
-
-    background-attachment: fixed;
+* {
+    scrollbar-color: var(--rule-dash) transparent;
+    scrollbar-width: thin;
 }

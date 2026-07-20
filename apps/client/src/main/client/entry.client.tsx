@@ -7,6 +7,7 @@ import { ClientRoot } from '../ClientRoot';
 import { createDependencies } from '../dependencies';
 import { getRoutes } from '../router';
 
+import '@qualification-work/design-system/theme.css';
 import '../../shared/ui/styles/colors.scss';
 import '../../shared/ui/styles/layout.scss';
 import '../../shared/ui/styles/fonts.scss';

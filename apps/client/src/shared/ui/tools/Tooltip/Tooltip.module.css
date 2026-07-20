@@ -1,0 +1,12 @@
+.tooltip {
+    pointer-events: none;
+
+    padding: 8px 10px;
+    border: 1px solid var(--color-outline-new);
+    border-radius: 0;
+
+    font-size: 12px;
+    color: var(--color-on-surface);
+
+    background: var(--paper-raised);
+}

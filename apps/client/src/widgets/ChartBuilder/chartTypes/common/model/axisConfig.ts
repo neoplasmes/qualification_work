@@ -1,8 +1,8 @@
 import type { AxisGrouping, TimeGranularity } from '@qualification-work/types';
 
-import type { ConfigBind, ConfigFieldKey } from '@/features/Config';
-
 import type { DatasetColumn } from '@/entities/dataset';
+
+import type { ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 
 import { defaultGranularity, type GroupingMode } from './groupingConfig';
 

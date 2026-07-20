@@ -1,12 +1,8 @@
+import { Field } from '@qualification-work/design-system';
 import type { MetricTargetDirection } from '@qualification-work/types';
 
 import { getValueTypePlaceholder } from '@/shared/lib/valueTypePlaceholder';
-import {
-    Explain,
-    FormField,
-    SegmentedControl,
-    type SegmentedControlOption,
-} from '@/shared/ui';
+import { Explain, SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
 
 import { metricBuilderConfig } from '../../model';
 
@@ -38,15 +34,15 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
 
     return (
         <metricBuilderConfig.Section name="Goal" className={styles['section']}>
-            <FormField label={targetLabel}>
+            <Field label={targetLabel}>
                 <metricBuilderConfig.Input
                     field="target"
                     type="number"
                     inputMode="decimal"
                     placeholder={getValueTypePlaceholder('number')}
                 />
-            </FormField>
-            <FormField
+            </Field>
+            <Field
                 label={
                     <span data-display="inline-flex" data-gap="xs" data-align="center">
                         Goal direction
@@ -65,7 +61,7 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
                     disabled={!hasTarget}
                     onChange={targetDirectionInput.setValue}
                 />
-            </FormField>
+            </Field>
         </metricBuilderConfig.Section>
     );
 };

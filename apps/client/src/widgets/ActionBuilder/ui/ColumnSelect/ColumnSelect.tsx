@@ -1,6 +1,6 @@
-import type { DatasetMetadata } from '@/entities/dataset';
+import { Select } from '@qualification-work/design-system';
 
-import { Select } from '@/shared/ui';
+import type { DatasetMetadata } from '@/entities/dataset';
 
 type SelectProps = {
     value: string;

@@ -27,10 +27,10 @@ const loginThroughUi = async (page: Page, user: TestUser) => {
     await page.goto('/sign-in');
     const form = page.getByRole('form', { name: 'Sign in' });
 
-    await form.getByLabel('Email Address').fill(user.email);
-    await form.getByLabel('Password').fill(user.password);
+    await form.getByLabel('Электронная почта').fill(user.email);
+    await form.getByLabel('Пароль').fill(user.password);
 
-    await form.getByRole('button', { name: /sign in/i }).click();
+    await form.getByRole('button', { name: /Войти/i }).click();
     await expect(page).toHaveURL(/\/datasets$/, { timeout: 30_000 });
 };
 
@@ -92,14 +92,14 @@ test.describe('session state', () => {
         const authReads: string[] = [];
         const hydrationErrors: string[] = [];
         page.on('request', request => {
-            if (request.url().endsWith('/api/auth/me')) authReads.push(request.url());
+            if (request.url().endsWith('/api/auth/me')) {authReads.push(request.url());}
         });
         page.on('console', message => {
             if (
                 message.type() === 'error' &&
                 /hydration|did not match/i.test(message.text())
             )
-                hydrationErrors.push(message.text());
+                {hydrationErrors.push(message.text());}
         });
         await page.reload();
         await expect(page).toHaveURL(/\/datasets$/);
@@ -155,14 +155,14 @@ test.describe('navigation state', () => {
         await expect(page).toHaveURL(/\/charts$/);
         await expectByDataTestId(page, 'charts-list-panel');
         await expectByDataTestId(page, 'charts-workspace');
-        await page.getByRole('tab', { name: 'Filters', exact: true }).click();
+        await page.getByRole('tab', { name: 'Фильтры', exact: true }).click();
         await expectByDataTestId(page, 'charts-filter-panel');
 
         await page.goto('/dashboards');
         await expect(page).toHaveURL(/\/dashboards$/);
         await expectByDataTestId(page, 'dashboards-list-panel');
         await expectByDataTestId(page, 'dashboards-workspace');
-        await page.getByRole('tab', { name: 'Filters', exact: true }).click();
+        await page.getByRole('tab', { name: 'Фильтры', exact: true }).click();
         await expectByDataTestId(page, 'dashboards-filter-panel');
 
         await page.goto('/actions');
@@ -183,4 +183,37 @@ test.describe('navigation state', () => {
         const selected = await workspaceSelect.inputValue();
         expect(selected).not.toBe('');
     });
+});
+
+test('keeps shell controls reachable on a phone and retains layout on logout', async ({
+    page,
+    request,
+}) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const user = createUser();
+    await registerByApi(request, user);
+    await loginThroughUi(page, user);
+    await expectByDataTestId(page, 'datasets-workspace');
+    await expect(page.getByTestId('workspace-select')).toBeVisible();
+    expect(
+        await page.evaluate<boolean>(
+            'document.documentElement.scrollWidth <= window.innerWidth'
+        )
+    ).toBe(true);
+    await page.getByRole('button', { name: 'Hide left panel' }).click();
+    await expect(page.getByRole('button', { name: 'Show left panel' })).toBeVisible();
+    const layout = await page.evaluate(() => localStorage.getItem('panelLayout_v2'));
+    expect(JSON.parse(layout!).isLeftCollapsed).toBe(true);
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Show left panel' })).toBeVisible();
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/sign-in$/);
+    expect(await page.evaluate(() => localStorage.getItem('panelLayout_v2'))).toBe(
+        layout
+    );
+    expect(
+        await page.evaluate(() =>
+            localStorage.getItem('qualification-work.active-org-id')
+        )
+    ).toBeNull();
 });

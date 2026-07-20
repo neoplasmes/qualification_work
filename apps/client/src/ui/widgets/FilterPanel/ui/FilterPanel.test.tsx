@@ -1,0 +1,176 @@
+import {
+    type FilterApplicationEntity,
+    type FilterApplicationScope,
+} from '@/core/processes/entityFiltering';
+import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
+import { render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+
+import { FilterPanel } from '../FilterPanel.widget';
+
+vi.mock('@/ui/session', () => ({
+    useSession: () => ({ data: { id: 'user-1' } }),
+    useActiveOrganization: () => ({
+        activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
+    }),
+}));
+
+vi.mock('@/entities/dataset', () => ({
+    useListDatasetsQuery: () => ({
+        data: [
+            {
+                dataset: {
+                    id: 'dataset-1',
+                    orgId: 'org-1',
+                    name: 'Invoices',
+                    sourceType: 'manual',
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                    updatedAt: '2026-01-02T00:00:00.000Z',
+                },
+                columns: [],
+                totalRows: 3,
+            },
+        ],
+    }),
+}));
+
+vi.mock('@/entities/chart', () => ({
+    formatChartCell: (value: unknown) => String(value),
+    CHART_KIND_ICONS: {
+        bar: () => <span data-testid="bar-chart-icon" />,
+        heatmap: () => <span data-testid="heatmap-chart-icon" />,
+        line: () => <span data-testid="line-chart-icon" />,
+        pie: () => <span data-testid="pie-chart-icon" />,
+    },
+    useListChartsQuery: () => ({
+        data: [
+            {
+                id: 'chart-1',
+                orgId: 'org-1',
+                datasetId: 'dataset-1',
+                name: 'Revenue',
+                chartType: 'bar',
+                config: {
+                    kind: 'bar',
+                    dimension: { columnId: 'column-1' },
+                    measures: [{ aggregate: 'count' }],
+                },
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+            },
+        ],
+    }),
+}));
+
+vi.mock('@/entities/dashboard', () => ({
+    useListDashboardsQuery: () => ({
+        data: [
+            {
+                id: 'dashboard-1',
+                orgId: 'org-1',
+                name: 'Sales',
+                items: [],
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+            },
+        ],
+    }),
+}));
+
+const testIds = {
+    chip: 'filter-chip',
+    clearButton: 'clear-filter',
+    tabs: {
+        charts: 'tab-charts',
+        dashboards: 'tab-dashboards',
+        datasets: 'tab-datasets',
+        effects: 'tab-effects',
+    },
+} satisfies {
+    chip: string;
+    clearButton: string;
+    tabs: Partial<Record<FilterApplicationEntity, string>>;
+};
+
+const getByDataTestId = <T extends HTMLElement>(
+    container: HTMLElement,
+    testId: string
+) => {
+    const element = container.querySelector<T>(`[data-test-id="${testId}"]`);
+    expect(element).not.toBeNull();
+
+    return element as T;
+};
+
+const makeStore = () => createUiTestRuntime();
+
+const renderPanel = (scope: FilterApplicationScope) => {
+    const store = makeStore();
+    const result = render(
+        <Provider store={store}>
+            <FilterPanel scope={scope} testIds={testIds} />
+        </Provider>
+    );
+
+    return { store, ...result };
+};
+
+describe('FilterPanel', () => {
+    it('toggles action dataset and effect filters', async () => {
+        const user = userEvent.setup();
+        const { container, store } = renderPanel('actions');
+
+        await user.click(getByDataTestId(container, testIds.chip));
+        await user.click(getByDataTestId(container, testIds.tabs.effects));
+        await user.click(getByDataTestId(container, testIds.chip));
+
+        expect(store.ui.filters.getState().values.actions).toMatchObject({
+            datasets: ['dataset-1'],
+            effects: ['insertRow'],
+        });
+    });
+
+    it('toggles and clears all chart filters', async () => {
+        const user = userEvent.setup();
+        const { container, store } = renderPanel('charts');
+
+        await user.click(getByDataTestId(container, testIds.chip));
+        await user.click(getByDataTestId(container, testIds.tabs.dashboards));
+        await user.click(getByDataTestId(container, testIds.chip));
+        await user.click(getByDataTestId(container, testIds.clearButton));
+
+        expect(store.ui.filters.getState().values.charts).toMatchObject({
+            datasets: [],
+            dashboards: [],
+        });
+    });
+
+    it('toggles dashboard filters', async () => {
+        const user = userEvent.setup();
+        const { container, store } = renderPanel('dashboards');
+
+        await user.click(getByDataTestId(container, testIds.chip));
+        await user.click(getByDataTestId(container, testIds.tabs.datasets));
+        await user.click(getByDataTestId(container, testIds.chip));
+
+        expect(store.ui.filters.getState().values.dashboards).toMatchObject({
+            charts: ['chart-1'],
+            datasets: ['dataset-1'],
+        });
+    });
+
+    it('toggles dataset filters', async () => {
+        const user = userEvent.setup();
+        const { container, store } = renderPanel('datasets');
+
+        await user.click(getByDataTestId(container, testIds.chip));
+        await user.click(getByDataTestId(container, testIds.tabs.dashboards));
+        await user.click(getByDataTestId(container, testIds.chip));
+
+        expect(store.ui.filters.getState().values.datasets).toMatchObject({
+            charts: ['chart-1'],
+            dashboards: ['dashboard-1'],
+        });
+    });
+});

@@ -1,30 +1,12 @@
 import type { CacheRuntime } from '@/env/cache/runtime';
-import type { Dependencies, SessionController } from '@/ui/di/dependencies';
+import type { Dependencies, SessionController, UiState } from '@/ui/di/dependencies';
 
-import { persistentStateStorage } from '@/app/model/persistence';
-import { resetAuthenticatedSessionState, type AppStore } from '@/app/model/store';
-
-import { actionsPagePersistence } from '@/pages/Actions';
-import { dashboardsPagePersistence } from '@/pages/Dashboards';
-import { datasetsPagePersistence } from '@/pages/Datasets';
-
-import { filterApplicationEntitiesPersistence } from '@/features/filterApplicationEntities';
+import type { AppStore } from '@/app/model/store';
 
 import { api } from '@/shared/api';
 
-const activeOrgKey = 'qualification-work.active-org-id';
-const activeOrgEvent = 'qualification-work.active-org-change';
-const storageKeys = [
-    actionsPagePersistence.key,
-    'chartsPage_v1',
-    datasetsPagePersistence.key,
-    dashboardsPagePersistence.key,
-    filterApplicationEntitiesPersistence.key,
-];
-
 export class SessionLifecycle implements SessionController {
     canRead = true;
-    activeOrgId: string | null = null;
     authenticated = false;
     private generation = 0;
     private closed = false;
@@ -32,10 +14,6 @@ export class SessionLifecycle implements SessionController {
     private controller = new AbortController();
     private navigate: (path: string) => void = () => {};
     private readonly unsubscribe: () => void;
-    private readonly onOrganizationChange = (event: Event) => {
-        this.activeOrgId = (event as CustomEvent<string | null>).detail;
-        this.publish();
-    };
 
     constructor(
         private readonly options: {
@@ -44,12 +22,9 @@ export class SessionLifecycle implements SessionController {
             store: AppStore;
             browser: boolean;
             rotate(): void;
+            ui: UiState;
         }
     ) {
-        if (options.browser && typeof window !== 'undefined') {
-            this.activeOrgId = window.localStorage.getItem(activeOrgKey);
-            window.addEventListener(activeOrgEvent, this.onOrganizationChange);
-        }
         this.unsubscribe = options.cache.queryClient.getQueryCache().subscribe(event => {
             if (
                 !this.canRead ||
@@ -82,23 +57,6 @@ export class SessionLifecycle implements SessionController {
         this.navigate = navigate;
     }
 
-    setActiveOrgId(id: string | null): void {
-        if (this.activeOrgId === id) {
-            return;
-        }
-        this.activeOrgId = id;
-        if (this.options.browser && typeof window !== 'undefined') {
-            if (id) {
-                window.localStorage.setItem(activeOrgKey, id);
-            } else {
-                window.localStorage.removeItem(activeOrgKey);
-            }
-            window.dispatchEvent(new CustomEvent(activeOrgEvent, { detail: id }));
-        } else {
-            this.publish();
-        }
-    }
-
     async reset(): Promise<void> {
         this.canRead = false;
         this.authenticated = false;
@@ -113,12 +71,7 @@ export class SessionLifecycle implements SessionController {
             read.abort();
         }
         this.options.store.dispatch(api.util.resetApiState());
-        this.options.store.dispatch(resetAuthenticatedSessionState());
-        if (this.options.browser && typeof window !== 'undefined') {
-            persistentStateStorage.clear(storageKeys);
-            window.localStorage.removeItem(activeOrgKey);
-            this.setActiveOrgId(null);
-        }
+        this.options.ui.reset();
         await clearing;
     }
 
@@ -180,10 +133,15 @@ export class SessionLifecycle implements SessionController {
             if (!session.isInitializing && session.organizations.length > 0) {
                 this.canRead = true;
                 this.authenticated = true;
-                this.setActiveOrgId(
-                    session.organizations.find(org => org.id === this.activeOrgId)?.id ??
-                        session.organizations[0]!.id
-                );
+                this.options.ui.activeOrganization
+                    .getState()
+                    .setActiveOrgId(
+                        session.organizations.find(
+                            org =>
+                                org.id ===
+                                this.options.ui.activeOrganization.getState().activeOrgId
+                        )?.id ?? session.organizations[0]!.id
+                    );
                 this.publish();
                 this.navigate('/datasets');
 
@@ -212,9 +170,6 @@ export class SessionLifecycle implements SessionController {
         this.closed = true;
         this.controller.abort();
         this.unsubscribe();
-        if (this.options.browser && typeof window !== 'undefined') {
-            window.removeEventListener(activeOrgEvent, this.onOrganizationChange);
-        }
         this.listeners.clear();
         this.navigate = () => {};
     }

@@ -1,6 +1,7 @@
+import { Field, IconButton } from '@qualification-work/design-system';
 import { X } from 'lucide-react';
 
-import { Checkbox, FormField, IconButton } from '@/shared/ui';
+import { Checkbox } from '@/shared/ui';
 
 import { actionBuilderTestIds } from '../../const';
 import {
@@ -37,26 +38,26 @@ export const ParameterRow = ({
 
     return (
         <div
-            data-display="grid"
+            data-stack="v"
             data-gap="xs"
             data-test-id={actionBuilderTestIds.parameterRow}
             data-parameter-id={parameter.id}
         >
             <div
                 className={styles['parameter-row']}
-                data-display="grid"
+                data-stack="v"
                 data-gap="sm"
                 data-align="end"
             >
-                <FormField label="Label">
+                <Field label="Label">
                     <actionBuilderConfig.Input
                         data-test-id={actionBuilderTestIds.parameterLabelInput}
                         bind={labelBind}
                         disabled={disabled}
                         placeholder="Amount"
                     />
-                </FormField>
-                <FormField label="Type">
+                </Field>
+                <Field label="Type">
                     <actionBuilderConfig.Select
                         data-test-id={actionBuilderTestIds.parameterTypeSelect}
                         bind={typeBind}
@@ -68,7 +69,7 @@ export const ParameterRow = ({
                         <option value="bool">Bool</option>
                         <option value="day_of_week">Day of week</option>
                     </actionBuilderConfig.Select>
-                </FormField>
+                </Field>
                 <div
                     className={styles['required-control']}
                     data-stack="h"
@@ -97,7 +98,7 @@ export const ParameterRow = ({
                     data-test-id={actionBuilderTestIds.removeParameterButton}
                     aria-label="Remove parameter"
                     disabled={disabled || parametersCount === 1}
-                    tone="nav"
+                    variant="ghost"
                     onClick={handleRemoveParameter}
                 >
                     <X size={20} />

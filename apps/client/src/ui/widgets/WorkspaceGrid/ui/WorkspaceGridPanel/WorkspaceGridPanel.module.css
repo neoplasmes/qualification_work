@@ -1,0 +1,20 @@
+.workspace-grid-panel {
+    display: flex;
+    flex: 0 0 auto;
+    overflow: auto;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+}
+
+.workspace-grid-panel[data-hidden] {
+    display: none;
+}
+
+@media (width <= 1000px) {
+    .workspace-grid-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-basis: auto !important;
+        overflow: auto;
+    }
+}

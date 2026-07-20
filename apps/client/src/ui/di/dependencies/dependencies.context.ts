@@ -14,12 +14,12 @@ import type {
 } from '@/app/ports/repos/session';
 import type { Query } from '@/app/queries/query';
 
+import type { UiState } from './uiState';
+
 export interface SessionController {
     subscribe(listener: () => void): () => void;
     snapshot(): number;
     canRead: boolean;
-    activeOrgId: string | null;
-    setActiveOrgId(id: string | null): void;
     setNavigator(navigate: (path: string) => void): void;
     reset(): Promise<void>;
     logout(): Promise<void>;
@@ -27,6 +27,7 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    ui: UiState;
     getSession: Query<void, Session>;
     register: Command<RegisterInput, RegisterResult>;
     login: Command<LoginInput, void>;

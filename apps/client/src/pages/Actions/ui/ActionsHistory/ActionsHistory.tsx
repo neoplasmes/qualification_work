@@ -1,6 +1,5 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
-
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListActionRunsQuery } from '@/entities/action';
 
@@ -18,7 +17,7 @@ type ActionsHistoryProps = {
 };
 
 export const ActionsHistory = ({ actionNamesById }: ActionsHistoryProps) => {
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const runsQuery = useListActionRunsQuery(
         org

@@ -41,6 +41,7 @@
                                 const script = document.createElement('script');
                                 script.textContent = node.content.textContent;
                                 document.head.appendChild(script);
+                                script.remove();
                                 node.remove();
                             }
                         });
@@ -51,12 +52,16 @@
                     subtree: true,
                 });
 
-                document.addEventListener('__TURBO_UNOBSERVE__', function () {
-                    observer.disconnect();
-                });
+                window.addEventListener(
+                    '__TURBO_UNOBSERVE__',
+                    function () {
+                        observer.disconnect();
+                    },
+                    { once: true }
+                );
             })();
         </script>
-        <script async type="module" src="/src/entry.client.tsx"></script>
+        <script async type="module" src="/src/main/client/entry.client.tsx"></script>
     </head>
     <body>
         <div id="root"><!--ssr-outlet--></div>

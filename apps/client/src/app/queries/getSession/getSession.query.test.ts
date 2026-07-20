@@ -108,6 +108,12 @@ describe('session and organization operations', () => {
         expect(deleteOrganization.writes({ orgId: 'old-org' }, undefined)).toEqual([
             'session',
             'organization',
+            'organization:old-org',
+        ]);
+        expect(deleteOrganization.writes({ orgId: 'org/1' }, undefined)).toEqual([
+            'session',
+            'organization',
+            'organization:org%2F1',
         ]);
     });
 

@@ -1,4 +1,3 @@
-export { getRoutes } from '../config/routes';
 export {
     createStore,
     getPersistedState,

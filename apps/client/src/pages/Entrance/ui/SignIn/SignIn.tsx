@@ -1,7 +1,6 @@
+import { useAuthentication } from '@/ui/session';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
-
-import { useLoginMutation, useWaitForWorkspace } from '@/features/authenticate';
 
 import { getApiErrorMessage } from '@/shared/api';
 
@@ -11,10 +10,10 @@ import signInStyles from './SignIn.module.scss';
 const styles = { ...formStyles, ...signInStyles };
 
 export const SignIn = () => {
-    const [login, loginState] = useLoginMutation();
-    const { waitForWorkspace, isPreparingWorkspace } = useWaitForWorkspace();
+    const { login, waitForWorkspace, isPreparingWorkspace, session } =
+        useAuthentication();
     const [error, setError] = useState('');
-    const isBusy = loginState.isLoading || isPreparingWorkspace;
+    const isBusy = login.isPending || isPreparingWorkspace;
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -25,7 +24,8 @@ export const SignIn = () => {
         const password = String(form.get('password') ?? '');
 
         try {
-            await login({ email, password }).unwrap();
+            await session.reset();
+            await login.execute({ email, password });
             await waitForWorkspace();
         } catch (submitError) {
             setError(getApiErrorMessage(submitError, 'Unable to sign in right now.'));

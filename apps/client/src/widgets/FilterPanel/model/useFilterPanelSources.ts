@@ -1,7 +1,7 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     filterApplicationEffectKinds,
     filterApplicationEntityConfigs,
@@ -22,7 +22,7 @@ const hasEntitySource = (
 ) => filterApplicationEntityConfigs[scope].tabs.some(tab => tab.entity === entity);
 
 export const useFilterPanelSources = (scope: FilterApplicationScope) => {
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
 
     const shouldLoadDatasets = Boolean(org?.id && hasEntitySource(scope, 'datasets'));

@@ -4,8 +4,7 @@ import { Outlet, useLocation } from 'react-router';
 import { usePersistedStateHydration } from '../../model';
 import { NavBar } from '../NavBar';
 
-const motionFeatures = () =>
-    import('../../config/motionFeatures').then(res => res.domMax);
+const motionFeatures = () => import('../../config').then(res => res.domMax);
 
 export const Layout = () => {
     const location = useLocation();

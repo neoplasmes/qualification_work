@@ -1,7 +1,6 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
-
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListActionsQuery } from '@/entities/action';
 
@@ -18,7 +17,7 @@ export const ActionsPage = () => {
     const isCreatingAction = useAppSelector(state => state.actionsPage.isCreatingAction);
     const workspaceMode = useAppSelector(state => state.actionsPage.workspaceMode);
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
 

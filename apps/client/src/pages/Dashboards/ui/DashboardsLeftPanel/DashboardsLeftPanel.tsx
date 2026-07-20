@@ -1,3 +1,4 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { LayoutDashboard, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -6,7 +7,6 @@ import { useNavigate } from 'react-router';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     filterDashboards,
     selectFilterApplicationValues,
@@ -30,7 +30,7 @@ export const DashboardsLeftPanel = () => {
     const navigate = useNavigate();
     const [error, setError] = useState('');
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);

@@ -1,11 +1,11 @@
-import type { RootState } from './app/model';
+import type { AppSnapshot } from './env/cache/hydration';
 
 declare global {
     interface Window {
         /**
-         * redux ssr preloaded state должен быть прислан инлайн скриптом в начале стрима
+         * normalized ssr snapshot должен быть прислан инлайн скриптом в начале стрима
          */
-        __PRELOADED_STATE__?: RootState;
+        __APP_SNAPSHOT__?: AppSnapshot;
 
         /**
          * ReadableStream<string> с turbo-stream чанками,

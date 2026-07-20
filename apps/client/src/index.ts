@@ -1,1 +1,1 @@
-export type { StreamSSRFn } from './entry.server';
+export type { StreamSSRFn } from './main/server';

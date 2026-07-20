@@ -1,3 +1,4 @@
+import { useActiveOrganization, useLogout, useSession } from '@/ui/session';
 import {
     ChartNoAxesColumnIncreasing,
     LayoutDashboard,
@@ -13,17 +14,9 @@ import { type FC } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 
-import {
-    actionsPagePersistence,
-    actionsWorkspaceIndexPath,
-    isActionsWorkspacePath,
-} from '@/pages/Actions';
+import { actionsWorkspaceIndexPath, isActionsWorkspacePath } from '@/pages/Actions';
 import { chartsWorkspaceIndexPath, isChartsWorkspacePath } from '@/pages/Charts';
-import {
-    dashboardsPagePersistence,
-    dashboardsWorkspaceIndexPath,
-} from '@/pages/Dashboards';
-import { datasetsPagePersistence } from '@/pages/Datasets';
+import { dashboardsWorkspaceIndexPath } from '@/pages/Dashboards';
 
 import {
     selectIsLeftCollapsed,
@@ -32,19 +25,8 @@ import {
     toggleRightPanel,
 } from '@/widgets/WorkspaceGrid';
 
-import {
-    clearStoredActiveOrganization,
-    useActiveOrganization,
-    useGetMeQuery,
-    useLogoutMutation,
-} from '@/features/authenticate';
-import { filterApplicationEntitiesPersistence } from '@/features/filterApplicationEntities';
-
 import { useHasMounted } from '@/shared/lib/useHasMounted';
 import { FormField, IconButton, Logo, Select } from '@/shared/ui';
-
-import { persistentStateStorage } from '../../model/persistence';
-import { resetAuthenticatedSessionState } from '../../model/store';
 
 import styles from './NavBar.module.scss';
 
@@ -64,19 +46,6 @@ const navLinks = [
 ];
 
 const workspacePaths = new Set(['/datasets', '/dashboards']);
-
-const authenticatedSessionStorageKeys = [
-    actionsPagePersistence.key,
-    'chartsPage_v1',
-    datasetsPagePersistence.key,
-    dashboardsPagePersistence.key,
-    filterApplicationEntitiesPersistence.key,
-] as const;
-
-const clearAuthenticatedSessionStorage = () => {
-    persistentStateStorage.clear(authenticatedSessionStorageKeys);
-    clearStoredActiveOrganization();
-};
 
 const isActiveNavPath = (pathname: string, linkPath: string) => {
     if (linkPath === chartsWorkspaceIndexPath) {
@@ -99,21 +68,9 @@ export const NavBar: FC = () => {
     const isLeftCollapsed = useSelector(selectIsLeftCollapsed);
     const isRightCollapsed = useSelector(selectIsRightCollapsed);
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg, orgs, setActiveOrgId } = useActiveOrganization(meQuery.data);
-    const [logout, logoutState] = useLogoutMutation();
-
-    const handleLogout = async () => {
-        try {
-            await logout().unwrap();
-        } catch {
-            // ignore logout errors
-        } finally {
-            dispatch(resetAuthenticatedSessionState());
-            clearAuthenticatedSessionStorage();
-            navigate('/sign-in', { replace: true });
-        }
-    };
+    const logout = useLogout();
 
     const isWorkspacePage =
         workspacePaths.has(pathname) ||
@@ -227,8 +184,8 @@ export const NavBar: FC = () => {
                     iconStrokeWidth={2.6}
                     data-px="xs"
                     aria-label="Sign out"
-                    disabled={logoutState.isLoading}
-                    onClick={() => void handleLogout()}
+                    disabled={logout.isPending}
+                    onClick={() => void logout.execute()}
                 >
                     <LogOut size={18} />
                 </IconButton>

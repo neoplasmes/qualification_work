@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type Middleware } from '@reduxjs/toolkit';
 
 import {
     actionsPagePersistence,
@@ -35,6 +35,8 @@ import { rootReducer, type RootState } from './reducer';
 
 export type CreateStoreOptions = {
     apiExtraArgument?: ApiExtraArgument;
+    middleware?: Middleware;
+    persist?: boolean;
 };
 
 export const getPersistedState = (): Partial<RootState> => ({
@@ -71,43 +73,55 @@ export function createStore(
                 thunk: {
                     extraArgument: options.apiExtraArgument ?? {},
                 },
-            }).concat(api.middleware),
+            }).concat(
+                api.middleware,
+                ...(options.middleware ? [options.middleware] : [])
+            ),
         preloadedState,
     });
 
-    persistentStateStorage.subscribeSlices(store, [
-        {
-            key: panelLayoutPersistence.key,
-            selectPersistedState: state =>
-                panelLayoutPersistence.pickPersistedState(state[panelLayoutSlice.name]),
-        },
-        {
-            key: actionsPagePersistence.key,
-            selectPersistedState: state =>
-                actionsPagePersistence.pickPersistedState(state[actionsPageSlice.name]),
-        },
-        {
-            key: datasetsPagePersistence.key,
-            selectPersistedState: state =>
-                datasetsPagePersistence.pickPersistedState(state[datasetsPageSlice.name]),
-        },
-        {
-            key: dashboardsPagePersistence.key,
-            selectPersistedState: state =>
-                dashboardsPagePersistence.pickPersistedState(
-                    state[dashboardsPageSlice.name]
-                ),
-        },
-        {
-            key: filterApplicationEntitiesPersistence.key,
-            selectPersistedState: state =>
-                filterApplicationEntitiesPersistence.pickPersistedState(
-                    state[filterApplicationEntitiesSlice.name]
-                ),
-        },
-    ]);
+    const unsubscribePersistence =
+        options.persist === false
+            ? () => {}
+            : persistentStateStorage.subscribeSlices(store, [
+                  {
+                      key: panelLayoutPersistence.key,
+                      selectPersistedState: state =>
+                          panelLayoutPersistence.pickPersistedState(
+                              state[panelLayoutSlice.name]
+                          ),
+                  },
+                  {
+                      key: actionsPagePersistence.key,
+                      selectPersistedState: state =>
+                          actionsPagePersistence.pickPersistedState(
+                              state[actionsPageSlice.name]
+                          ),
+                  },
+                  {
+                      key: datasetsPagePersistence.key,
+                      selectPersistedState: state =>
+                          datasetsPagePersistence.pickPersistedState(
+                              state[datasetsPageSlice.name]
+                          ),
+                  },
+                  {
+                      key: dashboardsPagePersistence.key,
+                      selectPersistedState: state =>
+                          dashboardsPagePersistence.pickPersistedState(
+                              state[dashboardsPageSlice.name]
+                          ),
+                  },
+                  {
+                      key: filterApplicationEntitiesPersistence.key,
+                      selectPersistedState: state =>
+                          filterApplicationEntitiesPersistence.pickPersistedState(
+                              state[filterApplicationEntitiesSlice.name]
+                          ),
+                  },
+              ]);
 
-    return store;
+    return Object.assign(store, { disposePersistence: unsubscribePersistence });
 }
 
 export type { RootState };

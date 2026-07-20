@@ -15,7 +15,6 @@ const apiBaseUrl = typeof window === 'undefined' ? serverApiBaseUrl : browserApi
 export const api = createApi({
     reducerPath: 'rtkApi',
     tagTypes: [
-        'Auth',
         'Actions',
         'ActionRuns',
         'Charts',

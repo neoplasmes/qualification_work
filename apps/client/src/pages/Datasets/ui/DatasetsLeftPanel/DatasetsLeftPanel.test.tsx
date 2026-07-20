@@ -13,8 +13,8 @@ import { datasetsTestIds } from '../../const';
 import { datasetsPageSlice } from '../../model';
 import { DatasetsLeftPanel } from './DatasetsLeftPanel';
 
-vi.mock('@/features/authenticate', () => ({
-    useGetMeQuery: () => ({ data: { id: 'user-1' } }),
+vi.mock('@/ui/session', () => ({
+    useSession: () => ({ data: { id: 'user-1' } }),
     useActiveOrganization: () => ({
         activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
     }),

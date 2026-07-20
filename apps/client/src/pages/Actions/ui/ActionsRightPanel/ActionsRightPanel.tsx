@@ -1,11 +1,10 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { FilterPanel } from '@/widgets/FilterPanel';
 import { WorkspaceRightPanel } from '@/widgets/WorkspaceRightPanel';
-
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListActionsQuery } from '@/entities/action';
 
@@ -30,7 +29,7 @@ const actionsRightPanelTabTestIds = {
 
 export const ActionsRightPanel = () => {
     const dispatch = useDispatch();
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
     const activeTab = useAppSelector(state => state.actionsPage.rightPanelTab);

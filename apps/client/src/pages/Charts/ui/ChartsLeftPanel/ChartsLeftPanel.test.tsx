@@ -14,8 +14,8 @@ import { chartsTestIds } from '../../const';
 import { chartsPageSlice } from '../../model';
 import { ChartsLeftPanel } from './ChartsLeftPanel';
 
-vi.mock('@/features/authenticate', () => ({
-    useGetMeQuery: () => ({ data: { id: 'user-1' } }),
+vi.mock('@/ui/session', () => ({
+    useSession: () => ({ data: { id: 'user-1' } }),
     useActiveOrganization: () => ({
         activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
     }),

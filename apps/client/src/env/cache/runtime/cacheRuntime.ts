@@ -48,7 +48,13 @@ export class CacheRuntime {
 
     constructor(
         readonly queryClient: QueryClient,
-        readonly store: EntityStore
+        readonly store: EntityStore,
+        readonly options: {
+            onCommandConfirmed?: (event: {
+                refs: readonly EntityRef[];
+                epoch: number;
+            }) => void | Promise<void>;
+        } = {}
     ) {
         this.projections = new ProjectionStore(store, this.tombstones);
         this.invalidator = new CacheInvalidator(this);

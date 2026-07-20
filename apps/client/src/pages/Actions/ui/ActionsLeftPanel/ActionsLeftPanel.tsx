@@ -1,3 +1,4 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus, Workflow } from 'lucide-react';
 import { useMemo } from 'react';
@@ -6,7 +7,6 @@ import { useNavigate } from 'react-router';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     filterActions,
     selectFilterApplicationValues,
@@ -25,7 +25,7 @@ import { selectAction, startCreateAction } from '../../model/actionsPageSlice';
 export const ActionsLeftPanel = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
 

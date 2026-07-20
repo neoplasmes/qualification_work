@@ -1,10 +1,10 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { useRenameDashboardMutation } from '@/features/manageDashboards';
 
 import {
@@ -31,7 +31,7 @@ export const DashboardsPropertiesPanel = () => {
     const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
     const [error, setError] = useState('');
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const [renameDashboard, renameState] = useRenameDashboardMutation();

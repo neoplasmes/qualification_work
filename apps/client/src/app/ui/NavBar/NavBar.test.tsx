@@ -1,43 +1,17 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { ClientRoot } from '@/main/ClientRoot';
+import { createDependencies } from '@/main/dependencies';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { actionsPagePersistence } from '@/pages/Actions';
 import { dashboardsPagePersistence } from '@/pages/Dashboards';
 import { datasetsPagePersistence } from '@/pages/Datasets';
 
-import { panelLayoutSlice } from '@/widgets/WorkspaceGrid';
-
-import type * as authenticateModule from '@/features/authenticate';
 import { filterApplicationEntitiesPersistence } from '@/features/filterApplicationEntities';
 
 import { NavBar } from './NavBar';
-
-const logoutMock = vi.hoisted(() =>
-    vi.fn(() => ({
-        unwrap: () => Promise.resolve(),
-    }))
-);
-
-const setActiveOrgIdMock = vi.hoisted(() => vi.fn());
-
-vi.mock('@/features/authenticate', async importOriginal => {
-    const actual = await importOriginal<typeof authenticateModule>();
-
-    return {
-        ...actual,
-        useGetMeQuery: () => ({ data: { id: 'user-1', organizations: [] } }),
-        useActiveOrganization: () => ({
-            activeOrg: undefined,
-            orgs: [],
-            setActiveOrgId: setActiveOrgIdMock,
-        }),
-        useLogoutMutation: () => [logoutMock, { isLoading: false }],
-    };
-});
 
 const authenticatedSessionStorageKeys = [
     actionsPagePersistence.key,
@@ -47,25 +21,42 @@ const authenticatedSessionStorageKeys = [
     filterApplicationEntitiesPersistence.key,
 ] as const;
 
+let runtime: ReturnType<typeof createDependencies>;
+afterEach(async () => {
+    await runtime?.dispose();
+    vi.unstubAllGlobals();
+});
+
 const renderNavBar = () => {
-    const store = configureStore({
-        reducer: { panelLayout: panelLayoutSlice.reducer },
-    });
+    runtime = createDependencies({ platform: 'browser', apiBaseUrl: '/api' });
 
     return render(
-        <Provider store={store}>
+        <ClientRoot runtime={runtime}>
             <MemoryRouter initialEntries={['/datasets']}>
                 <NavBar />
             </MemoryRouter>
-        </Provider>
+        </ClientRoot>
     );
 };
 
 describe('NavBar', () => {
     beforeEach(() => {
         localStorage.clear();
-        logoutMock.mockClear();
-        setActiveOrgIdMock.mockClear();
+        vi.stubGlobal(
+            'fetch',
+            vi.fn().mockImplementation(async url =>
+                String(url).endsWith('/auth/logout')
+                    ? new Response(null, { status: 204 })
+                    : Response.json({
+                          id: 'u',
+                          email: 'a@b.com',
+                          name: 'A',
+                          family: 'B',
+                          isInitializing: false,
+                          organizations: [],
+                      })
+            )
+        );
     });
 
     it('clears user-scoped session storage and keeps global UI storage on sign out', async () => {
@@ -81,7 +72,7 @@ describe('NavBar', () => {
 
         await user.click(screen.getByRole('button', { name: 'Sign out' }));
 
-        await waitFor(() => expect(logoutMock).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(localStorage.getItem('chartsPage_v1')).toBeNull());
         authenticatedSessionStorageKeys.forEach(key => {
             expect(localStorage.getItem(key)).toBeNull();
         });

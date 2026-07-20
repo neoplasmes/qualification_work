@@ -6,7 +6,7 @@ import { pipeline } from 'node:stream/promises';
 import { pathToFileURL } from 'node:url';
 import { Application } from 'primitive-server';
 
-import type { StreamSSRFn } from '../src/entry.server';
+import type { StreamSSRFn } from '../src/main/server/entry.server';
 import { serveStatic } from './serveStatic';
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -75,7 +75,7 @@ if (isDev) {
         /**
          * Vite резолвит все модули относительно корня проекта, вне зависимости от местонахождения сервера
          */
-        const ssrModule = await vite.ssrLoadModule('/src/entry.server.tsx');
+        const ssrModule = await vite.ssrLoadModule('/src/main/server/entry.server.tsx');
         const render: StreamSSRFn = ssrModule.streamSSR;
         assert(
             typeof render === 'function',

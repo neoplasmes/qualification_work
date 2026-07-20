@@ -1,8 +1,7 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useListDatasetsQuery } from '@/entities/dataset';
 
@@ -24,7 +23,7 @@ export const DatasetsPage = () => {
     );
     const showUpload = useAppSelector(state => state.datasetsPage.showUpload);
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
 

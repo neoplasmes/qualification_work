@@ -1,1 +1,1 @@
-export { getRoutes } from './routes';
+export { domMax } from './motionFeatures';

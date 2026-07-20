@@ -1,9 +1,8 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { GitMerge, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import {
     useDeleteDatasetMutation,
@@ -33,7 +32,7 @@ export const DatasetsPropertiesPanel = () => {
         state => state.datasetsPage.selectedDatasetId
     );
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [patchDataset, patchState] = usePatchDatasetMutation();

@@ -201,6 +201,19 @@ export class CommandRunner {
                     });
                 }
                 try {
+                    await this.runtime.options.onCommandConfirmed?.({
+                        refs: writes,
+                        epoch,
+                    });
+                } catch (error) {
+                    syncError ??= error;
+                }
+                if (!isCurrent()) {
+                    throw Object.assign(new Error('Command cancelled'), {
+                        name: 'AbortError',
+                    });
+                }
+                try {
                     await this.runtime.invalidator.invalidate(writes, {
                         fenced: true,
                         epoch,

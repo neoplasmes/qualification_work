@@ -108,7 +108,7 @@ tasks:
     options:
       internal: true
   build-server:
-    command: pnpm exec vite build --ssr src/entry.server.tsx --outDir dist/server
+    command: pnpm exec vite build --ssr src/main/server/entry.server.tsx --outDir dist/server
     inputs:
     - '@group(src)'
     - '@group(cfg)'

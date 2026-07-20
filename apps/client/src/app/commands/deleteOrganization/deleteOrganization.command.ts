@@ -7,6 +7,10 @@ export function createDeleteOrganization(
 ): Command<DeleteOrgInput, void> {
     return {
         execute: input => repo.deleteOrganization(input),
-        writes: () => ['session', 'organization'],
+        writes: input => [
+            'session',
+            'organization',
+            `organization:${encodeURIComponent(input.orgId)}`,
+        ],
     };
 }

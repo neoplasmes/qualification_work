@@ -1,3 +1,4 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus } from 'lucide-react';
 import { useMemo } from 'react';
@@ -6,7 +7,6 @@ import { useNavigate } from 'react-router';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     filterCharts,
     selectFilterApplicationValues,
@@ -29,7 +29,7 @@ const chartIconSize = 18;
 export const ChartsLeftPanel = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
 
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);

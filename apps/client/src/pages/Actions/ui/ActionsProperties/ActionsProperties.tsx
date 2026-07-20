@@ -1,10 +1,10 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import { usePatchActionMutation } from '@/features/manageActions';
 
 import { getEffectLabel, useArchiveActionMutation, type Action } from '@/entities/action';
@@ -35,7 +35,7 @@ export const ActionsProperties = ({
         null
     );
     const [error, setError] = useState('');
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const [patchAction, patchActionState] = usePatchActionMutation();

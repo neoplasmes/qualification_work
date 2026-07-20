@@ -70,8 +70,8 @@ const dataset = vi.hoisted(
         }) satisfies DatasetMetadata
 );
 
-vi.mock('@/features/authenticate', () => ({
-    useGetMeQuery: () => ({ data: { id: 'user-1' }, isLoading: false }),
+vi.mock('@/ui/session', () => ({
+    useSession: () => ({ data: { id: 'user-1' }, isLoading: false }),
     useActiveOrganization: () => ({
         activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
     }),

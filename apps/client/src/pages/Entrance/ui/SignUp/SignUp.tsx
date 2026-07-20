@@ -1,23 +1,16 @@
+import { useAuthentication } from '@/ui/session';
 import { ArrowRight, Lock, Mail, User } from 'lucide-react';
 import { useState } from 'react';
-
-import {
-    useLoginMutation,
-    useRegisterMutation,
-    useWaitForWorkspace,
-} from '@/features/authenticate';
 
 import { getApiErrorMessage } from '@/shared/api';
 
 import styles from '../form.module.scss';
 
 export const SignUp = () => {
-    const [register, registerState] = useRegisterMutation();
-    const [login, loginState] = useLoginMutation();
-    const { waitForWorkspace, isPreparingWorkspace } = useWaitForWorkspace();
+    const { login, register, waitForWorkspace, isPreparingWorkspace, session } =
+        useAuthentication();
     const [error, setError] = useState('');
-    const isBusy =
-        registerState.isLoading || loginState.isLoading || isPreparingWorkspace;
+    const isBusy = register.isPending || login.isPending || isPreparingWorkspace;
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -30,8 +23,9 @@ export const SignUp = () => {
         const password = String(form.get('password') ?? '');
 
         try {
-            await register({ email, password, name, family }).unwrap();
-            await login({ email, password }).unwrap();
+            await register.execute({ email, password, name, family });
+            await session.reset();
+            await login.execute({ email, password });
             await waitForWorkspace();
         } catch (submitError) {
             setError(

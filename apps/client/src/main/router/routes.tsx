@@ -1,14 +1,13 @@
 import { redirect, type RouteObject } from 'react-router';
 
+import { SessionError } from '@/app/ports/repos/session';
 import { Layout } from '@/app/ui/Layout';
 import { WorkspaceLayout } from '@/app/ui/WorkspaceLayout';
 
 import { Entrance, SignIn, SignUp } from '@/pages/Entrance';
 import { ProfilePage } from '@/pages/Profile';
 
-import { authApi } from '@/features/authenticate';
-
-import type { AppStore } from '../model/store';
+import type { ApplicationRuntime } from '../dependencies';
 
 /**
  * auth guard
@@ -18,20 +17,28 @@ import type { AppStore } from '../model/store';
  * @param request
  * @returns
  */
-const isAuthenticated = async (store: AppStore, request: Request): Promise<boolean> => {
-    const getMeQuery = store.dispatch(authApi.endpoints.getMe.initiate());
-    request.signal.addEventListener('abort', () => getMeQuery.abort(), { once: true });
-
-    try {
-        const result = await getMeQuery;
-
-        return Boolean(result.data);
-    } catch {
+const isAuthenticated = async (
+    runtime: ApplicationRuntime,
+    request: Request
+): Promise<boolean> => {
+    if (request.signal.aborted) {
+        throw new DOMException('Navigation cancelled', 'AbortError');
+    }
+    if (!runtime.dependencies.session.canRead) {
         return false;
-    } finally {
-        if (typeof window !== 'undefined') {
-            getMeQuery.unsubscribe();
+    }
+    try {
+        await runtime.cache.read(runtime.dependencies.getSession, undefined, {
+            signal: request.signal,
+        });
+
+        return true;
+    } catch (error) {
+        if (error instanceof SessionError && error.code === 'expired') {
+            return false;
         }
+
+        throw error;
     }
 };
 
@@ -39,20 +46,20 @@ const EmptyRoute = () => null;
 
 /**
  * Что вообще происходит:
- * мы хотим использовать rtk query и loader'ы из react-router. При этом мы ещё хотим использовать SSR со стримингом и suspense границами.
+ * мы хотим использовать normalized cache и loader'ы из react-router. При этом мы ещё хотим использовать SSR со стримингом и suspense границами.
  * Все данные, которые были получены на сервере, должны прийти на клиент, чтобы там он синхронизовался с тем, что произошло во время SSR.
- * Соответственно с сервера мы должны отправить PRELOADED_STATE и данные гидрации роутера через __TURBO_STREAM__.
- * Для того, чтобы отправить адекватно PRELOADED_STATE, мы должны создать на сервере наш Store повыполнять всё что надо, в том числе и запросы ртк квери внутри лоадеров,
- * а затем вызвать store.getState() в конце, после того, как там будут все данные выполневшихся лоадеров и прочее, и записать эти данные в <script />
+ * Соответственно с сервера мы должны отправить APP_SNAPSHOT и данные гидрации роутера через __TURBO_STREAM__.
+ * Для того, чтобы отправить адекватно APP_SNAPSHOT, мы должны создать на сервере наш runtime повыполнять всё что надо, в том числе и нормализованные запросы внутри лоадеров,
+ * а затем вызвать createAppSnapshot(runtime.cache, runtime.scopeId) в конце, после того, как там будут все данные выполневшихся лоадеров и прочее, и записать эти данные в <script />
  * Короче именно поэтому такой поганый метод getRoutes получается.
  *
- * На клиенте эта функция уже получит store со всеми данными. Ну и роутер сам данные восстановит
+ * На клиенте эта функция уже получит runtime со всеми данными. Ну и роутер сам данные восстановит
  *
- * @param store - redux-store, который должен быть использован как параметр в каждом loader'e,
- * чтобы иметь возможность вызывать rtkQuery запросы.
+ * @param runtime - runtime, который должен быть использован как параметр в каждом loader'e,
+ * чтобы иметь возможность вызывать cache.read запросы.
  * @returns
  */
-export const getRoutes = (store: AppStore): RouteObject[] => [
+export const getRoutes = (runtime: ApplicationRuntime): RouteObject[] => [
     {
         element: <Layout />,
         children: [
@@ -67,7 +74,7 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
                     {
                         path: 'sign-in',
                         loader: async ({ request }) => {
-                            if (await isAuthenticated(store, request)) {
+                            if (await isAuthenticated(runtime, request)) {
                                 return redirect('/datasets');
                             }
 
@@ -78,7 +85,7 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
                     {
                         path: 'sign-up',
                         loader: async ({ request }) => {
-                            if (await isAuthenticated(store, request)) {
+                            if (await isAuthenticated(runtime, request)) {
                                 return redirect('/datasets');
                             }
 
@@ -91,7 +98,7 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
             {
                 element: <WorkspaceLayout />,
                 loader: async ({ request }) => {
-                    if (!(await isAuthenticated(store, request))) {
+                    if (!(await isAuthenticated(runtime, request))) {
                         return redirect('/sign-in');
                     }
 
@@ -112,7 +119,7 @@ export const getRoutes = (store: AppStore): RouteObject[] => [
             {
                 path: '/profile',
                 loader: async ({ request }) => {
-                    if (!(await isAuthenticated(store, request))) {
+                    if (!(await isAuthenticated(runtime, request))) {
                         return redirect('/sign-in');
                     }
 

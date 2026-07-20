@@ -1,3 +1,4 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Sheet, Upload } from 'lucide-react';
 import { useMemo } from 'react';
@@ -5,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { WorkspaceLeftPanel } from '@/widgets/WorkspaceLeftPanel';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     filterDatasets,
     selectFilterApplicationValues,
@@ -26,7 +26,7 @@ import { selectDataset, setShowUpload } from '../../model';
 export const DatasetsLeftPanel = () => {
     const dispatch = useDispatch();
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);

@@ -1,3 +1,4 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import {
     dashboardChartDefaultHeight,
     type DashboardItemLayoutInput,
@@ -7,7 +8,6 @@ import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 import {
     useAddDashboardChartMutation,
     useRemoveDashboardItemMutation,
@@ -51,7 +51,7 @@ export const DashboardsPage = () => {
         state => state.dashboardsPage.workspaceDraftDashboardId
     );
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);

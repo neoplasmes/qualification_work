@@ -87,3 +87,26 @@ test.describe('auth through gateway', () => {
         await expect(page).toHaveURL(/\/sign-in$/);
     });
 });
+
+test('failed logout still clears authenticated browser state', async ({ page }) => {
+    await signUpThroughUi(page, createUser());
+    await page.evaluate(() => {
+        localStorage.setItem(
+            'chartsPage_v1',
+            JSON.stringify({ privateSelection: 'old' })
+        );
+        localStorage.setItem('panelLayout_v2', JSON.stringify({ sizes: {} }));
+    });
+    await page.route('**/api/auth/logout', route => route.abort());
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/sign-in$/);
+    expect(await page.evaluate(() => localStorage.getItem('chartsPage_v1'))).toBeNull();
+    expect(
+        await page.evaluate(() =>
+            localStorage.getItem('qualification-work.active-org-id')
+        )
+    ).toBeNull();
+    expect(
+        await page.evaluate(() => localStorage.getItem('panelLayout_v2'))
+    ).not.toBeNull();
+});

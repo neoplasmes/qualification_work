@@ -1,3 +1,4 @@
+import { useActiveOrganization, useSession } from '@/ui/session';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { Eye, PencilLine } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -15,8 +16,6 @@ import {
     WorkspaceModeTabs,
     type WorkspaceModeTabOption,
 } from '@/widgets/WorkspaceModeTabs';
-
-import { useActiveOrganization, useGetMeQuery } from '@/features/authenticate';
 
 import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
 import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
@@ -81,7 +80,7 @@ export const ChartsPage = () => {
     const workspaceMode = useAppSelector(state => state.chartsPage.workspaceMode);
     const editDraft = useAppSelector(state => state.chartsPage.editDraft);
 
-    const meQuery = useGetMeQuery();
+    const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);

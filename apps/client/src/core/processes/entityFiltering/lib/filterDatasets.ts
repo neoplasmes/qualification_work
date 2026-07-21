@@ -1,20 +1,20 @@
-import type { Chart, Dashboard, DatasetMetadata } from '@qualification-work/types';
+import type { Chart, Dashboard } from '@qualification-work/types';
 
 import type { FilterApplicationEntityValues } from '../types';
 
-type FilterDatasetsParams = {
-    datasets: DatasetMetadata[] | undefined;
+type FilterDatasetsParams<D> = {
+    datasets: D[] | undefined;
     charts: Chart[] | undefined;
     dashboards: Dashboard[] | undefined;
     values: Pick<FilterApplicationEntityValues, 'charts' | 'dashboards'>;
 };
 
-export const filterDatasets = ({
+export const filterDatasets = <D extends { dataset: { id: string } }>({
     datasets,
     charts,
     dashboards,
     values,
-}: FilterDatasetsParams) => {
+}: FilterDatasetsParams<D>) => {
     if (!datasets) {
         return datasets;
     }

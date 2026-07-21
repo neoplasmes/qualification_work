@@ -1,5 +1,5 @@
-import type { Chart, Dashboard, DatasetMetadata } from '@qualification-work/types';
-import { describe, expect, it } from 'vitest';
+import type { Chart, Dashboard } from '@qualification-work/types';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 
 import {
     filterDatasets,
@@ -7,13 +7,14 @@ import {
     getDatasetIdsFromCharts,
 } from './filterDatasets';
 
-const datasets: DatasetMetadata[] = [
+const datasets = [
     {
         dataset: {
+            ref: 'dataset:org-1/dataset-1' as const,
             id: 'dataset-1',
             orgId: 'org-1',
             name: 'Invoices',
-            sourceType: 'manual',
+            sourceType: 'manual' as const,
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
         },
@@ -22,10 +23,11 @@ const datasets: DatasetMetadata[] = [
     },
     {
         dataset: {
+            ref: 'dataset:org-1/dataset-2' as const,
             id: 'dataset-2',
             orgId: 'org-1',
             name: 'Payments',
-            sourceType: 'manual',
+            sourceType: 'manual' as const,
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
         },
@@ -82,6 +84,48 @@ describe('filterDatasets', () => {
                 },
             })
         ).toEqual([datasets[0]]);
+    });
+
+    it('retains canonical element types and object identity', () => {
+        const result = filterDatasets({
+            datasets,
+            charts,
+            dashboards,
+            values: { charts: ['chart-1'], dashboards: [] },
+        });
+
+        expectTypeOf(result).toEqualTypeOf<typeof datasets | undefined>();
+        expect(result?.[0]).toBe(datasets[0]);
+        expect(result?.[0]?.dataset.ref).toBe('dataset:org-1/dataset-1');
+    });
+
+    it('requires only dataset identity and preserves optional input', () => {
+        const summaries = [{ dataset: { id: 'dataset-1' }, label: 'Selected' }];
+        const result = filterDatasets({
+            datasets: summaries,
+            charts,
+            dashboards,
+            values: { charts: ['chart-1'], dashboards: [] },
+        });
+
+        expectTypeOf(result).toEqualTypeOf<typeof summaries | undefined>();
+        expect(result?.[0]).toBe(summaries[0]);
+        expect(
+            filterDatasets({
+                datasets: undefined,
+                charts,
+                dashboards,
+                values: { charts: [], dashboards: [] },
+            })
+        ).toBeUndefined();
+        expect(
+            filterDatasets({
+                datasets,
+                charts,
+                dashboards,
+                values: { charts: [], dashboards: [] },
+            })
+        ).toBe(datasets);
     });
 
     it('extracts relationship ids', () => {

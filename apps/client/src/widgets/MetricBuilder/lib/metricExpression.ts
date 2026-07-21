@@ -1,4 +1,4 @@
-import type { DatasetColumn } from '@/entities/dataset';
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 
 export type MetricExpressionMode = 'builder' | 'formula';
 export type MetricAggregate = 'avg' | 'sum' | 'min' | 'max' | 'count';

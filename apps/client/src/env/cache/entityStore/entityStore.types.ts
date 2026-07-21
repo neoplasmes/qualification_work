@@ -1,5 +1,6 @@
 import type { Action } from '@/core/entities/action';
 import type { Dataset } from '@/core/entities/dataset';
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import type { Organization } from '@/core/entities/organization';
 import type { User } from '@/core/entities/user';
@@ -8,14 +9,13 @@ import type {
     Chart,
     Dashboard,
     DashboardItem,
-    DatasetColumn,
 } from '@qualification-work/types';
 
 export interface RecordRowMap {
     user: User;
     organization: Organization;
     dataset: Dataset;
-    datasetColumn: DatasetColumn & { readonly ref: `datasetColumn:${string}` };
+    datasetColumn: DatasetColumn;
     datasetRow: DatasetRow;
     chart: Chart & { readonly ref: `chart:${string}` };
     dashboard: Omit<Dashboard, 'items'> & {

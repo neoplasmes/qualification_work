@@ -1,13 +1,18 @@
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
-import { dashboardChartDefaultHeight, type Chart } from '@qualification-work/types';
+import {
+    dashboardChartDefaultHeight,
+    type Chart,
+    type DatasetMetadata as DatasetMetadataFixture,
+} from '@qualification-work/types';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore, useStore } from 'zustand';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import type { Dashboard } from '@/entities/dashboard';
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { dashboardsTestIds } from './const';
 import { DashboardsPage } from './Dashboards.page';
@@ -81,6 +86,7 @@ const dataset = vi.hoisted(
     () =>
         ({
             dataset: {
+                ref: 'dataset:org-1/dataset-1',
                 id: 'dataset-1',
                 orgId: 'org-1',
                 name: 'Invoices',
@@ -90,6 +96,7 @@ const dataset = vi.hoisted(
             },
             columns: [
                 {
+                    ref: 'datasetColumn:org-1/dataset-1/column-score',
                     id: 'column-score',
                     datasetId: 'dataset-1',
                     key: 'score',
@@ -107,6 +114,7 @@ const secondDataset = vi.hoisted(
     () =>
         ({
             dataset: {
+                ref: 'dataset:org-1/dataset-2',
                 id: 'dataset-2',
                 orgId: 'org-1',
                 name: 'Profit reports',
@@ -116,6 +124,7 @@ const secondDataset = vi.hoisted(
             },
             columns: [
                 {
+                    ref: 'datasetColumn:org-1/dataset-2/column-profit',
                     id: 'column-profit',
                     datasetId: 'dataset-2',
                     key: 'profit',
@@ -125,6 +134,7 @@ const secondDataset = vi.hoisted(
                     isAnalyzable: true,
                 },
                 {
+                    ref: 'datasetColumn:org-1/dataset-2/column-profit-date',
                     id: 'column-profit-date',
                     datasetId: 'dataset-2',
                     key: 'created_at',
@@ -168,14 +178,7 @@ vi.mock('@/entities/chart', () => ({
     useLazyGetChartDataQuery: () => [vi.fn(), { data: null, isFetching: false }],
 }));
 
-vi.mock('@/entities/dataset', () => ({
-    useListDatasetsQuery: () => ({
-        data: [dataset, secondDataset],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
+const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset, secondDataset];
 
 vi.mock('@/entities/dashboard', () => ({
     formatMetricValue: (value: unknown) =>
@@ -239,6 +242,7 @@ const getByDataTestId = <T extends HTMLElement>(
 
 const renderWorkspace = () => {
     const store = createUiTestRuntime({
+        datasetMetadata: datasetMetadataFixtures,
         dashboards: {
             ...dashboardsPageInitialState,
             rememberedDashboardId: 'dashboard-1',
@@ -491,7 +495,10 @@ it.each([
             workspaceDraftName: 'Unsaved local name',
         };
         localStorage.setItem('dashboardsPage_v1', JSON.stringify(persisted));
-        const store = createUiTestRuntime({}, true);
+        const store = createUiTestRuntime(
+            { datasetMetadata: datasetMetadataFixtures },
+            true
+        );
         if (!lateHydration) {
             store.ui.hydrate();
         }

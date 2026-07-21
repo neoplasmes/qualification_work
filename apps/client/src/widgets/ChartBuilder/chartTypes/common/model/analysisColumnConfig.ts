@@ -1,4 +1,4 @@
-import type { DatasetColumn } from '@/entities/dataset';
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 
 /**
  * some columns are disabled from being included in charts definitions, so this function

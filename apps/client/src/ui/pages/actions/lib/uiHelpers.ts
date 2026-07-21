@@ -1,5 +1,6 @@
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import type { ActionRun } from '@/entities/action';
-import type { DatasetMetadata } from '@/entities/dataset';
 
 export const canMutate = (role: string | undefined) =>
     role === 'owner' || role === 'editor';

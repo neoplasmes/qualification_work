@@ -1,6 +1,5 @@
 import type {
     DatasetColumn,
-    DatasetMetadata,
     DatasetRow,
     DatasetRowsPage,
     PatchDatasetColumnPayload,
@@ -27,25 +26,6 @@ type PatchDatasetColumnMutationPayload = {
 
 export const datasetApi = api.injectEndpoints({
     endpoints: builder => ({
-        listDatasets: builder.query<DatasetMetadata[], string>({
-            query: orgId => `/data/datasets?orgId=${encodeURIComponent(orgId)}`,
-            providesTags: result =>
-                result
-                    ? [
-                          ...result.map(item => ({
-                              type: 'Datasets' as const,
-                              id: item.dataset.id,
-                          })),
-                          { type: 'Datasets' as const, id: 'LIST' },
-                      ]
-                    : [{ type: 'Datasets' as const, id: 'LIST' }],
-        }),
-        getDatasetMetadata: builder.query<DatasetMetadata, string>({
-            query: datasetId => `/data/datasets/${datasetId}/metadata`,
-            providesTags: (_result, _error, datasetId) => [
-                { type: 'Datasets', id: datasetId },
-            ],
-        }),
         deleteDataset: builder.mutation<void, string>({
             query: datasetId => ({
                 url: `/data/datasets/${datasetId}`,
@@ -139,12 +119,9 @@ export const datasetApi = api.injectEndpoints({
 export const {
     useDeleteDatasetMutation,
     useDeleteRowMutation,
-    useGetDatasetMetadataQuery,
     useGetDatasetRowsQuery,
     useInsertRowMutation,
-    useLazyGetDatasetMetadataQuery,
     useLazyGetDatasetRowsQuery,
-    useListDatasetsQuery,
     usePatchDatasetColumnMutation,
     usePatchDatasetMutation,
     useUpdateRowMutation,

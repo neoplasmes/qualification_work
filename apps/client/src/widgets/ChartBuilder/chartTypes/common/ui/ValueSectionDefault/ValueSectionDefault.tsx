@@ -1,10 +1,10 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { Button, Field, IconButton } from '@qualification-work/design-system';
 import { aggregates } from '@qualification-work/types';
 import { Plus, Trash2 } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 import { aggregateLabels } from '@/entities/chart';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { ChartTypeSettingsProps } from '../../../../model';
 

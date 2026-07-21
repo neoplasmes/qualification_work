@@ -1,7 +1,8 @@
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useActionsPageActions } from '@/ui/pages/actions/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { Button } from '@qualification-work/design-system';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
@@ -9,7 +10,6 @@ import { useNavigate } from 'react-router';
 import { usePatchActionMutation } from '@/features/manageActions';
 
 import { getEffectLabel, useArchiveActionMutation, type Action } from '@/entities/action';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -37,7 +37,12 @@ export const ActionsProperties = ({
     const [error, setError] = useState('');
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const [patchAction, patchActionState] = usePatchActionMutation();
     const [archiveAction, archiveState] = useArchiveActionMutation();
 

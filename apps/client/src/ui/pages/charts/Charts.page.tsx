@@ -1,3 +1,5 @@
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useChartsPageActions, useChartsPageState } from '@/ui/pages/charts/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import {
@@ -10,6 +12,8 @@ import { Eye, PencilLine } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import {
     ChartBuilder,
     configToBuilderDraft,
@@ -19,7 +23,6 @@ import {
 } from '@/widgets/ChartBuilder';
 
 import { useGetChartQuery, useListChartsQuery } from '@/entities/chart';
-import { useListDatasetsQuery, type DatasetMetadata } from '@/entities/dataset';
 
 import { StatusMessage } from '@/shared/ui';
 
@@ -82,7 +85,12 @@ export const ChartsPage = () => {
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
 
     useChartsWorkspaceRouteSync();
 

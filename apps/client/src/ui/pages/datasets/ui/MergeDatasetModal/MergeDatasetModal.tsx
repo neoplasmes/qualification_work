@@ -3,14 +3,14 @@ import { Button, Field } from '@qualification-work/design-system';
 import { GitMerge } from 'lucide-react';
 import { useState } from 'react';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import {
     useMergeCancelMutation,
     useMergeCommitMutation,
     useMergePreviewMutation,
     type MergePreviewResult,
 } from '@/features/uploadDataset';
-
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { Modal, StatusMessage } from '@/shared/ui';

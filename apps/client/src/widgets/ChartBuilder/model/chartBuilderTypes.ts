@@ -1,7 +1,6 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { ChartConfig, ChartType } from '@qualification-work/types';
 import type { ComponentType } from 'react';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { Config } from '@/shared/ui/tools/Config';
 

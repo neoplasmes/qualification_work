@@ -1,8 +1,8 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { Field } from '@qualification-work/design-system';
 import { filterOperations, type FilterOperation } from '@qualification-work/types';
 
 import { FILTER_OP_LABELS } from '@/entities/chart';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { Config, ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 

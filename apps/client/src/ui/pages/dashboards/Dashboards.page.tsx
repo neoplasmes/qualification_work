@@ -1,3 +1,5 @@
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import {
     useDashboardsPageActions,
     useDashboardsPageState,
@@ -24,7 +26,6 @@ import {
     useListDashboardsQuery,
     type DashboardMetricItem,
 } from '@/entities/dashboard';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { getSelected } from '@/shared/lib/getSelected';
@@ -61,7 +62,12 @@ export const DashboardsPage = () => {
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
 
     const selectedListDashboard = useMemo(() => {
         if (selectedDashboardId === null) {

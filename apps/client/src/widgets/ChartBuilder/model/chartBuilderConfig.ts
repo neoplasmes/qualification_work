@@ -1,7 +1,7 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { ChartConfig, ChartType } from '@qualification-work/types';
 
 import { DEFAULT_CHART_COLOR, getChartColorFromConfig } from '@/entities/chart';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { ChartBuilderOutput } from './chartBuilderTypes';
 import { chartDefinitions, type ChartTypeDraft } from './chartDefinitions';

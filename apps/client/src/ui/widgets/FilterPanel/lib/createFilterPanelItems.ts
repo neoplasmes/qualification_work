@@ -4,8 +4,9 @@ import type {
 } from '@/core/processes/entityFiltering';
 import type { Chart } from '@qualification-work/types';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import type { Dashboard } from '@/entities/dashboard';
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 

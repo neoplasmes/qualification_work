@@ -1,6 +1,5 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { Aggregate, Measure } from '@qualification-work/types';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { ConfigBind } from '@/shared/ui/tools/Config';
 

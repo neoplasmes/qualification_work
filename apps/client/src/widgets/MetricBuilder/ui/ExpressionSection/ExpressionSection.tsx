@@ -1,7 +1,7 @@
 import { Field } from '@qualification-work/design-system';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
 

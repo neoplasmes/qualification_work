@@ -1,4 +1,5 @@
 import { DashboardWidgets } from '..';
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import {
     dashboardChartMinHeight,
     dashboardChartMinWidth,
@@ -10,8 +11,6 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import { dashboardsTestIds } from '../../../const';
 
@@ -183,6 +182,7 @@ const chartResponse: ChartResponse = {
 };
 const metricColumns = [
     {
+        ref: 'datasetColumn:org-1/dataset-1/column-score',
         id: 'column-score',
         datasetId: 'dataset-1',
         key: 'score',
@@ -192,6 +192,7 @@ const metricColumns = [
         isAnalyzable: true,
     },
     {
+        ref: 'datasetColumn:org-1/dataset-1/column-created-at',
         id: 'column-created-at',
         datasetId: 'dataset-1',
         key: 'created_at',

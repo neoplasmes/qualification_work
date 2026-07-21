@@ -1,3 +1,4 @@
+import { datasetChanges } from '.';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -7,7 +8,7 @@ import {
     datasetMetadataChangedTags,
     datasetRemovedTags,
     uniqueCacheInvalidationTags,
-} from './cacheInvalidation';
+} from '@/shared/api/cacheInvalidation';
 
 describe('cache invalidation tags', () => {
     it('invalidates dataset content and related chart/dashboard cache entries', () => {
@@ -67,4 +68,21 @@ describe('cache invalidation tags', () => {
             { type: 'DatasetRows', id: 'dataset-1' },
         ]);
     });
+});
+
+it('declares exact dataset changes with organization-scoped addresses', () => {
+    const ref = 'dataset:org%2F1/data%2F1';
+    expect(datasetChanges(ref, 'metadata')).toEqual(['dataset', ref]);
+    const content = [
+        'dataset',
+        ref,
+        'datasetRow',
+        'datasetColumn',
+        'chartData',
+        'metricPreview',
+        'dashboard',
+    ];
+    expect(datasetChanges(ref, 'content')).toEqual(content);
+    expect(datasetChanges(ref, 'removed')).toEqual([...content, 'chart']);
+    expect(datasetChanges('dataset:other/data%2F1', 'content')[1]).not.toBe(ref);
 });

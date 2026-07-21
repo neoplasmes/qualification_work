@@ -2,10 +2,11 @@ import { Button } from '@qualification-work/design-system';
 import { Save } from 'lucide-react';
 import { useLayoutEffect } from 'react';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import { MetricBuilder } from '@/widgets/MetricBuilder';
 
 import type { Dashboard, DashboardMetricItem } from '@/entities/dashboard';
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { Modal } from '@/shared/ui';
 

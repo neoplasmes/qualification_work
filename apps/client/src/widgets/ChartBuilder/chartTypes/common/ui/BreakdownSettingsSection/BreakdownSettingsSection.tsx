@@ -1,6 +1,5 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { Field } from '@qualification-work/design-system';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { Config, ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 

@@ -1,7 +1,7 @@
 import { IconButton } from '@qualification-work/design-system';
 import { X } from 'lucide-react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { SegmentedControl, type SegmentedControlOption } from '@/shared/ui';
 

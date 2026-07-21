@@ -25,7 +25,7 @@ const rule = {
 
                 const to = importedPath(from, node.source.value);
 
-                if (!to) {
+                if (!to || (to.startsWith('app/') && !legacyPath(to))) {
                     return;
                 }
 

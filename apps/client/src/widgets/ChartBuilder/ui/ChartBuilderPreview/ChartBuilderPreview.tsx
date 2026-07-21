@@ -1,8 +1,10 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { Field, Input } from '@qualification-work/design-system';
 import type { ChartConfig, ChartResponse } from '@qualification-work/types';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import { ChartConfigSummary, ChartShell } from '@/entities/chart';
-import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
 
 import { StatusMessage } from '@/shared/ui';
 

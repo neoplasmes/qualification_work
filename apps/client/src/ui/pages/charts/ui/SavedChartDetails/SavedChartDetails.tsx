@@ -1,7 +1,7 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { Chart, ChartResponse } from '@qualification-work/types';
 
 import { ChartCard } from '@/entities/chart';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import { StatusMessage } from '@/shared/ui';
 

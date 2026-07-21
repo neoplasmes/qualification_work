@@ -1,6 +1,7 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { GridSelection } from '@glideapps/glide-data-grid';
 
-import type { DatasetColumn, DatasetRow } from '@/entities/dataset';
+import type { DatasetRow } from '@/entities/dataset';
 
 export type DatasetGridProps = {
     datasetId: string;

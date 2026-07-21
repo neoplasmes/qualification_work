@@ -1,13 +1,17 @@
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
-import type { Chart, ChartResponse } from '@qualification-work/types';
+import type {
+    Chart,
+    ChartResponse,
+    DatasetMetadata as DatasetMetadataFixture,
+} from '@qualification-work/types';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
 
 import { ChartsPage } from './Charts.page';
 import { chartsTestIds } from './const';
@@ -59,6 +63,7 @@ const dataset = vi.hoisted(
     () =>
         ({
             dataset: {
+                ref: 'dataset:org-1/dataset-1',
                 id: 'dataset-1',
                 orgId: 'org-1',
                 name: 'Invoices',
@@ -106,14 +111,7 @@ vi.mock('@/entities/chart', () => ({
     useDeleteChartMutation: () => [mocks.deleteChart, { isLoading: false }],
 }));
 
-vi.mock('@/entities/dataset', () => ({
-    useListDatasetsQuery: () => ({
-        data: [dataset],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
+const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset];
 
 vi.mock('@/features/buildChart', () => ({
     usePatchChartMutation: () => [mocks.patchChart, { isLoading: false }],
@@ -196,6 +194,7 @@ const renderWorkspace = (
     initialRoute = '/charts'
 ) => {
     const store = createUiTestRuntime({
+        datasetMetadata: datasetMetadataFixtures,
         charts: {
             ...chartsPageInitialState,
             ...preloadedState,
@@ -338,7 +337,7 @@ describe('ChartsPage', () => {
             },
         });
 
-        expect(screen.getByTestId('chart-builder')).toBeInTheDocument();
+        expect(await screen.findByTestId('chart-builder')).toBeInTheDocument();
         expect(
             screen.getByRole('button', { name: 'Change dataset' })
         ).toBeInTheDocument();

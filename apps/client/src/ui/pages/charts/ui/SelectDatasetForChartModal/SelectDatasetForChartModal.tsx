@@ -1,6 +1,6 @@
 import { Sheet } from 'lucide-react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { EmptyState, Modal, StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';

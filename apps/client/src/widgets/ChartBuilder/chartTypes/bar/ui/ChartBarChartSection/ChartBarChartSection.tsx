@@ -1,8 +1,8 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { Field } from '@qualification-work/design-system';
 import { timeGranularities } from '@qualification-work/types';
 
 import { GRANULARITY_LABELS } from '@/entities/chart';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { ChartTypeSettingsProps } from '../../../../model';
 import { groupingLabels } from '../../../common/const';

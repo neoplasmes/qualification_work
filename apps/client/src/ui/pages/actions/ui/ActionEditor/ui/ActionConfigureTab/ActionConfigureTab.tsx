@@ -1,4 +1,5 @@
-import { skipToken } from '@reduxjs/toolkit/query';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import {
     useCallback,
     useEffect,
@@ -20,7 +21,6 @@ import {
 } from '@/features/manageActions';
 
 import type { Action } from '@/entities/action';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';
@@ -52,7 +52,12 @@ export const ActionConfigureTab = ({
 }: ActionConfigureTabProps) => {
     const [createAction, createState] = useCreateActionMutation();
     const [patchAction, patchState] = usePatchActionMutation();
-    const datasetsQuery = useListDatasetsQuery(orgId ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: orgId ?? '' },
+        { enabled: Boolean(orgId) }
+    );
     const saving = createState.isLoading || patchState.isLoading;
     const [error, setError] = useState('');
 

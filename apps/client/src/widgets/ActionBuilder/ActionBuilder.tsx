@@ -1,6 +1,6 @@
 import type { SubmitEventHandler } from 'react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { actionBuilderTestIds } from './const';
 import { actionBuilderConfig, type ActionBuilderDraft } from './model';

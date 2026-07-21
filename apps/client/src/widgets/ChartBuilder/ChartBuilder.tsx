@@ -10,13 +10,13 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import {
     useCreateChartMutation,
     usePreviewChartDataMutation,
     useUpdateChartMutation,
 } from '@/features/buildChart';
-
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';

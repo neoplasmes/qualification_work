@@ -1,4 +1,4 @@
-import type { DatasetColumn } from '@/entities/dataset';
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 
 import styles from './MergeKeyChips.module.css';
 

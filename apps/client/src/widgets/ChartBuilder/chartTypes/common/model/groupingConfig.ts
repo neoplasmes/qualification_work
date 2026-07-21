@@ -1,6 +1,5 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { AxisGrouping, TimeGranularity } from '@qualification-work/types';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import type { ConfigBind, ConfigFieldKey } from '@/shared/ui/tools/Config';
 

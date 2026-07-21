@@ -2,7 +2,7 @@ import { Button, Divider } from '@qualification-work/design-system';
 import { Plus } from 'lucide-react';
 import { Fragment, useMemo } from 'react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { actionBuilderTestIds } from '../../const';
 import {

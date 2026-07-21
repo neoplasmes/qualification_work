@@ -1,9 +1,8 @@
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useDatasetsPageActions, useDatasetsPageState } from '@/ui/pages/datasets/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
-
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getSelected } from '@/shared/lib/getSelected';
 
@@ -21,7 +20,12 @@ export const DatasetsPage = () => {
 
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
 
     const selectedDataset = useMemo(
         () => getSelected(datasetsQuery.data, selectedDatasetId, item => item.dataset.id),
@@ -35,7 +39,7 @@ export const DatasetsPage = () => {
 
     const handleUploadSuccess = async (datasetId: string) => {
         selectDataset(datasetId);
-        await datasetsQuery.refetch();
+        await dependencies.cache.read(dependencies.listDatasets, { orgId: org!.id });
     };
 
     return (

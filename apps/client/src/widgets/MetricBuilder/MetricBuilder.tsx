@@ -6,7 +6,7 @@ import {
     type SubmitEventHandler,
 } from 'react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { StatusMessage } from '@/shared/ui';
 

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type SubmitEvent } from 'react';
 import { useStore } from 'zustand';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import type { MetricBuilderDraft, MetricBuilderOutput } from '@/widgets/MetricBuilder';
 
 import {
@@ -9,7 +11,6 @@ import {
 } from '@/features/manageDashboards';
 
 import type { Dashboard, DashboardMetricItem } from '@/entities/dashboard';
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 

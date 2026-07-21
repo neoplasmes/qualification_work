@@ -1,4 +1,6 @@
 import { filterDatasets } from '@/core/processes/entityFiltering';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useDatasetsPageActions, useDatasetsPageState } from '@/ui/pages/datasets/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { useFilters } from '@/ui/widgets/FilterPanel';
@@ -9,7 +11,6 @@ import { useMemo } from 'react';
 
 import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
@@ -22,7 +23,12 @@ export const DatasetsLeftPanel = () => {
 
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
 
@@ -51,7 +57,7 @@ export const DatasetsLeftPanel = () => {
             countLabel={`Total: ${filteredDatasets?.length ?? 0} datasets`}
             testId={datasetsTestIds.uploadPanel}
             listLabel="Datasets"
-            loading={datasetsQuery.isLoading}
+            loading={Boolean(org?.id) && datasetsQuery.isPending}
             loadingText="Loading datasets..."
             empty={filteredDatasets?.length === 0}
             emptyText="Upload a dataset to start."

@@ -1,3 +1,5 @@
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useChartsPageActions, useChartsPageState } from '@/ui/pages/charts/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { Button } from '@qualification-work/design-system';
@@ -9,7 +11,6 @@ import { useNavigate } from 'react-router';
 import { usePatchChartMutation } from '@/features/buildChart';
 
 import { useDeleteChartMutation, useGetChartQuery } from '@/entities/chart';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -28,7 +29,12 @@ export const ChartsPropertiesPanel = () => {
 
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const [patchChart, patchChartState] = usePatchChartMutation();
     const [deleteChart, deleteChartState] = useDeleteChartMutation();
     const selectedChartId = useChartsPageState(state => state.selectedChartId);

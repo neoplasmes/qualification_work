@@ -17,6 +17,7 @@ vi.mock('@/features/uploadDataset', () => ({
 
 const selectedDataset = {
     dataset: {
+        ref: 'dataset:org-1/dataset-1' as const,
         id: 'dataset-1',
         orgId: 'org-1',
         name: 'Purchases',
@@ -26,6 +27,7 @@ const selectedDataset = {
     },
     columns: [
         {
+            ref: 'datasetColumn:org-1/dataset-1/c-id' as const,
             id: 'c-id',
             datasetId: 'dataset-1',
             key: 'id',
@@ -35,6 +37,7 @@ const selectedDataset = {
             isAnalyzable: true,
         },
         {
+            ref: 'datasetColumn:org-1/dataset-1/c-name' as const,
             id: 'c-name',
             datasetId: 'dataset-1',
             key: 'name',

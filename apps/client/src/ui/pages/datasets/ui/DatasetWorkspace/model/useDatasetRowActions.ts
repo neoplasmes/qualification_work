@@ -1,11 +1,12 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
+
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import {
     useDeleteRowMutation,
     useInsertRowMutation,
     useUpdateRowMutation,
-    type DatasetColumn,
-    type DatasetMetadata,
     type DatasetRow,
 } from '@/entities/dataset';
 

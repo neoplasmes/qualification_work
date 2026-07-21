@@ -1,4 +1,5 @@
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
+import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -68,39 +69,32 @@ vi.mock('@/entities/dashboard', () => ({
     }),
 }));
 
-vi.mock('@/entities/dataset', () => ({
-    useListDatasetsQuery: () => ({
-        data: [
-            {
-                dataset: {
-                    id: 'dataset-1',
-                    name: 'Invoices',
-                    orgId: 'org-1',
-                    sourceType: 'manual',
-                    createdAt: '2026-01-01T00:00:00.000Z',
-                    updatedAt: '2026-01-01T00:00:00.000Z',
-                },
-                columns: [],
-                totalRows: 1,
-            },
-            {
-                dataset: {
-                    id: 'dataset-2',
-                    name: 'Statuses',
-                    orgId: 'org-1',
-                    sourceType: 'manual',
-                    createdAt: '2026-01-01T00:00:00.000Z',
-                    updatedAt: '2026-01-01T00:00:00.000Z',
-                },
-                columns: [],
-                totalRows: 1,
-            },
-        ],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
+const datasetMetadataFixtures: DatasetMetadataFixture[] = [
+    {
+        dataset: {
+            id: 'dataset-1',
+            name: 'Invoices',
+            orgId: 'org-1',
+            sourceType: 'manual',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        columns: [],
+        totalRows: 1,
+    },
+    {
+        dataset: {
+            id: 'dataset-2',
+            name: 'Statuses',
+            orgId: 'org-1',
+            sourceType: 'manual',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        columns: [],
+        totalRows: 1,
+    },
+];
 
 const getByDataTestId = <T extends HTMLElement>(
     container: HTMLElement,
@@ -113,7 +107,7 @@ const getByDataTestId = <T extends HTMLElement>(
 };
 
 const makeStore = (withFilter = false) => {
-    const store = createUiTestRuntime();
+    const store = createUiTestRuntime({ datasetMetadata: datasetMetadataFixtures });
 
     if (withFilter) {
         store.ui.filters.getState().toggleFilterApplicationValue({
@@ -145,7 +139,7 @@ describe('ChartsLeftPanel', () => {
         expect(store.chartEditor.getState().showDatasetPicker).toBe(true);
     });
 
-    it('renders charts filtered by selected dataset ids', () => {
+    it('renders charts filtered by selected dataset ids', async () => {
         render(
             <Provider store={makeStore(true)}>
                 <MemoryRouter>
@@ -155,7 +149,7 @@ describe('ChartsLeftPanel', () => {
         );
 
         expect(screen.getByRole('button', { name: /Revenue/ })).toBeInTheDocument();
-        expect(screen.getByText('Invoices')).toBeInTheDocument();
+        expect(await screen.findByText('Invoices')).toBeInTheDocument();
         expect(screen.queryByText('dataset-1')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Status/ })).not.toBeInTheDocument();
     });

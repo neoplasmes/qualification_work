@@ -1,6 +1,7 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { DatasetColumn, DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { StatusMessage } from '@/shared/ui';
 

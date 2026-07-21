@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { ActionBuilder } from './ActionBuilder';
 import { actionBuilderTestIds } from './const';
@@ -11,6 +11,7 @@ import { createActionBuilderDraft, type ActionBuilderDraft } from './model';
 
 const dataset: DatasetMetadata = {
     dataset: {
+        ref: 'dataset:org-1/dataset-1',
         id: 'dataset-1',
         orgId: 'org-1',
         name: 'Invoices',
@@ -20,6 +21,7 @@ const dataset: DatasetMetadata = {
     },
     columns: [
         {
+            ref: 'datasetColumn:org-1/dataset-1/column-1',
             id: 'column-1',
             datasetId: 'dataset-1',
             key: 'status',

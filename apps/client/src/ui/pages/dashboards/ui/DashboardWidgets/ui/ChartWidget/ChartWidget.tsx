@@ -1,7 +1,7 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { Chart } from '@qualification-work/types';
 
 import type { DashboardItem } from '@/entities/dashboard';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import {
     dashboardChartAxisLabelsMinHeight,

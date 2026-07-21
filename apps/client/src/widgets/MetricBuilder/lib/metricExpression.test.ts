@@ -1,6 +1,5 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { describe, expect, it } from 'vitest';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import {
     buildMetricExpression,
@@ -9,6 +8,7 @@ import {
 } from './metricExpression';
 
 const column = (key: string): DatasetColumn => ({
+    ref: `datasetColumn:org-1/dataset-1/${encodeURIComponent(key)}`,
     id: key,
     datasetId: 'dataset-1',
     key,

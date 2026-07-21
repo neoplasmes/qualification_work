@@ -1,6 +1,6 @@
 import { Field } from '@qualification-work/design-system';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { Slider } from '@/shared/ui';
 

@@ -1,12 +1,27 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
+import type { DatasetRow } from '@/core/entities/datasetRow';
 import type { Session } from '@/core/entities/user';
 import { createContext, useContext } from 'react';
 
 import type { Command } from '@/app/commands/command';
 import type {
+    DatasetMetadata,
+    DatasetRowsPage,
+    DatasetScope,
+    DeleteDatasetRowsInput,
+    GetDatasetRowsInput,
+    InsertDatasetRowInput,
+    ListDatasetsInput,
+    PatchDatasetColumnInput,
+    PatchDatasetInput,
+    UpdateDatasetRowsInput,
+} from '@/app/ports/repos/dataset';
+import type {
     CreateOrgInput,
     CreateOrgResult,
     DeleteOrgInput,
 } from '@/app/ports/repos/organization';
+import type { ReadOptions } from '@/app/ports/repos/readOptions';
 import type {
     LoginInput,
     RegisterInput,
@@ -27,6 +42,18 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    cache: {
+        read<I, O>(query: Query<I, O>, input: I, options?: ReadOptions): Promise<O>;
+    };
+    listDatasets: Query<ListDatasetsInput, DatasetMetadata[]>;
+    getDatasetMetadata: Query<DatasetScope, DatasetMetadata>;
+    getDatasetRows: Query<GetDatasetRowsInput, DatasetRowsPage>;
+    deleteDataset: Command<DatasetScope, void>;
+    patchDataset: Command<PatchDatasetInput, void>;
+    patchDatasetColumn: Command<PatchDatasetColumnInput, DatasetColumn>;
+    updateDatasetRows: Command<UpdateDatasetRowsInput, DatasetRow[]>;
+    insertDatasetRow: Command<InsertDatasetRowInput, DatasetRow>;
+    deleteDatasetRows: Command<DeleteDatasetRowsInput, DatasetRow[]>;
     ui: UiState;
     getSession: Query<void, Session>;
     register: Command<RegisterInput, RegisterResult>;

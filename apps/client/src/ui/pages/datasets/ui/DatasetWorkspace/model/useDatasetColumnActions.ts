@@ -1,10 +1,9 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { useCallback, useState } from 'react';
 
-import {
-    usePatchDatasetColumnMutation,
-    type DatasetColumn,
-    type DatasetMetadata,
-} from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
+import { usePatchDatasetColumnMutation } from '@/entities/dataset';
 
 import type { DatasetColumnContextMenuState } from '../../DatasetColumnContextMenu';
 

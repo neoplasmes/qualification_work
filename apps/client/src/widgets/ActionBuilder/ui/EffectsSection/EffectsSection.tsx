@@ -2,7 +2,7 @@ import { Button } from '@qualification-work/design-system';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { Card } from '@/shared/ui';
 

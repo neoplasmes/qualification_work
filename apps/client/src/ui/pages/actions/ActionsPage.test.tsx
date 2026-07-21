@@ -1,11 +1,13 @@
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
+import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import type { Action } from '@/entities/action';
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { ActionsPage } from './Actions.page';
 import { actionsTestIds } from './const';
@@ -47,6 +49,7 @@ const dataset = vi.hoisted(
     () =>
         ({
             dataset: {
+                ref: 'dataset:org-1/dataset-1',
                 id: 'dataset-1',
                 orgId: 'org-1',
                 name: 'Invoices',
@@ -56,6 +59,7 @@ const dataset = vi.hoisted(
             },
             columns: [
                 {
+                    ref: 'datasetColumn:org-1/dataset-1/column-1',
                     id: 'column-1',
                     datasetId: 'dataset-1',
                     key: 'status',
@@ -76,14 +80,7 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/dataset', () => ({
-    useListDatasetsQuery: () => ({
-        data: [dataset],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
+const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset];
 
 vi.mock('@/entities/action', () => ({
     getEffectLabel: (kind: string) =>
@@ -120,6 +117,7 @@ const renderWorkspace = (
     initialRoute = '/actions'
 ) => {
     const store = createUiTestRuntime({
+        datasetMetadata: datasetMetadataFixtures,
         actions: {
             ...actionsPageInitialState,
             ...statePatch,

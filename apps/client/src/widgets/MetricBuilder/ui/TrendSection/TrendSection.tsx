@@ -2,7 +2,7 @@ import { Field } from '@qualification-work/design-system';
 import { metricTimeBuckets } from '@qualification-work/types';
 import { useMemo } from 'react';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { metricBuilderConfig } from '../../model';
 

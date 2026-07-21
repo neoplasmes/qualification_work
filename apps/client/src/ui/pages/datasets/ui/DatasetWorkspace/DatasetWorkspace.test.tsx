@@ -1,8 +1,11 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { CompactSelection } from '@glideapps/glide-data-grid';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DatasetColumn, DatasetMetadata, DatasetRow } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
+import type { DatasetRow } from '@/entities/dataset';
 
 import { datasetsTestIds } from '../../const';
 import type { DatasetGridProps } from '../DatasetGrid/types';
@@ -19,6 +22,7 @@ const columns = vi.hoisted(
     () =>
         [
             {
+                ref: 'datasetColumn:org-1/dataset-1/column-1',
                 id: 'column-1',
                 datasetId: 'dataset-1',
                 key: 'amount',
@@ -28,6 +32,7 @@ const columns = vi.hoisted(
                 isAnalyzable: true,
             },
             {
+                ref: 'datasetColumn:org-1/dataset-1/column-2',
                 id: 'column-2',
                 datasetId: 'dataset-1',
                 key: 'name',
@@ -43,6 +48,7 @@ const selectedDataset = vi.hoisted(
     () =>
         ({
             dataset: {
+                ref: 'dataset:org-1/dataset-1',
                 id: 'dataset-1',
                 orgId: 'org-1',
                 name: 'Invoices',

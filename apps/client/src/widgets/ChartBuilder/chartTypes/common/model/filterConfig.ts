@@ -1,6 +1,5 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { FilterClause, FilterOperation } from '@qualification-work/types';
-
-import type { DatasetColumn } from '@/entities/dataset';
 
 import {
     getActiveAnalysisColumnId,

@@ -1,7 +1,7 @@
 import { Divider, Field, Input, Select } from '@qualification-work/design-system';
 import type { ChartType } from '@qualification-work/types';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { chartDefinitions, type ChartBuilderDraft } from '../../model';
 import { ColorPickerControl } from '../ColorPickerControl';

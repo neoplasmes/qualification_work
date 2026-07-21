@@ -1,15 +1,12 @@
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useDatasetsPageActions, useDatasetsPageState } from '@/ui/pages/datasets/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { Button } from '@qualification-work/design-system';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { GitMerge, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import {
-    useDeleteDatasetMutation,
-    useListDatasetsQuery,
-    usePatchDatasetMutation,
-} from '@/entities/dataset';
+import { useDeleteDatasetMutation, usePatchDatasetMutation } from '@/entities/dataset';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -31,7 +28,12 @@ export const DatasetsPropertiesPanel = () => {
 
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const [patchDataset, patchState] = usePatchDatasetMutation();
     const [deleteDataset, deleteState] = useDeleteDatasetMutation();
 
@@ -57,7 +59,7 @@ export const DatasetsPropertiesPanel = () => {
             await deleteDataset(selectedDataset.dataset.id).unwrap();
             selectDataset(null);
             setDeleteConfirmationId(null);
-            await datasetsQuery.refetch();
+            await dependencies.cache.read(dependencies.listDatasets, { orgId: org!.id });
         } catch (error) {
             setDatasetError(getApiErrorMessage(error, 'Unable to delete this dataset.'));
         }
@@ -76,7 +78,7 @@ export const DatasetsPropertiesPanel = () => {
                 datasetId: selectedDataset.dataset.id,
                 name,
             }).unwrap();
-            await datasetsQuery.refetch();
+            await dependencies.cache.read(dependencies.listDatasets, { orgId: org!.id });
         } catch (error) {
             const message = getApiErrorMessage(error, 'Unable to rename this dataset.');
             setDatasetError(message);
@@ -167,7 +169,9 @@ export const DatasetsPropertiesPanel = () => {
                     selectedDataset={selectedDataset}
                     onSuccess={async datasetId => {
                         selectDataset(datasetId);
-                        await datasetsQuery.refetch();
+                        await dependencies.cache.read(dependencies.listDatasets, {
+                            orgId: org!.id,
+                        });
                         // server doesnt bump dataset.updatedAt on merge, so signal the
                         // preview explicitly to remount and refetch rows + columns
                         bumpDatasetReloadVersion(datasetId);

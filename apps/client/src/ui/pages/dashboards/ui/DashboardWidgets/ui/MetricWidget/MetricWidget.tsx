@@ -1,8 +1,8 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { Divider, IconButton } from '@qualification-work/design-system';
 import { Pencil, X } from 'lucide-react';
 
 import { formatMetricValue, type DashboardItem } from '@/entities/dashboard';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import { Card, Sparkline } from '@/shared/ui';
 

@@ -1,3 +1,4 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { IconButton } from '@qualification-work/design-system';
 import type { Chart } from '@qualification-work/types';
 import { Pencil, X } from 'lucide-react';
@@ -5,7 +6,6 @@ import { useNavigate } from 'react-router';
 
 import { ChartCard, useGetChartDataQuery } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import { Card, StatusMessage } from '@/shared/ui';
 

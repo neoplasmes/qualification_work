@@ -3,7 +3,8 @@ import {
     type FilterApplicationScope,
 } from '@/core/processes/entityFiltering';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
-import { render } from '@testing-library/react';
+import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
+import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -16,24 +17,20 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/dataset', () => ({
-    useListDatasetsQuery: () => ({
-        data: [
-            {
-                dataset: {
-                    id: 'dataset-1',
-                    orgId: 'org-1',
-                    name: 'Invoices',
-                    sourceType: 'manual',
-                    createdAt: '2026-01-01T00:00:00.000Z',
-                    updatedAt: '2026-01-02T00:00:00.000Z',
-                },
-                columns: [],
-                totalRows: 3,
-            },
-        ],
-    }),
-}));
+const datasetMetadataFixtures: DatasetMetadataFixture[] = [
+    {
+        dataset: {
+            id: 'dataset-1',
+            orgId: 'org-1',
+            name: 'Invoices',
+            sourceType: 'manual',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-02T00:00:00.000Z',
+        },
+        columns: [],
+        totalRows: 3,
+    },
+];
 
 vi.mock('@/entities/chart', () => ({
     formatChartCell: (value: unknown) => String(value),
@@ -103,14 +100,20 @@ const getByDataTestId = <T extends HTMLElement>(
     return element as T;
 };
 
-const makeStore = () => createUiTestRuntime();
+const makeStore = () => createUiTestRuntime({ datasetMetadata: datasetMetadataFixtures });
 
-const renderPanel = (scope: FilterApplicationScope) => {
+const renderPanel = async (scope: FilterApplicationScope) => {
     const store = makeStore();
     const result = render(
         <Provider store={store}>
             <FilterPanel scope={scope} testIds={testIds} />
         </Provider>
+    );
+
+    await waitFor(() =>
+        expect(
+            result.container.querySelector('[data-test-id="filter-chip"]')
+        ).not.toBeNull()
     );
 
     return { store, ...result };
@@ -119,7 +122,7 @@ const renderPanel = (scope: FilterApplicationScope) => {
 describe('FilterPanel', () => {
     it('toggles action dataset and effect filters', async () => {
         const user = userEvent.setup();
-        const { container, store } = renderPanel('actions');
+        const { container, store } = await renderPanel('actions');
 
         await user.click(getByDataTestId(container, testIds.chip));
         await user.click(getByDataTestId(container, testIds.tabs.effects));
@@ -133,7 +136,7 @@ describe('FilterPanel', () => {
 
     it('toggles and clears all chart filters', async () => {
         const user = userEvent.setup();
-        const { container, store } = renderPanel('charts');
+        const { container, store } = await renderPanel('charts');
 
         await user.click(getByDataTestId(container, testIds.chip));
         await user.click(getByDataTestId(container, testIds.tabs.dashboards));
@@ -148,7 +151,7 @@ describe('FilterPanel', () => {
 
     it('toggles dashboard filters', async () => {
         const user = userEvent.setup();
-        const { container, store } = renderPanel('dashboards');
+        const { container, store } = await renderPanel('dashboards');
 
         await user.click(getByDataTestId(container, testIds.chip));
         await user.click(getByDataTestId(container, testIds.tabs.datasets));
@@ -162,7 +165,7 @@ describe('FilterPanel', () => {
 
     it('toggles dataset filters', async () => {
         const user = userEvent.setup();
-        const { container, store } = renderPanel('datasets');
+        const { container, store } = await renderPanel('datasets');
 
         await user.click(getByDataTestId(container, testIds.chip));
         await user.click(getByDataTestId(container, testIds.tabs.dashboards));

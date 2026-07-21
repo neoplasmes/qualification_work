@@ -1,6 +1,7 @@
 import { createCollectionSync } from '@/env/cache/collectionSync';
 import { EntityStore } from '@/env/cache/entityStore';
 import { sessionFreshness } from '@/env/cache/freshness';
+import { valueCodec } from '@/env/cache/normalize';
 import { CacheRuntime } from '@/env/cache/runtime';
 import { HttpOrganizationRepo } from '@/env/repos/organization';
 import { HttpSessionRepo } from '@/env/repos/session';
@@ -19,10 +20,11 @@ import { createGetSession } from '@/app/queries/getSession';
 import { api } from '@/shared/api';
 
 import { createCacheBridge } from '../cacheBridge';
+import { createDatasetDependencies } from '../datasetDependencies';
 import { createQueryClient } from '../queryClient';
 import { SessionLifecycle } from '../sessionLifecycle';
 import { createUiState } from '../uiState';
-import { sessionCodec, valueCodec } from './sessionCodec';
+import { sessionCodec } from './sessionCodec';
 
 export interface ApplicationRuntime {
     dependencies: Dependencies;
@@ -124,7 +126,14 @@ export function createDependencies(options: {
         ui,
     });
     rotate();
-    const dependencies: Dependencies = { ...operations, session, ui };
+    const datasetOperations = createDatasetDependencies(cache, transport);
+    const dependencies: Dependencies = {
+        ...operations,
+        ...datasetOperations,
+        cache,
+        session,
+        ui,
+    };
     cache.registerRead(operations.getSession, sessionCodec, sessionFreshness);
     cache.registerCommand(operations.register, {
         conflictKey: () => 'session',

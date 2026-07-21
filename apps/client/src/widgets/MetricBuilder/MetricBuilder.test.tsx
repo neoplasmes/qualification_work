@@ -1,7 +1,7 @@
 import { render, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { DatasetMetadata } from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { metricBuilderTestIds } from './const';
 import { MetricBuilder, type MetricBuilderDraft } from './index';
@@ -17,6 +17,7 @@ vi.mock('@/features/manageDashboards', () => ({
 const datasets: DatasetMetadata[] = [
     {
         dataset: {
+            ref: 'dataset:org-1/dataset-1',
             id: 'dataset-1',
             orgId: 'org-1',
             name: 'Revenue',
@@ -26,6 +27,7 @@ const datasets: DatasetMetadata[] = [
         },
         columns: [
             {
+                ref: 'datasetColumn:org-1/dataset-1/column-visits',
                 id: 'column-visits',
                 datasetId: 'dataset-1',
                 key: 'Визитов за месяц',
@@ -35,6 +37,7 @@ const datasets: DatasetMetadata[] = [
                 isAnalyzable: true,
             },
             {
+                ref: 'datasetColumn:org-1/dataset-1/column-average-check',
                 id: 'column-average-check',
                 datasetId: 'dataset-1',
                 key: 'Средний чек',
@@ -44,6 +47,7 @@ const datasets: DatasetMetadata[] = [
                 isAnalyzable: true,
             },
             {
+                ref: 'datasetColumn:org-1/dataset-1/column-date',
                 id: 'column-date',
                 datasetId: 'dataset-1',
                 key: 'Дата',

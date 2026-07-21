@@ -1,4 +1,6 @@
 import { filterCharts } from '@/core/processes/entityFiltering';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useChartsPageActions, useChartsPageState } from '@/ui/pages/charts/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { useFilters } from '@/ui/widgets/FilterPanel';
@@ -10,7 +12,6 @@ import { useNavigate } from 'react-router';
 
 import { CHART_KIND_ICONS as chartKindIcons, useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { WorkspaceLeftPanelItem } from '@/shared/ui';
@@ -28,7 +29,12 @@ export const ChartsLeftPanel = () => {
 
     const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
-    const datasetsQuery = useListDatasetsQuery(org?.id ?? skipToken);
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
 
     const selectedChartId = useChartsPageState(state => state.selectedChartId);
     const filterValues = useFilters(state => state.values['charts']);

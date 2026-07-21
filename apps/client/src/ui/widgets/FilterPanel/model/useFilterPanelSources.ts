@@ -2,6 +2,8 @@ import {
     type FilterApplicationEntity,
     type FilterApplicationScope,
 } from '@/core/processes/entityFiltering';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import {
     filterApplicationEffectKinds,
@@ -13,7 +15,6 @@ import { useMemo } from 'react';
 import { getEffectLabel } from '@/entities/action';
 import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
-import { useListDatasetsQuery } from '@/entities/dataset';
 
 import type { StaticFilterPanelSourceItem } from './types';
 
@@ -30,8 +31,11 @@ export const useFilterPanelSources = (scope: FilterApplicationScope) => {
     const shouldLoadCharts = Boolean(org?.id && hasEntitySource(scope, 'charts'));
     const shouldLoadDashboards = Boolean(org?.id && hasEntitySource(scope, 'dashboards'));
 
-    const datasetsQuery = useListDatasetsQuery(
-        shouldLoadDatasets && org ? org.id : skipToken
+    const dependencies = useDependencies();
+    const datasetsQuery = useRead(
+        dependencies.listDatasets,
+        { orgId: org?.id ?? '' },
+        { enabled: shouldLoadDatasets }
     );
     const chartsQuery = useListChartsQuery(shouldLoadCharts && org ? org.id : skipToken);
     const dashboardsQuery = useListDashboardsQuery(

@@ -1,3 +1,5 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
+
 import 'gridstack/dist/gridstack.min.css';
 
 import {
@@ -12,7 +14,6 @@ import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
 import type { DashboardItem } from '@/entities/dashboard';
-import type { DatasetColumn } from '@/entities/dataset';
 
 import { EmptyState } from '@/shared/ui';
 

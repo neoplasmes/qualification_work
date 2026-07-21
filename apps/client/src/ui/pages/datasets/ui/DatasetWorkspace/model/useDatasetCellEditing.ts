@@ -1,11 +1,10 @@
+import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { debounce } from 'es-toolkit/function';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-    useUpdateRowMutation,
-    type DatasetColumn,
-    type DatasetMetadata,
-} from '@/entities/dataset';
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
+import { useUpdateRowMutation } from '@/entities/dataset';
 
 import { datasetCellValueHandlers } from '../lib';
 

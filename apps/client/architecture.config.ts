@@ -52,10 +52,6 @@ const architecture = {
             to: 'entities/action',
         },
         {
-            from: 'ui/pages/actions/lib/uiHelpers.ts',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/actions/ui/ActionEditor/ActionEditor.tsx',
             to: 'entities/action',
         },
@@ -66,10 +62,6 @@ const architecture = {
         {
             from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
             to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
@@ -105,10 +97,6 @@ const architecture = {
         },
         {
             from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
             to: 'features/manageActions',
         },
         {
@@ -121,19 +109,11 @@ const architecture = {
         },
         {
             from: 'ui/pages/charts/Charts.page.tsx',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/charts/Charts.page.tsx',
             to: 'widgets/ChartBuilder',
         },
         {
             from: 'ui/pages/charts/lib/useChartDataResult.ts',
             to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/charts/ui/ChartBuilderSection/CreateChartBuilderSection.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/charts/ui/ChartBuilderSection/CreateChartBuilderSection.tsx',
@@ -148,16 +128,8 @@ const architecture = {
             to: 'entities/dashboard',
         },
         {
-            from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
             to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
@@ -168,24 +140,12 @@ const architecture = {
             to: 'entities/chart',
         },
         {
-            from: 'ui/pages/charts/ui/SavedChartDetails/SavedChartDetails.tsx',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/charts/ui/SelectDatasetForChartModal/SelectDatasetForChartModal.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/dashboards/Dashboards.page.tsx',
             to: 'entities/chart',
         },
         {
             from: 'ui/pages/dashboards/Dashboards.page.tsx',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/dashboards/Dashboards.page.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/dashboards/Dashboards.page.tsx',
@@ -196,10 +156,6 @@ const architecture = {
             to: 'entities/chart',
         },
         {
-            from: 'ui/pages/dashboards/ui/AddChartModal/AddChartModal.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
             to: 'entities/chart',
         },
@@ -208,16 +164,8 @@ const architecture = {
             to: 'entities/dashboard',
         },
         {
-            from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/dashboards/ui/DashboardMetricModal/DashboardMetricModal.tsx',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardMetricModal/DashboardMetricModal.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardMetricModal/DashboardMetricModal.tsx',
@@ -226,10 +174,6 @@ const architecture = {
         {
             from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardMetricModal/model/useDashboardMetricModal.ts',
@@ -242,10 +186,6 @@ const architecture = {
         {
             from: 'ui/pages/dashboards/ui/DashboardWidgets/DashboardWidgets.tsx',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardWidgets/DashboardWidgets.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardWidgets/test/DashboardWidgets.testData.ts',
@@ -256,16 +196,8 @@ const architecture = {
             to: 'entities/dashboard',
         },
         {
-            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/ChartWidget/ChartWidget.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/MetricWidget.tsx',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/MetricWidget.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/lib/metricGoal.ts',
@@ -274,10 +206,6 @@ const architecture = {
         {
             from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/lib/metricTrendDescription.ts',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardWidgets/ui/MetricWidget/lib/metricTrendDescription.ts',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardsLeftPanel/DashboardsLeftPanel.tsx',
@@ -300,28 +228,12 @@ const architecture = {
             to: 'features/manageDashboards',
         },
         {
-            from: 'ui/pages/datasets/Datasets.page.tsx',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetColumnContextMenu/DatasetColumnContextMenu.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/datasets/ui/DatasetGrid/types.ts',
             to: 'entities/dataset',
         },
         {
             from: 'ui/pages/datasets/ui/DatasetGrid/ui/DatasetGridEditor/DatasetGridEditor.tsx',
             to: 'features/manageDatasetTableOptions',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/DatasetWorkspace.tsx',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetCellValue.ts',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetCellValueHandlers.ts',
@@ -360,24 +272,12 @@ const architecture = {
             to: 'entities/dashboard',
         },
         {
-            from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/datasets/ui/DatasetsPropertiesPanel/DatasetsPropertiesPanel.tsx',
             to: 'entities/dataset',
         },
         {
             from: 'ui/pages/datasets/ui/MergeDatasetModal/MergeDatasetModal.tsx',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/MergeDatasetModal/MergeDatasetModal.tsx',
             to: 'features/uploadDataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/MergeDatasetModal/ui/MergeKeyChips/MergeKeyChips.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/datasets/ui/MergeDatasetModal/ui/MergePreviewStep/MergePreviewStep.tsx',
@@ -392,10 +292,6 @@ const architecture = {
             to: 'entities/dashboard',
         },
         {
-            from: 'ui/widgets/FilterPanel/lib/createFilterPanelItems.ts',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
             to: 'entities/action',
         },
@@ -406,10 +302,6 @@ const architecture = {
         {
             from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/widgets/FilterPanel/FilterPanel.widget.tsx',

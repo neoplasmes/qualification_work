@@ -2,13 +2,13 @@ import { Button } from '@qualification-work/design-system';
 import { Database, X } from 'lucide-react';
 import { useState } from 'react';
 
+import type { DatasetMetadata } from '@/app/ports/repos/dataset';
+
 import {
     ChartBuilder,
     type ChartBuilderDraft,
     type ChartBuilderOutput,
 } from '@/widgets/ChartBuilder';
-
-import type { DatasetMetadata } from '@/entities/dataset';
 
 import { chartsTestIds } from '../../const';
 

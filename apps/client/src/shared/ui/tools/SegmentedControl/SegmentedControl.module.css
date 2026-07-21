@@ -75,7 +75,15 @@
     }
 
     &:hover,
-    &:focus-visible,
+    &:focus-visible {
+        color: var(--ink);
+    }
+
+    &:focus-visible {
+        outline: 2px solid currentcolor;
+        outline-offset: -4px;
+    }
+
     &.active {
         color: var(--on-ink);
     }
@@ -117,4 +125,10 @@
 
 .control.disabled .item.active {
     color: var(--color-on-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .item {
+        transition: none;
+    }
 }

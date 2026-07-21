@@ -50,6 +50,9 @@ export const DashboardsPage = () => {
     const selectedDashboardId = useDashboardsPageState(
         state => state.selectedDashboardId
     );
+    const rememberedDashboardId = useDashboardsPageState(
+        state => state.rememberedDashboardId
+    );
     const workspaceDraftDashboardId = useDashboardsPageState(
         state => state.workspaceDraftDashboardId
     );
@@ -105,7 +108,7 @@ export const DashboardsPage = () => {
     useDashboardsWorkspaceRouteSync();
 
     useEffect(() => {
-        if (isDashboardLoading) {
+        if (isDashboardLoading || (!selectedDashboardId && rememberedDashboardId)) {
             return;
         }
 
@@ -127,7 +130,7 @@ export const DashboardsPage = () => {
         setError('');
         setEditingMetricItem(null);
         setActiveModal(null);
-    }, [dashboard?.id, isDashboardLoading]);
+    }, [dashboard?.id, isDashboardLoading, selectedDashboardId, rememberedDashboardId]);
 
     useEffect(() => {
         if (!chartsQuery.data) {

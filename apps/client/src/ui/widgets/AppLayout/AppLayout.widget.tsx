@@ -1,5 +1,5 @@
 import { NavBar } from '@/ui/widgets/NavBar';
-import { LazyMotion } from 'motion/react';
+import { LazyMotion, MotionConfig } from 'motion/react';
 import { Outlet, useLocation } from 'react-router';
 
 import { usePersistedStateHydration } from './model';
@@ -14,21 +14,23 @@ export const Layout = () => {
         location.pathname === '/sign-in' || location.pathname === '/sign-up';
     usePersistedStateHydration(!isAuthPage);
 
-    if (isAuthPage) {
-        return (
-            <LazyMotion features={motionFeatures} strict>
-                <Outlet />
-            </LazyMotion>
-        );
-    }
+    let content = <Outlet />;
 
     // TODO: Layout для основной части приложения
-    return (
-        <LazyMotion features={motionFeatures} strict>
+    if (!isAuthPage) {
+        content = (
             <div className={styles.shell}>
                 <NavBar />
                 <Outlet />
             </div>
-        </LazyMotion>
+        );
+    }
+
+    return (
+        <MotionConfig reducedMotion="user">
+            <LazyMotion features={motionFeatures} strict>
+                {content}
+            </LazyMotion>
+        </MotionConfig>
     );
 };

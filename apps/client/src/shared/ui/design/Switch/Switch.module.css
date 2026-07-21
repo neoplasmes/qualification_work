@@ -62,10 +62,17 @@
 
 .root input:checked + .track .thumb {
     transform: translate(16px, -50%);
-    background-color: var(--color-on-surface);
+    background-color: var(--on-ink);
 }
 
 .root input:focus-visible + .track {
     outline: 2px solid var(--color-on-surface);
     outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .track,
+    .thumb {
+        transition: none;
+    }
 }

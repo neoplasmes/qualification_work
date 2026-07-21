@@ -1,8 +1,8 @@
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import { dashboardChartDefaultHeight, type Chart } from '@qualification-work/types';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Dashboard } from '@/entities/dashboard';
@@ -187,9 +187,9 @@ vi.mock('@/entities/dashboard', () => ({
         isFetching: false,
         refetch: mocks.refetchDashboards,
     }),
-    useGetDashboardQuery: () => ({
-        data: dashboard,
-        currentData: dashboard,
+    useGetDashboardQuery: (id: unknown) => ({
+        data: typeof id === 'string' ? dashboard : undefined,
+        currentData: typeof id === 'string' ? dashboard : undefined,
         isLoading: false,
         isFetching: false,
         refetch: mocks.refetchDashboard,
@@ -433,3 +433,59 @@ describe('DashboardsPage', () => {
         expect(dialog).toContainElement(alert);
     });
 });
+
+it.each([false, true])(
+    'preserves persisted draft while the mounted page resumes (late hydration: %s)',
+    async lateHydration => {
+        localStorage.clear();
+        const persisted = {
+            selectedDashboardId: 'dashboard-1',
+            workspaceDraftDashboardId: 'dashboard-1',
+            workspaceDraftName: 'Unsaved local name',
+        };
+        localStorage.setItem('dashboardsPage_v1', JSON.stringify(persisted));
+        const store = createUiTestRuntime({}, true);
+        if (!lateHydration) {
+            store.ui.hydrate();
+        }
+        const router = createMemoryRouter(
+            [
+                { path: '/datasets', element: <div>Tables</div> },
+                { path: '/dashboards', element: <DashboardsPage /> },
+            ],
+            { initialEntries: ['/datasets'] }
+        );
+        render(
+            <Provider store={store}>
+                <RouterProvider router={router} />
+            </Provider>
+        );
+        await act(() => router.navigate('/dashboards'));
+        if (lateHydration) {
+            act(() => store.ui.hydrate());
+        }
+        await waitFor(() => expect(router.state.location.search).toBe('?id=dashboard-1'));
+        expect(store.ui.dashboards.getState().workspaceDraftName).toBe(
+            'Unsaved local name'
+        );
+        expect(JSON.parse(localStorage.getItem('dashboardsPage_v1')!)).toEqual(persisted);
+        await act(() => router.navigate('/datasets'));
+        await act(() => router.navigate('/dashboards'));
+        await waitFor(() => expect(router.state.location.search).toBe('?id=dashboard-1'));
+        expect(store.ui.dashboards.getState().workspaceDraftName).toBe(
+            'Unsaved local name'
+        );
+        expect(JSON.parse(localStorage.getItem('dashboardsPage_v1')!)).toEqual(persisted);
+        await act(async () => {
+            store.ui.dashboards.getState().selectDashboard(null);
+            await router.navigate('/dashboards');
+        });
+        expect(router.state.location.search).toBe('');
+        expect(store.ui.dashboards.getState().workspaceDraftName).toBe('');
+        expect(JSON.parse(localStorage.getItem('dashboardsPage_v1')!)).toEqual({
+            selectedDashboardId: null,
+            workspaceDraftDashboardId: null,
+            workspaceDraftName: '',
+        });
+    }
+);

@@ -108,11 +108,11 @@ export const DashboardsPage = () => {
     useDashboardsWorkspaceRouteSync();
 
     useEffect(() => {
-        if (isDashboardLoading || (!selectedDashboardId && rememberedDashboardId)) {
-            return;
-        }
-
         if (!dashboard) {
+            if (selectedDashboardId || rememberedDashboardId) {
+                return;
+            }
+
             resetDashboardsWorkspaceDraft();
             setEditingMetricItem(null);
 
@@ -130,7 +130,7 @@ export const DashboardsPage = () => {
         setError('');
         setEditingMetricItem(null);
         setActiveModal(null);
-    }, [dashboard?.id, isDashboardLoading, selectedDashboardId, rememberedDashboardId]);
+    }, [dashboard?.id, selectedDashboardId, rememberedDashboardId]);
 
     useEffect(() => {
         if (!chartsQuery.data) {

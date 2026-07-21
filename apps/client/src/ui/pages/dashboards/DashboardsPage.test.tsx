@@ -3,7 +3,8 @@ import { dashboardChartDefaultHeight, type Chart } from '@qualification-work/typ
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createStore, useStore } from 'zustand';
 
 import type { Dashboard } from '@/entities/dashboard';
 import type { DatasetMetadata } from '@/entities/dataset';
@@ -22,6 +23,8 @@ const mocks = vi.hoisted(() => ({
     removeDashboardItem: vi.fn(),
     refetchDashboards: vi.fn(),
     refetchDashboard: vi.fn(),
+    listQuery: vi.fn(),
+    detailQuery: vi.fn(),
 }));
 
 const chartIconMock = vi.hoisted(() => () => null);
@@ -181,19 +184,21 @@ vi.mock('@/entities/dashboard', () => ({
                   maximumFractionDigits: 2,
               }).format(value)
             : String(value ?? ''),
-    useListDashboardsQuery: () => ({
-        data: [dashboard],
-        isLoading: false,
-        isFetching: false,
-        refetch: mocks.refetchDashboards,
-    }),
-    useGetDashboardQuery: (id: unknown) => ({
-        data: typeof id === 'string' ? dashboard : undefined,
-        currentData: typeof id === 'string' ? dashboard : undefined,
-        isLoading: false,
-        isFetching: false,
-        refetch: mocks.refetchDashboard,
-    }),
+    useListDashboardsQuery: () =>
+        mocks.listQuery() ?? {
+            data: [dashboard],
+            isLoading: false,
+            isFetching: false,
+            refetch: mocks.refetchDashboards,
+        },
+    useGetDashboardQuery: (id: unknown) =>
+        mocks.detailQuery(id) ?? {
+            data: typeof id === 'string' ? dashboard : undefined,
+            currentData: typeof id === 'string' ? dashboard : undefined,
+            isLoading: false,
+            isFetching: false,
+            refetch: mocks.refetchDashboard,
+        },
     useDeleteDashboardMutation: () => [mocks.deleteDashboard, { isLoading: false }],
 }));
 
@@ -434,9 +439,51 @@ describe('DashboardsPage', () => {
     });
 });
 
-it.each([false, true])(
-    'preserves persisted draft while the mounted page resumes (late hydration: %s)',
-    async lateHydration => {
+afterEach(() => {
+    mocks.listQuery.mockReset();
+    mocks.detailQuery.mockReset();
+});
+
+it.each([
+    { lateHydration: false, delayedList: false },
+    { lateHydration: true, delayedList: false },
+    { lateHydration: false, delayedList: true },
+    { lateHydration: true, delayedList: true },
+])(
+    'preserves persisted draft on resume (late hydration: $lateHydration, delayed list: $delayedList)',
+    async ({ lateHydration, delayedList }) => {
+        const queries = createStore<{
+            list: 'loading' | 'error' | 'ready';
+            detail: 'loading' | 'error' | 'ready';
+        }>(() => ({
+            list: delayedList ? 'loading' : 'ready',
+            detail: delayedList ? 'loading' : 'ready',
+        }));
+        mocks.listQuery.mockImplementation(() => {
+            const status = useStore(queries, state => state.list);
+
+            return {
+                data: status === 'ready' ? [dashboard] : undefined,
+                isLoading: status === 'loading',
+                isFetching: status === 'loading',
+                error: status === 'error' ? { status: 503 } : undefined,
+                refetch: mocks.refetchDashboards,
+            };
+        });
+        mocks.detailQuery.mockImplementation((id: unknown) => {
+            const status = useStore(queries, state => state.detail);
+            const data =
+                typeof id === 'string' && status === 'ready' ? dashboard : undefined;
+
+            return {
+                data,
+                currentData: data,
+                isLoading: typeof id === 'string' && status === 'loading',
+                isFetching: typeof id === 'string' && status === 'loading',
+                error: status === 'error' ? { status: 503 } : undefined,
+                refetch: mocks.refetchDashboard,
+            };
+        });
         localStorage.clear();
         const persisted = {
             selectedDashboardId: 'dashboard-1',
@@ -469,6 +516,25 @@ it.each([false, true])(
             'Unsaved local name'
         );
         expect(JSON.parse(localStorage.getItem('dashboardsPage_v1')!)).toEqual(persisted);
+        if (delayedList) {
+            for (const status of [
+                { list: 'error', detail: 'loading' },
+                { list: 'loading', detail: 'loading' },
+                { list: 'ready', detail: 'loading' },
+                { list: 'ready', detail: 'error' },
+                { list: 'ready', detail: 'loading' },
+                { list: 'ready', detail: 'ready' },
+            ] as const) {
+                act(() => queries.setState(status));
+                expect(store.ui.dashboards.getState()).toMatchObject({
+                    workspaceDraftDashboardId: 'dashboard-1',
+                    workspaceDraftName: 'Unsaved local name',
+                });
+                expect(JSON.parse(localStorage.getItem('dashboardsPage_v1')!)).toEqual(
+                    persisted
+                );
+            }
+        }
         await act(() => router.navigate('/datasets'));
         await act(() => router.navigate('/dashboards'));
         await waitFor(() => expect(router.state.location.search).toBe('?id=dashboard-1'));

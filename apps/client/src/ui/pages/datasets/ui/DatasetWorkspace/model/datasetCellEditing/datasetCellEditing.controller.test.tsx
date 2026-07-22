@@ -176,3 +176,52 @@ it('reports a refresh failure separately after a confirmed write without resendi
     });
     expect(write).toHaveBeenCalledTimes(1);
 });
+
+it('retains a clear failure draft after an older in-flight acknowledgement', async () => {
+    vi.useFakeTimers();
+    const store = createUiTestRuntime();
+    let confirm!: () => void;
+    const write = vi
+        .spyOn(store.runtime.dependencies.updateDatasetRows, 'execute')
+        .mockImplementationOnce(
+            input =>
+                new Promise(resolve => {
+                    confirm = () =>
+                        resolve([
+                            {
+                                ref: 'datasetRow:org/ds/row',
+                                id: 'row',
+                                datasetId: 'ds',
+                                rowIndex: 0,
+                                data: input.values,
+                            },
+                        ]);
+                })
+        )
+        .mockRejectedValueOnce(new Error('Cannot clear'));
+    function Wrapper({ children }: PropsWithChildren) {
+        return <UiTestProvider store={store}>{children}</UiTestProvider>;
+    }
+    const { result } = renderHook(() => useDatasetCellEditing(metadata, false), {
+        wrapper: Wrapper,
+    });
+    act(() => result.current.commitCell('row', metadata.columns[0]!, '10'));
+    await act(async () => {
+        await vi.advanceTimersByTimeAsync(700);
+    });
+    let clearing!: Promise<void>;
+    act(() => {
+        clearing = result.current.clearRows(['row']).catch(() => {});
+    });
+    await act(async () => {
+        confirm();
+        await clearing;
+        await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(result.current.displayEdits.get('row')).toEqual({ amount: 10 });
+    expect(result.current.error).toEqual(new Error('Cannot clear'));
+    expect(write.mock.calls.map(([input]) => input.values)).toEqual([
+        { amount: 10 },
+        { amount: null },
+    ]);
+});

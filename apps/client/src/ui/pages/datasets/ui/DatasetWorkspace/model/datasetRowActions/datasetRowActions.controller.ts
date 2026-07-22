@@ -1,4 +1,3 @@
-import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import { useCommand } from '@/env/cache/useCommand';
 import { useDependencies } from '@/ui/di/dependencies';
@@ -10,7 +9,7 @@ import type { DatasetRowContextMenuState } from '../../../DatasetRowContextMenu'
 
 type UseDatasetRowActionsParams = {
     selectedDataset: DatasetMetadata | undefined;
-    columns: DatasetColumn[];
+    clearRows: (rowIds: string[]) => Promise<void>;
     contextMenu: DatasetRowContextMenuState | null;
     setContextMenu: Dispatch<SetStateAction<DatasetRowContextMenuState | null>>;
     getRowAt: (absIndex: number) => DatasetRow | undefined;
@@ -23,7 +22,7 @@ type UseDatasetRowActionsParams = {
  *
  * @param params - row action dependencies owned by the workspace
  * @param params.selectedDataset - dataset whose rows can be mutated
- * @param params.columns - visible columns used to clear row values
+ * @param params.clearRows - coordinates bulk clear with pending cell revisions
  * @param params.contextMenu - current row menu state
  * @param params.setContextMenu - row menu state writer
  * @param params.getRowAt - resolves a visual row index into cached row data
@@ -33,7 +32,7 @@ type UseDatasetRowActionsParams = {
  */
 export const useDatasetRowActions = ({
     selectedDataset,
-    columns,
+    clearRows,
     contextMenu,
     setContextMenu,
     getRowAt,
@@ -52,11 +51,6 @@ export const useDatasetRowActions = ({
         error: deleteError,
         syncError: deleteSyncError,
     } = useCommand(dependencies.deleteDatasetRows);
-    const {
-        execute: updateRow,
-        error: clearError,
-        syncError: clearSyncError,
-    } = useCommand(dependencies.updateDatasetRows);
 
     const closeRowContextMenu = useCallback(() => {
         setContextMenu(null);
@@ -134,18 +128,8 @@ export const useDatasetRowActions = ({
             return;
         }
 
-        const values: Record<string, null> = {};
-        for (const column of columns) {
-            values[column.key] = null;
-        }
-
         try {
-            await updateRow({
-                datasetId: selectedDataset.dataset.id,
-                orgId: selectedDataset.dataset.orgId,
-                rowIds: contextMenu.selectedRowIds,
-                values,
-            });
+            await clearRows(contextMenu.selectedRowIds);
             closeRowContextMenu();
             resetGridSelection();
         } catch {
@@ -160,8 +144,8 @@ export const useDatasetRowActions = ({
     return {
         contextMenu,
         deleteLoading,
-        error: insertError ?? deleteError ?? clearError,
-        syncError: insertSyncError ?? deleteSyncError ?? clearSyncError,
+        error: insertError ?? deleteError,
+        syncError: insertSyncError ?? deleteSyncError,
         askDelete,
         closeRowContextMenu,
         handleClearSelected,

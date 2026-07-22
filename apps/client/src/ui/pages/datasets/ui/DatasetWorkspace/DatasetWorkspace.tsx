@@ -56,7 +56,7 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
     );
     const rowActions = useDatasetRowActions({
         selectedDataset,
-        columns,
+        clearRows: cellEditing.clearRows,
         contextMenu,
         setContextMenu,
         getRowAt,

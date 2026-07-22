@@ -35,6 +35,7 @@ export const useDatasetCellEditing = (
     const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
     const inflight = useRef(new Set<string>());
     const queued = useRef(new Set<string>());
+    const clearing = useRef(new Map<string, number>());
     const revision = useRef(0);
     const generation = useRef(0);
     const menuOpen = useRef(deleteMenuOpen);
@@ -77,9 +78,49 @@ export const useDatasetCellEditing = (
         pending.current.clear();
         inflight.current.clear();
         queued.current.clear();
+        clearing.current.clear();
         setDisplayEdits(new Map());
         setInvalidCellKeys(new Set());
     }, []);
+
+    const acknowledge = useCallback(
+        (rowId: string, sent: readonly (readonly [string, Draft])[]) => {
+            const drafts = pending.current.get(rowId);
+            const cleared = new Set<string>();
+            for (const [key, draft] of sent) {
+                if (drafts?.[key]?.revision === draft.revision) {
+                    delete drafts[key];
+                    cleared.add(key);
+                }
+            }
+            if (drafts && !Object.keys(drafts).length) {
+                pending.current.delete(rowId);
+            }
+            setDisplayEdits(current => {
+                const next = new Map(current);
+                const row = { ...next.get(rowId) };
+                for (const key of cleared) {
+                    delete row[key];
+                }
+                if (Object.keys(row).length) {
+                    next.set(rowId, row);
+                } else {
+                    next.delete(rowId);
+                }
+
+                return next;
+            });
+            setInvalidCellKeys(current => {
+                const next = new Set(current);
+                for (const key of cleared) {
+                    next.delete(`${rowId}:${key}`);
+                }
+
+                return next;
+            });
+        },
+        []
+    );
 
     const flushRow = useCallback(
         async (rowId: string) => {
@@ -87,7 +128,7 @@ export const useDatasetCellEditing = (
             if (!orgId || !datasetId || menuOpen.current) {
                 return;
             }
-            if (inflight.current.has(rowId)) {
+            if (clearing.current.has(rowId) || inflight.current.has(rowId)) {
                 queued.current.add(rowId);
 
                 return;
@@ -115,31 +156,7 @@ export const useDatasetCellEditing = (
                 ) {
                     return;
                 }
-                const drafts = pending.current.get(rowId);
-                const cleared = new Set<string>();
-                for (const [key, draft] of sent) {
-                    if (drafts?.[key]?.revision === draft.revision) {
-                        delete drafts[key];
-                        cleared.add(key);
-                    }
-                }
-                if (drafts && !Object.keys(drafts).length) {
-                    pending.current.delete(rowId);
-                }
-                setDisplayEdits(current => {
-                    const next = new Map(current);
-                    const row = { ...next.get(rowId) };
-                    for (const key of cleared) {
-                        delete row[key];
-                    }
-                    if (Object.keys(row).length) {
-                        next.set(rowId, row);
-                    } else {
-                        next.delete(rowId);
-                    }
-
-                    return next;
-                });
+                acknowledge(rowId, sent);
             } catch {
                 // failed drafts remain available for correction
             } finally {
@@ -151,8 +168,62 @@ export const useDatasetCellEditing = (
                 }
             }
         },
-        [orgId, datasetId, updateRow]
+        [orgId, datasetId, updateRow, acknowledge]
     );
+
+    const clearRows = async (rowIds: string[]) => {
+        if (!orgId || !datasetId) {
+            return;
+        }
+        const version = generation.current;
+        const snapshots = new Map<string, (readonly [string, Draft])[]>();
+        for (const rowId of rowIds) {
+            clearTimeout(timers.current.get(rowId));
+            timers.current.delete(rowId);
+            queued.current.delete(rowId);
+            clearing.current.set(rowId, (clearing.current.get(rowId) ?? 0) + 1);
+            const drafts = pending.current.get(rowId) ?? {};
+            // fence earlier acknowledgements while retaining input if clear fails
+            snapshots.set(
+                rowId,
+                Object.entries(drafts).map(([key, draft]) => {
+                    const protectedDraft = { ...draft, revision: ++revision.current };
+                    drafts[key] = protectedDraft;
+
+                    return [key, protectedDraft] as const;
+                })
+            );
+        }
+        try {
+            const rows = await updateRow({
+                orgId,
+                datasetId,
+                rowIds,
+                values: Object.fromEntries(
+                    selectedDataset!.columns.map(column => [column.key, null])
+                ),
+            });
+            if (version === generation.current) {
+                for (const row of rows) {
+                    acknowledge(row.id, snapshots.get(row.id) ?? []);
+                }
+            }
+        } finally {
+            if (version === generation.current) {
+                for (const rowId of rowIds) {
+                    const remaining = (clearing.current.get(rowId) ?? 1) - 1;
+                    if (remaining > 0) {
+                        clearing.current.set(rowId, remaining);
+                    } else {
+                        clearing.current.delete(rowId);
+                        if (queued.current.delete(rowId)) {
+                            void flush.current(rowId);
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     useEffect(() => {
         flush.current = flushRow;
@@ -232,6 +303,7 @@ export const useDatasetCellEditing = (
         displayEdits,
         invalidCellKeys,
         commitCell,
+        clearRows,
         resetCellEditing,
         error,
         syncError,

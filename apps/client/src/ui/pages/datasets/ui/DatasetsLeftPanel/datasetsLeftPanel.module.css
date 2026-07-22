@@ -1,0 +1,29 @@
+.item {
+    cursor: pointer;
+    width: 100%;
+    padding: var(--space-16);
+    border: 0;
+    border-bottom: 1px dashed var(--rule-dash);
+    color: var(--ink);
+    text-align: left;
+    background: transparent;
+    overflow-wrap: anywhere;
+}
+
+.item:hover {
+    background: var(--marker);
+}
+
+.item[aria-current] {
+    color: var(--on-ink);
+    background: var(--ink);
+}
+
+.item:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+}
+
+.item[aria-current] span {
+    color: var(--on-ink);
+}

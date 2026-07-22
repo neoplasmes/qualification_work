@@ -13,20 +13,19 @@ import '@glideapps/glide-data-grid/dist/index.css';
 
 import { useCallback, useEffect, useMemo, useRef, type ComponentProps } from 'react';
 
-import { useDatasetTableOptions } from '@/features/manageDatasetTableOptions';
-
 import { gridTheme, headerHeight, rowHeight } from '../../../../const';
 import { datasetCellValueHandlers } from '../../../DatasetWorkspace/lib';
 
+import { useDatasetTableOptions } from '../../model';
 import type { DatasetGridEditorProps } from '../../types';
 
 const defaultColWidth = 150;
 const gridOverscrollX = 160;
 const invalidCellTheme: Partial<Theme> = {
-    bgCell: 'rgba(145,14,47,0.2)',
-    textDark: '#ffd6df',
-    borderColor: '#910e2f',
-    horizontalBorderColor: '#910e2f',
+    bgCell: '#f7e9e5',
+    textDark: '#a3341f',
+    borderColor: '#a3341f',
+    horizontalBorderColor: '#a3341f',
 };
 
 export const DatasetGridEditor = ({
@@ -47,14 +46,16 @@ export const DatasetGridEditor = ({
     onVisibleRangeChange,
 }: DatasetGridEditorProps) => {
     const gridRef = useRef<DataEditorRef>(null);
+    const handledScrollSignal = useRef(0);
     const { widths, setColumnWidth, isHydrated } = useDatasetTableOptions(datasetId);
     const rowCount = totalRows;
 
     useEffect(() => {
-        if (scrollToBottomSignal <= 0 || totalRows <= 0) {
+        if (scrollToBottomSignal <= handledScrollSignal.current || totalRows <= 0) {
             return;
         }
 
+        handledScrollSignal.current = scrollToBottomSignal;
         gridRef.current?.scrollTo(0, totalRows - 1, 'vertical', 0, 0, {
             vAlign: 'end',
         });
@@ -98,8 +99,11 @@ export const DatasetGridEditor = ({
                 return getLoadingCell();
             }
 
+            const edits = displayEdits.get(dataRow.id);
             const rawValue =
-                displayEdits.get(dataRow.id)?.[column.key] ?? dataRow.data[column.key];
+                edits && Object.hasOwn(edits, column.key)
+                    ? edits[column.key]
+                    : dataRow.data[column.key];
             const display = datasetCellValueHandlers[column.dataType].format(rawValue);
 
             return {
@@ -107,6 +111,7 @@ export const DatasetGridEditor = ({
                 data: display,
                 displayData: display,
                 allowOverlay: true,
+                contentAlign: column.dataType === 'number' ? 'right' : 'left',
                 themeOverride: invalidCellKeys.has(`${dataRow.id}:${column.key}`)
                     ? invalidCellTheme
                     : undefined,

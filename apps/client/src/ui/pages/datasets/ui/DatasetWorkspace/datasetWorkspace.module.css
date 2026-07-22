@@ -1,0 +1,38 @@
+.preview {
+    overflow: hidden;
+    background: var(--paper);
+}
+
+.heading {
+    padding: var(--space-20);
+}
+
+.toolbar {
+    padding: 0 var(--space-20) var(--space-16);
+    border-bottom: 1px dashed var(--rule-dash);
+}
+
+.grid-container {
+    position: relative;
+    overflow: hidden;
+    min-height: 240px;
+}
+
+.placeholder {
+    padding: var(--space-20);
+    color: var(--ink-2);
+    text-align: center;
+}
+
+.scroll-bottom-anchor {
+    position: absolute;
+    bottom: var(--space-16);
+    left: 50%;
+    z-index: 16;
+    transform: translateX(-50%);
+}
+
+.scroll-bottom {
+    border: 1px solid var(--ink);
+    background: var(--paper-raised);
+}

@@ -23,6 +23,7 @@ import { createCacheBridge } from '../cacheBridge';
 import { createDatasetDependencies } from '../datasetDependencies';
 import { createQueryClient } from '../queryClient';
 import { SessionLifecycle } from '../sessionLifecycle';
+import { createTableOptionsDependencies } from '../tableOptionsDependencies';
 import { createUiState } from '../uiState';
 import { sessionCodec } from './sessionCodec';
 
@@ -130,6 +131,7 @@ export function createDependencies(options: {
     const dependencies: Dependencies = {
         ...operations,
         ...datasetOperations,
+        ...createTableOptionsDependencies(cache, options.platform === 'browser'),
         cache,
         session,
         ui,

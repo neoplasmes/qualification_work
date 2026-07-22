@@ -1,4 +1,5 @@
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
+import { Button, HStack, Text } from '@qualification-work/design-system';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
@@ -12,13 +13,13 @@ import {
     useDatasetCellEditing,
     useDatasetColumnActions,
     useDatasetRowActions,
-    useDatasetRowsCache,
+    useDatasetRowsController,
     useDatasetRowSelection,
     useDatasetWorkspaceSize,
 } from './model';
 import { DatasetWorkspaceOverlays } from './ui';
 
-import styles from './DatasetWorkspace.module.css';
+import styles from './datasetWorkspace.module.css';
 
 type DatasetWorkspaceProps = {
     selectedDataset: DatasetMetadata | undefined;
@@ -33,16 +34,20 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
     const { ref: gridContainerRef, size: gridSize } =
         useDatasetWorkspaceSize<HTMLDivElement>();
     const {
-        loadedChunks,
+        isLoading,
+        retry,
+        error,
         totalRows,
         isAtBottom,
         scrollToBottomSignal,
-        getRowAt,
+        getRow: getRowAt,
         handleScrollToBottom,
         handleVisibleRangeChange,
-        requestChunk,
-        resetRowsCache,
-    } = useDatasetRowsCache(datasetId, selectedDataset?.totalRows);
+    } = useDatasetRowsController({
+        datasetId,
+        orgId: selectedDataset?.dataset.orgId,
+        metadataTotalRows: selectedDataset?.totalRows,
+    });
 
     const rowSelection = useDatasetRowSelection(getRowAt);
     const cellEditing = useDatasetCellEditing(
@@ -55,8 +60,6 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
         contextMenu,
         setContextMenu,
         getRowAt,
-        requestChunk,
-        resetRowsCache,
         resetCellEditing: cellEditing.resetCellEditing,
         resetGridSelection: rowSelection.resetGridSelection,
     });
@@ -113,6 +116,16 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
             data-flex
             aria-label="Dataset preview"
         >
+            {selectedDataset && (
+                <HStack className={styles.heading} gap={16} justify="space-between" wrap>
+                    <Text as="h2" variant="heading-sm">
+                        {selectedDataset.dataset.name}
+                    </Text>
+                    <Text variant="label">
+                        {totalRows} строк · {columns.length} полей
+                    </Text>
+                </HStack>
+            )}
             {!selectedDataset && (
                 <p
                     className={styles['placeholder']}
@@ -121,14 +134,57 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
                     data-justify="center"
                     data-flex
                 >
-                    Select a dataset to preview rows.
+                    Выберите таблицу в списке.
                 </p>
             )}
 
-            {selectedDataset && totalRows === 0 && loadedChunks.size === 0 && (
-                <StatusMessage>Loading rows...</StatusMessage>
+            {selectedDataset && isLoading && totalRows === 0 && (
+                <StatusMessage>Загружаем строки…</StatusMessage>
             )}
 
+            {Boolean(
+                error || cellEditing.error || rowActions.error || columnActions.error
+            ) && (
+                <StatusMessage tone="error">
+                    Не удалось подтвердить изменение или загрузить данные. Проверьте
+                    данные перед повторным изменением.
+                </StatusMessage>
+            )}
+            {Boolean(
+                cellEditing.syncError || rowActions.syncError || columnActions.syncError
+            ) && (
+                <StatusMessage tone="error">
+                    Изменения сохранены, но обновить данные не удалось. Повторите
+                    загрузку.
+                </StatusMessage>
+            )}
+            {selectedDataset && !isLoading && !error && totalRows === 0 && (
+                <StatusMessage>В таблице пока нет строк.</StatusMessage>
+            )}
+
+            {selectedDataset && (
+                <HStack className={styles.toolbar} gap={12} wrap justify="space-between">
+                    <Text variant="body-sm" tone="muted">
+                        Двойной щелчок — изменить ячейку. Правый щелчок — действия со
+                        строкой или полем.
+                    </Text>
+                    {Boolean(
+                        error ||
+                        cellEditing.syncError ||
+                        rowActions.syncError ||
+                        columnActions.syncError
+                    ) && (
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                void retry().catch(() => {});
+                            }}
+                        >
+                            Повторить загрузку
+                        </Button>
+                    )}
+                </HStack>
+            )}
             <div ref={gridContainerRef} className={styles['grid-container']} data-flex>
                 {selectedDataset && gridSize.w > 0 && (
                     <DatasetGrid
@@ -156,7 +212,9 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
                     deleteLoading={rowActions.deleteLoading}
                     columnToggleLoading={columnActions.columnToggleLoading}
                     showScrollToBottom={showScrollToBottom}
-                    onScrollToBottom={() => void handleScrollToBottom()}
+                    onScrollToBottom={() => {
+                        void handleScrollToBottom().catch(() => {});
+                    }}
                     onInsertBelow={() => void rowActions.handleInsertBelow()}
                     onClearSelected={() => void rowActions.handleClearSelected()}
                     onAskDelete={rowActions.askDelete}

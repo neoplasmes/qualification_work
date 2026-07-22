@@ -1,28 +1,37 @@
+import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import { useDatasetsPageActions, useDatasetsPageState } from '@/ui/pages/datasets/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
-import { Button } from '@qualification-work/design-system';
-import { GitMerge, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-
-import { useDeleteDatasetMutation, usePatchDatasetMutation } from '@/entities/dataset';
+import {
+    Button,
+    Divider,
+    HStack,
+    IconButton,
+    Input,
+    Notice,
+    Stat,
+    Text,
+} from '@qualification-work/design-system';
+import { GitMerge, Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
-import { EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../const';
 import { MergeDatasetModal } from '../MergeDatasetModal';
 
-import styles from './DatasetsPropertiesPanel.module.css';
+import styles from './datasetsPropertiesPanel.module.css';
 
 export const DatasetsPropertiesPanel = () => {
-    const { bumpDatasetReloadVersion, selectDataset } = useDatasetsPageActions();
+    const { selectDataset } = useDatasetsPageActions();
     const [datasetError, setDatasetError] = useState('');
     const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
     const [showMerge, setShowMerge] = useState(false);
+    const [renaming, setRenaming] = useState(false);
+    const [name, setName] = useState('');
 
     const selectedDatasetId = useDatasetsPageState(state => state.selectedDatasetId);
 
@@ -34,13 +43,27 @@ export const DatasetsPropertiesPanel = () => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const [patchDataset, patchState] = usePatchDatasetMutation();
-    const [deleteDataset, deleteState] = useDeleteDatasetMutation();
+    const {
+        execute: patchDataset,
+        isPending: patchPending,
+        syncError: patchSyncError,
+    } = useCommand(dependencies.patchDataset);
+    const {
+        execute: deleteDataset,
+        isPending: deletePending,
+        syncError: deleteSyncError,
+    } = useCommand(dependencies.deleteDataset);
 
     const selectedDataset = useMemo(
         () => getSelected(datasetsQuery.data, selectedDatasetId, item => item.dataset.id),
         [datasetsQuery.data, selectedDatasetId]
     );
+
+    useEffect(() => {
+        setRenaming(false);
+        setDatasetError('');
+        setDeleteConfirmationId(null);
+    }, [selectedDataset?.dataset.id, selectedDataset?.dataset.orgId]);
 
     const handleDeleteDataset = async () => {
         if (!selectedDataset) {
@@ -56,10 +79,12 @@ export const DatasetsPropertiesPanel = () => {
         setDatasetError('');
 
         try {
-            await deleteDataset(selectedDataset.dataset.id).unwrap();
+            await deleteDataset({
+                orgId: selectedDataset.dataset.orgId,
+                datasetId: selectedDataset.dataset.id,
+            });
             selectDataset(null);
             setDeleteConfirmationId(null);
-            await dependencies.cache.read(dependencies.listDatasets, { orgId: org!.id });
         } catch (error) {
             setDatasetError(getApiErrorMessage(error, 'Unable to delete this dataset.'));
         }
@@ -77,8 +102,8 @@ export const DatasetsPropertiesPanel = () => {
             await patchDataset({
                 datasetId: selectedDataset.dataset.id,
                 name,
-            }).unwrap();
-            await dependencies.cache.read(dependencies.listDatasets, { orgId: org!.id });
+                orgId: selectedDataset.dataset.orgId,
+            });
         } catch (error) {
             const message = getApiErrorMessage(error, 'Unable to rename this dataset.');
             setDatasetError(message);
@@ -96,7 +121,7 @@ export const DatasetsPropertiesPanel = () => {
                 data-justify="center"
                 data-flex
             >
-                Select a dataset to view properties.
+                Выберите таблицу, чтобы увидеть её свойства.
             </p>
         );
     }
@@ -105,60 +130,106 @@ export const DatasetsPropertiesPanel = () => {
         <>
             <section className={styles['details']} data-flex aria-label="Dataset details">
                 <div className={styles['details-header']}>
-                    <EditableText
-                        title={selectedDataset.dataset.name}
-                        fallbackTitle="Untitled dataset"
-                        saving={patchState.isLoading}
-                        editButtonTestId={datasetsTestIds.renameButton}
-                        inputTestId={datasetsTestIds.renameInput}
-                        onRename={handleRenameDataset}
-                    />
+                    {renaming && (
+                        <form
+                            onSubmit={event => {
+                                event.preventDefault();
+                                void handleRenameDataset(name)
+                                    .then(() => setRenaming(false))
+                                    .catch(() => {});
+                            }}
+                        >
+                            <Input
+                                aria-label="Название таблицы"
+                                data-test-id={datasetsTestIds.renameInput}
+                                value={name}
+                                autoFocus
+                                disabled={patchPending}
+                                onChange={event => setName(event.target.value)}
+                                onKeyDown={event => {
+                                    if (event.key === 'Escape') {
+                                        setRenaming(false);
+                                    }
+                                }}
+                            />
+                            <Button type="submit" disabled={patchPending || !name.trim()}>
+                                {patchPending ? 'Сохраняем…' : 'Сохранить название'}
+                            </Button>
+                        </form>
+                    )}
+                    {!renaming && (
+                        <HStack gap={8} align="start" justify="space-between">
+                            <Text as="h2" variant="heading-sm">
+                                {selectedDataset.dataset.name}
+                            </Text>
+                            <IconButton
+                                aria-label="Rename"
+                                data-test-id={datasetsTestIds.renameButton}
+                                variant="ghost"
+                                onClick={() => {
+                                    setName(selectedDataset.dataset.name);
+                                    setRenaming(true);
+                                }}
+                            >
+                                <Pencil size={18} />
+                            </IconButton>
+                        </HStack>
+                    )}
                     <div className={styles['details-actions']}>
                         <Button onClick={() => setShowMerge(true)}>
                             <GitMerge size={18} />
-                            Merge data
+                            Объединить данные
                         </Button>
                     </div>
                 </div>
 
                 {datasetError && (
-                    <StatusMessage tone="error">{datasetError}</StatusMessage>
+                    <Notice tone="danger" role="alert">
+                        {datasetError}
+                    </Notice>
                 )}
 
-                <Table
-                    aria-label="Dataset properties"
-                    headers={{ key: 'Property', value: 'Value' }}
-                    rows={[
-                        { key: 'Rows', value: selectedDataset.totalRows },
-                        { key: 'Columns', value: selectedDataset.columns.length },
-                        { key: 'Source', value: selectedDataset.dataset.sourceType },
-                        {
-                            key: 'Created',
-                            value: formatDate(selectedDataset.dataset.createdAt),
-                        },
-                    ]}
-                />
-
-                <Table
-                    aria-label="Dataset columns"
-                    headers={{ key: 'Column', value: 'Type' }}
-                    rows={selectedDataset.columns.map(column => ({
-                        id: column.id,
-                        key: column.displayName,
-                        value: column.dataType,
-                    }))}
-                />
+                {Boolean(patchSyncError || deleteSyncError) && (
+                    <Notice tone="danger" role="status">
+                        Изменения сохранены, но обновить список не удалось.
+                    </Notice>
+                )}
+                <HStack gap={24} wrap>
+                    <Stat label="Строк" value={selectedDataset.totalRows} />
+                    <Stat label="Полей" value={selectedDataset.columns.length} />
+                </HStack>
+                <Divider />
+                <dl className={styles.facts} aria-label="Свойства таблицы">
+                    <dt>Источник</dt>
+                    <dd>{selectedDataset.dataset.sourceType}</dd>
+                    <dt>Создана</dt>
+                    <dd>{formatDate(selectedDataset.dataset.createdAt)}</dd>
+                </dl>
+                <Text as="h3" variant="label">
+                    Поля таблицы
+                </Text>
+                <ul className={styles.columns} aria-label="Поля таблицы">
+                    {selectedDataset.columns.map(column => (
+                        <li key={column.id}>
+                            <Text variant="body-sm">{column.displayName}</Text>
+                            <Text variant="label">
+                                {column.dataType} ·{' '}
+                                {column.isAnalyzable ? 'В анализе' : 'Исключено'}
+                            </Text>
+                        </li>
+                    ))}
+                </ul>
 
                 <div className={styles['delete-actions']}>
                     <Button
                         variant="danger"
-                        disabled={deleteState.isLoading}
+                        disabled={deletePending}
                         onClick={() => void handleDeleteDataset()}
                     >
                         <Trash2 size={18} />
                         {deleteConfirmationId === selectedDataset.dataset.id
-                            ? 'Confirm delete'
-                            : 'Delete'}
+                            ? 'Подтвердить удаление'
+                            : 'Удалить таблицу'}
                     </Button>
                 </div>
             </section>
@@ -172,9 +243,7 @@ export const DatasetsPropertiesPanel = () => {
                         await dependencies.cache.read(dependencies.listDatasets, {
                             orgId: org!.id,
                         });
-                        // server doesnt bump dataset.updatedAt on merge, so signal the
-                        // preview explicitly to remount and refetch rows + columns
-                        bumpDatasetReloadVersion(datasetId);
+                        // merge confirmation invalidates rows and columns through the cache bridge
                     }}
                     onClose={() => setShowMerge(false)}
                 />

@@ -1,98 +1,19 @@
-import type { DatasetColumn } from '@/core/entities/datasetColumn';
+import { createUiTestRuntime, UiTestProvider } from '@/test/uiRuntime';
 import { CompactSelection } from '@glideapps/glide-data-grid';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import type { DatasetRow } from '@/entities/dataset';
 
 import { datasetsTestIds } from '../../const';
 import type { DatasetGridProps } from '../DatasetGrid/types';
 import { DatasetWorkspace } from './DatasetWorkspace';
+import { columns, mockRows, selectedDataset } from './test';
 
 const mocks = vi.hoisted(() => ({
     updateRow: vi.fn(),
     insertRow: vi.fn(),
     deleteRow: vi.fn(),
     patchColumn: vi.fn(),
-}));
-
-const columns = vi.hoisted(
-    () =>
-        [
-            {
-                ref: 'datasetColumn:org-1/dataset-1/column-1',
-                id: 'column-1',
-                datasetId: 'dataset-1',
-                key: 'amount',
-                displayName: 'Amount',
-                dataType: 'number',
-                orderIndex: 0,
-                isAnalyzable: true,
-            },
-            {
-                ref: 'datasetColumn:org-1/dataset-1/column-2',
-                id: 'column-2',
-                datasetId: 'dataset-1',
-                key: 'name',
-                displayName: 'Name',
-                dataType: 'string',
-                orderIndex: 1,
-                isAnalyzable: true,
-            },
-        ] satisfies DatasetColumn[]
-);
-
-const selectedDataset = vi.hoisted(
-    () =>
-        ({
-            dataset: {
-                ref: 'dataset:org-1/dataset-1',
-                id: 'dataset-1',
-                orgId: 'org-1',
-                name: 'Invoices',
-                sourceType: 'manual',
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-            columns,
-            totalRows: 2,
-        }) satisfies DatasetMetadata
-);
-
-const mockRows = vi.hoisted((): DatasetRow[] => [
-    {
-        id: 'row-1',
-        datasetId: 'dataset-1',
-        rowIndex: 0,
-        data: { amount: 1, name: 'Row 1' },
-    },
-    {
-        id: 'row-2',
-        datasetId: 'dataset-1',
-        rowIndex: 1,
-        data: { amount: 2, name: 'Row 2' },
-    },
-]);
-
-vi.mock('@/entities/dataset', () => ({
-    useLazyGetDatasetRowsQuery: () => [
-        (arg: { datasetId: string; offset?: number; limit?: number }) => ({
-            unwrap: () =>
-                Promise.resolve({
-                    rows: mockRows,
-                    totalRows: selectedDataset.totalRows,
-                    offset: arg.offset ?? 0,
-                    limit: arg.limit ?? 200,
-                }),
-        }),
-        { isLoading: false, isFetching: false },
-    ],
-    useUpdateRowMutation: () => [mocks.updateRow],
-    useInsertRowMutation: () => [mocks.insertRow, { isLoading: false }],
-    useDeleteRowMutation: () => [mocks.deleteRow, { isLoading: false }],
-    usePatchDatasetColumnMutation: () => [mocks.patchColumn, { isLoading: false }],
 }));
 
 vi.mock('../DatasetGrid', () => ({
@@ -158,8 +79,7 @@ vi.mock('../DatasetGrid', () => ({
 
 const flushPromises = () =>
     act(async () => {
-        await Promise.resolve();
-        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(10);
     });
 
 const getByDataTestId = <T extends HTMLElement>(
@@ -172,22 +92,38 @@ const getByDataTestId = <T extends HTMLElement>(
     return element as T;
 };
 
+let wrapper: (props: PropsWithChildren) => React.ReactNode;
+
 describe('DatasetWorkspace', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
-        mocks.updateRow.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue([]),
+        const store = createUiTestRuntime();
+        store.runtime.dependencies.getDatasetRows.execute = async input => ({
+            rows: mockRows,
+            totalRows: 2,
+            offset: input.offset ?? 0,
+            limit: 200,
         });
-        mocks.insertRow.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(undefined),
-        });
-        mocks.deleteRow.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(undefined),
-        });
-        mocks.patchColumn.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(undefined),
-        });
+        store.runtime.dependencies.updateDatasetRows.execute =
+            mocks.updateRow.mockImplementation(async input =>
+                mockRows
+                    .filter(row => input.rowIds.includes(row.id))
+                    .map(row => ({ ...row, data: input.values }))
+            );
+        store.runtime.dependencies.insertDatasetRow.execute =
+            mocks.insertRow.mockResolvedValue({
+                ...mockRows[0],
+                id: 'inserted',
+                ref: 'datasetRow:org-1/dataset-1/inserted',
+            });
+        store.runtime.dependencies.deleteDatasetRows.execute =
+            mocks.deleteRow.mockResolvedValue([]);
+        store.runtime.dependencies.patchDatasetColumn.execute =
+            mocks.patchColumn.mockResolvedValue({ ...columns[0], isAnalyzable: false });
+        wrapper = function Wrapper({ children }: PropsWithChildren) {
+            return <UiTestProvider store={store}>{children}</UiTestProvider>;
+        };
     });
 
     afterEach(() => {
@@ -195,24 +131,26 @@ describe('DatasetWorkspace', () => {
     });
 
     it('does not show loaded row count for selected dataset', () => {
-        render(<DatasetWorkspace selectedDataset={selectedDataset} />);
+        render(<DatasetWorkspace selectedDataset={selectedDataset} />, { wrapper });
 
         expect(screen.queryByText('1 of 1 rows')).not.toBeInTheDocument();
     });
 
     it('flushes edited cells and inserts an empty row below the selected row', async () => {
         const { container } = render(
-            <DatasetWorkspace selectedDataset={selectedDataset} />
+            <DatasetWorkspace selectedDataset={selectedDataset} />,
+            { wrapper }
         );
 
         await flushPromises();
 
         fireEvent.click(screen.getByRole('button', { name: 'Commit amount' }));
 
-        act(() => {
-            vi.advanceTimersByTime(700);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(700);
         });
 
+        await flushPromises();
         expect(mocks.updateRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -223,6 +161,7 @@ describe('DatasetWorkspace', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Open row menu' }));
         fireEvent.click(getByDataTestId(container, datasetsTestIds.insertRowMenuItem));
 
+        await flushPromises();
         expect(mocks.insertRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -232,24 +171,25 @@ describe('DatasetWorkspace', () => {
     });
 
     it('keeps invalid cell edits local until the value becomes valid', async () => {
-        render(<DatasetWorkspace selectedDataset={selectedDataset} />);
+        render(<DatasetWorkspace selectedDataset={selectedDataset} />, { wrapper });
 
         await flushPromises();
 
         fireEvent.click(screen.getByRole('button', { name: 'Commit invalid amount' }));
 
-        act(() => {
-            vi.advanceTimersByTime(700);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(700);
         });
 
         expect(mocks.updateRow).not.toHaveBeenCalled();
 
         fireEvent.click(screen.getByRole('button', { name: 'Commit amount' }));
 
-        act(() => {
-            vi.advanceTimersByTime(700);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(700);
         });
 
+        await flushPromises();
         expect(mocks.updateRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -259,16 +199,17 @@ describe('DatasetWorkspace', () => {
     });
 
     it('patches empty cell edits as null', async () => {
-        render(<DatasetWorkspace selectedDataset={selectedDataset} />);
+        render(<DatasetWorkspace selectedDataset={selectedDataset} />, { wrapper });
 
         await flushPromises();
 
         fireEvent.click(screen.getByRole('button', { name: 'Clear amount' }));
 
-        act(() => {
-            vi.advanceTimersByTime(700);
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(700);
         });
 
+        await flushPromises();
         expect(mocks.updateRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -279,13 +220,11 @@ describe('DatasetWorkspace', () => {
 
     it('confirms row deletion from the context menu before calling backend', async () => {
         const { container } = render(
-            <DatasetWorkspace selectedDataset={selectedDataset} />
+            <DatasetWorkspace selectedDataset={selectedDataset} />,
+            { wrapper }
         );
 
-        await act(async () => {
-            await Promise.resolve();
-            await Promise.resolve();
-        });
+        await flushPromises();
 
         fireEvent.click(screen.getByRole('button', { name: 'Open row menu' }));
         fireEvent.click(getByDataTestId(container, datasetsTestIds.deleteRowMenuItem));
@@ -295,6 +234,7 @@ describe('DatasetWorkspace', () => {
             getByDataTestId(container, datasetsTestIds.confirmDeleteRowButton)
         );
 
+        await flushPromises();
         expect(mocks.deleteRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -304,7 +244,8 @@ describe('DatasetWorkspace', () => {
 
     it('shows bulk actions for a multi-row selection and clears every selected row', async () => {
         const { container } = render(
-            <DatasetWorkspace selectedDataset={selectedDataset} />
+            <DatasetWorkspace selectedDataset={selectedDataset} />,
+            { wrapper }
         );
 
         await flushPromises();
@@ -321,6 +262,7 @@ describe('DatasetWorkspace', () => {
             getByDataTestId(container, datasetsTestIds.clearSelectedMenuItem)
         );
 
+        await flushPromises();
         expect(mocks.updateRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -331,7 +273,8 @@ describe('DatasetWorkspace', () => {
 
     it('deletes every selected row from the bulk confirm step', async () => {
         const { container } = render(
-            <DatasetWorkspace selectedDataset={selectedDataset} />
+            <DatasetWorkspace selectedDataset={selectedDataset} />,
+            { wrapper }
         );
 
         await flushPromises();
@@ -347,6 +290,7 @@ describe('DatasetWorkspace', () => {
             getByDataTestId(container, datasetsTestIds.confirmDeleteRowButton)
         );
 
+        await flushPromises();
         expect(mocks.deleteRow).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             orgId: 'org-1',
@@ -355,13 +299,14 @@ describe('DatasetWorkspace', () => {
     });
 
     it('opens the column context menu and toggles analysis inclusion', async () => {
-        render(<DatasetWorkspace selectedDataset={selectedDataset} />);
+        render(<DatasetWorkspace selectedDataset={selectedDataset} />, { wrapper });
 
         await flushPromises();
 
         fireEvent.click(screen.getByRole('button', { name: 'Open column menu' }));
-        fireEvent.click(screen.getByLabelText('Include in analysis'));
+        fireEvent.click(screen.getByLabelText('Использовать в анализе'));
 
+        await flushPromises();
         expect(mocks.patchColumn).toHaveBeenCalledWith({
             datasetId: 'dataset-1',
             columnId: 'column-1',

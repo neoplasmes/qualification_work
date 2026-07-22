@@ -1,3 +1,15 @@
 .main-panel {
     overflow: hidden;
+    background: var(--paper);
+}
+
+.title {
+    min-height: 52px;
+    padding: 0 var(--space-20);
+    border-bottom: 1px solid var(--ink);
+}
+
+.start {
+    padding: var(--space-40);
+    border-bottom: 1px dashed var(--rule-dash);
 }

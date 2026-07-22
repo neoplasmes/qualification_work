@@ -1,10 +1,11 @@
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
+import { Checkbox } from '@qualification-work/design-system';
 
-import { Checkbox, ContextMenu } from '@/shared/ui';
+import { ContextMenu } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../const';
 
-import styles from './DatasetColumnContextMenu.module.css';
+import styles from './datasetColumnContextMenu.module.css';
 
 export type DatasetColumnContextMenuState = {
     column: DatasetColumn;
@@ -29,16 +30,17 @@ export const DatasetColumnContextMenu = ({
         x={state.x}
         y={state.y}
         data-test-id={datasetsTestIds.columnContextMenu}
+        className={styles.menu}
         onCancel={onCancel}
     >
-        <div className={styles['content']}>
+        <label className={styles['content']}>
             <Checkbox
                 data-test-id={datasetsTestIds.includeColumnInAnalysisCheckbox}
-                label="Include in analysis"
                 checked={state.column.isAnalyzable !== false}
                 disabled={disabled}
                 onChange={event => onToggleAnalysis(state.column, event.target.checked)}
             />
-        </div>
+            Использовать в анализе
+        </label>
     </ContextMenu>
 );

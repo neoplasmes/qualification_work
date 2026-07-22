@@ -17,6 +17,11 @@ import type {
     UpdateDatasetRowsInput,
 } from '@/app/ports/repos/dataset';
 import type {
+    ColumnWidths,
+    SaveTableOptionsInput,
+    TableOptionsScope,
+} from '@/app/ports/repos/datasetTableOptions';
+import type {
     CreateOrgInput,
     CreateOrgResult,
     DeleteOrgInput,
@@ -42,6 +47,9 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    getDatasetTableOptions: Query<TableOptionsScope, ColumnWidths>;
+    saveDatasetTableOptions: Command<SaveTableOptionsInput, void>;
+    removeDatasetTableOptions: Command<TableOptionsScope, void>;
     cache: {
         read<I, O>(query: Query<I, O>, input: I, options?: ReadOptions): Promise<O>;
     };

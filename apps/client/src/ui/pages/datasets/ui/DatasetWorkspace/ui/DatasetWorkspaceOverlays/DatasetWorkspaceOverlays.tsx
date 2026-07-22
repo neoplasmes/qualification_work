@@ -11,7 +11,7 @@ import {
     type DatasetRowContextMenuState,
 } from '../../../DatasetRowContextMenu';
 
-import styles from '../../DatasetWorkspace.module.css';
+import styles from '../../datasetWorkspace.module.css';
 
 type DatasetWorkspaceOverlaysProps = {
     contextMenu: DatasetRowContextMenuState | null;

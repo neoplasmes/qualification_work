@@ -20,13 +20,7 @@ const chartReads = ['listCharts', 'getChart', 'listDashboards', 'getDashboard'];
 const dashboardReads = ['listDashboards', 'getDashboard', 'previewDashboardMetric'];
 const actionReads = ['listActions', 'getAction'];
 const targets: Record<string, readonly string[]> = {
-    patchDataset: metadataReads,
     uploadDataset: metadataReads,
-    patchDatasetColumn: contentReads,
-    updateRow: contentReads,
-    insertRow: contentReads,
-    deleteRow: contentReads,
-    deleteDataset: contentReads,
     mergeCommit: contentReads,
     createChart: ['listCharts', 'getChart'],
     patchChart: chartReads,

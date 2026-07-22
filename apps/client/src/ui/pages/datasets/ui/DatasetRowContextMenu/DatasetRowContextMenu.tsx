@@ -5,7 +5,7 @@ import { ContextMenu } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../const';
 
-import styles from './DatasetRowContextMenu.module.css';
+import styles from './datasetRowContextMenu.module.css';
 
 export type DatasetRowContextMenuMode = 'actions' | 'delete';
 
@@ -62,7 +62,7 @@ export const DatasetRowContextMenu = ({
                                 role="menuitem"
                             >
                                 <Eraser size={16} />
-                                Clear selected
+                                Очистить выбранные
                             </button>
                             <button
                                 className={`${styles['menu-item']} ${styles['danger']}`}
@@ -72,7 +72,7 @@ export const DatasetRowContextMenu = ({
                                 role="menuitem"
                             >
                                 <Trash2 size={16} />
-                                Delete selected rows
+                                Удалить выбранные строки
                             </button>
                         </>
                     ) : (
@@ -85,7 +85,7 @@ export const DatasetRowContextMenu = ({
                                 role="menuitem"
                             >
                                 <Plus size={16} />
-                                Insert row below
+                                Вставить строку ниже
                             </button>
                             <button
                                 className={`${styles['menu-item']} ${styles['danger']}`}
@@ -95,7 +95,7 @@ export const DatasetRowContextMenu = ({
                                 role="menuitem"
                             >
                                 <Trash2 size={16} />
-                                Delete row
+                                Удалить строку
                             </button>
                         </>
                     )}
@@ -103,7 +103,9 @@ export const DatasetRowContextMenu = ({
             ) : (
                 <div className={styles['confirm']}>
                     <div className={styles['confirm-copy']}>
-                        {isMulti ? `Delete ${selectedCount} rows?` : 'Delete this row?'}
+                        {isMulti
+                            ? `Удалить строки: ${selectedCount}?`
+                            : 'Удалить эту строку?'}
                     </div>
                     <div className={styles['confirm-actions']}>
                         <Button
@@ -116,13 +118,13 @@ export const DatasetRowContextMenu = ({
                             disabled={deleting}
                         >
                             <Trash2 size={14} />
-                            <span>Delete</span>
+                            <span>Удалить</span>
                         </Button>
                         <IconButton
                             className={styles['confirm-cancel-button']}
                             data-test-id={datasetsTestIds.cancelDeleteRowButton}
                             variant="ghost"
-                            aria-label="Cancel delete"
+                            aria-label="Отменить удаление"
                             onClick={onCancel}
                         >
                             <X size={20} />

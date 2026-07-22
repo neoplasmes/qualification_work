@@ -21,6 +21,6 @@ it('isolates editor instances', () => {
     const firstStore = createDatasetsPageStore();
     const secondStore = createDatasetsPageStore();
     const initial = secondStore.getState();
-    firstStore.getState().bumpDatasetReloadVersion('one');
+    firstStore.getState().selectDataset('one');
     expect(secondStore.getState()).toEqual(initial);
 });

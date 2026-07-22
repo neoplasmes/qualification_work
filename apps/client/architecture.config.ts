@@ -228,14 +228,6 @@ const architecture = {
             to: 'features/manageDashboards',
         },
         {
-            from: 'ui/pages/datasets/ui/DatasetGrid/types.ts',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetGrid/ui/DatasetGridEditor/DatasetGridEditor.tsx',
-            to: 'features/manageDatasetTableOptions',
-        },
-        {
             from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetCellValueHandlers.ts',
             to: 'entities/chart',
         },
@@ -244,36 +236,12 @@ const architecture = {
             to: 'entities/chart',
         },
         {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetCellEditing.ts',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetColumnActions.ts',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetRowActions.ts',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetRowSelection.ts',
-            to: 'entities/dataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/model/useDatasetRowsCache.ts',
-            to: 'entities/dataset',
-        },
-        {
             from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
             to: 'entities/chart',
         },
         {
             from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetsPropertiesPanel/DatasetsPropertiesPanel.tsx',
-            to: 'entities/dataset',
         },
         {
             from: 'ui/pages/datasets/ui/MergeDatasetModal/MergeDatasetModal.tsx',

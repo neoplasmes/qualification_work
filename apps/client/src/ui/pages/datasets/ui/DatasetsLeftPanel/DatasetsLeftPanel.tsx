@@ -5,8 +5,9 @@ import { useDatasetsPageActions, useDatasetsPageState } from '@/ui/pages/dataset
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
+import { Text, VStack } from '@qualification-work/design-system';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Sheet, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { useListChartsQuery } from '@/entities/chart';
@@ -14,9 +15,10 @@ import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
-import { WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../const';
+
+import styles from './datasetsLeftPanel.module.css';
 
 export const DatasetsLeftPanel = () => {
     const { selectDataset, setShowUpload } = useDatasetsPageActions();
@@ -53,31 +55,44 @@ export const DatasetsLeftPanel = () => {
 
     return (
         <WorkspaceLeftPanel
-            title="Datasets"
-            countLabel={`Total: ${filteredDatasets?.length ?? 0} datasets`}
+            title="Таблицы"
+            countLabel={`Всего: ${filteredDatasets?.length ?? 0}`}
             testId={datasetsTestIds.uploadPanel}
-            listLabel="Datasets"
+            listLabel="Таблицы"
             loading={Boolean(org?.id) && datasetsQuery.isPending}
-            loadingText="Loading datasets..."
+            loadingText="Загружаем таблицы…"
             empty={filteredDatasets?.length === 0}
-            emptyText="Upload a dataset to start."
+            emptyText="Загрузите первую таблицу."
             action={{
-                label: 'Upload dataset',
+                label: 'Загрузить таблицу',
                 Icon: Upload,
                 testId: datasetsTestIds.uploadButton,
                 onClick: () => setShowUpload(true),
             }}
         >
             {filteredDatasets?.map(item => (
-                <WorkspaceLeftPanelItem
+                <button
                     key={item.dataset.id}
-                    selected={selectedDataset?.dataset.id === item.dataset.id}
-                    testId={datasetsTestIds.datasetListItem}
-                    header={item.dataset.name}
-                    details={[formatDate(item.dataset.createdAt)]}
-                    iconElement={<Sheet size={18} />}
+                    type="button"
+                    className={styles.item}
+                    aria-current={
+                        selectedDataset?.dataset.id === item.dataset.id
+                            ? 'true'
+                            : undefined
+                    }
+                    data-test-id={datasetsTestIds.datasetListItem}
                     onClick={() => selectDataset(item.dataset.id)}
-                />
+                >
+                    <VStack gap={8} align="start">
+                        <Text variant="body-sm">{item.dataset.name}</Text>
+                        <Text variant="label">
+                            {item.totalRows} строк · {item.columns.length} полей
+                        </Text>
+                        <Text variant="caption">
+                            {formatDate(item.dataset.createdAt)}
+                        </Text>
+                    </VStack>
+                </button>
             ))}
         </WorkspaceLeftPanel>
     );

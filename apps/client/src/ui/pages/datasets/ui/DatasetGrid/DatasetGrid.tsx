@@ -6,7 +6,7 @@ import { ClientOnlyDeffered, EmptyState } from '@/shared/ui';
 import { datasetsTestIds } from '../../const';
 import type { DatasetGridEditorProps, DatasetGridProps } from './types';
 
-import styles from './DatasetGrid.module.css';
+import styles from './datasetGrid.module.css';
 
 const LazyDatasetGridEditor = lazy(() =>
     import('./ui/DatasetGridEditor').then(module => ({

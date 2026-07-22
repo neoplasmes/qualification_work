@@ -1,0 +1,15 @@
+.menu {
+    max-width: calc(100vw - var(--space-16));
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    color: var(--ink);
+    background: var(--paper-raised);
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 44px;
+    padding: var(--space-8);
+}

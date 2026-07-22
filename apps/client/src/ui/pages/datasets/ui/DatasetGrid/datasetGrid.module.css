@@ -1,0 +1,23 @@
+.table-wrap {
+    overflow: hidden;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+}
+
+.empty {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    font-size: var(--font-size-sm);
+    color: var(--ink-2);
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    color: var(--ink-2);
+}

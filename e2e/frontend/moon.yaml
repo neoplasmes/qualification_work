@@ -74,6 +74,8 @@ tasks:
       group: assets
     env:
       NODE_EXTRA_CA_CERTS: $workspaceRoot/e2e/docker-compose/keys/ca.pem
+      VITE_HMR_PROTOCOL: ws
+      VITE_HMR_CLIENT_PORT: '24678'
     options:
       mutex: docker-tests
   compose-up:

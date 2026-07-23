@@ -1,15 +1,17 @@
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 
-import styles from './MergeKeyChips.module.css';
+import styles from './mergeKeyChips.module.css';
 
 type MergeKeyChipsProps = {
     columns: DatasetColumn[];
+    disabled?: boolean;
     selectedKeys: string[];
     onToggle: (key: string) => void;
 };
 
 export const MergeKeyChips = ({
     columns,
+    disabled,
     selectedKeys,
     onToggle,
 }: MergeKeyChipsProps) => (
@@ -21,6 +23,7 @@ export const MergeKeyChips = ({
                 <button
                     key={column.id}
                     type="button"
+                    disabled={disabled}
                     className={styles['chip']}
                     data-px="sm"
                     data-py="xs"

@@ -32,7 +32,10 @@ it('does not rollback successful write when refetch fails', async () => {
     await waitFor(() => expect(hook.result.current.read.data).toBeDefined());
     failed = true;
     await act(async () => {
-        expect(await hook.result.current.command.execute(undefined)).toBe('confirmed');
+        expect(await hook.result.current.command.executeOutcome(undefined)).toEqual({
+            data: 'confirmed',
+            syncError,
+        });
     });
     await waitFor(() => expect(hook.result.current.command.syncError).toBe(syncError));
     expect(hook.result.current.command.error).toBeNull();
@@ -149,18 +152,21 @@ it('keeps concurrent invocation outcomes separate', async () => {
     }
     const first = renderHook(() => useCommand(command), { wrapper: Wrapper });
     const second = renderHook(() => useCommand(command), { wrapper: Wrapper });
-    let pending!: Promise<string>;
+    let pending!: Promise<{ data: string; syncError: unknown }>;
     act(() => {
-        pending = first.result.current.execute('old');
+        pending = first.result.current.executeOutcome('old');
     });
     await act(async () => {
-        await second.result.current.execute('new');
+        expect(await second.result.current.executeOutcome('new')).toEqual({
+            data: 'new',
+            syncError: null,
+        });
     });
     await waitFor(() => expect(second.result.current.data).toBe('new'));
     expect(first.result.current.data).toBeUndefined();
     await act(async () => {
         old.resolve('old');
-        await pending;
+        expect(await pending).toEqual({ data: 'old', syncError });
     });
     await waitFor(() => expect(first.result.current.data).toBe('old'));
     expect(second.result.current.data).toBe('new');
@@ -267,26 +273,31 @@ it('resumes cancelled mounted reads after a rejected write', async () => {
     }
 });
 
-it('checks the session again before delivering a mutation result', async () => {
-    const { runtime } = createReadHarness();
-    runtime.queryClient.setDefaultOptions({
-        mutations: { onSuccess: () => runtime.clear() },
-    });
-    const command = createCommand(async () => 'old session');
-    runtime.registerCommand(command, commandPolicy());
-    function Wrapper({ children }: PropsWithChildren) {
-        return <CacheProvider runtime={runtime}>{children}</CacheProvider>;
-    }
-    const hook = renderHook(() => useCommand(command), { wrapper: Wrapper });
-    try {
-        await act(async () => {
-            await expect(hook.result.current.execute(undefined)).rejects.toMatchObject({
-                name: 'AbortError',
-            });
+it.each(['execute', 'executeOutcome'] as const)(
+    'checks the session before delivering %s',
+    async method => {
+        const { runtime } = createReadHarness();
+        runtime.queryClient.setDefaultOptions({
+            mutations: { onSuccess: () => runtime.clear() },
         });
-        expect(hook.result.current.data).toBeUndefined();
-    } finally {
-        hook.unmount();
-        await runtime.dispose();
+        const command = createCommand(async () => 'old session');
+        runtime.registerCommand(command, commandPolicy());
+        function Wrapper({ children }: PropsWithChildren) {
+            return <CacheProvider runtime={runtime}>{children}</CacheProvider>;
+        }
+        const hook = renderHook(() => useCommand(command), { wrapper: Wrapper });
+        try {
+            await act(async () => {
+                await expect(
+                    hook.result.current[method](undefined)
+                ).rejects.toMatchObject({
+                    name: 'AbortError',
+                });
+            });
+            expect(hook.result.current.data).toBeUndefined();
+        } finally {
+            hook.unmount();
+            await runtime.dispose();
+        }
     }
-});
+);

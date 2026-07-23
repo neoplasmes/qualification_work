@@ -53,6 +53,7 @@ export const DatasetsPage = () => {
 
             {showUpload && (
                 <UploadDatasetModal
+                    key={org?.id ?? 'none'}
                     org={org}
                     onUploadSuccess={handleUploadSuccess}
                     onClose={() => setShowUpload(false)}

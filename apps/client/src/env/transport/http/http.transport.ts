@@ -34,7 +34,9 @@ export class HttpTransport {
             headers,
             signal: request.signal,
         };
-        if (request.body !== undefined) {
+        if (typeof FormData !== 'undefined' && request.body instanceof FormData) {
+            init.body = request.body;
+        } else if (request.body !== undefined) {
             headers.set('content-type', 'application/json');
             init.body = JSON.stringify(request.body);
         }

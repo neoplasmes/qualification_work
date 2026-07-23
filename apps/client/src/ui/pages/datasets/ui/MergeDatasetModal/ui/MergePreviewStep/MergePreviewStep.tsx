@@ -1,19 +1,19 @@
-import { Button } from '@qualification-work/design-system';
+import { Button, Notice, Text } from '@qualification-work/design-system';
 import { ArrowLeft, Check, Rows3 } from 'lucide-react';
 
-import type { MergePreviewResult } from '@/features/uploadDataset';
-
-import { StatusMessage } from '@/shared/ui';
+import type { MergePreviewResult } from '@/app/ports/repos/upload';
 
 import { datasetsTestIds } from '../../../../const';
 
-import styles from '../../MergeDatasetModal.module.css';
+import styles from './mergePreviewStep.module.css';
 
 type MergePreviewStepProps = {
     mode: 'append' | 'merge';
     previewResult: MergePreviewResult;
     error: string;
     committing: boolean;
+    blocked: boolean;
+    backDisabled: boolean;
     onBack: () => void;
     onConfirm: () => void;
 };
@@ -23,6 +23,8 @@ export const MergePreviewStep = ({
     previewResult,
     error,
     committing,
+    blocked,
+    backDisabled,
     onBack,
     onConfirm,
 }: MergePreviewStepProps) => {
@@ -32,31 +34,57 @@ export const MergePreviewStep = ({
         <div className={styles['content']} data-stack="v" data-gap="md">
             <dl className={styles['merge-stats']}>
                 <div className={styles['merge-stat']}>
-                    <dt>{mode === 'append' ? 'Rows to append' : 'New rows'}</dt>
-                    <dd>{previewResult.statistics.totalNewRows}</dd>
+                    <dt>
+                        <Text variant="label">
+                            {mode === 'append' ? 'Строки для добавления' : 'Новые строки'}
+                        </Text>
+                    </dt>
+                    <dd>
+                        <Text variant="heading">
+                            {previewResult.statistics.totalNewRows}
+                        </Text>
+                    </dd>
                 </div>
                 {mode === 'append' ? (
                     <div className={styles['merge-stat']}>
-                        <dt>Incoming rows</dt>
-                        <dd>{previewResult.statistics.totalIncomingRows}</dd>
+                        <dt>
+                            <Text variant="label">Входящие строки</Text>
+                        </dt>
+                        <dd>
+                            <Text variant="heading">
+                                {previewResult.statistics.totalIncomingRows}
+                            </Text>
+                        </dd>
                     </div>
                 ) : (
                     <div className={styles['merge-stat']}>
-                        <dt>Matched rows</dt>
-                        <dd>{previewResult.statistics.totalDuplicateRows}</dd>
+                        <dt>
+                            <Text variant="label">Совпавшие строки</Text>
+                        </dt>
+                        <dd>
+                            <Text variant="heading">
+                                {previewResult.statistics.totalDuplicateRows}
+                            </Text>
+                        </dd>
                     </div>
                 )}
                 {previewResult.statistics.copiedRows > 0 && (
                     <div className={styles['merge-stat']}>
-                        <dt>Copied rows</dt>
-                        <dd>{previewResult.statistics.copiedRows}</dd>
+                        <dt>
+                            <Text variant="label">Скопированные строки</Text>
+                        </dt>
+                        <dd>
+                            <Text variant="heading">
+                                {previewResult.statistics.copiedRows}
+                            </Text>
+                        </dd>
                     </div>
                 )}
             </dl>
 
             {previewResult.statistics.newColumns.length > 0 && (
                 <div data-stack="v" data-gap="xs">
-                    <span className={styles['section-title']}>New columns</span>
+                    <span className={styles['section-title']}>Новые поля</span>
                     <div className={styles['columns-list']}>
                         {previewResult.statistics.newColumns.map(column => (
                             <div key={column.key} className={styles['column-chip']}>
@@ -69,16 +97,22 @@ export const MergePreviewStep = ({
             )}
 
             {hasConflicts && (
-                <div className={styles['merge-conflicts-wrap']}>
+                <div
+                    className={styles['merge-conflicts-wrap']}
+                    role="region"
+                    aria-label="Конфликты данных"
+                    tabIndex={0}
+                >
                     <span className={styles['merge-conflicts-title']}>
-                        Conflicts ({previewResult.conflicts.length}) - cannot commit
+                        Конфликты ({previewResult.conflicts.length}): подтверждение
+                        недоступно
                     </span>
                     <table className={styles['merge-conflicts-table']}>
                         <thead>
                             <tr>
-                                <th>Column</th>
-                                <th>Old</th>
-                                <th>New</th>
+                                <th>Поле</th>
+                                <th>Было</th>
+                                <th>Стало</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -94,21 +128,25 @@ export const MergePreviewStep = ({
                 </div>
             )}
 
-            {error && <StatusMessage tone="error">{error}</StatusMessage>}
+            {error && (
+                <Notice tone="danger" role="alert">
+                    {error}
+                </Notice>
+            )}
 
             <div className={styles['modal-actions']}>
-                <Button variant="ghost" onClick={onBack}>
+                <Button variant="ghost" disabled={backDisabled} onClick={onBack}>
                     <ArrowLeft size={18} />
-                    Back
+                    Назад
                 </Button>
                 <Button
                     data-test-id={datasetsTestIds.mergeConfirmButton}
-                    disabled={hasConflicts || committing || committing}
+                    disabled={hasConflicts || committing || blocked}
                     aria-busy={committing}
                     onClick={onConfirm}
                 >
                     {mode === 'append' ? <Rows3 size={18} /> : <Check size={18} />}
-                    Confirm
+                    Подтвердить
                 </Button>
             </div>
         </div>

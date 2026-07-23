@@ -1,0 +1,1 @@
+export { UploadRegistry } from './uploadRegistry';

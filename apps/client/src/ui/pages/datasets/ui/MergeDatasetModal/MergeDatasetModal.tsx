@@ -1,21 +1,22 @@
-import { WorkspaceModeTabs } from '@/ui/widgets/WorkspaceModeTabs';
-import { Button, Field } from '@qualification-work/design-system';
+import {
+    Button,
+    Checkbox,
+    Choice,
+    Field,
+    Input,
+    Notice,
+    Text,
+    VStack,
+} from '@qualification-work/design-system';
 import { GitMerge } from 'lucide-react';
 import { useState } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
-import {
-    useMergeCancelMutation,
-    useMergeCommitMutation,
-    useMergePreviewMutation,
-    type MergePreviewResult,
-} from '@/features/uploadDataset';
-
-import { getApiErrorMessage } from '@/shared/api';
-import { Modal, StatusMessage } from '@/shared/ui';
+import { Modal } from '@/shared/ui';
 
 import { datasetsTestIds } from '../../const';
+import { useUploadWorkflow } from '../../model/uploadWorkflow';
 import {
     defaultMergeDatasetDraft,
     mergeDatasetConfig,
@@ -26,7 +27,7 @@ import {
 } from './model';
 import { MergeFilesSection, MergeKeyChips, MergePreviewStep } from './ui';
 
-import styles from './MergeDatasetModal.module.css';
+import styles from './mergeDatasetModal.module.css';
 
 type MergeDatasetModalProps = {
     org: { id: string; name: string } | undefined;
@@ -35,11 +36,9 @@ type MergeDatasetModalProps = {
     onClose: () => void;
 };
 
-type Step = 'setup' | 'preview';
-
 const importModeTabs = [
-    { value: 'append', label: 'Append rows' },
-    { value: 'merge', label: 'Merge by key' },
+    { value: 'append', label: 'Добавить строки' },
+    { value: 'merge', label: 'Объединить по ключу' },
 ] as const;
 
 export const MergeDatasetModal = ({
@@ -48,109 +47,54 @@ export const MergeDatasetModal = ({
     onSuccess,
     onClose,
 }: MergeDatasetModalProps) => {
-    const [step, setStep] = useState<Step>('setup');
     const [draft, setDraft] = useState<MergeDatasetDraft>({
         ...defaultMergeDatasetDraft,
         files: [],
         selectedMergeKeys: [],
     });
-    const [previewResult, setPreviewResult] = useState<MergePreviewResult | null>(null);
-    const [error, setError] = useState('');
-
-    const [mergePreview, previewState] = useMergePreviewMutation();
-    const [mergeCommit, commitState] = useMergeCommitMutation();
-    const [mergeCancel] = useMergeCancelMutation();
-
-    const fallbackDatasetName = `${selectedDataset.dataset.name} copy`;
+    const workflow = useUploadWorkflow(onSuccess, onClose);
+    const previewResult = workflow.previewResult;
+    const fallbackDatasetName = `${selectedDataset.dataset.name} копия`;
     const canPreview =
         draft.files.length > 0 &&
         !!org &&
         (draft.mode === 'append' || draft.selectedMergeKeys.length > 0);
 
-    const handlePreview = async () => {
-        if (!org) {
-            return;
-        }
-
-        setError('');
-        try {
-            const result = await mergePreview({
-                orgId: org.id,
-                datasetId: selectedDataset.dataset.id,
-                name: draft.createNew
-                    ? draft.newDatasetName.trim() || fallbackDatasetName
-                    : undefined,
-                mode: draft.mode,
-                createNew: draft.createNew,
-                mergeKeys: draft.mode === 'merge' ? draft.selectedMergeKeys : [],
-                files: draft.files,
-            }).unwrap();
-            setPreviewResult(result);
-            setStep('preview');
-        } catch (e) {
-            setError(getApiErrorMessage(e, 'Preview failed.'));
-        }
-    };
-
-    const handleConfirm = async () => {
-        if (!previewResult || !org) {
-            return;
-        }
-
-        setError('');
-        try {
-            const result = await mergeCommit({
-                sessionId: previewResult.sessionId,
-                orgId: org.id,
-            }).unwrap();
-            await onSuccess(result.datasetId);
-            onClose();
-        } catch (e) {
-            setError(getApiErrorMessage(e, 'Commit failed.'));
-        }
-    };
-
-    const handleBackToSetup = () => {
-        if (previewResult) {
-            void mergeCancel(previewResult.sessionId);
-            setPreviewResult(null);
-        }
-        setError('');
-        setStep('setup');
-    };
-
-    const handleClose = () => {
-        if (previewResult) {
-            void mergeCancel(previewResult.sessionId);
-        }
-        onClose();
-    };
-
-    const previewAction =
-        step === 'setup' ? (
-            <Button
-                data-px="sm"
-                data-py="xs"
-                data-test-id={datasetsTestIds.mergePreviewButton}
-                disabled={!canPreview || previewState.isLoading || previewState.isLoading}
-                aria-busy={previewState.isLoading}
-                onClick={() => void handlePreview()}
-            >
-                <GitMerge size={18} />
-                Preview
-            </Button>
-        ) : null;
+    const previewAction = !previewResult ? (
+        <Button
+            data-px="sm"
+            data-py="xs"
+            data-test-id={datasetsTestIds.mergePreviewButton}
+            disabled={!canPreview || workflow.busy || workflow.blocked}
+            aria-busy={workflow.busy}
+            onClick={() =>
+                org &&
+                void workflow.requestPreview({
+                    orgId: org.id,
+                    datasetId: selectedDataset.dataset.id,
+                    name: draft.createNew
+                        ? draft.newDatasetName.trim() || fallbackDatasetName
+                        : undefined,
+                    mode: draft.mode,
+                    createNew: draft.createNew,
+                    mergeKeys: draft.mode === 'merge' ? draft.selectedMergeKeys : [],
+                    files: draft.files,
+                })
+            }
+        >
+            <GitMerge size={18} />
+            Проверить данные
+        </Button>
+    ) : null;
 
     return (
         <Modal
-            title="Merge data"
+            title="Объединение таблицы"
             size="md"
             padding="md"
-            height={560}
-            actions={previewAction}
-            onClose={handleClose}
+            onClose={workflow.close}
         >
-            {step === 'setup' && (
+            {!previewResult && (
                 <mergeDatasetConfig.Root
                     className={styles['content']}
                     value={draft}
@@ -158,31 +102,38 @@ export const MergeDatasetModal = ({
                 >
                     <mergeDatasetConfig.InputPropRenderer bind={mergeDatasetModeBind}>
                         {mode => (
-                            <WorkspaceModeTabs
-                                value={mode.value}
-                                columns={2}
-                                options={importModeTabs}
-                                layoutId="merge-dataset-mode"
-                                onChange={mode.setValue}
-                            />
+                            <Field label="Способ объединения">
+                                <Choice
+                                    value={mode.value}
+                                    options={importModeTabs}
+                                    disabled={workflow.busy}
+                                    onValueChange={value =>
+                                        mode.setValue(value as 'append' | 'merge')
+                                    }
+                                    fullWidth
+                                />
+                            </Field>
                         )}
                     </mergeDatasetConfig.InputPropRenderer>
 
-                    <mergeDatasetConfig.Section name="Files">
+                    <VStack gap={12}>
+                        <Text variant="label">Файлы</Text>
                         <mergeDatasetConfig.InputPropRenderer
                             bind={mergeDatasetFilesBind}
                         >
                             {files => (
                                 <MergeFilesSection
                                     files={files.value}
+                                    disabled={workflow.busy}
                                     onFilesChange={files.setValue}
                                 />
                             )}
                         </mergeDatasetConfig.InputPropRenderer>
-                    </mergeDatasetConfig.Section>
+                    </VStack>
 
                     {draft.mode === 'merge' && selectedDataset.columns.length > 0 && (
-                        <mergeDatasetConfig.Section name="Merge keys">
+                        <VStack gap={12}>
+                            <Text variant="label">Ключи объединения</Text>
                             <mergeDatasetConfig.InputPropRenderer
                                 bind={mergeDatasetKeysBind}
                             >
@@ -190,6 +141,7 @@ export const MergeDatasetModal = ({
                                     <MergeKeyChips
                                         columns={selectedDataset.columns}
                                         selectedKeys={mergeKeys.value}
+                                        disabled={workflow.busy}
                                         onToggle={key =>
                                             mergeKeys.setValue(current =>
                                                 current.includes(key)
@@ -200,40 +152,71 @@ export const MergeDatasetModal = ({
                                     />
                                 )}
                             </mergeDatasetConfig.InputPropRenderer>
-                        </mergeDatasetConfig.Section>
+                        </VStack>
                     )}
 
-                    {error && <StatusMessage tone="error">{error}</StatusMessage>}
-
-                    <mergeDatasetConfig.Section
-                        name="Create new dataset"
-                        explain="Copy current rows first, then apply imported rows."
-                        enabledField="createNew"
+                    <Field
+                        label="Создать новую таблицу"
+                        description="Текущие строки будут скопированы перед добавлением файлов."
                     >
+                        <Checkbox
+                            checked={draft.createNew}
+                            disabled={workflow.busy}
+                            onChange={event =>
+                                setDraft(current => ({
+                                    ...current,
+                                    createNew: event.target.checked,
+                                }))
+                            }
+                        />
+                    </Field>
+                    {draft.createNew && (
                         <Field
-                            label="Dataset name"
-                            description={`Leave empty to use "${fallbackDatasetName}".`}
+                            label="Название таблицы"
+                            description={`По умолчанию: ${fallbackDatasetName}`}
                         >
-                            <mergeDatasetConfig.Input
+                            <Input
                                 data-test-id={datasetsTestIds.mergeDatasetNameInput}
-                                field="newDatasetName"
-                                type="text"
+                                value={draft.newDatasetName}
+                                disabled={workflow.busy}
                                 placeholder={fallbackDatasetName}
+                                onChange={event =>
+                                    setDraft(current => ({
+                                        ...current,
+                                        newDatasetName: event.target.value,
+                                    }))
+                                }
                             />
                         </Field>
-                    </mergeDatasetConfig.Section>
+                    )}
                 </mergeDatasetConfig.Root>
             )}
 
-            {step === 'preview' && previewResult && (
+            {previewResult && (
                 <MergePreviewStep
                     mode={draft.mode}
                     previewResult={previewResult}
-                    error={error}
-                    committing={commitState.isLoading}
-                    onBack={handleBackToSetup}
-                    onConfirm={() => void handleConfirm()}
+                    error={workflow.error}
+                    committing={workflow.busy}
+                    blocked={workflow.blocked}
+                    backDisabled={workflow.backDisabled}
+                    onBack={() => void workflow.back()}
+                    onConfirm={() => void workflow.confirm()}
                 />
+            )}
+            {previewAction}
+            {!previewResult && workflow.error && (
+                <Notice tone="danger" role="alert">
+                    {workflow.error}
+                </Notice>
+            )}
+            {workflow.syncWarning && (
+                <Notice tone="info" role="status">
+                    Данные сохранены, но обновить отображение не удалось.{' '}
+                    <Button variant="ghost" onClick={() => void workflow.refresh()}>
+                        Обновить данные
+                    </Button>
+                </Notice>
             )}
         </Modal>
     );

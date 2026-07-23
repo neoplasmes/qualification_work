@@ -52,3 +52,30 @@ it('observes deferred rejection without an unhandled derived promise', async () 
     );
     await vi.waitFor(() => expect(errors).toHaveBeenCalledOnce());
 });
+
+it('excludes paused upload inputs and browser resources from snapshots', () => {
+    const runtime = createDependencies({ platform: 'browser', apiBaseUrl: '/api' });
+    runtimes.push(runtime);
+    const files = runtime.dependencies.uploads.register([
+        new File(['private bytes'], 'private.csv'),
+    ]);
+    runtime.cache.queryClient.getMutationCache().build(
+        runtime.cache.queryClient,
+        {},
+        {
+            context: undefined,
+            data: undefined,
+            error: null,
+            failureCount: 0,
+            failureReason: null,
+            isPaused: true,
+            status: 'pending',
+            variables: { orgId: 'org', files },
+            submittedAt: 1,
+        }
+    );
+    const snapshot = createAppSnapshot(runtime.cache, runtime.scopeId);
+    expect(snapshot.queries.mutations).toEqual([]);
+    expect(JSON.stringify(snapshot)).not.toContain('private.csv');
+    runtime.dependencies.uploads.release(files);
+});

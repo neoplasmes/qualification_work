@@ -21,6 +21,7 @@ export function createAppSnapshot(cache: CacheRuntime, scopeId: string): AppSnap
         scopeId,
         entities: cache.store.snapshot(),
         queries: dehydrate(cache.queryClient, {
+            shouldDehydrateMutation: () => false,
             shouldDehydrateQuery: query =>
                 query.meta?.normalizedRead === true && query.state.status === 'success',
         }),

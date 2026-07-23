@@ -1,18 +1,21 @@
-import { Button, Field, IconButton, Input } from '@qualification-work/design-system';
+import {
+    Button,
+    Choice,
+    Field,
+    IconButton,
+    Input,
+    Notice,
+    Text,
+    VStack,
+} from '@qualification-work/design-system';
 import { Upload, UploadCloud, X } from 'lucide-react';
 import { useState } from 'react';
 
-import {
-    useMergeCancelMutation,
-    useMergeCommitMutation,
-    useMergePreviewMutation,
-    useUploadDatasetMutation,
-} from '@/features/uploadDataset';
+import { Modal } from '@/shared/ui';
 
-import { getApiErrorMessage } from '@/shared/api';
-import { Modal, StatusMessage } from '@/shared/ui';
+import { useUploadWorkflow } from '../../model/uploadWorkflow';
 
-import styles from './UploadDatasetModal.module.css';
+import styles from './uploadDatasetModal.module.css';
 
 type UploadMode = 'separate' | 'single';
 
@@ -23,8 +26,8 @@ type UploadDatasetModalProps = {
 };
 
 const uploadModeOptions = [
-    { value: 'separate', label: 'Separate datasets' },
-    { value: 'single', label: 'One dataset' },
+    { value: 'separate', label: 'Отдельные таблицы' },
+    { value: 'single', label: 'Одна таблица' },
 ] as const;
 
 const datasetFileExtensionRe = /\.(csv|xlsx)$/i;
@@ -39,21 +42,14 @@ export const UploadDatasetModal = ({
     const [uploadMode, setUploadMode] = useState<UploadMode>('separate');
     const [singleDatasetName, setSingleDatasetName] = useState('');
     const [uploadError, setUploadError] = useState('');
-    const [uploadProgress, setUploadProgress] = useState('');
-    const [uploadDataset, uploadState] = useUploadDatasetMutation();
-    const [mergePreview, previewState] = useMergePreviewMutation();
-    const [mergeCommit, commitState] = useMergeCommitMutation();
-    const [mergeCancel] = useMergeCancelMutation();
-
-    const isLoading =
-        uploadState.isLoading || previewState.isLoading || commitState.isLoading;
+    const workflow = useUploadWorkflow(onUploadSuccess, onClose);
+    const isLoading = workflow.busy || workflow.blocked;
     const singleModeActive = selectedFiles.length > 1 && uploadMode === 'single';
     const defaultDatasetName =
         selectedFiles[0]?.name.replace(filenameExtensionRe, '') || 'dataset';
 
     const handleFiles = (files: File[]) => {
         setUploadError('');
-        setUploadProgress('');
 
         if (files.length === 0) {
             return;
@@ -63,7 +59,7 @@ export const UploadDatasetModal = ({
             datasetFileExtensionRe.test(file.name)
         );
         if (acceptedFiles.length !== files.length) {
-            setUploadError('Only CSV and XLSX files can be selected.');
+            setUploadError('Выберите файлы CSV или XLSX.');
         }
 
         if (acceptedFiles.length === 0) {
@@ -77,19 +73,21 @@ export const UploadDatasetModal = ({
 
             return [
                 ...current,
-                ...acceptedFiles.filter(
-                    file =>
-                        !selectedFileKeys.has(
-                            `${file.name}-${file.size}-${file.lastModified}`
-                        )
-                ),
+                ...acceptedFiles.filter(file => {
+                    const key = `${file.name}-${file.size}-${file.lastModified}`;
+                    if (selectedFileKeys.has(key)) {
+                        return false;
+                    }
+                    selectedFileKeys.add(key);
+
+                    return true;
+                }),
             ];
         });
     };
 
     const handleRemoveFile = (fileToRemove: File) => {
         setUploadError('');
-        setUploadProgress('');
         const fileToRemoveKey = `${fileToRemove.name}-${fileToRemove.size}-${fileToRemove.lastModified}`;
         setSelectedFiles(current =>
             current.filter(
@@ -99,185 +97,147 @@ export const UploadDatasetModal = ({
         );
     };
 
-    const handleUpload = async () => {
-        if (!org || selectedFiles.length === 0) {
-            return;
-        }
-
-        setUploadError('');
-        setUploadProgress('');
-        let uploadedDatasetId = '';
-        let mergeSessionId: string | null = null;
-
-        try {
-            if (singleModeActive) {
-                setUploadProgress('Checking file schemas...');
-
-                const preview = await mergePreview({
-                    orgId: org.id,
-                    name: singleDatasetName.trim() || defaultDatasetName,
-                    mode: 'append',
-                    createNew: true,
-                    mergeKeys: [],
-                    files: selectedFiles,
-                }).unwrap();
-                mergeSessionId = preview.sessionId;
-                setUploadProgress('Creating dataset...');
-
-                const result = await mergeCommit({
-                    sessionId: mergeSessionId,
-                    orgId: org.id,
-                }).unwrap();
-                mergeSessionId = null;
-                uploadedDatasetId = result.datasetId;
-            } else {
-                for (const [index, file] of selectedFiles.entries()) {
-                    setUploadProgress(
-                        `Uploading ${index + 1} of ${selectedFiles.length}: ${file.name}`
-                    );
-                    const result = await uploadDataset({ orgId: org.id, file }).unwrap();
-                    uploadedDatasetId = result.id;
-                }
-            }
-
-            setSelectedFiles([]);
-            setSingleDatasetName('');
-            setUploadMode('separate');
-            setUploadProgress('');
-            await onUploadSuccess(uploadedDatasetId);
-            onClose();
-        } catch (error) {
-            if (mergeSessionId) {
-                void mergeCancel(mergeSessionId);
-            }
-
-            setUploadError(
-                getApiErrorMessage(
-                    error,
-                    singleModeActive
-                        ? 'Unable to upload these files.'
-                        : 'Unable to upload this dataset.'
-                )
-            );
-            setUploadProgress('');
-        }
-    };
-
     const buttonLabel = singleModeActive
-        ? 'Create one dataset'
+        ? 'Создать одну таблицу'
         : selectedFiles.length > 1
-          ? 'Upload datasets'
-          : 'Upload dataset';
+          ? 'Загрузить таблицы'
+          : 'Загрузить таблицу';
 
     return (
-        <Modal title="Upload dataset" padding="md" onClose={onClose}>
-            <label
-                data-stack="v"
-                data-gap="sm"
-                data-align="start"
-                data-p="md"
-                className={styles['dropzone']}
-                onDragOver={event => event.preventDefault()}
-                onDrop={event => {
-                    event.preventDefault();
-                    handleFiles(Array.from(event.dataTransfer.files));
-                }}
-            >
-                <UploadCloud size={28} />
-                <strong>Drop CSV or XLSX files</strong>
-                <span className={styles['muted']}>
-                    Wide files are fine. The first rows are used for type inference.
-                </span>
-                <input
-                    className={styles['file-input']}
-                    type="file"
-                    accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    multiple
-                    aria-label="Dataset file"
-                    onChange={event => {
-                        handleFiles(Array.from(event.currentTarget.files ?? []));
-                        event.currentTarget.value = '';
+        <Modal title="Загрузка таблиц" padding="md" onClose={workflow.close}>
+            <VStack gap={20}>
+                <label
+                    data-stack="v"
+                    data-gap="sm"
+                    data-align="start"
+                    data-p="md"
+                    className={styles['dropzone']}
+                    onDragOver={event => event.preventDefault()}
+                    onDrop={event => {
+                        event.preventDefault();
+                        if (!isLoading) {
+                            handleFiles(Array.from(event.dataTransfer.files));
+                        }
                     }}
-                />
-            </label>
+                >
+                    <UploadCloud size={28} />
+                    <Text variant="lead">Перетащите файлы CSV или XLSX</Text>
+                    <Text variant="body-sm" tone="muted">
+                        Выберите файлы. Первые строки определяют типы полей.
+                    </Text>
+                    <input
+                        className={styles['file-input']}
+                        type="file"
+                        accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        multiple
+                        aria-label="Файлы таблицы"
+                        disabled={isLoading}
+                        onChange={event => {
+                            handleFiles(Array.from(event.currentTarget.files ?? []));
+                            event.currentTarget.value = '';
+                        }}
+                    />
+                </label>
 
-            {selectedFiles.length > 1 && (
-                <div className={styles['mode-section']}>
-                    <span className={styles['section-title']}>Upload mode</span>
-                    <div data-stack="h" data-gap="xs">
-                        {uploadModeOptions.map(option => (
-                            <button
-                                key={option.value}
-                                type="button"
-                                data-px="sm"
-                                data-py="xs"
-                                className={`${styles['tab']} ${option.value === uploadMode ? styles['active'] : ''}`}
+                {selectedFiles.length > 1 && (
+                    <div className={styles['mode-section']}>
+                        <Field label="Как загрузить файлы">
+                            <Choice
+                                options={uploadModeOptions}
+                                value={uploadMode}
                                 disabled={isLoading}
-                                aria-pressed={option.value === uploadMode}
-                                onClick={() => setUploadMode(option.value)}
-                            >
-                                {option.label}
-                            </button>
-                        ))}
-                    </div>
-                    {uploadMode === 'single' && (
-                        <>
-                            <Field
-                                label="Dataset name"
-                                description={`Default: ${defaultDatasetName}`}
-                            >
-                                <Input
-                                    type="text"
-                                    placeholder={defaultDatasetName}
-                                    value={singleDatasetName}
-                                    disabled={isLoading}
-                                    onChange={event =>
-                                        setSingleDatasetName(event.currentTarget.value)
-                                    }
-                                />
-                            </Field>
-                            <span className={styles['schema-note']}>
-                                Same column names and data types required.
-                            </span>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {selectedFiles.length > 0 && (
-                <div className={styles['file-list']} aria-label="Selected files">
-                    {selectedFiles.map(file => {
-                        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-
-                        return (
-                            <span key={fileKey} className={styles['file-chip']}>
-                                <span className={styles['file-name']}>{file.name}</span>
-                                <IconButton
-                                    data-p="none"
-                                    aria-label={`Remove ${file.name}`}
-                                    disabled={isLoading}
-                                    onClick={() => handleRemoveFile(file)}
+                                onValueChange={value =>
+                                    setUploadMode(value as UploadMode)
+                                }
+                                fullWidth
+                            />
+                        </Field>
+                        {uploadMode === 'single' && (
+                            <>
+                                <Field
+                                    label="Название таблицы"
+                                    description={`По умолчанию: ${defaultDatasetName}`}
                                 >
-                                    <X size={14} />
-                                </IconButton>
-                            </span>
-                        );
-                    })}
-                </div>
-            )}
+                                    <Input
+                                        type="text"
+                                        placeholder={defaultDatasetName}
+                                        value={singleDatasetName}
+                                        disabled={isLoading}
+                                        onChange={event =>
+                                            setSingleDatasetName(
+                                                event.currentTarget.value
+                                            )
+                                        }
+                                    />
+                                </Field>
+                                <span className={styles['schema-note']}>
+                                    Имена и типы полей должны совпадать.
+                                </span>
+                            </>
+                        )}
+                    </div>
+                )}
 
-            {uploadProgress && <StatusMessage>{uploadProgress}</StatusMessage>}
+                {selectedFiles.length > 0 && (
+                    <div className={styles['file-list']} aria-label="Выбранные файлы">
+                        {selectedFiles.map(file => {
+                            const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
 
-            {uploadError && <StatusMessage tone="error">{uploadError}</StatusMessage>}
+                            return (
+                                <span key={fileKey} className={styles['file-chip']}>
+                                    <span className={styles['file-name']}>
+                                        {file.name}
+                                    </span>
+                                    <IconButton
+                                        data-p="none"
+                                        aria-label={`Удалить ${file.name}`}
+                                        disabled={isLoading}
+                                        onClick={() => handleRemoveFile(file)}
+                                    >
+                                        <X size={14} />
+                                    </IconButton>
+                                </span>
+                            );
+                        })}
+                    </div>
+                )}
 
-            <Button
-                disabled={selectedFiles.length === 0 || !org || isLoading || isLoading}
-                aria-busy={isLoading}
-                onClick={() => void handleUpload()}
-            >
-                <Upload size={18} />
-                {buttonLabel}
-            </Button>
+                {workflow.progress && (
+                    <Text role="status" variant="body-sm">
+                        {workflow.progress}
+                    </Text>
+                )}
+                {(uploadError || workflow.error) && (
+                    <Notice tone="danger" role="alert">
+                        {uploadError || workflow.error}
+                    </Notice>
+                )}
+                {workflow.syncWarning && (
+                    <Notice tone="info" role="status">
+                        Данные сохранены, но обновить отображение не удалось.{' '}
+                        <Button variant="ghost" onClick={() => void workflow.refresh()}>
+                            Обновить данные
+                        </Button>
+                    </Notice>
+                )}
+
+                <Button
+                    disabled={selectedFiles.length === 0 || !org || isLoading}
+                    aria-busy={workflow.busy}
+                    onClick={() =>
+                        org &&
+                        void workflow.submit({
+                            orgId: org.id,
+                            files: selectedFiles,
+                            single: singleModeActive,
+                            name: singleDatasetName.trim() || defaultDatasetName,
+                        })
+                    }
+                >
+                    <Upload size={18} />
+                    {buttonLabel}
+                </Button>
+            </VStack>
         </Modal>
     );
 };

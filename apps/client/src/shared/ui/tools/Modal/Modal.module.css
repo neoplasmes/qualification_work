@@ -40,11 +40,8 @@
 .title {
     overflow: hidden;
 
-    font-family: var(--font-headline);
-    font-size: var(--font-size-xl);
-    font-weight: 800;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 
 .body-scroll {

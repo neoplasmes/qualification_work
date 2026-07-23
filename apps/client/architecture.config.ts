@@ -244,18 +244,6 @@ const architecture = {
             to: 'entities/dashboard',
         },
         {
-            from: 'ui/pages/datasets/ui/MergeDatasetModal/MergeDatasetModal.tsx',
-            to: 'features/uploadDataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/MergeDatasetModal/ui/MergePreviewStep/MergePreviewStep.tsx',
-            to: 'features/uploadDataset',
-        },
-        {
-            from: 'ui/pages/datasets/ui/UploadDatasetModal/UploadDatasetModal.tsx',
-            to: 'features/uploadDataset',
-        },
-        {
             from: 'ui/widgets/FilterPanel/lib/createFilterPanelItems.ts',
             to: 'entities/dashboard',
         },

@@ -1,0 +1,29 @@
+.file-picker-control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    padding: var(--space-20);
+    border: 1px dashed var(--rule-dash);
+    background: var(--paper-raised);
+}
+
+.file-picker-input {
+    width: 100%;
+    font: inherit;
+}
+
+.file-names {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-data);
+    line-height: var(--line-height-data);
+    font-weight: var(--font-weight-data);
+}
+
+.file-names span {
+    overflow-wrap: anywhere;
+    padding: var(--space-8);
+    border: 1px solid var(--rule);
+}

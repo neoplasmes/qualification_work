@@ -1,172 +1,258 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import {
+    createUploadHarness,
+    metadataFixture,
+    previewFixture,
+} from '@/test/uploadFixtures';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 
-import { datasetsTestIds } from '../../const';
 import { MergeDatasetModal } from './MergeDatasetModal';
 
-const mergePreview = vi.fn();
-const mergeCommit = vi.fn();
-const mergeCancel = vi.fn();
+afterEach(() => vi.unstubAllGlobals());
+const file = new File(['id,name\n1,Alice'], 'rows.csv');
 
-vi.mock('@/features/uploadDataset', () => ({
-    useMergePreviewMutation: () => [mergePreview, { isLoading: false }],
-    useMergeCommitMutation: () => [mergeCommit, { isLoading: false }],
-    useMergeCancelMutation: () => [mergeCancel],
-}));
+it('previews append, commits once and selects the returned target', async () => {
+    const { runtime, fetch, Wrapper } = createUploadHarness();
+    const success = vi.fn();
+    const user = userEvent.setup();
+    const view = render(
+        <MergeDatasetModal
+            org={{ id: 'org-1', name: 'Org' }}
+            selectedDataset={metadataFixture}
+            onSuccess={success}
+            onClose={vi.fn()}
+        />,
+        { wrapper: Wrapper }
+    );
+    await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+    await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+    await user.click(await screen.findByRole('button', { name: 'Подтвердить' }));
+    await waitFor(() => expect(success).toHaveBeenCalledWith('returned-id'));
+    const url = String(
+        fetch.mock.calls.find(([url]) => String(url).includes('/preview'))?.[0]
+    );
+    expect(new URL(url, 'http://localhost').searchParams.get('mode')).toBe('append');
+    expect(
+        fetch.mock.calls.filter(([url]) => String(url).includes('/commit'))
+    ).toHaveLength(1);
+    view.unmount();
+    await runtime.dispose();
+});
 
-const selectedDataset = {
-    dataset: {
-        ref: 'dataset:org-1/dataset-1' as const,
-        id: 'dataset-1',
-        orgId: 'org-1',
-        name: 'Purchases',
-        sourceType: 'csv' as const,
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-01T00:00:00.000Z',
-    },
-    columns: [
-        {
-            ref: 'datasetColumn:org-1/dataset-1/c-id' as const,
-            id: 'c-id',
-            datasetId: 'dataset-1',
-            key: 'id',
-            displayName: 'ID',
-            dataType: 'number' as const,
-            orderIndex: 0,
-            isAnalyzable: true,
-        },
-        {
-            ref: 'datasetColumn:org-1/dataset-1/c-name' as const,
-            id: 'c-name',
-            datasetId: 'dataset-1',
-            key: 'name',
-            displayName: 'Name',
-            dataType: 'string' as const,
-            orderIndex: 1,
-            isAnalyzable: true,
-        },
-    ],
-    totalRows: 2,
-};
+it.each(['network', 'contract'])(
+    'blocks another commit and cancellation after %s uncertainty',
+    async failure => {
+        const { runtime, fetch, Wrapper } = createUploadHarness();
+        fetch.mockImplementation(async (url, init) => {
+            if (String(url).includes('/commit')) {
+                if (failure === 'contract') {
+                    return Response.json({ malformed: true });
+                }
 
-const previewResult = {
-    sessionId: 'session-1',
-    expiresInMs: 1800000,
-    conflicts: [],
-    statistics: {
-        totalFiles: 1,
-        totalIncomingRows: 2,
-        totalNewRows: 2,
-        totalDuplicateRows: 0,
-        existingRowCount: 2,
-        copiedRows: 0,
-        newColumns: [],
-        commonColumns: ['id', 'name'],
-    },
-};
+                throw new TypeError('offline');
+            }
+            if (init?.method === 'DELETE') {
+                throw new TypeError('cancel offline');
+            }
 
-const file = new File(['id,name\n1,Alice'], 'rows.csv', { type: 'text/csv' });
-
-const queryByDataTestId = (container: HTMLElement, testId: string) =>
-    container.querySelector<HTMLElement>(`[data-test-id="${testId}"]`) ??
-    document.body.querySelector<HTMLElement>(`[data-test-id="${testId}"]`);
-
-describe('MergeDatasetModal', () => {
-    beforeEach(() => {
-        mergePreview.mockReset();
-        mergeCommit.mockReset();
-        mergeCancel.mockReset();
-        mergePreview.mockReturnValue({ unwrap: () => Promise.resolve(previewResult) });
-        mergeCommit.mockReturnValue({
-            unwrap: () => Promise.resolve({ datasetId: 'dataset-1' }),
+            return Response.json(previewFixture);
         });
-    });
-
-    it('sends append mode without merge keys by default', async () => {
         const user = userEvent.setup();
-        const { container } = render(
+        const view = render(
             <MergeDatasetModal
                 org={{ id: 'org-1', name: 'Org' }}
-                selectedDataset={selectedDataset}
+                selectedDataset={metadataFixture}
                 onSuccess={vi.fn()}
                 onClose={vi.fn()}
-            />
+            />,
+            { wrapper: Wrapper }
         );
+        await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+        await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+        await user.click(await screen.findByRole('button', { name: 'Подтвердить' }));
+        expect(await screen.findByText(/Результат отправки неизвестен/)).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Подтвердить' })).toBeDisabled();
+        await user.click(screen.getByRole('button', { name: 'Назад' }));
+        expect(screen.getByText(/Результат отправки неизвестен/)).toBeVisible();
+        expect(
+            fetch.mock.calls.filter(([url]) => String(url).includes('/commit'))
+        ).toHaveLength(1);
+        view.unmount();
+        await act(async () => {});
+        expect(
+            fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
+        ).toHaveLength(0);
+        await runtime.dispose();
+    }
+);
 
-        await user.upload(
-            queryByDataTestId(
-                container,
-                datasetsTestIds.mergeFileInput
-            ) as HTMLInputElement,
-            file
-        );
-        await user.click(screen.getByRole('button', { name: 'Preview' }));
+it('shows an expired preview error with a new preview action', async () => {
+    const { runtime, fetch, Wrapper } = createUploadHarness();
+    fetch.mockImplementation(async url =>
+        String(url).includes('/commit')
+            ? Response.json({ message: 'Session expired' }, { status: 404 })
+            : Response.json(previewFixture)
+    );
+    const user = userEvent.setup();
+    const view = render(
+        <MergeDatasetModal
+            org={{ id: 'org-1', name: 'Org' }}
+            selectedDataset={metadataFixture}
+            onSuccess={vi.fn()}
+            onClose={vi.fn()}
+        />,
+        { wrapper: Wrapper }
+    );
+    await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+    await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+    await user.click(await screen.findByRole('button', { name: 'Подтвердить' }));
+    expect(await screen.findByText(/Session expired/)).toHaveTextContent(/проверку/);
+    expect(screen.getByRole('button', { name: 'Подтвердить' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Назад' }));
+    expect(screen.getByRole('button', { name: 'Проверить данные' })).toBeEnabled();
+    view.unmount();
+    await runtime.dispose();
+});
 
-        await waitFor(() => expect(mergePreview).toHaveBeenCalledTimes(1));
-        expect(mergePreview).toHaveBeenCalledWith(
-            expect.objectContaining({
-                datasetId: 'dataset-1',
-                mode: 'append',
-                createNew: false,
-                mergeKeys: [],
+it('cleans an unmounted pending preview with its captured organization', async () => {
+    const { runtime, fetch, Wrapper } = createUploadHarness();
+    let finish!: (value: Response) => void;
+    fetch.mockImplementationOnce(
+        () =>
+            new Promise(resolve => {
+                finish = resolve;
             })
-        );
-    });
+    );
+    const release = vi.spyOn(runtime.dependencies.uploads, 'release');
+    const user = userEvent.setup();
+    const view = render(
+        <MergeDatasetModal
+            org={{ id: 'org-1', name: 'Org' }}
+            selectedDataset={metadataFixture}
+            onSuccess={vi.fn()}
+            onClose={vi.fn()}
+        />,
+        { wrapper: Wrapper }
+    );
+    await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+    await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+    view.unmount();
+    expect(release).not.toHaveBeenCalled();
+    await act(async () => finish(Response.json(previewFixture)));
+    await waitFor(() => expect(release).toHaveBeenCalledTimes(1));
+    expect(fetch.mock.calls.find(([, init]) => init?.method === 'DELETE')?.[0]).toBe(
+        '/api/data/datasets/merge/session-1?orgId=org-1'
+    );
+    await runtime.dispose();
+});
 
-    it('shows merge keys only for merge mode and sends selected keys', async () => {
+it('surfaces commit synchronization failure without a second commit', async () => {
+    const { runtime, fetch, Wrapper } = createUploadHarness();
+    const close = vi.fn();
+    const user = userEvent.setup();
+    const view = render(
+        <MergeDatasetModal
+            org={{ id: 'org-1', name: 'Org' }}
+            selectedDataset={metadataFixture}
+            onSuccess={vi.fn()}
+            onClose={close}
+        />,
+        { wrapper: Wrapper }
+    );
+    await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+    await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+    const confirm = await screen.findByRole('button', { name: 'Подтвердить' });
+    vi.spyOn(runtime.cache.invalidator, 'invalidate').mockRejectedValueOnce(
+        new Error('refresh failed')
+    );
+    await user.click(confirm);
+    expect(await screen.findByText(/Данные сохранены/)).toBeVisible();
+    expect(close).not.toHaveBeenCalled();
+    expect(confirm).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Обновить данные' }));
+    await waitFor(() => expect(close).toHaveBeenCalledTimes(1));
+    expect(
+        fetch.mock.calls.filter(([url]) => String(url).includes('/commit'))
+    ).toHaveLength(1);
+    view.unmount();
+    await runtime.dispose();
+});
+
+it.each(['confirmed', 'uncertain'])(
+    'does not cancel an in-flight %s commit on unmount',
+    async outcome => {
+        const { runtime, fetch, Wrapper } = createUploadHarness();
+        const normal = fetch.getMockImplementation()!;
+        let finish!: (value: Response) => void;
+        fetch.mockImplementation((url, init) =>
+            String(url).includes('/commit')
+                ? new Promise(resolve => {
+                      finish = resolve;
+                  })
+                : normal(url, init)
+        );
         const user = userEvent.setup();
-        const { container } = render(
+        const view = render(
             <MergeDatasetModal
                 org={{ id: 'org-1', name: 'Org' }}
-                selectedDataset={selectedDataset}
+                selectedDataset={metadataFixture}
                 onSuccess={vi.fn()}
                 onClose={vi.fn()}
-            />
+            />,
+            { wrapper: Wrapper }
         );
-
-        expect(screen.queryByText('Mode')).not.toBeInTheDocument();
-        expect(screen.queryByText('Merge keys')).not.toBeInTheDocument();
-
-        await user.click(screen.getByRole('tab', { name: 'Merge by key' }));
-        const idChip = screen.getByRole('button', { name: 'ID' });
-        expect(screen.queryByRole('checkbox', { name: 'ID' })).not.toBeInTheDocument();
-        await user.click(idChip);
-        expect(idChip).toHaveAttribute('aria-pressed', 'true');
-        await user.upload(
-            queryByDataTestId(
-                container,
-                datasetsTestIds.mergeFileInput
-            ) as HTMLInputElement,
-            file
+        await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+        await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+        await user.click(await screen.findByRole('button', { name: 'Подтвердить' }));
+        view.unmount();
+        expect(
+            fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
+        ).toHaveLength(0);
+        await act(async () =>
+            finish(
+                Response.json(
+                    outcome === 'uncertain'
+                        ? { malformed: true }
+                        : {
+                              datasetId: 'dataset-1',
+                              insertedRows: 1,
+                              updatedRows: 0,
+                              skippedDuplicates: 0,
+                              copiedRows: 0,
+                          }
+                )
+            )
         );
-        await user.click(screen.getByRole('button', { name: 'Preview' }));
+        expect(
+            fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
+        ).toHaveLength(0);
+        await runtime.dispose();
+    }
+);
 
-        await waitFor(() => expect(mergePreview).toHaveBeenCalledTimes(1));
-        expect(mergePreview).toHaveBeenCalledWith(
-            expect.objectContaining({
-                mode: 'merge',
-                mergeKeys: ['id'],
-            })
-        );
-    });
-
-    it('allows create-new mode with an optional name', async () => {
-        const user = userEvent.setup();
-        render(
-            <MergeDatasetModal
-                org={{ id: 'org-1', name: 'Org' }}
-                selectedDataset={selectedDataset}
-                onSuccess={vi.fn()}
-                onClose={vi.fn()}
-            />
-        );
-
-        await user.click(screen.getByRole('switch', { name: /Create new dataset/ }));
-
-        expect(screen.getByRole('tooltip')).toHaveTextContent(
-            'Copy current rows first, then apply imported rows.'
-        );
-        expect(screen.getByText('Dataset name')).toBeInTheDocument();
-    });
+it('keeps real server conflict errors actionable without inventing a preview', async () => {
+    const { runtime, fetch, Wrapper } = createUploadHarness();
+    fetch.mockResolvedValue(
+        Response.json({ message: 'Conflicting values in amount' }, { status: 409 })
+    );
+    const user = userEvent.setup();
+    const view = render(
+        <MergeDatasetModal
+            org={{ id: 'org-1', name: 'Org' }}
+            selectedDataset={metadataFixture}
+            onSuccess={vi.fn()}
+            onClose={vi.fn()}
+        />,
+        { wrapper: Wrapper }
+    );
+    await user.upload(screen.getByLabelText('Файлы для объединения'), file);
+    await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
+    expect(await screen.findByText(/Conflicting values in amount/)).toHaveTextContent(
+        /проверку/
+    );
+    expect(screen.queryByRole('button', { name: 'Подтвердить' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Проверить данные' })).toBeEnabled();
+    view.unmount();
+    await runtime.dispose();
 });

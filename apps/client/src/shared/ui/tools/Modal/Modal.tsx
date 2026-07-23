@@ -1,4 +1,4 @@
-import { IconButton } from '@qualification-work/design-system';
+import { IconButton, Text } from '@qualification-work/design-system';
 import { X } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -141,7 +141,9 @@ export const Modal = ({
                 onClick={e => e.stopPropagation()}
             >
                 <div className={styles['header']} data-stack="h" data-align="center">
-                    <span className={styles['title']}>{title}</span>
+                    <Text as="h2" variant="heading" className={styles['title']}>
+                        {title}
+                    </Text>
                     <div
                         className={styles['header-actions']}
                         data-stack="h"

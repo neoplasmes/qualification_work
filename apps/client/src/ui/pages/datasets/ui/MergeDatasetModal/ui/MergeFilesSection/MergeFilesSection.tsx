@@ -1,23 +1,33 @@
+import { Text } from '@qualification-work/design-system';
 import { Upload } from 'lucide-react';
 
 import { datasetsTestIds } from '../../../../const';
 
-import styles from './MergeFilesSection.module.css';
+import styles from './mergeFilesSection.module.css';
 
 type MergeFilesSectionProps = {
     files: File[];
+    disabled?: boolean;
     onFilesChange: (files: File[]) => void;
 };
 
-export const MergeFilesSection = ({ files, onFilesChange }: MergeFilesSectionProps) => (
+export const MergeFilesSection = ({
+    files,
+    disabled,
+    onFilesChange,
+}: MergeFilesSectionProps) => (
     <>
         <label className={styles['file-picker-control']}>
             <Upload size={20} />
-            <span>Choose CSV or XLSX files</span>
-            <small>Multiple files can be selected at once.</small>
+            <Text variant="lead">Выберите CSV или XLSX</Text>
+            <Text variant="body-sm" tone="muted">
+                Можно выбрать несколько файлов.
+            </Text>
             <input
                 data-test-id={datasetsTestIds.mergeFileInput}
                 type="file"
+                disabled={disabled}
+                aria-label="Файлы для объединения"
                 multiple
                 accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 className={styles['file-picker-input']}

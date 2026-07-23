@@ -236,6 +236,7 @@ export const DatasetsPropertiesPanel = () => {
 
             {showMerge && (
                 <MergeDatasetModal
+                    key={org?.id ?? 'none'}
                     org={org}
                     selectedDataset={selectedDataset}
                     onSuccess={async datasetId => {
@@ -243,7 +244,7 @@ export const DatasetsPropertiesPanel = () => {
                         await dependencies.cache.read(dependencies.listDatasets, {
                             orgId: org!.id,
                         });
-                        // merge confirmation invalidates rows and columns through the cache bridge
+                        // merge confirmation invalidates rows and columns through the registered command
                     }}
                     onClose={() => setShowMerge(false)}
                 />

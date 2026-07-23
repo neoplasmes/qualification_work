@@ -3,12 +3,14 @@ import { useCallback, useContext, useSyncExternalStore } from 'react';
 
 import type { Command } from '@/app/commands/command';
 
+import type { CommandOutcome } from '../commandPolicy';
 import { cacheContext } from '../context';
 
 export function useCommand<I, O>(
     command: Command<I, O>
 ): {
     execute(input: I): Promise<O>;
+    executeOutcome(input: I): Promise<CommandOutcome<O>>;
     isPending: boolean;
     error: unknown;
     syncError: unknown;
@@ -29,7 +31,7 @@ export function useCommand<I, O>(
         retry: false,
     });
     const mutate = mutation.mutateAsync;
-    const execute = useCallback(
+    const executeOutcome = useCallback(
         async (input: I) => {
             const epoch = runtime.epoch;
             const result = await mutate({ input, epoch });
@@ -39,14 +41,23 @@ export function useCommand<I, O>(
                 });
             }
 
-            return result.data;
+            return result;
         },
         [mutate, runtime]
+    );
+    const execute = useCallback(
+        async (input: I) => {
+            const result = await executeOutcome(input);
+
+            return result.data;
+        },
+        [executeOutcome]
     );
     const current = mutation.variables?.epoch === epoch;
 
     return {
         execute,
+        executeOutcome,
         isPending: current && mutation.isPending,
         error: current ? mutation.error : null,
         syncError: current ? (mutation.data?.syncError ?? null) : null,

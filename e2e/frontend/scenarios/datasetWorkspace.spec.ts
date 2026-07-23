@@ -67,7 +67,7 @@ test('edits a paged dataset and preserves local table preferences', async ({
                 `R${String(i).padStart(3, '0')},${i + 10},note-${String(i).padStart(3, '0')}`
         ).join('\n') +
         '\n';
-    await page.getByLabel('Dataset file').setInputFiles({
+    await page.getByLabel('Файлы таблицы').setInputFiles({
         name: 'dataset-workspace.csv',
         mimeType: 'text/csv',
         buffer: Buffer.from(csv),
@@ -77,7 +77,10 @@ test('edits a paged dataset and preserves local table preferences', async ({
             response.request().method() === 'POST' &&
             /\/data\/datasets\?/.test(response.url())
     );
-    await page.getByRole('button', { name: 'Upload dataset', exact: true }).click();
+    await page
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Загрузить таблицу', exact: true })
+        .click();
     const uploaded = await upload;
     expect(uploaded.status()).toBe(201);
     const { id: datasetId } = await uploaded.json();

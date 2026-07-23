@@ -25,6 +25,7 @@ import { createQueryClient } from '../queryClient';
 import { SessionLifecycle } from '../sessionLifecycle';
 import { createTableOptionsDependencies } from '../tableOptionsDependencies';
 import { createUiState } from '../uiState';
+import { createUploadDependencies } from '../uploadDependencies';
 import { sessionCodec } from './sessionCodec';
 
 export interface ApplicationRuntime {
@@ -131,6 +132,7 @@ export function createDependencies(options: {
     const dependencies: Dependencies = {
         ...operations,
         ...datasetOperations,
+        ...createUploadDependencies(cache, transport),
         ...createTableOptionsDependencies(cache, options.platform === 'browser'),
         cache,
         session,

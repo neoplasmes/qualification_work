@@ -32,6 +32,15 @@ import type {
     RegisterInput,
     RegisterResult,
 } from '@/app/ports/repos/session';
+import type {
+    CommitMergeResult,
+    MergeInput,
+    MergePreviewResult,
+    MergeSessionInput,
+    UploadHandle,
+    UploadInput,
+    UploadResult,
+} from '@/app/ports/repos/upload';
 import type { Query } from '@/app/queries/query';
 
 import type { UiState } from './uiState';
@@ -47,6 +56,14 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    uploads: {
+        register(files: readonly File[]): UploadHandle[];
+        release(handles: readonly UploadHandle[]): void;
+    };
+    uploadDataset: Command<UploadInput, UploadResult>;
+    previewDatasetMerge: Command<MergeInput, MergePreviewResult>;
+    commitDatasetMerge: Command<MergeSessionInput, CommitMergeResult>;
+    cancelDatasetMerge: Command<MergeSessionInput, void>;
     getDatasetTableOptions: Query<TableOptionsScope, ColumnWidths>;
     saveDatasetTableOptions: Command<SaveTableOptionsInput, void>;
     removeDatasetTableOptions: Command<TableOptionsScope, void>;

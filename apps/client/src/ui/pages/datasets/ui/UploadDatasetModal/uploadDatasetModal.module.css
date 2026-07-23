@@ -1,0 +1,53 @@
+.dropzone {
+    cursor: pointer;
+    border: 1px dashed var(--rule-dash);
+    background: var(--paper-raised);
+
+    &:focus-within {
+        outline: 2px solid var(--ink);
+        outline-offset: 4px;
+    }
+}
+
+.file-input {
+    width: 100%;
+    font: inherit;
+}
+
+.mode-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+}
+
+.schema-note {
+    color: var(--ink-2);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-body-sm);
+    line-height: var(--line-height-body-sm);
+    font-weight: var(--font-weight-body-sm);
+}
+
+.file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-8);
+}
+
+.file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    max-width: 100%;
+    padding-inline: var(--space-12);
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+}
+
+.file-name {
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-data);
+    line-height: var(--line-height-data);
+    font-weight: var(--font-weight-data);
+}

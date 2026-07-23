@@ -225,3 +225,105 @@ it('retains a clear failure draft after an older in-flight acknowledgement', asy
         { amount: null },
     ]);
 });
+
+it('shares a failed clear result with duplicate callers without retrying', async () => {
+    vi.useFakeTimers();
+    const store = createUiTestRuntime();
+    let reject!: (error: Error) => void;
+    const write = vi
+        .spyOn(store.runtime.dependencies.updateDatasetRows, 'execute')
+        .mockImplementation(
+            () =>
+                new Promise((_, fail) => {
+                    reject = fail;
+                })
+        );
+    function Wrapper({ children }: PropsWithChildren) {
+        return <UiTestProvider store={store}>{children}</UiTestProvider>;
+    }
+    const { result } = renderHook(() => useDatasetCellEditing(metadata, false), {
+        wrapper: Wrapper,
+    });
+    act(() => result.current.commitCell('row', metadata.columns[0]!, '10'));
+    let settled!: Promise<PromiseSettledResult<void>[]>;
+    act(() => {
+        settled = Promise.allSettled([
+            result.current.clearRows(['row']),
+            result.current.clearRows(['row']),
+        ]);
+    });
+    await act(async () => {
+        await vi.advanceTimersByTimeAsync(10);
+    });
+    const failure = new Error('Cannot clear');
+    await act(async () => {
+        reject(failure);
+        await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(await settled).toEqual([
+        { status: 'rejected', reason: failure },
+        { status: 'rejected', reason: failure },
+    ]);
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(result.current.displayEdits.get('row')).toEqual({ amount: 10 });
+});
+
+it('coalesces shared rows while clearing newly selected rows independently', async () => {
+    vi.useFakeTimers();
+    const store = createUiTestRuntime();
+    let confirm!: () => void;
+    const write = vi
+        .spyOn(store.runtime.dependencies.updateDatasetRows, 'execute')
+        .mockImplementationOnce(
+            input =>
+                new Promise(resolve => {
+                    confirm = () =>
+                        resolve(
+                            input.rowIds.map((id, rowIndex) => ({
+                                ref: `datasetRow:org/ds/${id}`,
+                                id,
+                                datasetId: 'ds',
+                                rowIndex,
+                                data: {},
+                            }))
+                        );
+                })
+        )
+        .mockRejectedValueOnce(new Error('Cannot clear third row'));
+    function Wrapper({ children }: PropsWithChildren) {
+        return <UiTestProvider store={store}>{children}</UiTestProvider>;
+    }
+    const { result } = renderHook(() => useDatasetCellEditing(metadata, false), {
+        wrapper: Wrapper,
+    });
+    act(() => {
+        for (const id of ['first', 'second', 'third']) {
+            result.current.commitCell(id, metadata.columns[0]!, '10');
+        }
+    });
+    let settled!: Promise<PromiseSettledResult<void>[]>;
+    act(() => {
+        settled = Promise.allSettled([
+            result.current.clearRows(['first', 'second']),
+            result.current.clearRows(['second', 'third']),
+        ]);
+    });
+    await act(async () => {
+        await vi.advanceTimersByTimeAsync(10);
+    });
+    expect(write).toHaveBeenCalledTimes(1);
+    await act(async () => {
+        confirm();
+        await settled;
+        await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(write.mock.calls.map(([input]) => [input.rowIds, input.values])).toEqual([
+        [['first', 'second'], { amount: null }],
+        [['third'], { amount: null }],
+    ]);
+    expect((await settled).map(outcome => outcome.status)).toEqual([
+        'fulfilled',
+        'rejected',
+    ]);
+    expect([...result.current.displayEdits]).toEqual([['third', { amount: 10 }]]);
+});

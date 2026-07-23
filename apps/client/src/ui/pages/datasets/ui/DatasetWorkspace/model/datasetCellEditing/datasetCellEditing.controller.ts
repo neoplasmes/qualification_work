@@ -8,7 +8,7 @@ import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 import { datasetCellValueHandlers } from '../../lib';
 
 const editFlushDelayMs = 700;
-type Draft = { value: unknown; revision: number; valid: boolean };
+type Draft = { value: unknown; revision: number; valid: boolean; suspended?: boolean };
 
 /**
  * keeps grid cell edits responsive while batching valid changes into delayed row patches
@@ -35,7 +35,7 @@ export const useDatasetCellEditing = (
     const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
     const inflight = useRef(new Set<string>());
     const queued = useRef(new Set<string>());
-    const clearing = useRef(new Map<string, number>());
+    const clearing = useRef(new Map<string, Promise<void>>());
     const revision = useRef(0);
     const generation = useRef(0);
     const menuOpen = useRef(deleteMenuOpen);
@@ -134,7 +134,7 @@ export const useDatasetCellEditing = (
                 return;
             }
             const sent = Object.entries(pending.current.get(rowId) ?? {}).filter(
-                ([, draft]) => draft.valid
+                ([, draft]) => draft.valid && !draft.suspended
             );
             if (!sent.length) {
                 return;
@@ -175,54 +175,71 @@ export const useDatasetCellEditing = (
         if (!orgId || !datasetId) {
             return;
         }
+        const active = new Set<Promise<void>>();
+        const fresh = rowIds.filter(rowId => {
+            const operation = clearing.current.get(rowId);
+            if (operation) {
+                active.add(operation);
+            }
+
+            return !operation;
+        });
+        if (!fresh.length) {
+            await Promise.all(active);
+
+            return;
+        }
         const version = generation.current;
         const snapshots = new Map<string, (readonly [string, Draft])[]>();
-        for (const rowId of rowIds) {
+        for (const rowId of fresh) {
             clearTimeout(timers.current.get(rowId));
             timers.current.delete(rowId);
             queued.current.delete(rowId);
-            clearing.current.set(rowId, (clearing.current.get(rowId) ?? 0) + 1);
             const drafts = pending.current.get(rowId) ?? {};
             // fence earlier acknowledgements while retaining input if clear fails
             snapshots.set(
                 rowId,
                 Object.entries(drafts).map(([key, draft]) => {
-                    const protectedDraft = { ...draft, revision: ++revision.current };
+                    const protectedDraft = {
+                        ...draft,
+                        revision: ++revision.current,
+                        suspended: true,
+                    };
                     drafts[key] = protectedDraft;
 
                     return [key, protectedDraft] as const;
                 })
             );
         }
-        try {
-            const rows = await updateRow({
-                orgId,
-                datasetId,
-                rowIds,
-                values: Object.fromEntries(
-                    selectedDataset!.columns.map(column => [column.key, null])
-                ),
-            });
-            if (version === generation.current) {
-                for (const row of rows) {
-                    acknowledge(row.id, snapshots.get(row.id) ?? []);
+        const operation = updateRow({
+            orgId,
+            datasetId,
+            rowIds: fresh,
+            values: Object.fromEntries(
+                selectedDataset!.columns.map(column => [column.key, null])
+            ),
+        })
+            .then(rows => {
+                if (version === generation.current) {
+                    for (const row of rows) {
+                        acknowledge(row.id, snapshots.get(row.id) ?? []);
+                    }
                 }
-            }
-        } finally {
-            if (version === generation.current) {
-                for (const rowId of rowIds) {
-                    const remaining = (clearing.current.get(rowId) ?? 1) - 1;
-                    if (remaining > 0) {
-                        clearing.current.set(rowId, remaining);
-                    } else {
+            })
+            .finally(() => {
+                if (version === generation.current) {
+                    for (const rowId of fresh) {
                         clearing.current.delete(rowId);
                         if (queued.current.delete(rowId)) {
                             void flush.current(rowId);
                         }
                     }
                 }
-            }
+            });
+        for (const rowId of fresh) {
+            clearing.current.set(rowId, operation);
         }
+        await Promise.all([...active, operation]);
     };
 
     useEffect(() => {

@@ -221,3 +221,81 @@ it('keeps a newer invalid correction when clear fails', async () => {
     expect(screen.getByLabelText('first invalid')).toHaveTextContent('true');
     expect(write).toHaveBeenCalledTimes(1);
 });
+
+it.each(['Commit amount', 'Commit invalid amount'])(
+    'coalesces repeated clear attempts before confirmation: %s',
+    async button => {
+        let release!: () => void;
+        write
+            .mockImplementationOnce(
+                () =>
+                    new Promise(resolve => {
+                        release = () => {
+                            rows = rows.map(row =>
+                                row.id === 'row-3' ? row : { ...row, data: {} }
+                            );
+                            resolve(rows.slice(0, 2));
+                        };
+                    })
+            )
+            .mockRejectedValueOnce(new Error('A second clear would fail'));
+        fireEvent.click(screen.getByRole('button', { name: button }));
+        clearSelection();
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(10);
+        });
+        clearSelection();
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(10);
+        });
+        expect(write).toHaveBeenCalledTimes(1);
+        await act(async () => {
+            release();
+            await vi.advanceTimersByTimeAsync(1000);
+        });
+        expect(screen.getByLabelText('first amount')).toHaveTextContent(/^$/);
+        expect(screen.getByLabelText('first invalid')).toHaveTextContent('false');
+        expect(write.mock.calls.map(([input]) => [input.rowIds, input.values])).toEqual([
+            [['row-1', 'row-2'], { amount: null, name: null }],
+        ]);
+    }
+);
+
+it.each([700, 100])(
+    'sends only the newer field after clear fails with timer elapsed %d',
+    async elapsed => {
+        let reject!: (error: Error) => void;
+        write.mockImplementationOnce(
+            () =>
+                new Promise((_, fail) => {
+                    reject = fail;
+                })
+        );
+        fireEvent.click(screen.getByRole('button', { name: 'Commit amount' }));
+        clearSelection();
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(10);
+        });
+        fireEvent.click(screen.getByRole('button', { name: 'Commit name' }));
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(elapsed);
+        });
+        await act(async () => {
+            reject(new Error('Cannot clear'));
+            await vi.advanceTimersByTimeAsync(1000);
+        });
+        expect(write.mock.calls.map(([input]) => [input.rowIds, input.values])).toEqual([
+            [['row-1', 'row-2'], { amount: null, name: null }],
+            [['row-1'], { name: 'new' }],
+        ]);
+        expect(rows[0]!.data).toEqual({ amount: 1, name: 'new' });
+        expect(screen.getByLabelText('first amount')).toHaveTextContent('42');
+        fireEvent.click(screen.getByRole('button', { name: 'Commit newer amount' }));
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1000);
+        });
+        expect(write.mock.calls.at(-1)![0].values).toEqual({ amount: 84 });
+        expect(write).toHaveBeenCalledTimes(3);
+        expect(screen.getByLabelText('first amount')).toHaveTextContent('84');
+    }
+);

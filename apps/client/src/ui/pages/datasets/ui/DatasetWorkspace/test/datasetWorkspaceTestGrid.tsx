@@ -25,6 +25,12 @@ export const DatasetWorkspaceTestGrid = ({
             <button type="button" onClick={() => onCellCommit('row-1', columns[0], '84')}>
                 Commit newer amount
             </button>
+            <button
+                type="button"
+                onClick={() => onCellCommit('row-1', columns[1], 'new')}
+            >
+                Commit name
+            </button>
             <button type="button" onClick={() => onCellCommit('row-3', columns[0], '99')}>
                 Commit unrelated amount
             </button>

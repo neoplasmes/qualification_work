@@ -210,6 +210,7 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
                     contextMenu={contextMenu}
                     columnContextMenu={columnActions.columnContextMenu}
                     deleteLoading={rowActions.deleteLoading}
+                    clearLoading={rowActions.clearLoading}
                     columnToggleLoading={columnActions.columnToggleLoading}
                     showScrollToBottom={showScrollToBottom}
                     onScrollToBottom={() => {

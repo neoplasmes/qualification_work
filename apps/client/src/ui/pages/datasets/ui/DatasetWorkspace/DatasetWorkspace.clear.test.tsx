@@ -223,7 +223,7 @@ it('keeps a newer invalid correction when clear fails', async () => {
 });
 
 it.each(['Commit amount', 'Commit invalid amount'])(
-    'coalesces repeated clear attempts before confirmation: %s',
+    'prevents repeated clear attempts before confirmation: %s',
     async button => {
         let release!: () => void;
         write

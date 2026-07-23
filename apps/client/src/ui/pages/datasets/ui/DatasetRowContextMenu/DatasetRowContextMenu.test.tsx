@@ -14,6 +14,7 @@ const baseProps = {
         mode: 'actions' as const,
     },
     deleting: false,
+    clearing: false,
     onInsertBelow: vi.fn(),
     onClearSelected: vi.fn(),
     onAskDelete: vi.fn(),
@@ -69,4 +70,31 @@ describe('DatasetRowContextMenu', () => {
 
         expect(onCancel).toHaveBeenCalledTimes(1);
     });
+});
+
+it('disables the native clear action until pending work settles', () => {
+    const onClearSelected = vi.fn();
+    const state = { ...baseProps.state, selectedRowIds: ['row-1', 'row-2'] };
+    const { rerender } = render(
+        <DatasetRowContextMenu
+            {...baseProps}
+            state={state}
+            clearing
+            onClearSelected={onClearSelected}
+        />
+    );
+    const button = getByDataTestId(datasetsTestIds.clearSelectedMenuItem);
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(onClearSelected).not.toHaveBeenCalled();
+    rerender(
+        <DatasetRowContextMenu
+            {...baseProps}
+            state={state}
+            onClearSelected={onClearSelected}
+        />
+    );
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    expect(onClearSelected).toHaveBeenCalledTimes(1);
 });

@@ -1,7 +1,7 @@
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import { useCommand } from '@/env/cache/useCommand';
 import { useDependencies } from '@/ui/di/dependencies';
-import { useCallback, type Dispatch, type SetStateAction } from 'react';
+import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
@@ -40,6 +40,9 @@ export const useDatasetRowActions = ({
     resetGridSelection,
 }: UseDatasetRowActionsParams) => {
     const dependencies = useDependencies();
+    const [clearLoading, setClearLoading] = useState(false);
+    const clearPending = useRef(false);
+
     const {
         execute: insertRow,
         error: insertError,
@@ -124,9 +127,12 @@ export const useDatasetRowActions = ({
     };
 
     const handleClearSelected = async () => {
-        if (!selectedDataset || !contextMenu) {
+        if (!selectedDataset || !contextMenu || clearPending.current) {
             return;
         }
+
+        clearPending.current = true;
+        setClearLoading(true);
 
         try {
             await clearRows(contextMenu.selectedRowIds);
@@ -134,6 +140,9 @@ export const useDatasetRowActions = ({
             resetGridSelection();
         } catch {
             return;
+        } finally {
+            clearPending.current = false;
+            setClearLoading(false);
         }
     };
 
@@ -143,6 +152,7 @@ export const useDatasetRowActions = ({
 
     return {
         contextMenu,
+        clearLoading,
         deleteLoading,
         error: insertError ?? deleteError,
         syncError: insertSyncError ?? deleteSyncError,

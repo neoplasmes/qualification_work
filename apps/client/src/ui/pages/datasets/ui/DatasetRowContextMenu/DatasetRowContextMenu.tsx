@@ -23,6 +23,7 @@ export type DatasetRowContextMenuState = {
 type DatasetRowContextMenuProps = {
     state: DatasetRowContextMenuState;
     deleting: boolean;
+    clearing: boolean;
     onInsertBelow: () => void;
     onClearSelected: () => void;
     onAskDelete: () => void;
@@ -33,6 +34,7 @@ type DatasetRowContextMenuProps = {
 export const DatasetRowContextMenu = ({
     state,
     deleting,
+    clearing,
     onInsertBelow,
     onClearSelected,
     onAskDelete,
@@ -59,10 +61,12 @@ export const DatasetRowContextMenu = ({
                                 type="button"
                                 data-test-id={datasetsTestIds.clearSelectedMenuItem}
                                 onClick={onClearSelected}
+                                disabled={clearing}
+                                aria-busy={clearing}
                                 role="menuitem"
                             >
                                 <Eraser size={16} />
-                                Очистить выбранные
+                                {clearing ? 'Очистка…' : 'Очистить выбранные'}
                             </button>
                             <button
                                 className={`${styles['menu-item']} ${styles['danger']}`}

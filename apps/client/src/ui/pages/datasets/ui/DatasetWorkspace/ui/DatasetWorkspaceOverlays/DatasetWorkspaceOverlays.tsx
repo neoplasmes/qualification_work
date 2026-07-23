@@ -17,6 +17,7 @@ type DatasetWorkspaceOverlaysProps = {
     contextMenu: DatasetRowContextMenuState | null;
     columnContextMenu: DatasetColumnContextMenuState | null;
     deleteLoading: boolean;
+    clearLoading: boolean;
     columnToggleLoading: boolean;
     showScrollToBottom: boolean;
     onScrollToBottom: () => void;
@@ -35,6 +36,7 @@ export const DatasetWorkspaceOverlays = ({
     contextMenu,
     columnContextMenu,
     deleteLoading,
+    clearLoading,
     columnToggleLoading,
     showScrollToBottom,
     onScrollToBottom,
@@ -50,6 +52,7 @@ export const DatasetWorkspaceOverlays = ({
             <DatasetRowContextMenu
                 state={contextMenu}
                 deleting={deleteLoading}
+                clearing={clearLoading}
                 onInsertBelow={onInsertBelow}
                 onClearSelected={onClearSelected}
                 onAskDelete={onAskDelete}

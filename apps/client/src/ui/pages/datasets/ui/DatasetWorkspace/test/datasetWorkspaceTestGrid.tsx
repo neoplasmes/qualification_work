@@ -62,6 +62,25 @@ export const DatasetWorkspaceTestGrid = ({
             >
                 Select two rows
             </button>
+            <button
+                type="button"
+                onClick={() =>
+                    onGridSelectionChange({
+                        columns: CompactSelection.empty(),
+                        rows: CompactSelection.empty(),
+                        current: {
+                            cell: [0, 1],
+                            range: { x: 0, y: 0, width: 1, height: 3 },
+                            rangeStack: [],
+                        },
+                    })
+                }
+            >
+                Select three rows
+            </button>
+            <button type="button" onClick={() => onRowContextMenu(1, { x: 12, y: 24 })}>
+                Open second row menu
+            </button>
             <button type="button" onClick={() => onRowContextMenu(0, { x: 12, y: 24 })}>
                 Open row menu
             </button>

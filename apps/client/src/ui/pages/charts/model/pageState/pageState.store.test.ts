@@ -1,13 +1,12 @@
+import { createChartBuilderDraft } from '@/ui/pages/charts/ui/ChartBuilder';
 import { describe, expect, it } from 'vitest';
 
-import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
+import { chartsPageInitialState, createChartDraftStore } from '../chartDraft';
 
-import { chartsPageInitialState, createChartsPageStore } from './pageState.store';
-
-describe('createChartsPageStore', () => {
+describe('createChartDraftStore', () => {
     it('selects another chart in view mode and clears editing draft', () => {
         const draft = createChartBuilderDraft({ chartName: 'Unsaved' });
-        const store = createChartsPageStore({
+        const store = createChartDraftStore({
             ...chartsPageInitialState,
             editorChartId: 'chart-1',
             createDraft: { datasetId: 'dataset-1', draft, output: null },
@@ -26,7 +25,7 @@ describe('createChartsPageStore', () => {
 
     it('opens chart routes and preserves same-chart draft while switching mode', () => {
         const draft = createChartBuilderDraft({ chartName: 'Unsaved' });
-        const store = createChartsPageStore({
+        const store = createChartDraftStore({
             ...chartsPageInitialState,
             editorChartId: 'chart-1',
 
@@ -49,7 +48,7 @@ describe('createChartsPageStore', () => {
 
     it('opens builder for a dataset and closes dataset picker', () => {
         const draft = createChartBuilderDraft();
-        const store = createChartsPageStore({
+        const store = createChartDraftStore({
             ...chartsPageInitialState,
             editorChartId: 'chart-1',
             showDatasetPicker: true,
@@ -79,7 +78,7 @@ describe('createChartsPageStore', () => {
 
     it('opens new chart route and keeps an existing create draft', () => {
         const draft = createChartBuilderDraft({ chartName: 'Unsaved new chart' });
-        const store = createChartsPageStore(chartsPageInitialState);
+        const store = createChartDraftStore(chartsPageInitialState);
         store.getState().openNewChartRoute();
 
         let state = store.getState();
@@ -102,10 +101,8 @@ describe('createChartsPageStore', () => {
 
     it('stores and clears edit drafts', () => {
         const draft = createChartBuilderDraft({ chartName: 'Revenue v2' });
-        const store = createChartsPageStore(chartsPageInitialState);
-        store
-            .getState()
-            .setChartEditDraft({ chartId: 'chart-1', draft, output: null });
+        const store = createChartDraftStore(chartsPageInitialState);
+        store.getState().setChartEditDraft({ chartId: 'chart-1', draft, output: null });
 
         let state = store.getState();
 
@@ -123,7 +120,7 @@ describe('createChartsPageStore', () => {
     });
 
     it('switches workspace mode and dataset picker flag', () => {
-        const store = createChartsPageStore(chartsPageInitialState);
+        const store = createChartDraftStore(chartsPageInitialState);
         store.getState().setShowDatasetPicker(false);
 
         let state = store.getState();
@@ -136,8 +133,8 @@ describe('createChartsPageStore', () => {
 });
 
 it('isolates editor instances', () => {
-    const firstStore = createChartsPageStore();
-    const secondStore = createChartsPageStore();
+    const firstStore = createChartDraftStore();
+    const secondStore = createChartDraftStore();
     const initial = secondStore.getState();
     firstStore.getState().setChartEditDraft({
         chartId: 'one',

@@ -1,4 +1,4 @@
-import { chartRelationTagId, datasetRelationTagId } from './cacheTags';
+import { datasetRelationTagId } from './cacheTags';
 
 export type CacheInvalidationTag =
     | 'Dashboards'
@@ -12,18 +12,6 @@ export type CacheInvalidationTag =
               | 'Datasets';
           id: string;
       };
-
-export const chartChangedTags = (chartId: string): CacheInvalidationTag[] => [
-    { type: 'Charts', id: chartId },
-    { type: 'Charts', id: 'LIST' },
-    { type: 'ChartData', id: chartId },
-    { type: 'Dashboards', id: chartRelationTagId(chartId) },
-];
-
-export const chartCreatedTags = (datasetId: string): CacheInvalidationTag[] => [
-    { type: 'Charts', id: 'LIST' },
-    { type: 'Charts', id: datasetRelationTagId(datasetId) },
-];
 
 export const datasetMetadataChangedTags = (datasetId: string): CacheInvalidationTag[] => [
     { type: 'Datasets', id: 'LIST' },

@@ -19,6 +19,22 @@ import { MetricWidget } from '../ui/MetricWidget';
 import { gridMocks } from './DashboardWidgets.gridStackMock';
 import { chart, items, secondChart } from './DashboardWidgets.testData';
 
+vi.mock('@/ui/di/dependencies', () => ({
+    useDependencies: () => ({ getChartData: { name: 'getChartData' } }),
+}));
+vi.mock('@/env/cache/useRead', () => ({
+    useRead: (_query: unknown, input: { chartId: string }) => {
+        const result = mocks.getChartData(input.chartId);
+
+        return {
+            data: result.currentData,
+            isPending: result.isLoading,
+            isFetching: result.isFetching,
+            error: result.isError ? new Error('read failed') : null,
+        };
+    },
+}));
+
 const chartItem = items[0] as Extract<(typeof items)[number], { kind: 'chart' }>;
 
 const mocks = vi.hoisted(() => ({
@@ -58,8 +74,8 @@ vi.mock('@visx/responsive', () => ({
     }) => children({ width: 240, height: 64 }),
 }));
 
-vi.mock('@/entities/chart', () => ({
-    BAR_CHART_ROWS_LIMIT: 12,
+vi.mock('@/ui/pages/dashboards/ui/ChartCard', () => ({
+    barChartRowsLimit: 12,
     ChartCard: ({
         data,
         chartHeight,
@@ -91,7 +107,6 @@ vi.mock('@/entities/chart', () => ({
     ),
     ChartShell: () => <div data-testid="chart-result" />,
     getChartColorFromConfig: () => '#8a6cff',
-    useGetChartDataQuery: (chartId: string) => mocks.getChartData(chartId),
 }));
 
 const renderWidgets = (props: Partial<Parameters<typeof DashboardWidgets>[0]> = {}) =>

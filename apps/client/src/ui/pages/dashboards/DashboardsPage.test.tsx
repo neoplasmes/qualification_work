@@ -1,3 +1,4 @@
+import type * as readModule from '@/env/cache/useRead';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import {
     dashboardChartDefaultHeight,
@@ -31,8 +32,6 @@ const mocks = vi.hoisted(() => ({
     listQuery: vi.fn(),
     detailQuery: vi.fn(),
 }));
-
-const chartIconMock = vi.hoisted(() => () => null);
 
 const chart = vi.hoisted(
     () =>
@@ -155,28 +154,34 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/chart', () => ({
-    formatChartCell: (value: unknown) => String(value),
-    CHART_KIND_ICONS: {
-        bar: chartIconMock,
-        line: chartIconMock,
-        pie: chartIconMock,
-        heatmap: chartIconMock,
-    },
-    useListChartsQuery: () => ({
-        data: [chart, secondChart],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-    useGetChartDataQuery: () => ({
-        currentData: undefined,
-        isLoading: false,
-        isFetching: false,
-        isError: false,
-    }),
-    useLazyGetChartDataQuery: () => [vi.fn(), { data: null, isFetching: false }],
-}));
+vi.mock('@/env/cache/useRead', async importOriginal => {
+    const actual = await importOriginal<typeof readModule>();
+
+    return {
+        ...actual,
+        useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listCharts') {
+                return {
+                    data: [chart, secondChart],
+                    isLoading: false,
+                    isFetching: false,
+                    refetch: vi.fn(),
+                    isPending: false,
+                };
+            }
+            if (query.name === 'getChartData') {
+                return {
+                    data: undefined,
+                    isPending: false,
+                    isFetching: false,
+                    error: null,
+                };
+            }
+
+            return actual.useRead(query as never, input, options as never);
+        },
+    };
+});
 
 const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset, secondDataset];
 

@@ -1,0 +1,42 @@
+.tooltip {
+    min-width: 160px;
+    text-align: center;
+}
+
+.tooltip-title {
+    width: 100%;
+    border-bottom: 1px solid rgb(255 255 255 / 10%);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.tooltip-row {
+    width: 100%;
+}
+
+.tooltip-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.tooltip-value {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    line-height: 1.4;
+
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.tooltip-pct {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+
+    font-weight: 400;
+    color: var(--ink-2);
+}

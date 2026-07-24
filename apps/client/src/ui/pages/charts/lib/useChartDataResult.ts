@@ -1,27 +1,27 @@
-import type { ChartResponse } from '@qualification-work/types';
-import { skipToken } from '@reduxjs/toolkit/query';
-
-import { useGetChartDataQuery } from '@/entities/chart';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 
 import { getApiErrorMessage } from '@/shared/api';
 
 import type { ChartsWorkspaceMode } from '../model';
 
 export const useChartDataResult = (
+    orgId: string,
     chartId: string | null,
     workspaceMode: ChartsWorkspaceMode
 ) => {
-    const queryArg = chartId && workspaceMode === 'view' ? chartId : skipToken;
-    const chartDataQuery = useGetChartDataQuery(queryArg);
-    const chartResult: ChartResponse | null = chartDataQuery.currentData ?? null;
-    const error = chartDataQuery.error
-        ? getApiErrorMessage(chartDataQuery.error, 'Unable to load chart data.')
-        : '';
+    const query = useRead(
+        useDependencies().getChartData,
+        { orgId, chartId: chartId ?? '' },
+        { enabled: Boolean(orgId && chartId && workspaceMode === 'view') }
+    );
+    const chartResult = query.data ?? null;
 
     return {
         chartResult,
-        error,
-        isFetching:
-            !chartResult && (chartDataQuery.isLoading || chartDataQuery.isFetching),
+        error: query.error
+            ? getApiErrorMessage(query.error, 'Unable to load chart data.')
+            : '',
+        isFetching: !chartResult && (query.isPending || query.isFetching),
     };
 };

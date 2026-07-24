@@ -1,16 +1,12 @@
+import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import { useChartsPageActions, useChartsPageState } from '@/ui/pages/charts/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { Button } from '@qualification-work/design-system';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-
-import { usePatchChartMutation } from '@/features/buildChart';
-
-import { useDeleteChartMutation, useGetChartQuery } from '@/entities/chart';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -35,10 +31,14 @@ export const ChartsPropertiesPanel = () => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const [patchChart, patchChartState] = usePatchChartMutation();
-    const [deleteChart, deleteChartState] = useDeleteChartMutation();
+    const patchChart = useCommand(dependencies.patchChart);
+    const deleteChart = useCommand(dependencies.deleteChart);
     const selectedChartId = useChartsPageState(state => state.selectedChartId);
-    const selectedChartQuery = useGetChartQuery(selectedChartId ?? skipToken);
+    const selectedChartQuery = useRead(
+        dependencies.getChart,
+        { orgId: org?.id ?? '', chartId: selectedChartId ?? '' },
+        { enabled: Boolean(org?.id && selectedChartId) }
+    );
     const selectedChart = selectedChartQuery.data ?? null;
     const selectedDatasetName = useMemo(
         () =>
@@ -62,7 +62,13 @@ export const ChartsPropertiesPanel = () => {
         }
 
         try {
-            await deleteChart(selectedChart.id).unwrap();
+            const outcome = await deleteChart.executeOutcome({
+                orgId: selectedChart.orgId,
+                chartId: selectedChart.id,
+            });
+            if (outcome.syncError) {
+                setError('Chart deleted. Refresh failed. Reload the page.');
+            }
             selectChart(null);
             navigate(chartsWorkspaceIndexPath, { replace: true });
             setDeleteConfirmationId(null);
@@ -80,8 +86,14 @@ export const ChartsPropertiesPanel = () => {
 
         try {
             setError('');
-            await patchChart({ chartId: selectedChart.id, name }).unwrap();
-            await selectedChartQuery.refetch();
+            const outcome = await patchChart.executeOutcome({
+                orgId: selectedChart.orgId,
+                chartId: selectedChart.id,
+                name,
+            });
+            if (outcome.syncError) {
+                setError('Chart renamed. Refresh failed. Reload the page.');
+            }
         } catch (renameError) {
             const message = getApiErrorMessage(
                 renameError,
@@ -94,11 +106,11 @@ export const ChartsPropertiesPanel = () => {
     };
 
     if (!selectedChart) {
-        if (selectedChartId && selectedChartQuery.isLoading) {
+        if (selectedChartId && selectedChartQuery.isPending) {
             return <StatusMessage>Loading chart properties...</StatusMessage>;
         }
 
-        if (selectedChartId && selectedChartQuery.isError) {
+        if (selectedChartId && Boolean(selectedChartQuery.error)) {
             return (
                 <StatusMessage tone="error">
                     Unable to load this chart properties.
@@ -124,7 +136,7 @@ export const ChartsPropertiesPanel = () => {
             <EditableText
                 title={selectedChart.name}
                 fallbackTitle="Untitled chart"
-                saving={patchChartState.isLoading}
+                saving={patchChart.isPending}
                 editButtonTestId={chartsTestIds.renameButton}
                 inputTestId={chartsTestIds.renameInput}
                 onRename={handleRenameChart}
@@ -145,7 +157,7 @@ export const ChartsPropertiesPanel = () => {
 
             <Button
                 variant="danger"
-                disabled={deleteChartState.isLoading}
+                disabled={deleteChart.isPending}
                 onClick={() => void handleDelete()}
             >
                 <Trash2 size={18} />

@@ -1,8 +1,8 @@
+import type { Chart } from '@/core/entities/chart';
 import type {
     FilterApplicationEntity,
     FilterApplicationScope,
 } from '@/core/processes/entityFiltering';
-import type { Chart } from '@qualification-work/types';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 

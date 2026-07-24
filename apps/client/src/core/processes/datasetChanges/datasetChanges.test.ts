@@ -2,8 +2,6 @@ import { datasetChanges } from '.';
 import { describe, expect, it } from 'vitest';
 
 import {
-    chartChangedTags,
-    chartCreatedTags,
     datasetContentChangedTags,
     datasetMetadataChangedTags,
     datasetRemovedTags,
@@ -27,22 +25,6 @@ describe('cache invalidation tags', () => {
         expect(datasetMetadataChangedTags('dataset-1')).toEqual([
             { type: 'Datasets', id: 'LIST' },
             { type: 'Datasets', id: 'dataset-1' },
-        ]);
-    });
-
-    it('invalidates chart definition, data, and dashboard widgets for chart changes', () => {
-        expect(chartChangedTags('chart-1')).toEqual([
-            { type: 'Charts', id: 'chart-1' },
-            { type: 'Charts', id: 'LIST' },
-            { type: 'ChartData', id: 'chart-1' },
-            { type: 'Dashboards', id: 'chart:chart-1' },
-        ]);
-    });
-
-    it('invalidates dataset-related chart lists after chart creation', () => {
-        expect(chartCreatedTags('dataset-1')).toEqual([
-            { type: 'Charts', id: 'LIST' },
-            { type: 'Charts', id: 'dataset:dataset-1' },
         ]);
     });
 

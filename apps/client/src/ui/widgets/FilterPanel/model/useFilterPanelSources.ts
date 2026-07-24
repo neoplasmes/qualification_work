@@ -13,7 +13,6 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 
 import { getEffectLabel } from '@/entities/action';
-import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import type { StaticFilterPanelSourceItem } from './types';
@@ -37,7 +36,11 @@ export const useFilterPanelSources = (scope: FilterApplicationScope) => {
         { orgId: org?.id ?? '' },
         { enabled: shouldLoadDatasets }
     );
-    const chartsQuery = useListChartsQuery(shouldLoadCharts && org ? org.id : skipToken);
+    const chartsQuery = useRead(
+        useDependencies().listCharts,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(shouldLoadCharts && org) }
+    );
     const dashboardsQuery = useListDashboardsQuery(
         shouldLoadDashboards && org ? org.id : skipToken
     );

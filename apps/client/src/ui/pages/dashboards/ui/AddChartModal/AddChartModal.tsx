@@ -1,3 +1,5 @@
+import type { Chart } from '@/core/entities/chart';
+import { chartKindIcons } from '@/ui/widgets/ChartShell';
 import {
     Button,
     Divider,
@@ -5,13 +7,10 @@ import {
     IconButton,
     Select,
 } from '@qualification-work/design-system';
-import type { Chart } from '@qualification-work/types';
 import { Eraser, Plus, X } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import { CHART_KIND_ICONS as chartKindIcons } from '@/entities/chart';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { EmptyState, Modal, WorkspaceLeftPanelItem } from '@/shared/ui';

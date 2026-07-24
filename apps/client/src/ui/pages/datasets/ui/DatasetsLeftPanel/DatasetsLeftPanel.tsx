@@ -10,7 +10,6 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { Upload } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
@@ -31,7 +30,11 @@ export const DatasetsLeftPanel = () => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
+    const chartsQuery = useRead(
+        useDependencies().listCharts,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
 
     const selectedDatasetId = useDatasetsPageState(state => state.selectedDatasetId);

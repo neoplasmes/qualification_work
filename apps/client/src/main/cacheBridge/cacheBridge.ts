@@ -16,14 +16,9 @@ const contentReads = [
     'listDashboards',
     'getDashboard',
 ];
-const chartReads = ['listCharts', 'getChart', 'listDashboards', 'getDashboard'];
 const dashboardReads = ['listDashboards', 'getDashboard', 'previewDashboardMetric'];
 const actionReads = ['listActions', 'getAction'];
 const targets: Record<string, readonly string[]> = {
-    createChart: ['listCharts', 'getChart'],
-    patchChart: chartReads,
-    updateChart: [...chartReads, 'getChartData', 'previewChartData'],
-    deleteChart: [...chartReads, 'getChartData', 'previewChartData'],
     createAction: actionReads,
     updateAction: actionReads,
     patchAction: actionReads,
@@ -44,8 +39,6 @@ const familyTags: Partial<
     dataset: ['Datasets'],
     datasetColumn: ['Datasets'],
     datasetRow: ['DatasetRows'],
-    chart: ['Charts'],
-    chartData: ['ChartData'],
     metricPreview: ['Dashboards'],
     dashboard: ['Dashboards'],
     dashboardItem: ['Dashboards'],
@@ -105,10 +98,7 @@ export function createCacheBridge(cache: CacheRuntime, report: (error: unknown) 
         const input = event.meta.arg?.originalArgs;
         const args =
             input && typeof input === 'object' ? (input as Record<string, unknown>) : {};
-        const names =
-            name === 'patchChart' && (args.config || args.chartType)
-                ? [...targets[name], 'getChartData', 'previewChartData']
-                : targets[name]!;
+        const names = targets[name]!;
         const refs = new Set<EntityRef>();
         for (const query of cache.queryClient.getQueryCache().getAll()) {
             if (

@@ -1,15 +1,11 @@
 import type { Action } from '@/core/entities/action';
+import type { Chart } from '@/core/entities/chart';
 import type { Dataset } from '@/core/entities/dataset';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import type { Organization } from '@/core/entities/organization';
 import type { User } from '@/core/entities/user';
-import type {
-    ActionRun,
-    Chart,
-    Dashboard,
-    DashboardItem,
-} from '@qualification-work/types';
+import type { ActionRun, Dashboard, DashboardItem } from '@qualification-work/types';
 
 export interface RecordRowMap {
     user: User;
@@ -17,7 +13,7 @@ export interface RecordRowMap {
     dataset: Dataset;
     datasetColumn: DatasetColumn;
     datasetRow: DatasetRow;
-    chart: Chart & { readonly ref: `chart:${string}` };
+    chart: Chart;
     dashboard: Omit<Dashboard, 'items'> & {
         readonly ref: `dashboard:${string}`;
         items: RecordRef<'dashboardItem'>[];

@@ -1,5 +1,5 @@
+import type { Chart } from '@/core/entities/chart';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
-import type { Chart } from '@qualification-work/types';
 
 import type { DashboardItem } from '@/entities/dashboard';
 

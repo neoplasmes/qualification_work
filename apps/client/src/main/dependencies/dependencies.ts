@@ -20,6 +20,7 @@ import { createGetSession } from '@/app/queries/getSession';
 import { api } from '@/shared/api';
 
 import { createCacheBridge } from '../cacheBridge';
+import { createChartDependencies } from '../chartDependencies';
 import { createDatasetDependencies } from '../datasetDependencies';
 import { createQueryClient } from '../queryClient';
 import { SessionLifecycle } from '../sessionLifecycle';
@@ -132,6 +133,7 @@ export function createDependencies(options: {
     const dependencies: Dependencies = {
         ...operations,
         ...datasetOperations,
+        ...createChartDependencies(cache, transport),
         ...createUploadDependencies(cache, transport),
         ...createTableOptionsDependencies(cache, options.platform === 'browser'),
         cache,

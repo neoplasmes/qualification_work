@@ -1,17 +1,14 @@
+import type { Chart, ChartData as ChartResponse } from '@/core/entities/chart';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
-import type {
-    Chart,
-    ChartResponse,
-    DatasetMetadata as DatasetMetadataFixture,
-} from '@qualification-work/types';
+import type * as builderModule from '@/ui/pages/charts/ui/ChartBuilder';
+import { createChartBuilderDraft } from '@/ui/pages/charts/ui/ChartBuilder';
+import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
 
 import { ChartsPage } from './Charts.page';
 import { chartsTestIds } from './const';
@@ -33,6 +30,7 @@ const mocks = vi.hoisted(() => ({
 const chart = vi.hoisted(
     () =>
         ({
+            ref: `chart:${'org-1'}/${'chart-1'}`,
             id: 'chart-1',
             orgId: 'org-1',
             datasetId: 'dataset-1',
@@ -71,7 +69,18 @@ const dataset = vi.hoisted(
                 createdAt: '2026-01-01T00:00:00.000Z',
                 updatedAt: '2026-01-01T00:00:00.000Z',
             },
-            columns: [],
+            columns: [
+                {
+                    ref: 'datasetColumn:org-1/dataset-1/column-1',
+                    id: 'column-1',
+                    datasetId: 'dataset-1',
+                    key: 'category',
+                    displayName: 'Category',
+                    dataType: 'string',
+                    orderIndex: 0,
+                    isAnalyzable: true,
+                },
+            ],
             totalRows: 3,
         }) satisfies DatasetMetadata
 );
@@ -83,67 +92,33 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/chart', () => ({
-    BAR_CHART_ROWS_LIMIT: 12,
-    ChartCard: ({ data }: { data: ChartResponse }) => (
-        <div data-testid="chart-result">{data.rows.length} rows</div>
-    ),
+vi.mock('@/ui/widgets/ChartShell', async importOriginal => ({
+    ...(await importOriginal<object>()),
     ChartShell: ({ data }: { data: ChartResponse }) => (
         <div data-testid="chart-result">{data.rows.length} rows</div>
     ),
-    ChartConfigSummary: () => <p data-testid="chart-summary" />,
-    getChartColorFromConfig: () => '#8a6cff',
-    formatChartCell: (value: unknown) => String(value),
-    useGetChartQuery: (chartId: unknown) => ({
-        data:
-            typeof chartId === 'string' ? { ...chart, name: mocks.savedName } : undefined,
-        isLoading: false,
-        isError: false,
-        refetch: mocks.refetchSelectedChart,
-    }),
-    useListChartsQuery: () => ({
-        data: [chart],
-        isLoading: false,
-        isFetching: false,
-        refetch: mocks.refetchCharts,
-    }),
-    useGetChartDataQuery: (arg: unknown) => mocks.getChartDataQuery(arg),
-    useDeleteChartMutation: () => [mocks.deleteChart, { isLoading: false }],
 }));
-
+vi.mock('@/ui/widgets/ChartConfigSummary', () => ({
+    ChartConfigSummary: () => <p data-testid="chart-summary" />,
+}));
 const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset];
 
-vi.mock('@/features/buildChart', () => ({
-    usePatchChartMutation: () => [mocks.patchChart, { isLoading: false }],
-}));
-
-vi.mock('@/widgets/ChartBuilder', () => ({
-    configToBuilderDraft: () => ({
-        chartType: 'bar',
-        dimensionColumnId: 'column-1',
-    }),
-    createChartBuilderDraft: (overrides = {}) => ({
-        chartName: '',
-        chartColor: '#8a6cff',
-        chartType: 'bar',
-        ...overrides,
-    }),
+vi.mock('@/ui/pages/charts/ui/ChartBuilder', async importOriginal => ({
+    ...(await importOriginal<typeof builderModule>()),
     ChartBuilder: ({
         selectedDataset,
-        onChartCreated,
+        onSave,
         editChartId,
         value,
         onChange,
         onOutputChange,
-        onChartUpdated,
     }: {
         selectedDataset: DatasetMetadata;
         editChartId?: string;
         value?: ReturnType<typeof createChartBuilderDraft>;
         onChange?: (draft: ReturnType<typeof createChartBuilderDraft>) => void;
         onOutputChange?: (output: unknown) => void;
-        onChartCreated?: (chartId: string) => void;
-        onChartUpdated?: (chartId: string) => void;
+        onSave(usePreview: boolean): void;
     }) => {
         const nextDraft = value
             ? { ...value, chartName: 'Unsaved Revenue', chartType: 'line' as const }
@@ -175,13 +150,10 @@ vi.mock('@/widgets/ChartBuilder', () => ({
                 >
                     Change builder
                 </button>
-                <button
-                    type="button"
-                    onClick={() => onChartUpdated?.(editChartId ?? 'chart-1')}
-                >
+                <button type="button" onClick={() => onSave(false)}>
                     Save edit
                 </button>
-                <button type="button" onClick={() => onChartCreated?.('chart-new')}>
+                <button type="button" onClick={() => onSave(false)}>
                     Save chart
                 </button>
             </div>
@@ -200,6 +172,32 @@ const renderWorkspace = (
             ...preloadedState,
         },
     });
+
+    const dependencies = store.runtime.dependencies;
+    dependencies.listCharts.execute = async () => {
+        mocks.refetchCharts();
+
+        return [chart];
+    };
+    dependencies.getChart.execute = async input => {
+        mocks.refetchSelectedChart();
+
+        return {
+            ...chart,
+            id: input.chartId,
+            ref: `chart:org-1/${input.chartId}`,
+            name: mocks.savedName,
+        };
+    };
+    dependencies.getChartData.execute = async input => {
+        mocks.getChartDataQuery(input.chartId);
+
+        return chartResponse;
+    };
+    dependencies.createChart.execute = async () => ({ id: 'chart-new' });
+    dependencies.updateChart.execute = async input => {
+        mocks.savedName = input.name ?? mocks.savedName;
+    };
 
     return {
         store,
@@ -277,7 +275,7 @@ describe('ChartsPage', () => {
         await user.click(await screen.findByRole('button', { name: 'Change builder' }));
         await user.click(screen.getByRole('button', { name: 'Save edit' }));
 
-        await waitFor(() => expect(store.chartEditor.getState().editDraft).toBeNull());
+        await waitFor(() => expect(store.chartEditor.getState().dirty).toBe(false));
         expect(mocks.refetchSelectedChart).toHaveBeenCalled();
     });
 
@@ -300,7 +298,9 @@ describe('ChartsPage', () => {
 
         await user.click(screen.getByRole('button', { name: 'Save chart' }));
 
-        await waitFor(() => expect(mocks.refetchCharts).toHaveBeenCalledTimes(1));
+        await waitFor(() =>
+            expect(store.ui.charts.getState().rememberedChartId).toBe('chart-new')
+        );
         expect(store.chartEditor.getState().createDraft?.datasetId ?? null).toBeNull();
         expect(store.ui.charts.getState().rememberedChartId).toBe('chart-new');
     });
@@ -348,13 +348,15 @@ describe('ChartsPage', () => {
         expect(screen.queryByTestId('chart-builder')).not.toBeInTheDocument();
     });
 
-    it('shows chart title above workspace tabs without central rename controls', () => {
+    it('shows chart title above workspace tabs without central rename controls', async () => {
         const { container } = renderWorkspace({ rememberedChartId: 'chart-1' });
 
         expect(
             container.querySelector(`[data-test-id="${chartsTestIds.renameButton}"]`)
         ).toBeNull();
-        expect(screen.getByRole('heading', { name: 'Revenue' })).toBeInTheDocument();
+        expect(
+            await screen.findByRole('heading', { name: 'Revenue' })
+        ).toBeInTheDocument();
     });
 });
 

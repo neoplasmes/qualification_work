@@ -1,3 +1,4 @@
+import type { Chart } from '@/core/entities/chart';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 
 import 'gridstack/dist/gridstack.min.css';
@@ -7,7 +8,6 @@ import {
     dashboardChartMinWidth,
     dashboardMetricMinHeight,
     dashboardMetricMinWidth,
-    type Chart,
     type DashboardItemLayoutInput,
 } from '@qualification-work/types';
 import { useMemo } from 'react';

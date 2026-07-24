@@ -1,0 +1,22 @@
+.tooltip {
+    min-width: 160px;
+    text-align: center;
+}
+
+.tooltip-title {
+    width: 100%;
+    border-bottom: 1px solid rgb(255 255 255 / 10%);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.tooltip-value {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    line-height: 1.4;
+
+    color: var(--ink);
+    white-space: nowrap;
+}

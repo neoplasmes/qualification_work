@@ -4,12 +4,9 @@ import { useLocation } from 'react-router';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 
+import type { ChartsPageStateStore, ChartsWorkspaceMode } from '../chartDraft';
 import { chartsEditorContext } from '../editorOwner';
-import type {
-    ChartsPageStateStore,
-    ChartsPreferences,
-    ChartsWorkspaceMode,
-} from '../pageState';
+import type { ChartsPreferences } from '../pageState';
 
 type State = ChartsPageStateStore &
     ChartsPreferences & {

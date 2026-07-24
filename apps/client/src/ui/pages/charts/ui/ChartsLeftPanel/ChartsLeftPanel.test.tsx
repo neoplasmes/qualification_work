@@ -1,3 +1,4 @@
+import type { Chart } from '@/core/entities/chart';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
 import { render, screen } from '@testing-library/react';
@@ -15,50 +16,36 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/chart', () => ({
-    formatChartCell: (value: unknown) => String(value),
-    CHART_KIND_ICONS: {
-        bar: () => <svg aria-hidden />,
-        heatmap: () => <svg aria-hidden />,
-        line: () => <svg aria-hidden />,
-        pie: () => <svg aria-hidden />,
+const chartFixtures = [
+    {
+        id: 'chart-1',
+        orgId: 'org-1',
+        datasetId: 'dataset-1',
+        name: 'Revenue',
+        chartType: 'bar',
+        config: {
+            kind: 'bar',
+            dimension: { columnId: 'column-1' },
+            measures: [{ aggregate: 'count' }],
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
     },
-    useListChartsQuery: () => ({
-        data: [
-            {
-                id: 'chart-1',
-                orgId: 'org-1',
-                datasetId: 'dataset-1',
-                name: 'Revenue',
-                chartType: 'bar',
-                config: {
-                    kind: 'bar',
-                    dimension: { columnId: 'column-1' },
-                    measures: [{ aggregate: 'count' }],
-                },
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-            {
-                id: 'chart-2',
-                orgId: 'org-1',
-                datasetId: 'dataset-2',
-                name: 'Status',
-                chartType: 'pie',
-                config: {
-                    kind: 'bar',
-                    dimension: { columnId: 'column-1' },
-                    measures: [{ aggregate: 'count' }],
-                },
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-        ],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
+    {
+        id: 'chart-2',
+        orgId: 'org-1',
+        datasetId: 'dataset-2',
+        name: 'Status',
+        chartType: 'pie',
+        config: {
+            kind: 'bar',
+            dimension: { columnId: 'column-1' },
+            measures: [{ aggregate: 'count' }],
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+];
 
 vi.mock('@/entities/dashboard', () => ({
     useListDashboardsQuery: () => ({
@@ -109,6 +96,12 @@ const getByDataTestId = <T extends HTMLElement>(
 const makeStore = (withFilter = false) => {
     const store = createUiTestRuntime({ datasetMetadata: datasetMetadataFixtures });
 
+    store.runtime.dependencies.listCharts.execute = async () =>
+        chartFixtures.map(chart => ({
+            ...chart,
+            ref: `chart:${chart.orgId}/${chart.id}` as const,
+        })) as Chart[];
+
     if (withFilter) {
         store.ui.filters.getState().toggleFilterApplicationValue({
             scope: 'charts',
@@ -132,7 +125,7 @@ describe('ChartsLeftPanel', () => {
             </Provider>
         );
 
-        await user.click(screen.getByRole('button', { name: /Revenue/ }));
+        await user.click(await screen.findByRole('button', { name: /Revenue/ }));
         await user.click(getByDataTestId(container, chartsTestIds.createChartButton));
 
         expect(store.ui.charts.getState().rememberedChartId).toBeNull();
@@ -148,7 +141,9 @@ describe('ChartsLeftPanel', () => {
             </Provider>
         );
 
-        expect(screen.getByRole('button', { name: /Revenue/ })).toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: /Revenue/ })
+        ).toBeInTheDocument();
         expect(await screen.findByText('Invoices')).toBeInTheDocument();
         expect(screen.queryByText('dataset-1')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Status/ })).not.toBeInTheDocument();

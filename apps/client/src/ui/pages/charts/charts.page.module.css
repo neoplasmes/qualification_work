@@ -1,52 +1,51 @@
 .panel {
     overflow: hidden;
+    color: var(--ink);
 }
 
 .scroll-area {
     overflow: auto;
     scrollbar-gutter: stable;
+    padding: var(--space-24);
+    border: 1px solid var(--rule);
+    background: var(--paper);
 }
 
 .placeholder {
     min-height: 240px;
-
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: rgb(255 255 255 / 25%);
+    font: 400 24px/1.4 var(--font-serif);
+    color: var(--ink-2);
     text-align: center;
 }
 
 .tabs-row {
+    flex-wrap: wrap;
+
     > :first-child {
         width: auto;
-        flex: 0 1 auto;
     }
 }
 
 .tabs-actions {
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     margin-left: auto;
 }
 
 .top-line-block {
-    height: var(--top-line-height);
-    min-height: var(--top-line-height);
-    max-height: var(--top-line-height);
-}
-
-.eyebrow {
-    color: var(--color-outline);
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    min-height: 52px;
 }
 
 .title {
-    font-family: var(--font-headline);
-    font-size: var(--font-size-2xl);
-    font-weight: 800;
-
+    font: 400 36px/1.1 var(--font-serif);
     overflow-wrap: anywhere;
+}
+
+@media (width <= 600px) {
+    .scroll-area {
+        padding: var(--space-16);
+    }
+
+    .title {
+        font-size: 28px;
+    }
 }

@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 
-import type { createChartsPageStore } from '../pageState';
+import type { createChartDraftStore } from '../chartDraft';
 
 export const chartsEditorContext = createContext<ReturnType<
-    typeof createChartsPageStore
+    typeof createChartDraftStore
 > | null>(null);

@@ -1,0 +1,1 @@
+export { barChartRowsLimit } from './chartLimits';

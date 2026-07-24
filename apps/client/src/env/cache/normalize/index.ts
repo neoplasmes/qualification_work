@@ -12,3 +12,5 @@ export {
     datasetRowListCodec,
 } from './datasetCodec';
 export { valueCodec } from './valueCodec';
+
+export { chartCodec, chartListCodec } from './chartCodec';

@@ -1,4 +1,6 @@
 import { filterDashboards } from '@/core/processes/entityFiltering';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
 import {
     useDashboardsPageActions,
     useDashboardsPageState,
@@ -13,7 +15,6 @@ import { useNavigate } from 'react-router';
 
 import { useCreateDashboardMutation } from '@/features/manageDashboards';
 
-import { useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { getApiErrorMessage } from '@/shared/api';
@@ -31,7 +32,11 @@ export const DashboardsLeftPanel = () => {
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
-    const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
+    const chartsQuery = useRead(
+        useDependencies().listCharts,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const [createDashboard, createState] = useCreateDashboardMutation();
 
     const selectedDashboardId = useDashboardsPageState(

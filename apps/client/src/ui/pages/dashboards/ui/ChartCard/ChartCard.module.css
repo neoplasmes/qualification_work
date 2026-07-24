@@ -1,0 +1,30 @@
+.description {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.description-summary {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.aggregated-at {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    line-height: 1.45;
+
+    overflow: hidden;
+    color: var(--ink-2);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aggregated-at-small {
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    font-weight: 400;
+    line-height: 1.4;
+}

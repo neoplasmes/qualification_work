@@ -20,10 +20,6 @@ const architecture = {
     ],
     legacyImports: [
         {
-            from: 'ui/pages/charts/model/pageState/pageState.store.ts',
-            to: 'widgets/ChartBuilder',
-        },
-        {
             from: 'main/dependencies/dependencies.ts',
             to: 'app/model/store',
         },
@@ -104,44 +100,8 @@ const architecture = {
             to: 'entities/action',
         },
         {
-            from: 'ui/pages/charts/Charts.page.tsx',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/charts/Charts.page.tsx',
-            to: 'widgets/ChartBuilder',
-        },
-        {
-            from: 'ui/pages/charts/lib/useChartDataResult.ts',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/charts/ui/ChartBuilderSection/CreateChartBuilderSection.tsx',
-            to: 'widgets/ChartBuilder',
-        },
-        {
-            from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
-            to: 'entities/chart',
-        },
-        {
             from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/charts/ui/ChartsPropertiesPanel/ChartsPropertiesPanel.tsx',
-            to: 'features/buildChart',
-        },
-        {
-            from: 'ui/pages/charts/ui/SavedChartDetails/SavedChartDetails.tsx',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/dashboards/Dashboards.page.tsx',
-            to: 'entities/chart',
         },
         {
             from: 'ui/pages/dashboards/Dashboards.page.tsx',
@@ -150,14 +110,6 @@ const architecture = {
         {
             from: 'ui/pages/dashboards/Dashboards.page.tsx',
             to: 'features/manageDashboards',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/AddChartModal/AddChartModal.tsx',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
-            to: 'entities/chart',
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardChartCard/DashboardChartCard.tsx',
@@ -209,10 +161,6 @@ const architecture = {
         },
         {
             from: 'ui/pages/dashboards/ui/DashboardsLeftPanel/DashboardsLeftPanel.tsx',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/dashboards/ui/DashboardsLeftPanel/DashboardsLeftPanel.tsx',
             to: 'entities/dashboard',
         },
         {
@@ -226,18 +174,6 @@ const architecture = {
         {
             from: 'ui/pages/dashboards/ui/DashboardsPropertiesPanel/DashboardsPropertiesPanel.tsx',
             to: 'features/manageDashboards',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetCellValueHandlers.ts',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetWorkspace/lib/datasetCellValue/datasetDateCellValue.ts',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
-            to: 'entities/chart',
         },
         {
             from: 'ui/pages/datasets/ui/DatasetsLeftPanel/DatasetsLeftPanel.tsx',
@@ -253,15 +189,7 @@ const architecture = {
         },
         {
             from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
-            to: 'entities/chart',
-        },
-        {
-            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/widgets/FilterPanel/FilterPanel.widget.tsx',
-            to: 'entities/chart',
         },
     ] satisfies Array<{ from: string; to: string }>,
 };

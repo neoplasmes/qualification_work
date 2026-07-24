@@ -1,8 +1,9 @@
-import type { Chart } from '@qualification-work/types';
+import type { Chart } from '@/core/entities/chart';
 
 import type { DashboardItem } from '@/entities/dashboard';
 
 export const chart: Chart = {
+    ref: `chart:${'org-1'}/${'chart-1'}`,
     id: 'chart-1',
     orgId: 'org-1',
     datasetId: 'dataset-1',

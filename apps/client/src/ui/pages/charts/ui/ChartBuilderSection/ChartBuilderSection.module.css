@@ -1,20 +1,22 @@
 .builder-header {
     display: flex;
-    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--space-16);
     align-items: center;
     justify-content: space-between;
+    padding-block: var(--space-12);
+
+    > div:last-child {
+        flex-wrap: wrap;
+    }
 }
 
 .eyebrow {
-    color: var(--color-outline);
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font: 400 14px/1.5 var(--font-mono);
+    color: var(--ink-2);
 }
 
 .title {
-    font-family: var(--font-headline);
-    font-size: var(--font-size-2xl);
-    font-weight: 800;
+    font: 400 28px/1.2 var(--font-serif);
+    overflow-wrap: anywhere;
 }

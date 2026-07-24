@@ -1,11 +1,11 @@
 import { useDependencies } from '@/ui/di/dependencies';
 import { useEffect, useState, type PropsWithChildren } from 'react';
 
-import { createChartsPageStore } from '../pageState';
+import { createChartDraftStore } from '../chartDraft';
 import { chartsEditorContext } from './editor.context';
 
 export function ChartsEditorProvider({ children }: PropsWithChildren) {
-    const [store] = useState(createChartsPageStore);
+    const [store] = useState(createChartDraftStore);
     const { session } = useDependencies();
     useEffect(
         () =>

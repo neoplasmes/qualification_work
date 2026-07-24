@@ -1,11 +1,10 @@
 import { ClientRoot } from '@/main/ClientRoot';
 import { createUiTestRuntime } from '@/test/uiRuntime';
+import { createChartBuilderDraft } from '@/ui/pages/charts/ui/ChartBuilder';
 import { act, renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { MemoryRouter, useNavigate } from 'react-router';
 import { expect, it } from 'vitest';
-
-import { createChartBuilderDraft } from '@/widgets/ChartBuilder';
 
 import { useChartsPageActions, useChartsPageState } from '../usePageState';
 import { ChartsEditorProvider } from './ChartsEditorProvider';

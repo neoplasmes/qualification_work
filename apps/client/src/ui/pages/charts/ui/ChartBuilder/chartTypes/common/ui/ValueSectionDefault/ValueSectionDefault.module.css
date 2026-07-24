@@ -1,0 +1,52 @@
+.measure {
+    position: relative;
+
+    config-section-body {
+        padding-left: var(--spacing-md);
+
+        &::before {
+            content: '';
+            width: 1px;
+            height: 60%;
+            position: absolute;
+            top: 40%;
+            left: 0;
+            background-color: var(--rule-dash);
+
+            transform-origin: left center;
+            transition: all 0.2s ease;
+        }
+
+        &:hover {
+            &::before {
+                background-color: var(--ink);
+
+                transform: scaleX(1.5);
+            }
+        }
+    }
+}
+
+.measure-header {
+    min-height: 30px;
+}
+
+.measure-label {
+    font: 500 14px/1.5 var(--font-mono);
+    color: var(--ink-2);
+}
+
+.measure-remove {
+    color: var(--rule-dash);
+}
+
+.add-measure {
+    align-self: flex-start;
+}
+
+.value-section.value-section {
+    > config-section-body {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+}

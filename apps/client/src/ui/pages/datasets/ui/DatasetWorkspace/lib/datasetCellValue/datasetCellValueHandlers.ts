@@ -1,4 +1,4 @@
-import { formatChartCell } from '@/entities/chart';
+import { formatChartCell } from '@/ui/widgets/ChartShell';
 
 import { isDayOfWeekValue } from '@/shared/lib/dayOfWeek';
 

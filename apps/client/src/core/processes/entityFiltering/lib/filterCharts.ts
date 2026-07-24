@@ -1,4 +1,5 @@
-import type { Chart, Dashboard } from '@qualification-work/types';
+import type { Chart } from '@/core/entities/chart';
+import type { Dashboard } from '@qualification-work/types';
 
 import type { FilterApplicationEntityValues } from '../types';
 

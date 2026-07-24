@@ -1,4 +1,5 @@
-import type { Chart, Dashboard } from '@qualification-work/types';
+import type { Chart } from '@/core/entities/chart';
+import type { Dashboard } from '@qualification-work/types';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
 import {
@@ -38,6 +39,7 @@ const datasets = [
 
 const charts: Chart[] = [
     {
+        ref: `chart:${'org-1'}/${'chart-1'}`,
         id: 'chart-1',
         orgId: 'org-1',
         datasetId: 'dataset-1',

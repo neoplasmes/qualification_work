@@ -1,0 +1,48 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    overflow: auto;
+    padding: var(--space-24);
+    border: 1px solid var(--rule);
+    background: var(--paper);
+
+    config-section-body {
+        display: flex;
+        flex-flow: row wrap;
+        align-items: flex-start;
+        gap: var(--space-16);
+        width: 100%;
+
+        > * {
+            flex: 1 1 220px;
+            max-width: 100%;
+        }
+    }
+
+    section + section {
+        padding-top: var(--space-20);
+        border-top: 1px dashed var(--rule-dash);
+    }
+}
+
+.error,
+.preview {
+    width: 100%;
+}
+
+@media (width <= 600px) {
+    .form {
+        padding: var(--space-16);
+    }
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-inline-size: auto;
+}

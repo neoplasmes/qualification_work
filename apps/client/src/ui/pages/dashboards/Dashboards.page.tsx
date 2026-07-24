@@ -20,7 +20,6 @@ import {
     useUpdateDashboardLayoutMutation,
 } from '@/features/manageDashboards';
 
-import { useListChartsQuery } from '@/entities/chart';
 import {
     useGetDashboardQuery,
     useListDashboardsQuery,
@@ -61,7 +60,11 @@ export const DashboardsPage = () => {
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
-    const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
+    const chartsQuery = useRead(
+        useDependencies().listCharts,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const dependencies = useDependencies();
     const datasetsQuery = useRead(
         dependencies.listDatasets,

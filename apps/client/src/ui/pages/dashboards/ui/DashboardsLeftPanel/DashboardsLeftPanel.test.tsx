@@ -1,3 +1,4 @@
+import type * as readModule from '@/env/cache/useRead';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -15,10 +16,33 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/chart', () => ({
-    formatChartCell: (value: unknown) => String(value),
-    useListChartsQuery: () => ({ data: [], isLoading: false, isFetching: false }),
-}));
+vi.mock('@/env/cache/useRead', async importOriginal => {
+    const actual = await importOriginal<typeof readModule>();
+
+    return {
+        ...actual,
+        useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listCharts') {
+                return {
+                    data: [],
+                    isLoading: false,
+                    isFetching: false,
+                    isPending: false,
+                };
+            }
+            if (query.name === 'getChartData') {
+                return {
+                    data: undefined,
+                    isPending: false,
+                    isFetching: false,
+                    error: null,
+                };
+            }
+
+            return actual.useRead(query as never, input, options as never);
+        },
+    };
+});
 
 vi.mock('@/entities/dashboard', () => ({
     useListDashboardsQuery: () => ({

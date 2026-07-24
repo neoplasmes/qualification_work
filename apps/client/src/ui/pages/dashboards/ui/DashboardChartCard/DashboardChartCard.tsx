@@ -1,10 +1,12 @@
+import type { Chart } from '@/core/entities/chart';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
+import { useRead } from '@/env/cache/useRead';
+import { useDependencies } from '@/ui/di/dependencies';
+import { ChartCard } from '@/ui/pages/dashboards/ui/ChartCard';
 import { IconButton } from '@qualification-work/design-system';
-import type { Chart } from '@qualification-work/types';
 import { Pencil, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
-import { ChartCard, useGetChartDataQuery } from '@/entities/chart';
 import type { DashboardChartItem } from '@/entities/dashboard';
 
 import { Card, StatusMessage } from '@/shared/ui';
@@ -37,10 +39,14 @@ export const DashboardChartCard = ({
     'data-test-id': testId,
 }: DashboardChartCardProps) => {
     const navigate = useNavigate();
-    const chartDataQuery = useGetChartDataQuery(item.chartId);
-    const chartData = chartDataQuery.currentData ?? null;
+    const chartDataQuery = useRead(
+        useDependencies().getChartData,
+        { orgId: chart?.orgId ?? '', chartId: item.chartId },
+        { enabled: Boolean(chart?.orgId) }
+    );
+    const chartData = chartDataQuery.data ?? null;
     const isLoadingChartData =
-        !chartData && (chartDataQuery.isLoading || chartDataQuery.isFetching);
+        !chartData && (chartDataQuery.isPending || chartDataQuery.isFetching);
     const chartName = chart?.name ?? item.chartId;
     const handleEdit = () => {
         navigate(`/charts/edit?id=${encodeURIComponent(item.chartId)}`);
@@ -88,7 +94,7 @@ export const DashboardChartCard = ({
 
             {isLoadingChartData && <StatusMessage>Loading chart data...</StatusMessage>}
 
-            {chartDataQuery.isError && !chartData && (
+            {Boolean(chartDataQuery.error) && !chartData && (
                 <StatusMessage tone="error">Unable to load chart data.</StatusMessage>
             )}
 

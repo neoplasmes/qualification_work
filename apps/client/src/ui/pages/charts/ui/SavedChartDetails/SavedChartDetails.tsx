@@ -1,7 +1,7 @@
+import type { Chart, ChartData as ChartResponse } from '@/core/entities/chart';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
-import type { Chart, ChartResponse } from '@qualification-work/types';
-
-import { ChartCard } from '@/entities/chart';
+import { ChartConfigSummary } from '@/ui/widgets/ChartConfigSummary';
+import { ChartShell, getChartColorFromConfig } from '@/ui/widgets/ChartShell';
 
 import { StatusMessage } from '@/shared/ui';
 
@@ -26,13 +26,19 @@ export const SavedChartDetails = ({
         {isLoadingData && <StatusMessage>Loading chart data...</StatusMessage>}
 
         {chartResult && (
-            <ChartCard
-                chart={chart}
-                columns={columns}
-                data={chartResult}
-                ariaLabel="Saved chart result"
-                transparentBackground
-            />
+            <>
+                <ChartConfigSummary
+                    config={chart.config}
+                    columns={columns}
+                    chartType={chart.chartType}
+                />
+                <ChartShell
+                    data={chartResult}
+                    kind={chart.chartType}
+                    color={getChartColorFromConfig(chart.config)}
+                    ariaLabel="Saved chart result"
+                />
+            </>
         )}
     </>
 );

@@ -1,39 +1,46 @@
+import {
+    ChartBuilder,
+    type ChartBuilderDraft,
+    type ChartBuilderOutput,
+    type ChartBuilderProps,
+} from '@/ui/pages/charts/ui/ChartBuilder';
 import { Button } from '@qualification-work/design-system';
 import { Database, X } from 'lucide-react';
 import { useState } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
-import {
-    ChartBuilder,
-    type ChartBuilderDraft,
-    type ChartBuilderOutput,
-} from '@/widgets/ChartBuilder';
-
 import { chartsTestIds } from '../../const';
 
 import styles from './ChartBuilderSection.module.css';
 
 type CreateChartBuilderSectionProps = {
-    orgId: string;
+    builderActions: Pick<
+        ChartBuilderProps,
+        | 'preview'
+        | 'previewLoading'
+        | 'chartError'
+        | 'isSaving'
+        | 'onPreview'
+        | 'onSave'
+        | 'onBackToConfig'
+    >;
     dataset: DatasetMetadata;
     draft: ChartBuilderDraft;
     onChangeDataset: () => void;
     onCancel: () => void;
     onDraftChange: (draft: ChartBuilderDraft) => void;
     onOutputChange: (output: ChartBuilderOutput) => void;
-    onChartCreated: (chartId: string) => void;
 };
 
 export const CreateChartBuilderSection = ({
-    orgId,
+    builderActions,
     dataset,
     draft,
     onChangeDataset,
     onCancel,
     onDraftChange,
     onOutputChange,
-    onChartCreated,
 }: CreateChartBuilderSectionProps) => {
     const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
 
@@ -69,13 +76,12 @@ export const CreateChartBuilderSection = ({
             </div>
             <ChartBuilder
                 key={dataset.dataset.id}
-                orgId={orgId}
+                {...builderActions}
                 selectedDataset={dataset}
                 value={draft}
                 actionsContainer={actionsEl}
                 onChange={onDraftChange}
                 onOutputChange={onOutputChange}
-                onChartCreated={onChartCreated}
             />
         </>
     );

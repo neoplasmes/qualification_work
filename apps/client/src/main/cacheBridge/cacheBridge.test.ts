@@ -24,7 +24,7 @@ it('forwards only confirmed current legacy writes using actual scoped read depen
         meta: {
             requestId: id,
             arg: {
-                endpointName: 'patchChart',
+                endpointName: 'executeAction',
                 originalArgs: { chartId: 'c', name: 'Name' },
             },
         },
@@ -46,7 +46,7 @@ it('forwards only confirmed current legacy writes using actual scoped read depen
         ).toBe(true)
     );
     bridge.confirmed({ refs: ['chart', 'dashboard'], epoch: cache.epoch });
-    expect(dispatch.mock.calls[0]?.[0].payload).toEqual(['Charts', 'Dashboards']);
+    expect(dispatch.mock.calls[0]?.[0].payload).toEqual(['Dashboards']);
     bridge.dispose();
     await cache.dispose();
 });
@@ -90,7 +90,7 @@ it('keeps a confirmed legacy write successful when an active refresh fails', asy
     );
     const meta = {
         requestId: 'write',
-        arg: { endpointName: 'createChart', originalArgs: {} },
+        arg: { endpointName: 'executeAction', originalArgs: {} },
     };
     middleware({ type: 'rtkApi/executeMutation/pending', meta });
     fails = true;

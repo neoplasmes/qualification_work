@@ -1,7 +1,7 @@
 import { createDependencies } from '@/main/dependencies';
 import type { ActionsPageState } from '@/ui/pages/actions';
 import {
-    createChartsPageStore,
+    createChartDraftStore,
     type ChartsPageState,
     type ChartsPreferences,
 } from '@/ui/pages/charts';
@@ -67,5 +67,5 @@ export function createUiTestRuntime(
         ui.panelLayout.setState(initial.panelLayout);
     }
 
-    return { runtime, ui, chartEditor: createChartsPageStore(initial.charts) };
+    return { runtime, ui, chartEditor: createChartDraftStore(initial.charts) };
 }

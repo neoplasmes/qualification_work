@@ -1,9 +1,20 @@
+import type { Chart, ChartData } from '@/core/entities/chart';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import type { Session } from '@/core/entities/user';
 import { createContext, useContext } from 'react';
 
 import type { Command } from '@/app/commands/command';
+import type {
+    ChartScope,
+    CreateChartInput,
+    CreateChartResult,
+    GetChartDataInput,
+    ListChartsInput,
+    PatchChartInput,
+    PreviewChartDataInput,
+    UpdateChartInput,
+} from '@/app/ports/repos/chart';
 import type {
     DatasetMetadata,
     DatasetRowsPage,
@@ -56,6 +67,15 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    listCharts: Query<ListChartsInput, Chart[]>;
+    getChart: Query<ChartScope, Chart>;
+    getChartData: Query<GetChartDataInput, ChartData>;
+    previewChartData: Query<PreviewChartDataInput, ChartData>;
+    createChart: Command<CreateChartInput, CreateChartResult>;
+    updateChart: Command<UpdateChartInput, void>;
+    patchChart: Command<PatchChartInput, void>;
+    deleteChart: Command<ChartScope, void>;
+
     uploads: {
         register(files: readonly File[]): UploadHandle[];
         release(handles: readonly UploadHandle[]): void;

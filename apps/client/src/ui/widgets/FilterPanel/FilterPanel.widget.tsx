@@ -1,10 +1,9 @@
 import { type FilterApplicationEntity } from '@/core/processes/entityFiltering';
+import { chartKindIcons } from '@/ui/widgets/ChartShell';
 import { filterApplicationEntityConfigs } from '@/ui/widgets/FilterPanel/const';
 import { useFilters, useFiltersActions } from '@/ui/widgets/FilterPanel/model/filters';
 import { IconButton } from '@qualification-work/design-system';
 import { Eraser, LayoutDashboard, Sheet, Workflow } from 'lucide-react';
-
-import { CHART_KIND_ICONS } from '@/entities/chart';
 
 import {
     EmptyState,
@@ -41,7 +40,7 @@ const getFilterPanelItemIcon = (
             return null;
         }
 
-        const ChartIcon = CHART_KIND_ICONS[item.chartKind];
+        const ChartIcon = chartKindIcons[item.chartKind];
 
         return <ChartIcon size={filterPanelIconSize} />;
     }
@@ -57,8 +56,8 @@ const getFilterPanelItemIcon = (
     return <Workflow size={filterPanelIconSize} />;
 };
 
-const isChartKind = (value: string | undefined): value is keyof typeof CHART_KIND_ICONS =>
-    Boolean(value && value in CHART_KIND_ICONS);
+const isChartKind = (value: string | undefined): value is keyof typeof chartKindIcons =>
+    Boolean(value && value in chartKindIcons);
 
 export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
     const {

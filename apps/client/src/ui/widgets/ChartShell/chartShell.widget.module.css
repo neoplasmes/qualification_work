@@ -1,0 +1,129 @@
+.root {
+    min-height: 0;
+    background-color: var(--paper);
+}
+
+.transparent-background {
+    background-color: transparent;
+}
+
+.frameless {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+}
+
+.visual-only {
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.height-fill {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+}
+
+.visual-only.height-fill {
+    flex: 1 1 auto;
+}
+
+.chart-wrap {
+    position: relative;
+    width: 100%;
+    min-height: 0;
+}
+
+.visual-only .chart-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 360px;
+
+    > * {
+        width: 100%;
+    }
+}
+
+.height-fill .chart-wrap {
+    flex: 1 1 auto;
+}
+
+.visual-only.height-fill .chart-wrap {
+    min-height: 0;
+}
+
+.chart-unavailable {
+    padding: var(--spacing-sm) 0;
+
+    font-size: var(--font-size-sm);
+    color: var(--ink-2);
+}
+
+.chart-loading {
+    min-height: 360px;
+
+    font-size: var(--font-size-sm);
+    color: var(--ink-2);
+}
+
+.height-fill .chart-loading {
+    min-height: 0;
+    height: 100%;
+}
+
+.chart-warning {
+    border: 1px solid var(--rule-dash);
+    border-radius: var(--radius-xs);
+
+    font-size: var(--font-size-sm);
+    color: var(--ink-2);
+
+    background-color: var(--paper);
+}
+
+.summary {
+    overflow: hidden;
+
+    font-size: var(--font-size-xs);
+    color: var(--ink-2);
+}
+
+.values {
+    flex-shrink: 0;
+    border-top: 1px dashed var(--rule-dash);
+    font: 400 14px/1.5 var(--font-mono);
+
+    summary {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        cursor: pointer;
+    }
+
+    summary:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+    }
+}
+
+.table-scroll {
+    overflow: auto;
+    max-height: 280px;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: var(--space-8) var(--space-12);
+        border-bottom: 1px dashed var(--rule-dash);
+        text-align: left;
+        white-space: nowrap;
+    }
+}

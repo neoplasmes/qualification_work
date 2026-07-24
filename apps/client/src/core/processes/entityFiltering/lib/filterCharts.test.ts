@@ -1,10 +1,12 @@
-import type { Chart, Dashboard } from '@qualification-work/types';
+import type { Chart } from '@/core/entities/chart';
+import type { Dashboard } from '@qualification-work/types';
 import { describe, expect, it } from 'vitest';
 
 import { filterCharts, getChartIdsInDashboards } from './filterCharts';
 
 const charts: Chart[] = [
     {
+        ref: `chart:${'org-1'}/${'chart-1'}`,
         id: 'chart-1',
         orgId: 'org-1',
         datasetId: 'dataset-1',
@@ -19,6 +21,7 @@ const charts: Chart[] = [
         updatedAt: '2026-01-01T00:00:00.000Z',
     },
     {
+        ref: `chart:${'org-1'}/${'chart-2'}`,
         id: 'chart-2',
         orgId: 'org-1',
         datasetId: 'dataset-2',

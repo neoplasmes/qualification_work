@@ -2,6 +2,7 @@ import {
     type FilterApplicationEntity,
     type FilterApplicationScope,
 } from '@/core/processes/entityFiltering';
+import type * as readModule from '@/env/cache/useRead';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
 import { render, waitFor } from '@testing-library/react';
@@ -32,33 +33,46 @@ const datasetMetadataFixtures: DatasetMetadataFixture[] = [
     },
 ];
 
-vi.mock('@/entities/chart', () => ({
-    formatChartCell: (value: unknown) => String(value),
-    CHART_KIND_ICONS: {
-        bar: () => <span data-testid="bar-chart-icon" />,
-        heatmap: () => <span data-testid="heatmap-chart-icon" />,
-        line: () => <span data-testid="line-chart-icon" />,
-        pie: () => <span data-testid="pie-chart-icon" />,
-    },
-    useListChartsQuery: () => ({
-        data: [
-            {
-                id: 'chart-1',
-                orgId: 'org-1',
-                datasetId: 'dataset-1',
-                name: 'Revenue',
-                chartType: 'bar',
-                config: {
-                    kind: 'bar',
-                    dimension: { columnId: 'column-1' },
-                    measures: [{ aggregate: 'count' }],
-                },
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-        ],
-    }),
-}));
+vi.mock('@/env/cache/useRead', async importOriginal => {
+    const actual = await importOriginal<typeof readModule>();
+
+    return {
+        ...actual,
+        useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listCharts') {
+                return {
+                    data: [
+                        {
+                            id: 'chart-1',
+                            orgId: 'org-1',
+                            datasetId: 'dataset-1',
+                            name: 'Revenue',
+                            chartType: 'bar',
+                            config: {
+                                kind: 'bar',
+                                dimension: { columnId: 'column-1' },
+                                measures: [{ aggregate: 'count' }],
+                            },
+                            createdAt: '2026-01-01T00:00:00.000Z',
+                            updatedAt: '2026-01-01T00:00:00.000Z',
+                        },
+                    ],
+                    isPending: false,
+                };
+            }
+            if (query.name === 'getChartData') {
+                return {
+                    data: undefined,
+                    isPending: false,
+                    isFetching: false,
+                    error: null,
+                };
+            }
+
+            return actual.useRead(query as never, input, options as never);
+        },
+    };
+});
 
 vi.mock('@/entities/dashboard', () => ({
     useListDashboardsQuery: () => ({

@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 
-import type { ChartsRightPanelTab, ChartsWorkspaceMode } from './pageState.store';
+import type { ChartsRightPanelTab, ChartsWorkspaceMode } from '../chartDraft';
 
 export interface ChartsPreferences {
     rememberedChartId: string | null;

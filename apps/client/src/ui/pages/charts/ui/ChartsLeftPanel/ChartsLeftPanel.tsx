@@ -3,6 +3,7 @@ import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import { useChartsPageActions, useChartsPageState } from '@/ui/pages/charts/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
+import { chartKindIcons } from '@/ui/widgets/ChartShell';
 import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
 import { skipToken } from '@reduxjs/toolkit/query';
@@ -10,7 +11,6 @@ import { Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 
-import { CHART_KIND_ICONS as chartKindIcons, useListChartsQuery } from '@/entities/chart';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
@@ -27,7 +27,11 @@ export const ChartsLeftPanel = () => {
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
 
-    const chartsQuery = useListChartsQuery(org?.id ?? skipToken);
+    const chartsQuery = useRead(
+        useDependencies().listCharts,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
     const dependencies = useDependencies();
     const datasetsQuery = useRead(
@@ -59,7 +63,7 @@ export const ChartsLeftPanel = () => {
             countLabel={`Total: ${filteredCharts?.length ?? 0} charts`}
             testId={chartsTestIds.listPanel}
             listLabel="Saved charts"
-            loading={chartsQuery.isLoading}
+            loading={chartsQuery.isPending}
             loadingText="Loading charts..."
             empty={filteredCharts?.length === 0}
             emptyText="Build a chart from a dataset to see it here."

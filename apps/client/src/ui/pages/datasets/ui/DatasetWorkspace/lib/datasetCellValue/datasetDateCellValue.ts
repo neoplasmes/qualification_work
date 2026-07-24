@@ -1,4 +1,4 @@
-import { formatChartCell } from '@/entities/chart';
+import { formatChartCell } from '@/ui/widgets/ChartShell';
 
 const dateOnlyRe = /^\d{4}-\d{2}-\d{2}$/;
 const datePrefixRe = /^(\d{4})-(\d{2})-(\d{2})/;

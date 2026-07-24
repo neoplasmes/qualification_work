@@ -54,6 +54,7 @@ export const CreateChartBuilderSection = ({
                 <div data-stack="h" data-gap="sm" data-align="center">
                     <Button
                         data-test-id={chartsTestIds.changeDatasetButton}
+                        disabled={builderActions.isSaving}
                         onClick={onChangeDataset}
                     >
                         <Database size={18} aria-hidden />

@@ -2,7 +2,8 @@ import type { ChartConfig, ChartData } from '@/core/entities/chart';
 import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useStore } from 'zustand';
 
 import { getApiErrorMessage } from '@/shared/api';
 
@@ -12,6 +13,7 @@ import {
     createChartBuilderOutput,
 } from '../../ui/ChartBuilder/model';
 import type { ChartsCreateDraft, ChartsEditDraft } from '../chartDraft';
+import { chartsEditorContext } from '../editorOwner';
 
 export type ChartPreview = { config: ChartConfig; data: ChartData } | null;
 
@@ -29,6 +31,17 @@ export function useChartsController({
     onSaved(chartId: string): void;
 }) {
     const dependencies = useDependencies();
+    const editor = useContext(chartsEditorContext);
+    if (!editor) {
+        throw new Error('Charts editor owner is required');
+    }
+    const createPending = useStore(editor, state =>
+        Boolean(state.createSave?.pending && state.createSave.orgId === orgId)
+    );
+    const [updating, setUpdating] = useState(false);
+    const updatePending = useRef(false);
+    const scope = useRef({ orgId, chartId });
+    scope.current = { orgId, chartId };
     const charts = useRead(
         dependencies.listCharts,
         { orgId },
@@ -89,7 +102,14 @@ export function useChartsController({
         setPreview(null);
         setPreviewLoading(false);
         setError('');
-    }, [orgId, datasetId, draft?.chartType, draft?.chartDraft, chartId]);
+    }, [
+        orgId,
+        datasetId,
+        draft?.chartType,
+        draft?.chartDraft,
+        draft?.chartColor,
+        chartId,
+    ]);
     useEffect(() => {
         mounted.current = true;
 
@@ -110,7 +130,7 @@ export function useChartsController({
         previewLoading,
         error,
         syncError,
-        isSaving: create.isPending || update.isPending,
+        isSaving: createPending || updating,
         async previewChart() {
             if (!output?.config || !datasetId) {
                 setError(output?.error ?? 'Choose a dataset first.');
@@ -164,6 +184,17 @@ export function useChartsController({
 
                 return;
             }
+            if (updatePending.current) {
+                return;
+            }
+            const createId = chartId ? null : editor.getState().beginCreateSave(orgId);
+            if (!chartId && !createId) {
+                return;
+            }
+            if (chartId) {
+                updatePending.current = true;
+                setUpdating(true);
+            }
             setError('');
             setSyncError('');
             const name =
@@ -191,9 +222,26 @@ export function useChartsController({
                     });
                     savedId = outcome.data.id;
                     refreshError = outcome.syncError;
+                    if (!editor.getState().acknowledgeCreate(createId!, savedId)) {
+                        return;
+                    }
                 }
             } catch (cause) {
+                const current =
+                    !createId || editor.getState().createSave?.id === createId;
+                if (createId) {
+                    editor.getState().finishCreateSave(createId);
+                }
+                updatePending.current = false;
                 if (mounted.current) {
+                    setUpdating(false);
+                }
+                if (
+                    current &&
+                    mounted.current &&
+                    scope.current.orgId === orgId &&
+                    scope.current.chartId === chartId
+                ) {
                     setError(getApiErrorMessage(cause, 'Unable to save this chart.'));
                 }
 
@@ -207,7 +255,19 @@ export function useChartsController({
             } catch (cause) {
                 refreshError = cause;
             }
-            if (!mounted.current) {
+            const accepted = createId
+                ? editor.getState().finishCreateSave(createId)
+                : true;
+            updatePending.current = false;
+            if (mounted.current) {
+                setUpdating(false);
+            }
+            if (
+                !accepted ||
+                !mounted.current ||
+                scope.current.orgId !== orgId ||
+                scope.current.chartId !== chartId
+            ) {
                 return;
             }
             setPreview(null);

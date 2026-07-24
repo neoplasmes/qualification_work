@@ -29,7 +29,17 @@ export type ChartsCreateDraft = {
     output: ChartBuilderOutput | null;
 };
 
+export type ChartCreateSave = {
+    id: object;
+    draftId: object;
+    orgId: string;
+    receipt: string | null;
+    pending: boolean;
+};
+
 export type ChartsPageState = {
+    createIdentity: object | null;
+    createSave: ChartCreateSave | null;
     dirty: boolean;
     baseline: ChartBuilderDraft | null;
     editorChartId: string | null;
@@ -39,6 +49,8 @@ export type ChartsPageState = {
 };
 
 export const chartsPageInitialState: ChartsPageState = {
+    createIdentity: null,
+    createSave: null,
     dirty: false,
     baseline: null,
     editorChartId: null,
@@ -48,6 +60,9 @@ export const chartsPageInitialState: ChartsPageState = {
 };
 
 export type ChartsPageStateStore = ChartsPageState & {
+    beginCreateSave(orgId: string): object | null;
+    acknowledgeCreate(id: object, chartId: string): boolean;
+    finishCreateSave(id: object): boolean;
     reset(): void;
     acceptServer(chart: Chart): void;
     changeDataset(datasetId: string): void;
@@ -76,9 +91,10 @@ export function createChartDraftStore(
         : createChartBuilderDraft();
 
     return createStore<ChartsPageStateStore>()(
-        immer(set => ({
+        immer((set, get) => ({
             ...chartsPageInitialState,
             ...initial,
+            createIdentity: initial.createDraft || initial.dataset ? {} : null,
             ...(initial.chart
                 ? {
                       editorChartId: initial.chart.id,
@@ -99,6 +115,60 @@ export function createChartDraftStore(
                       },
                   }
                 : {}),
+            beginCreateSave: orgId => {
+                const state = get();
+                if (
+                    !state.createDraft ||
+                    !state.createIdentity ||
+                    state.createSave?.pending
+                ) {
+                    return null;
+                }
+                const id = {};
+                set({
+                    createSave: {
+                        id,
+                        draftId: state.createIdentity,
+                        orgId,
+                        receipt: null,
+                        pending: true,
+                    },
+                });
+
+                return id;
+            },
+            acknowledgeCreate: (id, chartId) => {
+                if (get().createSave?.id !== id) {
+                    return false;
+                }
+                set(state => {
+                    state.createSave!.receipt = chartId;
+                });
+
+                return true;
+            },
+            finishCreateSave: id => {
+                const save = get().createSave;
+                if (!save || save.id !== id) {
+                    return false;
+                }
+                const accepted = Boolean(
+                    save.receipt && save.draftId === get().createIdentity
+                );
+                set(state => {
+                    if (accepted) {
+                        state.createDraft = null;
+                        state.createIdentity = null;
+                        state.showDatasetPicker = false;
+                        state.dirty = false;
+                        state.createSave!.pending = false;
+                    } else {
+                        state.createSave = null;
+                    }
+                });
+
+                return accepted;
+            },
             reset: () =>
                 set(state => {
                     if (state.editDraft && state.baseline) {
@@ -108,6 +178,8 @@ export function createChartDraftStore(
                             output: null,
                         };
                     } else if (state.createDraft) {
+                        state.createIdentity = {};
+                        state.createSave = null;
                         state.createDraft = {
                             ...state.createDraft,
                             draft: createChartBuilderDraft(),
@@ -132,7 +204,11 @@ export function createChartDraftStore(
                 }),
             changeDataset: datasetId =>
                 set(state => {
-                    if (!state.createDraft || state.createDraft.datasetId === datasetId) {
+                    if (
+                        state.createSave?.pending ||
+                        !state.createDraft ||
+                        state.createDraft.datasetId === datasetId
+                    ) {
                         return;
                     }
                     state.createDraft = {
@@ -149,6 +225,8 @@ export function createChartDraftStore(
 
                     state.editorChartId = value;
                     state.createDraft = null;
+                    state.createIdentity = null;
+                    state.createSave = null;
                     state.showDatasetPicker = false;
 
                     if (chartChanged) {
@@ -163,6 +241,8 @@ export function createChartDraftStore(
 
                     state.editorChartId = value.chartId;
                     state.createDraft = null;
+                    state.createIdentity = null;
+                    state.createSave = null;
                     state.showDatasetPicker = false;
 
                     if (chartChanged) {
@@ -185,6 +265,8 @@ export function createChartDraftStore(
             setChartCreateDraft: value =>
                 set(state => {
                     state.createDraft = value;
+                    state.createIdentity = {};
+                    state.createSave = null;
                     state.editorChartId = null;
                     state.showDatasetPicker = false;
 
@@ -194,7 +276,7 @@ export function createChartDraftStore(
                 }),
             setChartCreateDraftValue: value =>
                 set(state => {
-                    if (state.createDraft) {
+                    if (state.createDraft && !state.createSave?.pending) {
                         state.createDraft.draft = value;
                         state.dirty = true;
                     }
@@ -208,6 +290,8 @@ export function createChartDraftStore(
             clearChartCreateDraft: () =>
                 set(state => {
                     state.createDraft = null;
+                    state.createIdentity = null;
+                    state.createSave = null;
                     state.showDatasetPicker = false;
                     state.dirty = false;
                 }),

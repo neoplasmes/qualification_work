@@ -1,6 +1,7 @@
 import { useChartsController } from '.';
 import type { Chart, ChartData } from '@/core/entities/chart';
 import { useRead } from '@/env/cache/useRead';
+import { deferred } from '@/test/readFixtures';
 import { createUiTestRuntime, UiTestProvider } from '@/test/uiRuntime';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
@@ -74,6 +75,7 @@ function setup() {
         editDraft: null,
         onSaved,
     };
+    store.chartEditor.getState().setChartCreateDraft(props.createDraft);
     const wrapper = ({ children }: PropsWithChildren) => (
         <UiTestProvider store={store}>{children}</UiTestProvider>
     );
@@ -239,4 +241,47 @@ it('serializes writes to one chart while allowing another chart to proceed', asy
         await Promise.all([first, same, other]);
     }
     expect(started).toEqual(['update:chart', 'update:other', 'patch:chart']);
+});
+
+it('fences color changes but retains a preview across name-only edits', async () => {
+    const { deps, props, wrapper } = setup();
+    const response = deferred<ChartData>();
+    deps.previewChartData.execute = () => response.promise;
+    const { result, rerender } = renderHook(input => useChartsController(input), {
+        wrapper,
+        initialProps: props,
+    });
+    await waitFor(() => expect(result.current.builderDataset).not.toBeNull());
+    let preview!: Promise<void>;
+    act(() => {
+        preview = result.current.previewChart();
+    });
+    rerender({
+        ...props,
+        createDraft: {
+            ...props.createDraft,
+            draft: { ...props.createDraft.draft, chartColor: '#123456' },
+        },
+    });
+    await act(async () => {
+        response.resolve(data);
+        await preview;
+    });
+    expect(result.current.preview).toBeNull();
+    await act(async () => {
+        await result.current.previewChart();
+    });
+    const accepted = result.current.preview;
+    rerender({
+        ...props,
+        createDraft: {
+            ...props.createDraft,
+            draft: {
+                ...props.createDraft.draft,
+                chartColor: '#123456',
+                chartName: 'renamed only',
+            },
+        },
+    });
+    expect(result.current.preview).toBe(accepted);
 });

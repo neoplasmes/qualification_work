@@ -106,6 +106,9 @@ export const ChartsPropertiesPanel = () => {
     };
 
     if (!selectedChart) {
+        if (error) {
+            return <StatusMessage tone="error">{error}</StatusMessage>;
+        }
         if (selectedChartId && selectedChartQuery.isPending) {
             return <StatusMessage>Loading chart properties...</StatusMessage>;
         }

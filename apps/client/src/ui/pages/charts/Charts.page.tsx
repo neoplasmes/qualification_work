@@ -85,7 +85,6 @@ export const ChartsPage = () => {
         editDraft,
         onSaved: chartId => {
             if (createDraft) {
-                clearChartCreateDraft();
                 selectChart(chartId);
                 navigate(getChartWorkspaceUrl(chartId, 'view'));
             } else {

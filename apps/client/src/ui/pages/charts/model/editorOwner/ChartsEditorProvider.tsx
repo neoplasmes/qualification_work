@@ -6,7 +6,7 @@ import { chartsEditorContext } from './editor.context';
 
 export function ChartsEditorProvider({ children }: PropsWithChildren) {
     const [store] = useState(createChartDraftStore);
-    const { session } = useDependencies();
+    const { session, ui } = useDependencies();
     useEffect(
         () =>
             session.subscribe(() => {
@@ -15,6 +15,16 @@ export function ChartsEditorProvider({ children }: PropsWithChildren) {
                 }
             }),
         [session, store]
+    );
+
+    useEffect(
+        () =>
+            ui.activeOrganization.subscribe((next, previous) => {
+                if (next.activeOrgId !== previous.activeOrgId) {
+                    store.setState(store.getInitialState(), true);
+                }
+            }),
+        [store, ui]
     );
 
     return (

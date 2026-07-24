@@ -48,3 +48,46 @@ it('isolates mounted editors and keeps drafts across workspace navigation', () =
     });
     expect(remounted.result.current).toBeNull();
 });
+
+it.each(['organization', 'session'])(
+    'retires pending create ownership after %s changes',
+    async scope => {
+        const { runtime } = createUiTestRuntime();
+        const wrapper = ({ children }: PropsWithChildren) => (
+            <ClientRoot runtime={runtime}>
+                <MemoryRouter>
+                    <ChartsEditorProvider>{children}</ChartsEditorProvider>
+                </MemoryRouter>
+            </ClientRoot>
+        );
+        const { result } = renderHook(
+            () => ({
+                actions: useChartsPageActions(),
+                save: useChartsPageState(state => state.createSave),
+                draft: useChartsPageState(state => state.createDraft),
+            }),
+            { wrapper }
+        );
+        let token!: object;
+        act(() => {
+            result.current.actions.setChartCreateDraft({
+                datasetId: 'old',
+                draft: createChartBuilderDraft(),
+                output: null,
+            });
+            token = result.current.actions.beginCreateSave('old-org')!;
+        });
+        await act(async () => {
+            if (scope === 'organization') {
+                runtime.dependencies.ui.activeOrganization
+                    .getState()
+                    .setActiveOrgId('new-org');
+            } else {
+                await runtime.dependencies.session.reset();
+            }
+        });
+        expect(result.current.save).toBeNull();
+        expect(result.current.draft).toBeNull();
+        expect(result.current.actions.acknowledgeCreate(token, 'old-chart')).toBe(false);
+    }
+);

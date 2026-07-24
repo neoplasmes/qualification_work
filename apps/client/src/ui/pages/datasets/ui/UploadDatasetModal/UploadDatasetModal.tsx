@@ -207,9 +207,9 @@ export const UploadDatasetModal = ({
                         {workflow.progress}
                     </Text>
                 )}
-                {(uploadError || workflow.error) && (
+                {(workflow.error || uploadError) && (
                     <Notice tone="danger" role="alert">
-                        {uploadError || workflow.error}
+                        {workflow.error || uploadError}
                     </Notice>
                 )}
                 {workflow.syncWarning && (
@@ -224,15 +224,18 @@ export const UploadDatasetModal = ({
                 <Button
                     disabled={selectedFiles.length === 0 || !org || isLoading}
                     aria-busy={workflow.busy}
-                    onClick={() =>
-                        org &&
+                    onClick={() => {
+                        if (!org) {
+                            return;
+                        }
+                        setUploadError('');
                         void workflow.submit({
                             orgId: org.id,
                             files: selectedFiles,
                             single: singleModeActive,
                             name: singleDatasetName.trim() || defaultDatasetName,
-                        })
-                    }
+                        });
+                    }}
                 >
                     <Upload size={18} />
                     {buttonLabel}

@@ -40,12 +40,25 @@ it('previews append, commits once and selects the returned target', async () => 
     await runtime.dispose();
 });
 
-it.each(['network', 'contract'])(
-    'blocks another commit and cancellation after %s uncertainty',
-    async failure => {
+it.each([
+    ['network', 'unmount'],
+    ['contract', 'unmount'],
+    [502, 'close'],
+    [502, 'unmount'],
+    [504, 'close'],
+    [504, 'unmount'],
+] as const)(
+    'blocks another commit and cancellation after %s uncertainty on %s',
+    async (failure, dismissal) => {
         const { runtime, fetch, Wrapper } = createUploadHarness();
         fetch.mockImplementation(async (url, init) => {
             if (String(url).includes('/commit')) {
+                if (typeof failure === 'number') {
+                    return Response.json(
+                        { message: 'Gateway failed' },
+                        { status: failure }
+                    );
+                }
                 if (failure === 'contract') {
                     return Response.json({ malformed: true });
                 }
@@ -73,11 +86,20 @@ it.each(['network', 'contract'])(
         await user.click(await screen.findByRole('button', { name: 'Подтвердить' }));
         expect(await screen.findByText(/Результат отправки неизвестен/)).toBeVisible();
         expect(screen.getByRole('button', { name: 'Подтвердить' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Назад' })).toBeDisabled();
+        await user.click(screen.getByRole('button', { name: 'Подтвердить' }));
         await user.click(screen.getByRole('button', { name: 'Назад' }));
         expect(screen.getByText(/Результат отправки неизвестен/)).toBeVisible();
         expect(
             fetch.mock.calls.filter(([url]) => String(url).includes('/commit'))
         ).toHaveLength(1);
+        if (dismissal === 'close') {
+            await user.click(screen.getByRole('button', { name: 'Close modal' }));
+            await act(async () => {});
+            expect(
+                fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
+            ).toHaveLength(0);
+        }
         view.unmount();
         await act(async () => {});
         expect(
@@ -179,9 +201,16 @@ it('surfaces commit synchronization failure without a second commit', async () =
     await runtime.dispose();
 });
 
-it.each(['confirmed', 'uncertain'])(
-    'does not cancel an in-flight %s commit on unmount',
-    async outcome => {
+it.each([
+    ['confirmed', 'unmount'],
+    ['uncertain', 'unmount'],
+    [502, 'close'],
+    [502, 'unmount'],
+    [504, 'close'],
+    [504, 'unmount'],
+] as const)(
+    'does not cancel an in-flight %s commit on %s',
+    async (outcome, dismissal) => {
         const { runtime, fetch, Wrapper } = createUploadHarness();
         const normal = fetch.getMockImplementation()!;
         let finish!: (value: Response) => void;
@@ -205,6 +234,12 @@ it.each(['confirmed', 'uncertain'])(
         await user.upload(screen.getByLabelText('Файлы для объединения'), file);
         await user.click(screen.getByRole('button', { name: 'Проверить данные' }));
         await user.click(await screen.findByRole('button', { name: 'Подтвердить' }));
+        expect(screen.getByRole('button', { name: 'Назад' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Подтвердить' })).toBeDisabled();
+        await user.click(screen.getByRole('button', { name: 'Подтвердить' }));
+        if (dismissal === 'close') {
+            await user.click(screen.getByRole('button', { name: 'Close modal' }));
+        }
         view.unmount();
         expect(
             fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
@@ -220,13 +255,17 @@ it.each(['confirmed', 'uncertain'])(
                               updatedRows: 0,
                               skippedDuplicates: 0,
                               copiedRows: 0,
-                          }
+                          },
+                    typeof outcome === 'number' ? { status: outcome } : undefined
                 )
             )
         );
         expect(
             fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
         ).toHaveLength(0);
+        expect(
+            fetch.mock.calls.filter(([url]) => String(url).includes('/commit'))
+        ).toHaveLength(1);
         await runtime.dispose();
     }
 );

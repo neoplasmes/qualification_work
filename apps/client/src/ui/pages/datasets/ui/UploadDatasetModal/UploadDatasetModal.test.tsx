@@ -1,5 +1,5 @@
 import { createUploadHarness, previewFixture } from '@/test/uploadFixtures';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it, vi } from 'vitest';
 
@@ -7,6 +7,60 @@ import { UploadDatasetModal } from './UploadDatasetModal';
 
 afterEach(() => vi.unstubAllGlobals());
 const files = [new File(['a'], 'sales.csv'), new File(['b'], 'other.xlsx')];
+
+it.each(['rejected', 'uncertain'])(
+    'replaces a mixed-drop warning with the %s upload outcome',
+    async outcome => {
+        const { runtime, fetch, Wrapper } = createUploadHarness();
+        let finish!: () => void;
+        fetch.mockImplementationOnce(
+            () =>
+                new Promise((resolve, reject) => {
+                    finish = () =>
+                        outcome === 'uncertain'
+                            ? reject(new TypeError('offline'))
+                            : resolve(
+                                  Response.json(
+                                      { message: 'Rejected upload' },
+                                      { status: 400 }
+                                  )
+                              );
+                })
+        );
+        const user = userEvent.setup();
+        const view = render(
+            <UploadDatasetModal
+                org={{ id: 'org-1', name: 'Org' }}
+                onUploadSuccess={vi.fn()}
+                onClose={vi.fn()}
+            />,
+            { wrapper: Wrapper }
+        );
+        fireEvent.drop(screen.getByLabelText('Файлы таблицы'), {
+            dataTransfer: { files: [files[0], new File(['invalid'], 'notes.txt')] },
+        });
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Выберите файлы CSV или XLSX.'
+        );
+        const submit = screen.getByRole('button', { name: 'Загрузить таблицу' });
+        await user.click(submit);
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        await act(async () => finish());
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+            outcome === 'uncertain' ? 'Результат отправки неизвестен' : 'Rejected upload'
+        );
+        expect(screen.getByRole('alert')).not.toHaveTextContent(
+            'Выберите файлы CSV или XLSX.'
+        );
+        expect(submit).toBeDisabled();
+        await user.click(submit);
+        expect(
+            fetch.mock.calls.filter(([, init]) => init?.method === 'POST')
+        ).toHaveLength(1);
+        view.unmount();
+        await runtime.dispose();
+    }
+);
 
 it('deduplicates removable files and uploads sequentially then reads acknowledged metadata', async () => {
     const { runtime, fetch, Wrapper } = createUploadHarness();

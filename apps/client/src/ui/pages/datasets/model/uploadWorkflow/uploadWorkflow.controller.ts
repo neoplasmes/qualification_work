@@ -93,11 +93,15 @@ export function useUploadWorkflow(
         const value = failure as {
             name?: string;
             message?: string;
+            status?: number;
             payload?: { message?: string; error?: string };
         };
         const unknownOutcome =
             value.name === 'UncertainCommandError' ||
-            value.name === 'ContractViolationError';
+            value.name === 'ContractViolationError' ||
+            (write &&
+                value.name === 'HttpError' &&
+                (value.status === 502 || value.status === 504));
         if (unknownOutcome && write) {
             uncertain.current = true;
             session.current = null;

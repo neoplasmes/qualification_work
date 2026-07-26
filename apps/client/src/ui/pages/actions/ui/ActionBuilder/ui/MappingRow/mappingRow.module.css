@@ -1,0 +1,31 @@
+.mapping-row {
+    align-items: stretch;
+}
+
+.mapping-controls {
+    display: flex;
+    flex-flow: row wrap;
+    gap: var(--space-12);
+}
+
+.mapping-controls > * {
+    flex: 1 1 140px;
+    max-width: 100%;
+}
+
+.mapping-header {
+    flex-wrap: wrap;
+}
+
+.control-label {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+}
+
+.operation-select {
+    max-width: 100px;
+}
+
+.source-toggle {
+    flex-wrap: wrap;
+}

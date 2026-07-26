@@ -1,0 +1,28 @@
+.parameter-row {
+    flex-flow: row wrap;
+    align-items: end;
+    gap: var(--space-20);
+}
+
+.parameter-row > :first-child {
+    flex: 1 1 180px;
+    max-width: 100%;
+}
+
+.required-control {
+    height: 44px;
+}
+
+.key-hint {
+    flex-wrap: wrap;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+}
+
+.key-hint > input {
+    width: 100%;
+}
+
+.parameter-remove {
+    align-self: end;
+}

@@ -1,6 +1,5 @@
-import type { ActionEffect, ActionParameter } from '@qualification-work/types';
-
 import type { Entity } from '../entity';
+import type { ActionEffect, ActionParameter } from './action.types';
 
 export interface Action extends Entity {
     readonly ref: `action:${string}`;

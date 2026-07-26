@@ -1,24 +1,30 @@
 .form {
-    p {
-        font-size: var(--font-size-sm);
-        line-height: 1.5;
-        color: var(--color-on-surface-variant);
-    }
+    padding: var(--space-40);
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    gap: var(--space-20);
+}
+
+.form p {
+    color: var(--ink-3);
 }
 
 .section-title {
-    font-family: var(--font-headline);
-    font-size: var(--font-size-lg);
-    font-weight: 800;
+    margin: 0;
 }
 
 .placeholder {
-    min-height: 240px;
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: rgb(255 255 255 / 25%);
+    color: var(--ink-3);
+    padding: var(--space-20);
 }
 
 .run-grid {
-    align-items: end;
+    align-items: stretch;
+    gap: var(--space-20);
+}
+
+@media (width <= 600px) {
+    .form {
+        padding: var(--space-20);
+    }
 }

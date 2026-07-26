@@ -1,9 +1,8 @@
+import type { ActionParameter, ActionParameterType } from '@/core/entities/action';
 import {
     parseActionBuilderDraftValue,
     valueToActionBuilderDraftString,
-} from '@/widgets/ActionBuilder';
-
-import type { ActionParameter, ActionParameterType } from '@/entities/action';
+} from '@/ui/pages/actions/ui/ActionBuilder';
 
 import { isDayOfWeekValue } from '@/shared/lib/dayOfWeek';
 

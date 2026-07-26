@@ -1,9 +1,8 @@
+import type { Action } from '@/core/entities/action';
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type SubmitEvent } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-
-import type { Action } from '@/entities/action';
 
 import { actionsTestIds } from '../../../../../../const';
 
@@ -12,6 +11,7 @@ import { RunForm } from './RunForm';
 const runFormId = 'test-run-form';
 
 const action: Action = {
+    ref: 'action:org-1/action-1',
     id: 'action-1',
     orgId: 'org-1',
     name: 'Receive payment',

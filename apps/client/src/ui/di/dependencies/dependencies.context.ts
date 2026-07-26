@@ -1,3 +1,5 @@
+import type { Action } from '@/core/entities/action';
+import type { ActionRun } from '@/core/entities/actionRun';
 import type { Chart, ChartData } from '@/core/entities/chart';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
@@ -5,6 +7,15 @@ import type { Session } from '@/core/entities/user';
 import { createContext, useContext } from 'react';
 
 import type { Command } from '@/app/commands/command';
+import type {
+    ActionScope,
+    CreateActionInput,
+    ExecuteActionInput,
+    ListActionsInput,
+    ListRunsInput,
+    PatchActionInput,
+    UpdateActionInput,
+} from '@/app/ports/repos/action';
 import type {
     ChartScope,
     CreateChartInput,
@@ -67,6 +78,15 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    listActions: Query<ListActionsInput, Action[]>;
+    getAction: Query<ActionScope, Action>;
+    listActionRuns: Query<ListRunsInput, ActionRun[]>;
+    createAction: Command<CreateActionInput, { id: string }>;
+    updateAction: Command<UpdateActionInput, void>;
+    patchAction: Command<PatchActionInput, void>;
+    archiveAction: Command<ActionScope, void>;
+    executeAction: Command<ExecuteActionInput, ActionRun>;
+
     listCharts: Query<ListChartsInput, Chart[]>;
     getChart: Query<ChartScope, Chart>;
     getChartData: Query<GetChartDataInput, ChartData>;

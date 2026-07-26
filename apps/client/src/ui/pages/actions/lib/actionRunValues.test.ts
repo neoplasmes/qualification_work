@@ -1,6 +1,5 @@
+import type { ActionParameter } from '@/core/entities/action';
 import { describe, expect, it } from 'vitest';
-
-import type { ActionParameter } from '@/entities/action';
 
 import {
     coerceRunValues,

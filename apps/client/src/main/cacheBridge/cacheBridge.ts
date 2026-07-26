@@ -4,26 +4,8 @@ import type { Middleware, UnknownAction } from '@reduxjs/toolkit';
 
 import { api } from '@/shared/api';
 
-const metadataReads = ['listDatasets', 'getDatasetMetadata'];
-const contentReads = [
-    ...metadataReads,
-    'getDatasetRows',
-    'listCharts',
-    'getChart',
-    'getChartData',
-    'previewChartData',
-    'previewDashboardMetric',
-    'listDashboards',
-    'getDashboard',
-];
 const dashboardReads = ['listDashboards', 'getDashboard', 'previewDashboardMetric'];
-const actionReads = ['listActions', 'getAction'];
 const targets: Record<string, readonly string[]> = {
-    createAction: actionReads,
-    updateAction: actionReads,
-    patchAction: actionReads,
-    archiveAction: actionReads,
-    executeAction: ['listActionRuns', ...contentReads],
     createDashboard: dashboardReads,
     renameDashboard: dashboardReads,
     addDashboardChart: dashboardReads,
@@ -42,8 +24,6 @@ const familyTags: Partial<
     metricPreview: ['Dashboards'],
     dashboard: ['Dashboards'],
     dashboardItem: ['Dashboards'],
-    action: ['Actions'],
-    actionRun: ['ActionRuns'],
 };
 
 export function createCacheBridge(cache: CacheRuntime, report: (error: unknown) => void) {
@@ -135,7 +115,7 @@ export function createCacheBridge(cache: CacheRuntime, report: (error: unknown) 
         attach(value: (action: UnknownAction) => unknown) {
             dispatch = value;
         },
-        confirmed({ refs, epoch }: { refs: readonly EntityRef[]; epoch: number }) {
+        invalidate({ refs, epoch }: { refs: readonly EntityRef[]; epoch: number }) {
             if (closed || epoch !== cache.epoch) {
                 return;
             }

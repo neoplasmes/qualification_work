@@ -1,9 +1,5 @@
-import { useActionsPageState } from '@/ui/pages/actions/model';
-import { useActiveOrganization, useSession } from '@/ui/session';
-import { skipToken } from '@reduxjs/toolkit/query';
+import { useActionsController, useActionsPageState } from '@/ui/pages/actions/model';
 import { useMemo } from 'react';
-
-import { useListActionsQuery } from '@/entities/action';
 
 import { actionsTestIds } from './const';
 import { useActionsWorkspaceRouteSync } from './model';
@@ -15,9 +11,7 @@ export const ActionsPage = () => {
     const selectedActionId = useActionsPageState(state => state.selectedActionId);
     const isCreatingAction = useActionsPageState(state => state.isCreatingAction);
 
-    const meQuery = useSession();
-    const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
+    const { org, actionsQuery } = useActionsController();
 
     const selectedAction = useMemo(
         () =>
@@ -38,16 +32,16 @@ export const ActionsPage = () => {
                 data-justify="center"
                 data-flex
             >
-                Select or create an action.
+                Выберите или создайте действие.
             </p>
         );
 
-        if (selectedActionId && actionsQuery.isLoading) {
-            content = <p className={styles['empty']}>Loading action...</p>;
+        if (selectedActionId && actionsQuery.isPending) {
+            content = <p className={styles['empty']}>Загрузка действия…</p>;
         }
 
-        if (selectedActionId && actionsQuery.isError) {
-            content = <p className={styles['empty']}>Unable to load this action.</p>;
+        if (selectedActionId && actionsQuery.error) {
+            content = <p className={styles['empty']}>Не удалось загрузить действие.</p>;
         }
 
         return (
@@ -57,7 +51,7 @@ export const ActionsPage = () => {
                 data-gap="md"
                 data-flex
                 data-test-id={actionsTestIds.workspace}
-                aria-label="Action details"
+                aria-label="Действие"
             >
                 {content}
             </section>
@@ -68,12 +62,11 @@ export const ActionsPage = () => {
 
     return (
         <ActionEditor
-            key={editorKey}
+            key={`${org?.id}/${editorKey}`}
             selectedAction={selectedAction}
             isCreatingAction={isCreatingAction}
             orgId={org?.id}
             orgRole={org?.role}
-            refetchActions={actionsQuery.refetch}
         />
     );
 };

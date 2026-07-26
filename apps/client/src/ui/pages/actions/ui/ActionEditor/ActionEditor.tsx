@@ -1,22 +1,15 @@
+import type { Action } from '@/core/entities/action';
 import { useActionsPageActions, useActionsPageState } from '@/ui/pages/actions/model';
-import { Button, Divider } from '@qualification-work/design-system';
+import { Button, Divider, Text } from '@qualification-work/design-system';
 import { Play, Save, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router';
-
-import {
-    actionToBuilderDraft,
-    createActionBuilderDraft,
-    type ActionBuilderDraft,
-} from '@/widgets/ActionBuilder';
-
-import type { Action } from '@/entities/action';
 
 import { StatusMessage } from '@/shared/ui';
 
 import { actionsTestIds } from '../../const';
 import { canMutate, getActionWorkspaceUrl } from '../../lib';
-import { type ActionsWorkspaceMode } from '../../model';
+import { useActionDraft, type ActionsWorkspaceMode } from '../../model';
 import { WorkspaceTabs } from '../WorkspaceTabs';
 import { ActionConfigureTab } from './ui/ActionConfigureTab';
 import { ActionRunTab } from './ui/ActionRunTab';
@@ -28,7 +21,6 @@ type ActionEditorProps = {
     isCreatingAction: boolean;
     orgId: string | undefined;
     orgRole: string | undefined;
-    refetchActions: () => unknown;
 };
 
 const configureFormId = 'actions-configure-form';
@@ -39,15 +31,12 @@ export const ActionEditor = ({
     isCreatingAction,
     orgId,
     orgRole,
-    refetchActions,
 }: ActionEditorProps) => {
     const { cancelCreateAction, selectAction, setActionsWorkspaceMode } =
         useActionsPageActions();
     const navigate = useNavigate();
     const workspaceMode = useActionsPageState(state => state.workspaceMode);
-    const [draft, setDraft] = useState<ActionBuilderDraft>(() =>
-        selectedAction ? actionToBuilderDraft(selectedAction) : createActionBuilderDraft()
-    );
+    const { draft, setDraft } = useActionDraft(selectedAction);
     const [configureSaving, setConfigureSaving] = useState(false);
     const [runExecuting, setRunExecuting] = useState(false);
 
@@ -58,17 +47,15 @@ export const ActionEditor = ({
             cancelCreateAction();
             selectAction(actionId);
             navigate(getActionWorkspaceUrl(actionId, 'view'));
-            await refetchActions();
         },
-        [navigate, refetchActions]
+        [navigate, cancelCreateAction, selectAction]
     );
 
     const handleActionUpdated = useCallback(
         async (actionId: string) => {
             selectAction(actionId);
-            await refetchActions();
         },
-        [refetchActions]
+        [selectAction]
     );
 
     const handleTabChange = useCallback(
@@ -85,7 +72,7 @@ export const ActionEditor = ({
     const saveFormId = workspaceMode === 'edit' && editable ? configureFormId : undefined;
     const workspaceTitle =
         (isCreatingAction ? draft.name : (selectedAction?.name ?? '')).trim() ||
-        'Untitled action';
+        'Без названия';
 
     return (
         <section
@@ -94,10 +81,12 @@ export const ActionEditor = ({
             data-gap="sm"
             data-flex
             data-test-id={actionsTestIds.workspace}
-            aria-label="Action details"
+            aria-label="Действие"
         >
             <div className={styles['top-line-block']} data-stack="h" data-align="center">
-                <h2 className={styles['title']}>{workspaceTitle}</h2>
+                <Text as="h2" variant="heading" className={styles['title']}>
+                    {workspaceTitle}
+                </Text>
             </div>
 
             <Divider />
@@ -125,11 +114,11 @@ export const ActionEditor = ({
                             form={saveFormId}
                             size="regular"
                             data-test-id={actionsTestIds.saveButton}
-                            disabled={!editable || configureSaving || configureSaving}
+                            disabled={!editable || configureSaving}
                             aria-busy={configureSaving}
                         >
                             <Save size={16} />
-                            Save
+                            {configureSaving ? 'Сохранение…' : 'Сохранить'}
                         </Button>
                     ) : null}
                     {workspaceMode === 'view' && selectedAction ? (
@@ -138,11 +127,11 @@ export const ActionEditor = ({
                             form={runFormId}
                             size="regular"
                             data-test-id={actionsTestIds.runButton}
-                            disabled={!editable || runExecuting || runExecuting}
+                            disabled={!editable || runExecuting}
                             aria-busy={runExecuting}
                         >
                             <Play size={16} />
-                            Run
+                            {runExecuting ? 'Выполнение…' : selectedAction.name}
                         </Button>
                     ) : null}
                     {isCreatingAction ? (
@@ -152,7 +141,7 @@ export const ActionEditor = ({
                             onClick={() => cancelCreateAction()}
                         >
                             <X size={16} />
-                            Cancel
+                            Отмена
                         </Button>
                     ) : null}
                 </div>
@@ -161,8 +150,8 @@ export const ActionEditor = ({
             <div className={styles['scroll-area']} data-stack="v" data-gap="sm" data-flex>
                 {!editable && (
                     <StatusMessage>
-                        Viewer role can inspect actions and history, but can not edit or
-                        run them.
+                        Вы можете просматривать действия и журнал. Изменение и запуск
+                        доступны владельцам и редакторам.
                     </StatusMessage>
                 )}
 

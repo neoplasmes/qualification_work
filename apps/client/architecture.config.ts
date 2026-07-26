@@ -28,78 +28,6 @@ const architecture = {
             to: 'app/model/store',
         },
         {
-            from: 'ui/pages/actions/Actions.page.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/const/testIds.ts',
-            to: 'widgets/ActionBuilder',
-        },
-        {
-            from: 'ui/pages/actions/lib/actionRunValues.ts',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/lib/actionRunValues.ts',
-            to: 'widgets/ActionBuilder',
-        },
-        {
-            from: 'ui/pages/actions/lib/uiHelpers.ts',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ActionEditor.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ActionEditor.tsx',
-            to: 'widgets/ActionBuilder',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
-            to: 'features/manageActions',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionConfigureTab/ActionConfigureTab.tsx',
-            to: 'widgets/ActionBuilder',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionRunTab/ActionRunTab.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionRunTab/ActionRunTab.tsx',
-            to: 'features/manageActions',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionEditor/ui/ActionRunTab/ui/RunForm/RunForm.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionsHistory/ActionsHistory.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionsLeftPanel/ActionsLeftPanel.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
-            to: 'entities/action',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionsProperties/ActionsProperties.tsx',
-            to: 'features/manageActions',
-        },
-        {
-            from: 'ui/pages/actions/ui/ActionsRightPanel/ActionsRightPanel.tsx',
-            to: 'entities/action',
-        },
-        {
             from: 'ui/pages/charts/ui/ChartsLeftPanel/ChartsLeftPanel.tsx',
             to: 'entities/dashboard',
         },
@@ -182,10 +110,6 @@ const architecture = {
         {
             from: 'ui/widgets/FilterPanel/lib/createFilterPanelItems.ts',
             to: 'entities/dashboard',
-        },
-        {
-            from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',
-            to: 'entities/action',
         },
         {
             from: 'ui/widgets/FilterPanel/model/useFilterPanelSources.ts',

@@ -1,34 +1,28 @@
+import type { Action } from '@/core/entities/action';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import { useActionsPageActions } from '@/ui/pages/actions/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
-import { Button } from '@qualification-work/design-system';
+import { Button, Sheet, Text } from '@qualification-work/design-system';
 import { Trash2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
-import { usePatchActionMutation } from '@/features/manageActions';
-
-import { getEffectLabel, useArchiveActionMutation, type Action } from '@/entities/action';
-
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
-import { Badge, Card, EditableText, StatusMessage, Table } from '@/shared/ui';
+import { EditableText, StatusMessage, Table } from '@/shared/ui';
 
 import { actionsTestIds } from '../../const';
-import { actionsWorkspaceIndexPath, canMutate } from '../../lib';
+import { actionsWorkspaceIndexPath, canMutate, getEffectLabel } from '../../lib';
+import { useActionsController } from '../../model';
 
 import styles from '../../actions.page.module.css';
 
 type ActionsPropertiesProps = {
     selectedAction: Action | undefined;
-    refetchActions: () => unknown;
 };
 
-export const ActionsProperties = ({
-    selectedAction,
-    refetchActions,
-}: ActionsPropertiesProps) => {
+export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) => {
     const { selectAction } = useActionsPageActions();
     const navigate = useNavigate();
     const [archiveConfirmationId, setArchiveConfirmationId] = useState<string | null>(
@@ -43,8 +37,7 @@ export const ActionsProperties = ({
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const [patchAction, patchActionState] = usePatchActionMutation();
-    const [archiveAction, archiveState] = useArchiveActionMutation();
+    const { patchAction, archiveAction } = useActionsController();
 
     const datasetsById = useMemo(
         () =>
@@ -79,11 +72,16 @@ export const ActionsProperties = ({
 
         try {
             setError('');
-            await archiveAction(selectedAction.id).unwrap();
+            const outcome = await archiveAction.executeOutcome({
+                orgId: org!.id,
+                actionId: selectedAction.id,
+            });
+            if (outcome.syncError) {
+                setError('Действие удалено, но обновить список не удалось.');
+            }
             selectAction(null);
             navigate(actionsWorkspaceIndexPath, { replace: true });
             setArchiveConfirmationId(null);
-            await refetchActions();
         } catch (archiveError) {
             setError(getApiErrorMessage(archiveError, 'Unable to delete this action.'));
         }
@@ -96,8 +94,14 @@ export const ActionsProperties = ({
 
         try {
             setError('');
-            await patchAction({ actionId: selectedAction.id, name }).unwrap();
-            await refetchActions();
+            const outcome = await patchAction.executeOutcome({
+                orgId: org!.id,
+                actionId: selectedAction.id,
+                name,
+            });
+            if (outcome.syncError) {
+                setError('Название сохранено, но обновить данные не удалось.');
+            }
         } catch (renameError) {
             const message = getApiErrorMessage(
                 renameError,
@@ -118,7 +122,7 @@ export const ActionsProperties = ({
                 data-justify="center"
                 data-flex
             >
-                Select an action to view properties.
+                Выберите действие для просмотра свойств.
             </p>
         );
     }
@@ -129,8 +133,8 @@ export const ActionsProperties = ({
         titleContent = (
             <EditableText
                 title={selectedAction.name}
-                fallbackTitle="Untitled action"
-                saving={patchActionState.isLoading}
+                fallbackTitle="Без названия"
+                saving={patchAction.isPending}
                 editButtonTestId={actionsTestIds.renameButton}
                 inputTestId={actionsTestIds.renameInput}
                 onRename={handleRename}
@@ -139,7 +143,7 @@ export const ActionsProperties = ({
     } else {
         titleContent = (
             <h2 className={styles['title']}>
-                {selectedAction.name.trim() || 'Untitled action'}
+                {selectedAction.name.trim() || 'Без названия'}
             </h2>
         );
     }
@@ -147,47 +151,49 @@ export const ActionsProperties = ({
     let datasetsContent: ReactNode;
 
     if (affectedDatasets.length === 0) {
-        datasetsContent = <span className={styles['empty-meta']}>No datasets</span>;
+        datasetsContent = <span className={styles['empty-meta']}>Нет таблиц</span>;
     } else {
         datasetsContent = affectedDatasets.map(datasetId => {
-            const datasetName = datasetsById.get(datasetId) ?? 'Unknown dataset';
+            const datasetName = datasetsById.get(datasetId) ?? 'Неизвестная таблица';
 
             return (
-                <Badge
+                <Text
+                    as="span"
+                    variant="data"
                     key={datasetId}
                     className={styles['dataset-badge']}
                     title={datasetName}
                 >
                     {datasetName}
-                </Badge>
+                </Text>
             );
         });
     }
 
     return (
-        <section data-stack="v" data-gap="md" aria-label="Action properties">
+        <section data-stack="v" data-gap="md" aria-label="Свойства действия">
             {titleContent}
 
             {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
             <Table
-                aria-label="Action properties"
-                headers={{ key: 'Property', value: 'Value' }}
+                aria-label="Свойства действия"
+                headers={{ key: 'Свойство', value: 'Значение' }}
                 rows={[
-                    { key: 'Effects', value: selectedAction.effects.length },
-                    { key: 'Params', value: selectedAction.parameters.length },
-                    { key: 'Created', value: formatDate(selectedAction.createdAt) },
-                    { key: 'Updated', value: formatDate(selectedAction.updatedAt) },
+                    { key: 'Что делать с данными', value: selectedAction.effects.length },
+                    { key: 'Параметры', value: selectedAction.parameters.length },
+                    { key: 'Создано', value: formatDate(selectedAction.createdAt) },
+                    { key: 'Обновлено', value: formatDate(selectedAction.updatedAt) },
                 ]}
             />
 
-            <Card className={styles['card']} data-stack="v" data-gap="sm" data-p="md">
-                <span className={styles['eyebrow']}>Datasets</span>
+            <Sheet className={styles['card']} data-stack="v" data-gap="sm" data-p="md">
+                <span className={styles['eyebrow']}>Таблицы</span>
                 <div className={styles['datasets-list']}>{datasetsContent}</div>
-            </Card>
+            </Sheet>
 
-            <Card className={styles['card']} data-stack="v" data-gap="md" data-p="md">
-                <span className={styles['eyebrow']}>Effects</span>
+            <Sheet className={styles['card']} data-stack="v" data-gap="md" data-p="md">
+                <span className={styles['eyebrow']}>Что делать с данными</span>
                 <div data-stack="v" data-gap="sm" className={styles['stack']}>
                     {selectedAction.effects.map((effect, index) => (
                         <StatusMessage
@@ -197,22 +203,22 @@ export const ActionsProperties = ({
                         </StatusMessage>
                     ))}
                 </div>
-            </Card>
+            </Sheet>
 
             <Button
                 variant="danger"
-                disabled={!canMutate(org?.role) || archiveState.isLoading}
+                disabled={!canMutate(org?.role) || archiveAction.isPending}
                 title={
                     canMutate(org?.role)
                         ? undefined
-                        : 'Only owners and editors can delete actions.'
+                        : 'Удалять действия могут владельцы и редакторы.'
                 }
                 onClick={() => void handleArchive()}
             >
                 <Trash2 size={18} />
                 {archiveConfirmationId === selectedAction.id
-                    ? 'Confirm delete'
-                    : 'Delete action'}
+                    ? 'Подтвердить удаление'
+                    : 'Удалить действие'}
             </Button>
         </section>
     );

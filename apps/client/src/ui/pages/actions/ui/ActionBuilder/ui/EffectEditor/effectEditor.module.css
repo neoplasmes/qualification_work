@@ -1,0 +1,34 @@
+.values-card {
+    border: 1px dashed var(--rule-dash);
+    background: var(--raised);
+}
+
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-label);
+    color: var(--ink-3);
+}
+
+.section-title {
+    margin: 0;
+}
+
+.muted {
+    color: var(--ink-3);
+}
+
+.form-grid {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: start;
+    gap: var(--space-20);
+}
+
+.form-grid > * {
+    flex: 1 1 220px;
+    max-width: 100%;
+}
+
+.effect-section > :first-child {
+    flex-wrap: wrap;
+}

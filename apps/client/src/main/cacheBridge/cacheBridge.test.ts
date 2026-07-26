@@ -12,10 +12,10 @@ it('forwards only confirmed current legacy writes using actual scoped read depen
     bridge.attach(dispatch);
     const next = vi.fn();
     const middleware = bridge.middleware({ dispatch, getState: () => ({}) })(next);
-    cache.queryClient.setQueryDefaults(['getChart'], {
-        meta: { normalizedRead: true, dependencies: ['chart:org/c'] },
+    cache.queryClient.setQueryDefaults(['getDashboard'], {
+        meta: { normalizedRead: true, dependencies: ['dashboard:org/c'] },
     });
-    cache.queryClient.setQueryData(['getChart', { orgId: 'org', chartId: 'c' }], {
+    cache.queryClient.setQueryData(['getDashboard', { orgId: 'org', dashboardId: 'c' }], {
         tree: { kind: 'value', value: null },
         refs: [],
     });
@@ -24,8 +24,8 @@ it('forwards only confirmed current legacy writes using actual scoped read depen
         meta: {
             requestId: id,
             arg: {
-                endpointName: 'executeAction',
-                originalArgs: { chartId: 'c', name: 'Name' },
+                endpointName: 'renameDashboard',
+                originalArgs: { dashboardId: 'c', name: 'Name' },
             },
         },
     });
@@ -33,7 +33,7 @@ it('forwards only confirmed current legacy writes using actual scoped read depen
     await cache.clear();
     middleware(action('fulfilled', 'old'));
     expect(dispatch).not.toHaveBeenCalled();
-    cache.queryClient.setQueryData(['getChart', { orgId: 'org', chartId: 'c' }], {
+    cache.queryClient.setQueryData(['getDashboard', { orgId: 'org', dashboardId: 'c' }], {
         tree: { kind: 'value', value: null },
         refs: [],
     });
@@ -41,11 +41,13 @@ it('forwards only confirmed current legacy writes using actual scoped read depen
     middleware(action('fulfilled', 'new'));
     await vi.waitFor(() =>
         expect(
-            cache.queryClient.getQueryState(['getChart', { orgId: 'org', chartId: 'c' }])
-                ?.isInvalidated
+            cache.queryClient.getQueryState([
+                'getDashboard',
+                { orgId: 'org', dashboardId: 'c' },
+            ])?.isInvalidated
         ).toBe(true)
     );
-    bridge.confirmed({ refs: ['chart', 'dashboard'], epoch: cache.epoch });
+    bridge.invalidate({ refs: ['chart', 'dashboard'], epoch: cache.epoch });
     expect(dispatch.mock.calls[0]?.[0].payload).toEqual(['Dashboards']);
     bridge.dispose();
     await cache.dispose();
@@ -56,8 +58,8 @@ it('keeps a confirmed legacy write successful when an active refresh fails', asy
     let fails = false;
     const failure = new Error('read failed');
     const query = {
-        name: 'listCharts',
-        reads: () => ['chart' as const],
+        name: 'listDashboards',
+        reads: () => ['dashboard' as const],
         execute: async () => {
             if (fails) {
                 throw failure;
@@ -90,7 +92,7 @@ it('keeps a confirmed legacy write successful when an active refresh fails', asy
     );
     const meta = {
         requestId: 'write',
-        arg: { endpointName: 'executeAction', originalArgs: {} },
+        arg: { endpointName: 'renameDashboard', originalArgs: {} },
     };
     middleware({ type: 'rtkApi/executeMutation/pending', meta });
     fails = true;

@@ -1,7 +1,6 @@
-import { Field, Input, Select } from '@qualification-work/design-system';
+import type { Action } from '@/core/entities/action';
+import { Field, Input, Select, Text } from '@qualification-work/design-system';
 import type { SubmitEvent } from 'react';
-
-import type { Action } from '@/entities/action';
 
 import { getValueTypePlaceholder } from '@/shared/lib/valueTypePlaceholder';
 import { StatusMessage } from '@/shared/ui';
@@ -17,6 +16,7 @@ type RunFormProps = {
     runValues: Record<string, string>;
     disabled: boolean;
     lastRunMessage: string;
+    runFailed?: boolean;
     onRunValueChange: (key: string, value: string) => void;
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 };
@@ -38,6 +38,7 @@ export const RunForm = ({
     runValues,
     disabled,
     lastRunMessage,
+    runFailed,
     onRunValueChange,
     onSubmit,
 }: RunFormProps) => {
@@ -50,7 +51,7 @@ export const RunForm = ({
                 data-justify="center"
                 data-flex
             >
-                Save an action before running it.
+                Сохраните действие перед запуском.
             </p>
         );
     }
@@ -68,13 +69,19 @@ export const RunForm = ({
         >
             <div data-stack="h" data-gap="sm" data-align="start" data-justify="between">
                 <div>
-                    <h3 className={styles['section-title']}>Run action</h3>
-                    <p>Enter parameters and execute this business operation.</p>
+                    <Text
+                        as="h3"
+                        variant="heading-sm"
+                        className={styles['section-title']}
+                    >
+                        Запуск действия
+                    </Text>
+                    <p>Заполните параметры и выполните действие.</p>
                 </div>
             </div>
 
             {visibleParameters.length === 0 ? (
-                <StatusMessage>This action has no parameters.</StatusMessage>
+                <StatusMessage>Это действие не требует параметров.</StatusMessage>
             ) : (
                 <div className={styles['run-grid']} data-stack="v" data-gap="sm">
                     {visibleParameters.map(parameter => (
@@ -82,6 +89,7 @@ export const RunForm = ({
                             {parameter.type === 'bool' ? (
                                 <Select
                                     data-test-id={actionsTestIds.runBoolSelect}
+                                    required={parameter.required}
                                     value={runValues[parameter.key] ?? ''}
                                     disabled={disabled}
                                     onChange={event =>
@@ -91,9 +99,9 @@ export const RunForm = ({
                                         )
                                     }
                                 >
-                                    <option value="">Empty</option>
-                                    <option value="true">True</option>
-                                    <option value="false">False</option>
+                                    <option value="">Не задано</option>
+                                    <option value="true">Да</option>
+                                    <option value="false">Нет</option>
                                 </Select>
                             ) : (
                                 <Input
@@ -123,7 +131,9 @@ export const RunForm = ({
             )}
 
             {lastRunMessage && (
-                <StatusMessage tone="success">{lastRunMessage}</StatusMessage>
+                <StatusMessage tone={runFailed ? 'error' : 'success'}>
+                    {lastRunMessage}
+                </StatusMessage>
             )}
         </form>
     );

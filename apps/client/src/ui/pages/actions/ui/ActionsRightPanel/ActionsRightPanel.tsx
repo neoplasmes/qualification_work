@@ -1,11 +1,11 @@
-import { useActionsPageActions, useActionsPageState } from '@/ui/pages/actions/model';
-import { useActiveOrganization, useSession } from '@/ui/session';
+import {
+    useActionsController,
+    useActionsPageActions,
+    useActionsPageState,
+} from '@/ui/pages/actions/model';
 import { FilterPanel } from '@/ui/widgets/FilterPanel';
 import { WorkspaceRightPanel } from '@/ui/widgets/WorkspaceRightPanel';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
-
-import { useListActionsQuery } from '@/entities/action';
 
 import { actionsTestIds } from '../../const';
 import { type ActionsRightPanelTab } from '../../model';
@@ -26,9 +26,7 @@ const actionsRightPanelTabTestIds = {
 
 export const ActionsRightPanel = () => {
     const { setActionsRightPanelTab } = useActionsPageActions();
-    const meQuery = useSession();
-    const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
+    const { actionsQuery } = useActionsController();
     const activeTab = useActionsPageState(state => state.rightPanelTab);
     const selectedActionId = useActionsPageState(state => state.selectedActionId);
     const isCreatingAction = useActionsPageState(state => state.isCreatingAction);
@@ -46,8 +44,6 @@ export const ActionsRightPanel = () => {
         [actionsQuery.data]
     );
 
-    const refetchActions = actionsQuery.refetch;
-
     return (
         <WorkspaceRightPanel
             activeTab={activeTab}
@@ -60,10 +56,7 @@ export const ActionsRightPanel = () => {
                 <ActionsHistory actionNamesById={actionNamesById} />
             )}
             {activeTab === 'properties' && (
-                <ActionsProperties
-                    selectedAction={selectedAction}
-                    refetchActions={refetchActions}
-                />
+                <ActionsProperties selectedAction={selectedAction} />
             )}
             {activeTab === 'filters' && (
                 <FilterPanel

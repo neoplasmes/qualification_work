@@ -1,29 +1,26 @@
+import type { Action } from '@/core/entities/action';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import {
+    ActionBuilder,
+    builderDraftToActionPayload,
+    type ActionBuilderDraft,
+} from '@/ui/pages/actions/ui/ActionBuilder';
+import { Button, Notice } from '@qualification-work/design-system';
+import {
     useCallback,
     useEffect,
+    useRef,
     useState,
     type Dispatch,
     type FormEvent,
     type SetStateAction,
 } from 'react';
 
-import {
-    ActionBuilder,
-    builderDraftToActionPayload,
-    type ActionBuilderDraft,
-} from '@/widgets/ActionBuilder';
-
-import {
-    useCreateActionMutation,
-    usePatchActionMutation,
-} from '@/features/manageActions';
-
-import type { Action } from '@/entities/action';
-
 import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';
+
+import { useActionsController } from '../../../../model';
 
 type ActionConfigureTabProps = {
     draft: ActionBuilderDraft;
@@ -50,16 +47,26 @@ export const ActionConfigureTab = ({
     onDraftChange,
     onSavingChange,
 }: ActionConfigureTabProps) => {
-    const [createAction, createState] = useCreateActionMutation();
-    const [patchAction, patchState] = usePatchActionMutation();
+    const { createAction, updateAction } = useActionsController();
+    const [syncError, setSyncError] = useState(false);
+    const [confirmedId, setConfirmedId] = useState<string>();
     const dependencies = useDependencies();
     const datasetsQuery = useRead(
         dependencies.listDatasets,
         { orgId: orgId ?? '' },
         { enabled: Boolean(orgId) }
     );
-    const saving = createState.isLoading || patchState.isLoading;
+    const saving = createAction.isPending || updateAction.isPending;
     const [error, setError] = useState('');
+    const live = useRef(true);
+
+    useEffect(() => {
+        live.current = true;
+
+        return () => {
+            live.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         onSavingChange(saving);
@@ -69,7 +76,7 @@ export const ActionConfigureTab = ({
         async (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
 
-            if (!orgId || !editable) {
+            if (!orgId || !editable || saving || confirmedId) {
                 return;
             }
 
@@ -78,17 +85,34 @@ export const ActionConfigureTab = ({
                 const payload = builderDraftToActionPayload(draft);
 
                 if (isCreatingAction) {
-                    const created = await createAction({ orgId, ...payload }).unwrap();
-
-                    await onActionCreated(created.id);
+                    const outcome = await createAction.executeOutcome({
+                        orgId,
+                        ...payload,
+                    });
+                    if (!live.current) {
+                        return;
+                    }
+                    setConfirmedId(outcome.data.id);
+                    setSyncError(Boolean(outcome.syncError));
+                    if (!outcome.syncError) {
+                        await onActionCreated(outcome.data.id);
+                    }
                 } else if (selectedAction) {
-                    await patchAction({
+                    const outcome = await updateAction.executeOutcome({
+                        orgId,
                         actionId: selectedAction.id,
                         ...payload,
-                    }).unwrap();
+                    });
+                    if (!live.current) {
+                        return;
+                    }
+                    setSyncError(Boolean(outcome.syncError));
                     await onActionUpdated(selectedAction.id);
                 }
             } catch (saveError) {
+                if (!live.current) {
+                    return;
+                }
                 setError(
                     saveError instanceof Error
                         ? saveError.message
@@ -104,7 +128,9 @@ export const ActionConfigureTab = ({
             onActionCreated,
             onActionUpdated,
             orgId,
-            patchAction,
+            updateAction,
+            saving,
+            confirmedId,
             selectedAction,
         ]
     );
@@ -112,10 +138,38 @@ export const ActionConfigureTab = ({
     return (
         <>
             {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
+            {syncError && (
+                <Notice role="status">
+                    Действие сохранено, но обновить экран не удалось.{' '}
+                    <Button
+                        variant="ghost"
+                        onClick={async () => {
+                            try {
+                                await dependencies.cache.read(dependencies.listActions, {
+                                    orgId: orgId!,
+                                });
+                                if (!live.current) {
+                                    return;
+                                }
+                                setSyncError(false);
+                                if (confirmedId) {
+                                    await onActionCreated(confirmedId);
+                                }
+                            } catch {
+                                if (live.current) {
+                                    setSyncError(true);
+                                }
+                            }
+                        }}
+                    >
+                        Обновить данные
+                    </Button>
+                </Notice>
+            )}
             <ActionBuilder
                 value={draft}
                 datasets={datasetsQuery.data ?? []}
-                disabled={!editable || saving}
+                disabled={!editable || saving || Boolean(confirmedId)}
                 formId={formId}
                 onChange={onDraftChange}
                 onSubmit={handleSave}

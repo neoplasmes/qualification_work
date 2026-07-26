@@ -1,13 +1,12 @@
+import type { Action } from '@/core/entities/action';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import type { Action } from '@/entities/action';
 
 import { ActionsPage } from './Actions.page';
 import { actionsTestIds } from './const';
@@ -24,6 +23,7 @@ const mocks = vi.hoisted(() => ({
 const action = vi.hoisted(
     () =>
         ({
+            ref: 'action:org-1/action-1',
             id: 'action-1',
             orgId: 'org-1',
             name: 'Receive payment',
@@ -82,24 +82,6 @@ vi.mock('@/ui/session', () => ({
 
 const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset];
 
-vi.mock('@/entities/action', () => ({
-    getEffectLabel: (kind: string) =>
-        kind === 'insertRow' ? 'Insert row' : 'Update by match',
-    useListActionsQuery: () => ({
-        data: [action],
-        isLoading: false,
-        isFetching: false,
-        refetch: mocks.refetchActions,
-    }),
-    useArchiveActionMutation: () => [mocks.archiveAction, { isLoading: false }],
-}));
-
-vi.mock('@/features/manageActions', () => ({
-    useCreateActionMutation: () => [mocks.createAction, { isLoading: false }],
-    usePatchActionMutation: () => [mocks.patchAction, { isLoading: false }],
-    useExecuteActionMutation: () => [mocks.executeAction, { isLoading: false }],
-}));
-
 const getByDataTestId = <T extends HTMLElement>(
     container: HTMLElement,
     testId: string
@@ -124,6 +106,11 @@ const renderWorkspace = (
         },
     });
 
+    store.runtime.dependencies.listActions.execute = async () => [action];
+    store.runtime.dependencies.createAction.execute = mocks.createAction;
+    store.runtime.dependencies.updateAction.execute = mocks.patchAction;
+    store.runtime.dependencies.executeAction.execute = mocks.executeAction;
+
     return {
         store,
         ...render(
@@ -139,27 +126,21 @@ const renderWorkspace = (
 describe('ActionsPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.createAction.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue({ ...action, id: 'created-action' }),
+        mocks.createAction.mockResolvedValue({
+            id: 'created-action',
         });
-        mocks.patchAction.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(undefined),
-        });
-        mocks.archiveAction.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue(undefined),
-        });
-        mocks.executeAction.mockReturnValue({
-            unwrap: vi.fn().mockResolvedValue({
-                id: 'run-1',
-                actionId: 'action-1',
-                orgId: 'org-1',
-                userId: 'user-1',
-                parameters: {},
-                changes: [],
-                status: 'success',
-                errorMessage: null,
-                executedAt: '2026-01-01T00:00:00.000Z',
-            }),
+        mocks.patchAction.mockResolvedValue(undefined);
+        mocks.executeAction.mockResolvedValue({
+            ref: 'actionRun:org-1/run-1',
+            id: 'run-1',
+            actionId: 'action-1',
+            orgId: 'org-1',
+            userId: 'user-1',
+            parameters: {},
+            changes: [],
+            status: 'success',
+            errorMessage: null,
+            executedAt: '2026-01-01',
         });
         mocks.refetchActions.mockResolvedValue(undefined);
     });
@@ -168,7 +149,7 @@ describe('ActionsPage', () => {
         const { container } = renderWorkspace();
 
         expect(getByDataTestId(container, actionsTestIds.workspace)).toHaveTextContent(
-            'Select or create an action.'
+            'Выберите или создайте действие.'
         );
         expect(
             container.querySelector(`[data-test-id="${actionsTestIds.runForm}"]`)
@@ -271,7 +252,7 @@ describe('ActionsPage', () => {
             )
         ).toBeNull();
         expect(getByDataTestId(container, actionsTestIds.workspace)).toHaveTextContent(
-            'Select or create an action.'
+            'Выберите или создайте действие.'
         );
     });
 
@@ -291,9 +272,25 @@ describe('ActionsPage', () => {
 
         await waitFor(() => expect(mocks.executeAction).toHaveBeenCalledTimes(1));
         expect(mocks.executeAction).toHaveBeenCalledWith({
+            orgId: 'org-1',
             actionId: 'action-1',
             parameters: { amount: 15, paid: false },
         });
+    });
+
+    it('retains typed run inputs when the same action definition is refreshed', async () => {
+        const user = userEvent.setup();
+        const { container, store } = renderWorkspace({}, '/actions/view?id=action-1');
+        const input = await waitFor(() =>
+            getByDataTestId<HTMLInputElement>(container, actionsTestIds.runInput)
+        );
+        await user.type(input, '25');
+        await act(async () => {
+            await store.runtime.cache.store.upsert(action.ref, {
+                parameters: action.parameters.map(parameter => ({ ...parameter })),
+            });
+        });
+        expect(input).toHaveValue('25');
     });
 
     it('keeps edit draft when switching view and edit for the same action', async () => {

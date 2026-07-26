@@ -10,13 +10,13 @@ import type { ActionsWorkspaceMode } from '../../model';
 const actionsWorkspaceModeTabs = [
     {
         value: 'view',
-        label: 'View',
+        label: 'Запуск',
         icon: Eye,
         testId: actionsTestIds.workspaceViewTab,
     },
     {
         value: 'edit',
-        label: 'Edit',
+        label: 'Настройка',
         icon: PencilLine,
         testId: actionsTestIds.workspaceEditTab,
     },
@@ -25,14 +25,14 @@ const actionsWorkspaceModeTabs = [
 const actionsWorkspaceModeTabsWithDisabledRun = [
     {
         value: 'view',
-        label: 'View',
+        label: 'Запуск',
         icon: Eye,
         testId: actionsTestIds.workspaceViewTab,
         disabled: true,
     },
     {
         value: 'edit',
-        label: 'Edit',
+        label: 'Настройка',
         icon: PencilLine,
         testId: actionsTestIds.workspaceEditTab,
     },

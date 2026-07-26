@@ -12,7 +12,6 @@ import {
 import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
 
-import { getEffectLabel } from '@/entities/action';
 import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import type { StaticFilterPanelSourceItem } from './types';
@@ -49,7 +48,7 @@ export const useFilterPanelSources = (scope: FilterApplicationScope) => {
         () =>
             filterApplicationEffectKinds.map(kind => ({
                 id: kind,
-                label: getEffectLabel(kind),
+                label: kind === 'insertRow' ? 'Добавить строку' : 'Изменить по условию',
                 meta: [kind],
             })),
         []

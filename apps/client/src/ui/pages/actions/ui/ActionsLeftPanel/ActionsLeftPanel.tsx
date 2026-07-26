@@ -1,14 +1,14 @@
 import { filterActions } from '@/core/processes/entityFiltering';
-import { useActionsPageActions, useActionsPageState } from '@/ui/pages/actions/model';
-import { useActiveOrganization, useSession } from '@/ui/session';
+import {
+    useActionsController,
+    useActionsPageActions,
+    useActionsPageState,
+} from '@/ui/pages/actions/model';
 import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus, Workflow } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
-
-import { useListActionsQuery } from '@/entities/action';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { WorkspaceLeftPanelItem } from '@/shared/ui';
@@ -19,9 +19,7 @@ import { actionsWorkspaceIndexPath, canMutate, getActionWorkspaceUrl } from '../
 export const ActionsLeftPanel = () => {
     const { selectAction, startCreateAction } = useActionsPageActions();
     const navigate = useNavigate();
-    const meQuery = useSession();
-    const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const actionsQuery = useListActionsQuery(org?.id ?? skipToken);
+    const { org, actionsQuery } = useActionsController();
 
     const selectedActionId = useActionsPageState(state => state.selectedActionId);
     const isCreatingAction = useActionsPageState(state => state.isCreatingAction);
@@ -40,21 +38,21 @@ export const ActionsLeftPanel = () => {
 
     return (
         <WorkspaceLeftPanel
-            title="Actions"
-            countLabel={`Total: ${filteredActions.length} actions`}
+            title="Действия"
+            countLabel={`Всего: ${filteredActions.length}`}
             testId={actionsTestIds.listPanel}
-            listLabel="Actions"
-            loading={actionsQuery.isLoading}
-            loadingText="Loading actions..."
+            listLabel="Действия"
+            loading={actionsQuery.isPending}
+            loadingText="Загрузка действий…"
             empty={filteredActions.length === 0 && !isCreatingAction}
-            emptyText="Create an action to automate a small workflow."
+            emptyText="Создайте действие для изменения данных."
             action={{
-                label: 'New action',
+                label: 'Новое действие',
                 Icon: Plus,
                 disabled: !canCreate,
                 title: canCreate
                     ? undefined
-                    : 'Only owners and editors can create actions.',
+                    : 'Создавать действия могут владельцы и редакторы.',
                 onClick: () => {
                     navigate(actionsWorkspaceIndexPath);
                     startCreateAction();
@@ -64,8 +62,8 @@ export const ActionsLeftPanel = () => {
             {isCreatingAction ? (
                 <WorkspaceLeftPanelItem
                     selected
-                    header="New action"
-                    details={['Draft', 'Not saved']}
+                    header="Новое действие"
+                    details={['Черновик', 'Не сохранено']}
                     onClick={() => {
                         navigate(actionsWorkspaceIndexPath);
                         startCreateAction();
@@ -78,8 +76,8 @@ export const ActionsLeftPanel = () => {
                     selected={selectedActionId === action.id && !isCreatingAction}
                     header={action.name}
                     details={[
-                        `${action.parameters.length} params`,
-                        `${action.effects.length} effects`,
+                        `Параметров: ${action.parameters.length}`,
+                        `Изменений: ${action.effects.length}`,
                         formatDate(action.updatedAt),
                     ]}
                     iconElement={<Workflow size={18} />}

@@ -15,41 +15,25 @@ vi.mock('@/ui/session', () => ({
     }),
 }));
 
-vi.mock('@/entities/action', () => ({
-    useListActionsQuery: () => ({
-        data: [
-            {
-                id: 'action-1',
-                orgId: 'org-1',
-                name: 'Receive payment',
-                description: 'Mark invoice paid',
-                parameters: [{ key: 'invoice', label: 'Invoice', type: 'string' }],
-                effects: [
-                    {
-                        kind: 'updateRowsByMatch',
-                        datasetId: 'dataset-1',
-                        match: { columnKey: 'id', parameterKey: 'invoice' },
-                        values: { status: { kind: 'literal', value: 'paid' } },
-                    },
-                ],
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-                archivedAt: null,
-            },
-        ],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-    useListActionRunsQuery: () => ({
-        data: [],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
+const makeStore = () => {
+    const store = createUiTestRuntime();
+    store.runtime.dependencies.listActions.execute = async () => [
+        {
+            ref: 'action:org-1/action-1',
+            id: 'action-1',
+            orgId: 'org-1',
+            name: 'Receive payment',
+            description: null,
+            parameters: [],
+            effects: [],
+            createdAt: '2026-01-01',
+            updatedAt: '2026-01-01',
+            archivedAt: null,
+        },
+    ];
 
-const makeStore = () => createUiTestRuntime();
+    return store;
+};
 
 const renderPanel = () =>
     render(
@@ -70,13 +54,13 @@ describe('ActionsLeftPanel', () => {
         renderPanel();
 
         expect(
-            screen.getByRole('button', { name: /Receive payment/ })
+            await screen.findByRole('button', { name: /Receive payment/ })
         ).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: /New action/i }));
+        await user.click(screen.getByRole('button', { name: /Новое действие/i }));
 
         expect(
-            screen.getByRole('button', { name: /New action Draft.*Not saved/i })
+            screen.getByRole('button', { name: /Новое действие Черновик.*Не сохранено/i })
         ).toBeInTheDocument();
     });
 
@@ -84,6 +68,6 @@ describe('ActionsLeftPanel', () => {
         orgRole = 'viewer';
         renderPanel();
 
-        expect(screen.getByRole('button', { name: /New action/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /Новое действие/i })).toBeDisabled();
     });
 });

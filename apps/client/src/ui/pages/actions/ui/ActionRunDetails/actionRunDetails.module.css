@@ -1,0 +1,9 @@
+.document {
+    padding: var(--space-20);
+    overflow-wrap: anywhere;
+}
+
+.snapshot {
+    white-space: pre-wrap;
+    font-family: var(--font-mono);
+}

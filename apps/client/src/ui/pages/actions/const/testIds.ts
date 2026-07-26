@@ -1,4 +1,4 @@
-import { actionBuilderTestIds } from '@/widgets/ActionBuilder';
+import { actionBuilderTestIds } from '@/ui/pages/actions/ui/ActionBuilder';
 
 export const actionsTestIds = {
     ...actionBuilderTestIds,

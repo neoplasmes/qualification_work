@@ -1,12 +1,13 @@
 import type { Action } from '@/core/entities/action';
 import type { ActionRun } from '@/core/entities/actionRun';
 import type { Chart } from '@/core/entities/chart';
+import type { Dashboard } from '@/core/entities/dashboard';
+import type { DashboardItem } from '@/core/entities/dashboardItem';
 import type { Dataset } from '@/core/entities/dataset';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import type { Organization } from '@/core/entities/organization';
 import type { User } from '@/core/entities/user';
-import type { Dashboard, DashboardItem } from '@qualification-work/types';
 
 export interface RecordRowMap {
     user: User;
@@ -19,7 +20,7 @@ export interface RecordRowMap {
         readonly ref: `dashboard:${string}`;
         items: RecordRef<'dashboardItem'>[];
     };
-    dashboardItem: DashboardItem & { readonly ref: `dashboardItem:${string}` };
+    dashboardItem: DashboardItem;
     action: Action;
     actionRun: ActionRun;
 }

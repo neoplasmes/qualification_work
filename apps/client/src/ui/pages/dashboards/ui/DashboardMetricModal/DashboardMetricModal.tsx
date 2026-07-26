@@ -1,26 +1,22 @@
+import type { Dashboard } from '@/core/entities/dashboard';
+import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
+import { MetricBuilder } from '@/ui/pages/dashboards/ui/MetricBuilder';
 import { Button } from '@qualification-work/design-system';
 import { Save } from 'lucide-react';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import { MetricBuilder } from '@/widgets/MetricBuilder';
-
-import type { Dashboard, DashboardMetricItem } from '@/entities/dashboard';
 
 import { Modal } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../const';
 import { useDashboardMetricModal } from './model';
 
-type Refetch = () => Promise<unknown> | unknown;
-
 type DashboardMetricModalProps = {
     dashboard: Dashboard;
     datasets: DatasetMetadata[] | undefined;
     item: DashboardMetricItem | null;
-    refetchDashboard: Refetch;
-    refetchDashboards: Refetch;
+    onSynchronizedError: (message: string) => void;
     onClose: () => void;
 };
 
@@ -30,15 +26,13 @@ export const DashboardMetricModal = ({
     dashboard,
     datasets,
     item,
-    refetchDashboard,
-    refetchDashboards,
+    onSynchronizedError,
     onClose,
 }: DashboardMetricModalProps) => {
     const metricModal = useDashboardMetricModal({
         dashboard,
         datasets,
-        refetchDashboard,
-        refetchDashboards,
+        onSynchronizedError,
     });
     const isSaveDisabled =
         !metricModal.value.datasetId ||
@@ -61,7 +55,12 @@ export const DashboardMetricModal = ({
         </Button>
     );
 
+    const initialized = useRef(false);
     useLayoutEffect(() => {
+        if (initialized.current) {
+            return;
+        }
+        initialized.current = true;
         if (item) {
             metricModal.openEdit(item);
 

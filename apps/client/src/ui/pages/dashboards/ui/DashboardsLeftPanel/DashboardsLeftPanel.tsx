@@ -1,21 +1,17 @@
 import { filterDashboards } from '@/core/processes/entityFiltering';
+import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import {
     useDashboardsPageActions,
     useDashboardsPageState,
 } from '@/ui/pages/dashboards/model';
-import { useActiveOrganization, useSession } from '@/ui/session';
 import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
-import { skipToken } from '@reduxjs/toolkit/query';
+import { Button } from '@qualification-work/design-system';
 import { LayoutDashboard, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-
-import { useCreateDashboardMutation } from '@/features/manageDashboards';
-
-import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -23,21 +19,20 @@ import { StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../const';
 import { getDashboardWorkspaceUrl } from '../../lib';
+import { useDashboardsController } from '../../model';
 
 export const DashboardsLeftPanel = () => {
     const { selectDashboard } = useDashboardsPageActions();
     const navigate = useNavigate();
     const [error, setError] = useState('');
 
-    const meQuery = useSession();
-    const { activeOrg: org } = useActiveOrganization(meQuery.data);
-    const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
+    const { org, dashboardsQuery, dependencies } = useDashboardsController();
     const chartsQuery = useRead(
         useDependencies().listCharts,
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const [createDashboard, createState] = useCreateDashboardMutation();
+    const createState = useCommand(dependencies.createDashboard);
 
     const selectedDashboardId = useDashboardsPageState(
         state => state.selectedDashboardId
@@ -54,6 +49,15 @@ export const DashboardsLeftPanel = () => {
         [dashboardsQuery.data, chartsQuery.data, filterValues]
     );
 
+    const message =
+        error ||
+        (dashboardsQuery.error
+            ? getApiErrorMessage(
+                  dashboardsQuery.error,
+                  'Не удалось загрузить список дашбордов.'
+              )
+            : '');
+
     const handleCreate = async () => {
         if (!org) {
             return;
@@ -62,13 +66,18 @@ export const DashboardsLeftPanel = () => {
         setError('');
 
         try {
-            const result = await createDashboard({
+            const outcome = await createState.executeOutcome({
                 orgId: org.id,
-                name: 'New dashboard',
-            }).unwrap();
+                name: 'Новый дашборд',
+            });
+            const result = outcome.data;
             selectDashboard(result.id);
             navigate(getDashboardWorkspaceUrl(result.id));
-            await dashboardsQuery.refetch();
+            if (outcome.syncError) {
+                setError(
+                    'Дашборд создан, но обновление данных не удалось. Обновите список.'
+                );
+            }
         } catch (createError) {
             setError(getApiErrorMessage(createError, 'Unable to create this dashboard.'));
         }
@@ -76,20 +85,39 @@ export const DashboardsLeftPanel = () => {
 
     return (
         <WorkspaceLeftPanel
-            title="Dashboards"
-            countLabel={`Total: ${filteredDashboards?.length ?? 0} dashboards`}
+            title="Дашборды"
+            countLabel={`Всего: ${filteredDashboards?.length ?? 0}`}
             testId={dashboardsTestIds.listPanel}
-            listLabel="Dashboards"
-            loading={dashboardsQuery.isLoading}
-            loadingText="Loading dashboards..."
+            listLabel="Дашборды"
+            loading={dashboardsQuery.isPending}
+            loadingText="Загружаем дашборды..."
             empty={filteredDashboards?.length === 0}
-            emptyText="Create a dashboard to arrange saved charts."
-            status={error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
+            emptyText="Создайте дашборд для графиков и метрик."
+            status={
+                message ? (
+                    <StatusMessage tone="error">
+                        {message}
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                void dependencies.cache
+                                    .read(dependencies.listDashboards, {
+                                        orgId: org?.id ?? '',
+                                    })
+                                    .then(() => setError(''))
+                                    .catch(() => {});
+                            }}
+                        >
+                            Обновить список
+                        </Button>
+                    </StatusMessage>
+                ) : null
+            }
             action={{
-                label: 'New dashboard',
+                label: 'Новый дашборд',
                 Icon: Plus,
                 testId: dashboardsTestIds.createButton,
-                isLoading: createState.isLoading,
+                isLoading: createState.isPending,
                 onClick: () => void handleCreate(),
             }}
         >

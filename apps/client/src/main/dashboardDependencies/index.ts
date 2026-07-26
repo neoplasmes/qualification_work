@@ -1,0 +1,1 @@
+export { createDashboardDependencies } from './dashboardDependencies';

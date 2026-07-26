@@ -23,29 +23,8 @@ import { createGetAction } from '@/app/queries/getAction';
 import { createListActionRuns } from '@/app/queries/listActionRuns';
 import { createListActions } from '@/app/queries/listActions';
 
-import type { createCacheBridge } from '../cacheBridge';
-
-export function createActionDependencies(
-    cache: CacheRuntime,
-    transport: HttpTransport,
-    legacy?: Pick<ReturnType<typeof createCacheBridge>, 'invalidate'>
-) {
+export function createActionDependencies(cache: CacheRuntime, transport: HttpTransport) {
     const repo = new HttpActionRepo(transport);
-    const execute = repo.executeAction.bind(repo);
-    repo.executeAction = async input => {
-        const epoch = cache.epoch;
-        try {
-            return await execute(input);
-        } catch (error) {
-            try {
-                legacy?.invalidate({ refs: ['dashboard'], epoch });
-            } catch (syncError) {
-                console.error('Legacy dashboard synchronization failed', syncError);
-            }
-
-            throw error;
-        }
-    };
     const operations = {
         listActions: createListActions(repo),
         getAction: createGetAction(repo),

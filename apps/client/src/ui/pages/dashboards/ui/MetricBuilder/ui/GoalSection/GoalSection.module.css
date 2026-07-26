@@ -1,0 +1,15 @@
+.section {
+    width: 100%;
+}
+
+.target-metric-name {
+    overflow: hidden;
+    max-width: 160px;
+    color: var(--color-primary-new);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.direction-tabs {
+    width: 100%;
+}

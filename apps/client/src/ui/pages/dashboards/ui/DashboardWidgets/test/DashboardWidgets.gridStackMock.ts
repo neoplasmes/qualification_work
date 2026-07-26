@@ -20,6 +20,7 @@ type GridMockGrid = {
     on: Mock<(name: string, handler: () => void) => GridMockGrid>;
     off: Mock<(name: string) => GridMockGrid>;
     destroy: Mock<(removeDom?: boolean) => GridMockGrid>;
+    column: Mock<(value: number) => GridMockGrid>;
     getColumn: Mock<() => number>;
     enableMove: Mock<(enabled: boolean) => GridMockGrid>;
     enableResize: Mock<(enabled: boolean) => GridMockGrid>;
@@ -91,6 +92,11 @@ const createGridMocks = (): GridMocks => {
             return grid;
         }),
         destroy: vi.fn((_removeDom?: boolean) => grid),
+        column: vi.fn((value: number) => {
+            column = value;
+
+            return grid;
+        }),
         getColumn: vi.fn(() => column),
         enableMove: vi.fn((_enabled: boolean) => grid),
         enableResize: vi.fn((_enabled: boolean) => grid),

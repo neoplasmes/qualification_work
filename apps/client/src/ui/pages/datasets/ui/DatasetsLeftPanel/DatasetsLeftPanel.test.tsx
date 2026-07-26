@@ -48,6 +48,9 @@ vi.mock('@/env/cache/useRead', async importOriginal => {
     return {
         ...actual,
         useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listDashboards') {
+                return { data: [] };
+            }
             if (query.name === 'listCharts') {
                 return {
                     data: [
@@ -82,10 +85,6 @@ vi.mock('@/env/cache/useRead', async importOriginal => {
         },
     };
 });
-
-vi.mock('@/entities/dashboard', () => ({
-    useListDashboardsQuery: () => ({ data: [] }),
-}));
 
 const getByDataTestId = <T extends HTMLElement>(
     container: HTMLElement,

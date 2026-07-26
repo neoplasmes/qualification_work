@@ -1,39 +1,41 @@
 .dashboard-card {
     display: flex;
-    overflow: hidden;
+    overflow: auto;
+    box-sizing: border-box;
     width: 100%;
     height: 100%;
     flex-direction: column;
-    border: 1px solid var(--color-outline-new);
-    border-radius: var(--radius-xs);
-
-    background-color: var(--color-surface-container-lowest);
-
-    h3 {
-        font-family: var(--font-headline);
-        font-size: var(--font-size-lg);
-        font-weight: 800;
-
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+    padding: var(--space-16);
 }
 
 .card-header {
     flex: 0 0 auto;
+    flex-wrap: wrap;
+}
+
+.card-header h3 {
+    margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .card-actions {
     flex: 0 0 auto;
+    align-items: center;
+}
+
+.card-actions a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
 }
 
 .chart-area {
     display: flex;
+    min-height: 160px;
     overflow: hidden;
     flex: 1 1 auto;
+}
 
-    > * {
-        flex: 1 1 auto;
-    }
+.chart-area > * {
+    flex: 1 1 auto;
 }

@@ -3,6 +3,7 @@ import type { DatasetColumn } from '@/core/entities/datasetColumn';
 
 import 'gridstack/dist/gridstack.min.css';
 
+import type { DashboardItem } from '@/core/entities/dashboardItem';
 import {
     dashboardChartMinHeight,
     dashboardChartMinWidth,
@@ -12,8 +13,6 @@ import {
 } from '@qualification-work/types';
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
-
-import type { DashboardItem } from '@/entities/dashboard';
 
 import { EmptyState } from '@/shared/ui';
 

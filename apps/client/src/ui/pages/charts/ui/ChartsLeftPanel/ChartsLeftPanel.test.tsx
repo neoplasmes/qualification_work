@@ -1,4 +1,5 @@
 import type { Chart } from '@/core/entities/chart';
+import type * as readModule from '@/env/cache/useRead';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import type { DatasetMetadata as DatasetMetadataFixture } from '@qualification-work/types';
 import { render, screen } from '@testing-library/react';
@@ -46,15 +47,6 @@ const chartFixtures = [
         updatedAt: '2026-01-01T00:00:00.000Z',
     },
 ];
-
-vi.mock('@/entities/dashboard', () => ({
-    useListDashboardsQuery: () => ({
-        data: [],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
 
 const datasetMetadataFixtures: DatasetMetadataFixture[] = [
     {
@@ -148,4 +140,24 @@ describe('ChartsLeftPanel', () => {
         expect(screen.queryByText('dataset-1')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Status/ })).not.toBeInTheDocument();
     });
+});
+
+vi.mock('@/env/cache/useRead', async importOriginal => {
+    const actual = await importOriginal<typeof readModule>();
+
+    return {
+        ...actual,
+        useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listDashboards') {
+                return {
+                    data: [],
+                    isLoading: false,
+                    isFetching: false,
+                    refetch: vi.fn(),
+                };
+            }
+
+            return actual.useRead(query as never, input, options as never);
+        },
+    };
 });

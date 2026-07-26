@@ -4,27 +4,10 @@ import type { Middleware, UnknownAction } from '@reduxjs/toolkit';
 
 import { api } from '@/shared/api';
 
-const dashboardReads = ['listDashboards', 'getDashboard', 'previewDashboardMetric'];
-const targets: Record<string, readonly string[]> = {
-    createDashboard: dashboardReads,
-    renameDashboard: dashboardReads,
-    addDashboardChart: dashboardReads,
-    addDashboardMetric: dashboardReads,
-    updateDashboardMetric: dashboardReads,
-    updateDashboardLayout: dashboardReads,
-    removeDashboardItem: dashboardReads,
-    deleteDashboard: dashboardReads,
-};
+const targets: Record<string, readonly string[]> = {};
 const familyTags: Partial<
     Record<EntityRef, Parameters<typeof api.util.invalidateTags>[0]>
-> = {
-    dataset: ['Datasets'],
-    datasetColumn: ['Datasets'],
-    datasetRow: ['DatasetRows'],
-    metricPreview: ['Dashboards'],
-    dashboard: ['Dashboards'],
-    dashboardItem: ['Dashboards'],
-};
+> = {};
 
 export function createCacheBridge(cache: CacheRuntime, report: (error: unknown) => void) {
     let closed = false;

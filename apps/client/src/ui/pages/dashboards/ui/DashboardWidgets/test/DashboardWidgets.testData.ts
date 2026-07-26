@@ -1,6 +1,5 @@
 import type { Chart } from '@/core/entities/chart';
-
-import type { DashboardItem } from '@/entities/dashboard';
+import type { DashboardItem } from '@/core/entities/dashboardItem';
 
 export const chart: Chart = {
     ref: `chart:${'org-1'}/${'chart-1'}`,
@@ -26,12 +25,14 @@ export const secondChart: Chart = {
 
 export const items: DashboardItem[] = [
     {
+        ref: 'dashboardItem:org-1/dashboard-1/item-chart',
         id: 'item-chart',
         kind: 'chart',
         chartId: 'chart-1',
         layout: { posX: 0, posY: 0, width: 12, height: 8 },
     },
     {
+        ref: 'dashboardItem:org-1/dashboard-1/item-metric',
         id: 'item-metric',
         kind: 'metric',
         datasetId: 'dataset-1',
@@ -48,6 +49,7 @@ export const items: DashboardItem[] = [
         layout: { posX: 0, posY: 8, width: 3, height: 2 },
     },
     {
+        ref: 'dashboardItem:org-1/dashboard-1/item-chart-2',
         id: 'item-chart-2',
         kind: 'chart',
         chartId: 'chart-2',

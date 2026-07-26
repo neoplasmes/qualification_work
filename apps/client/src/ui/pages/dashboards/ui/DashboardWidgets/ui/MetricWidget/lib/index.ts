@@ -7,3 +7,4 @@ export {
     type MetricTargetDelta,
     type MetricTone,
 } from './metricGoal';
+export { formatMetricValue } from './formatMetricValue';

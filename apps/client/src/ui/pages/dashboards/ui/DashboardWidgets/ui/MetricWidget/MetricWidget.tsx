@@ -1,16 +1,16 @@
+import type { DashboardItem } from '@/core/entities/dashboardItem';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
-import { Divider, IconButton } from '@qualification-work/design-system';
+import { IconButton, Sheet, Stat, Text } from '@qualification-work/design-system';
 import { Pencil, X } from 'lucide-react';
 
-import { formatMetricValue, type DashboardItem } from '@/entities/dashboard';
-
-import { Card, Sparkline } from '@/shared/ui';
+import { Sparkline } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../../../const';
 
 import { useMeasuredElementSize } from '../../lib';
 import { WidgetSourceLabel } from '../WidgetSourceLabel';
 import {
+    formatMetricValue,
     getMetricTrendDescription,
     getMetricWidgetLayout,
     metricProgress,
@@ -37,7 +37,7 @@ export const MetricWidget = ({
     onRemoveItem,
     onEditItem,
 }: MetricWidgetProps) => {
-    const { ref, size } = useMeasuredElementSize<HTMLDivElement>();
+    const { ref, size } = useMeasuredElementSize<HTMLElement>();
     const layout = getMetricWidgetLayout(size);
     const hasValue = item.value != null && Number.isFinite(item.value);
     const progress = metricProgress(item.value, item.target, item.targetDirection);
@@ -52,59 +52,51 @@ export const MetricWidget = ({
         progress !== null && (!hasSparkline || layout.useProgressFallback);
     const progressValue = showProgress ? progress : null;
 
-    let valueContent;
-    if (hasValue) {
-        valueContent = (
-            <div className={styles['metric-value-row']}>
-                <strong className={styles['metric-value']}>
-                    {formatMetricValue(item.value, item.format, item.valueMultiplier)}
-                </strong>
-                <Divider />
-                {targetDelta && (
-                    <span
-                        className={[
-                            styles['target-delta'],
-                            styles[`delta-${targetDelta.tone}`],
-                        ].join(' ')}
-                        title="Difference from target"
-                    >
-                        {targetDelta.label}
-                    </span>
-                )}
-            </div>
-        );
-    } else {
-        valueContent = (
-            <span className={styles['metric-empty']} title="This metric has no value yet">
-                No data
-            </span>
-        );
-    }
+    const valueContent = (
+        <Stat
+            data-test-id="dashboard-metric-value"
+            label={hasValue ? 'Значение' : 'Нет данных'}
+            value={
+                hasValue
+                    ? formatMetricValue(item.value, item.format, item.valueMultiplier)
+                    : '—'
+            }
+            delta={targetDelta?.label}
+            deltaTone={targetDelta?.tone === 'danger' ? 'danger' : undefined}
+        />
+    );
 
     return (
-        <Card
+        <Sheet
             as="article"
+            ref={ref}
+            tabIndex={0}
+            aria-label={item.name}
             className={styles['metric-card']}
             data-stack="v"
             data-test-id={dashboardsTestIds.metricWidget}
             title={item.name}
         >
-            <div ref={ref} className={styles['metric-inner']}>
+            <div className={styles['metric-inner']}>
                 <div
                     data-stack="h"
                     data-align="center"
                     data-justify="between"
                     data-gap="xs"
                 >
-                    <h3 className={styles['metric-title']} title={item.name}>
+                    <Text
+                        as="h3"
+                        variant="body-sm"
+                        className={styles['metric-title']}
+                        title={item.name}
+                    >
                         {item.name}
-                    </h3>
+                    </Text>
                     <div data-stack="h" data-align="center" data-gap="xs">
                         <IconButton
                             variant="ghost"
                             aria-label={`Edit ${item.name}`}
                             onClick={() => onEditItem(item)}
-                            style={{ padding: '0px' }}
                         >
                             <Pencil size={14} />
                         </IconButton>
@@ -113,7 +105,6 @@ export const MetricWidget = ({
                             aria-label={`Remove ${item.name}`}
                             disabled={removing}
                             onClick={() => onRemoveItem(item.id)}
-                            style={{ padding: '0px' }}
                         >
                             <X size={17} />
                         </IconButton>
@@ -148,13 +139,19 @@ export const MetricWidget = ({
                                     style={{ width: `${progressValue * 100}%` }}
                                 />
                             </div>
-                            <span className={styles['progress-target']} title="Target">
+                            <Text
+                                as="span"
+                                variant="data"
+                                tone="mutedCanvas"
+                                className={styles['progress-target']}
+                                title="Target"
+                            >
                                 {formatMetricValue(
                                     item.target,
                                     item.format,
                                     item.valueMultiplier
                                 )}
-                            </span>
+                            </Text>
                         </div>
                     )}
 
@@ -184,6 +181,6 @@ export const MetricWidget = ({
                 </div>
                 <WidgetSourceLabel sourceName={sourceName} />
             </div>
-        </Card>
+        </Sheet>
     );
 };

@@ -1,16 +1,22 @@
 import type { Chart } from '@/core/entities/chart';
+import type { DashboardChartItem } from '@/core/entities/dashboardItem';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import { ChartCard } from '@/ui/pages/dashboards/ui/ChartCard';
-import { IconButton } from '@qualification-work/design-system';
-import { Pencil, X } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import {
+    Divider,
+    IconButton,
+    Link,
+    Sheet,
+    Text,
+} from '@qualification-work/design-system';
+import { X } from 'lucide-react';
+import { Link as RouterLink } from 'react-router';
 
-import type { DashboardChartItem } from '@/entities/dashboard';
+import { StatusMessage } from '@/shared/ui';
 
-import { Card, StatusMessage } from '@/shared/ui';
-
+import { useMeasuredElementSize } from '../DashboardWidgets/lib';
 import { WidgetSourceLabel } from '../DashboardWidgets/ui/WidgetSourceLabel';
 
 import styles from './DashboardChartCard.module.css';
@@ -38,7 +44,10 @@ export const DashboardChartCard = ({
     onRemove,
     'data-test-id': testId,
 }: DashboardChartCardProps) => {
-    const navigate = useNavigate();
+    const { ref: chartAreaRef, size: chartArea } =
+        useMeasuredElementSize<HTMLDivElement>();
+    const showLegend = chartArea.width >= 300 && chartArea.height >= 200;
+
     const chartDataQuery = useRead(
         useDependencies().getChartData,
         { orgId: chart?.orgId ?? '', chartId: item.chartId },
@@ -48,13 +57,11 @@ export const DashboardChartCard = ({
     const isLoadingChartData =
         !chartData && (chartDataQuery.isPending || chartDataQuery.isFetching);
     const chartName = chart?.name ?? item.chartId;
-    const handleEdit = () => {
-        navigate(`/charts/edit?id=${encodeURIComponent(item.chartId)}`);
-    };
 
     return (
-        <Card
+        <Sheet
             as="article"
+            tabIndex={0}
             className={styles['dashboard-card']}
             data-stack="v"
             data-gap="md"
@@ -69,17 +76,18 @@ export const DashboardChartCard = ({
                 data-justify="between"
             >
                 <div data-stack="v" data-gap="xs">
-                    <h3>{chart?.name ?? `Chart ${item.chartId.slice(0, 8)}`}</h3>
+                    <Text as="h3" variant="heading-sm">
+                        {chart?.name ?? `График ${item.chartId.slice(0, 8)}`}
+                    </Text>
                 </div>
                 <div data-stack="h" data-gap="xs" className={styles['card-actions']}>
-                    <IconButton
-                        variant="ghost"
-                        data-p="none"
+                    <Link
+                        as={RouterLink}
+                        to={`/charts/edit?id=${encodeURIComponent(item.chartId)}`}
                         aria-label={`Edit ${chartName}`}
-                        onClick={handleEdit}
                     >
-                        <Pencil size={14} />
-                    </IconButton>
+                        Открыть
+                    </Link>
                     <IconButton
                         variant="ghost"
                         data-p="none"
@@ -92,6 +100,8 @@ export const DashboardChartCard = ({
                 </div>
             </div>
 
+            <Divider />
+
             {isLoadingChartData && <StatusMessage>Loading chart data...</StatusMessage>}
 
             {Boolean(chartDataQuery.error) && !chartData && (
@@ -99,7 +109,7 @@ export const DashboardChartCard = ({
             )}
 
             {chartData && (
-                <div className={styles['chart-area']}>
+                <div ref={chartAreaRef} className={styles['chart-area']}>
                     <ChartCard
                         chart={chart}
                         columns={columns}
@@ -110,12 +120,12 @@ export const DashboardChartCard = ({
                         constrainAspectRatio
                         showDescription={showDescription}
                         showAxisTickLabels={showAxisTickLabels}
-                        showLegend={false}
+                        showLegend={showLegend}
                     />
                 </div>
             )}
 
             <WidgetSourceLabel sourceName={sourceName} />
-        </Card>
+        </Sheet>
     );
 };

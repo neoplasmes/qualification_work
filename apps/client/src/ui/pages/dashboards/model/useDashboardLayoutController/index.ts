@@ -1,0 +1,1 @@
+export { useDashboardLayoutController } from './useDashboardLayoutController';

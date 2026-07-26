@@ -1,7 +1,6 @@
+import type { DashboardItem } from '@/core/entities/dashboardItem';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { MetricTimeBucket } from '@qualification-work/types';
-
-import type { DashboardItem } from '@/entities/dashboard';
 
 type MetricItem = Extract<DashboardItem, { kind: 'metric' }>;
 

@@ -1,0 +1,9 @@
+.form.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+}
+
+.error {
+    width: 100%;
+}

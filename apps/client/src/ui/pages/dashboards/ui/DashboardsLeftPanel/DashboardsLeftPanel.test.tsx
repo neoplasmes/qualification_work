@@ -1,5 +1,6 @@
 import type * as readModule from '@/env/cache/useRead';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
+import { useDependencies } from '@/ui/di/dependencies';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -22,6 +23,24 @@ vi.mock('@/env/cache/useRead', async importOriginal => {
     return {
         ...actual,
         useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listDashboards') {
+                return {
+                    data: [
+                        {
+                            id: 'dashboard-1',
+                            orgId: 'org-1',
+                            name: 'Revenue',
+                            items: [],
+                            createdAt: '2026-01-01',
+                            updatedAt: '2026-01-01',
+                        },
+                    ],
+                    isPending: false,
+                };
+            }
+            if (query.name === 'getDashboard') {
+                return { data: undefined, isPending: false };
+            }
             if (query.name === 'listCharts') {
                 return {
                     data: [],
@@ -43,28 +62,6 @@ vi.mock('@/env/cache/useRead', async importOriginal => {
         },
     };
 });
-
-vi.mock('@/entities/dashboard', () => ({
-    useListDashboardsQuery: () => ({
-        data: [
-            {
-                id: 'dashboard-1',
-                orgId: 'org-1',
-                name: 'Revenue',
-                items: [],
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-        ],
-        isLoading: false,
-        isFetching: false,
-        refetch: vi.fn(),
-    }),
-}));
-
-vi.mock('@/features/manageDashboards', () => ({
-    useCreateDashboardMutation: () => [createDashboard, { isLoading: false }],
-}));
 
 const makeStore = () => createUiTestRuntime();
 
@@ -92,12 +89,28 @@ describe('DashboardsLeftPanel', () => {
 
         expect(screen.getByRole('button', { name: /Revenue/ })).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: /new dashboard/i }));
+        await user.click(screen.getByRole('button', { name: /Новый дашборд/i }));
         await waitFor(() =>
             expect(createDashboard).toHaveBeenCalledWith({
                 orgId: 'org-1',
-                name: 'New dashboard',
+                name: 'Новый дашборд',
             })
         );
     });
 });
+
+vi.mock('@/env/cache/useCommand', () => ({
+    useCommand: (command: unknown) => {
+        const dependencies = useDependencies();
+        if (command === dependencies.createDashboard) {
+            return {
+                executeOutcome: async (input: unknown) => ({
+                    data: await createDashboard(input).unwrap(),
+                }),
+                isPending: false,
+            };
+        }
+
+        throw new Error('Unexpected command');
+    },
+}));

@@ -1,0 +1,1 @@
+export { useDashboardsController } from './useDashboardsController';

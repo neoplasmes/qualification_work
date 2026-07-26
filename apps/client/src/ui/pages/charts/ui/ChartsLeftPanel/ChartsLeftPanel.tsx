@@ -6,12 +6,9 @@ import { useActiveOrganization, useSession } from '@/ui/session';
 import { chartKindIcons } from '@/ui/widgets/ChartShell';
 import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
-
-import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { WorkspaceLeftPanelItem } from '@/shared/ui';
@@ -32,7 +29,11 @@ export const ChartsLeftPanel = () => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
+    const dashboardsQuery = useRead(
+        useDependencies().listDashboards,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
     const dependencies = useDependencies();
     const datasetsQuery = useRead(
         dependencies.listDatasets,

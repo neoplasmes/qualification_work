@@ -22,6 +22,7 @@ import { api } from '@/shared/api';
 import { createActionDependencies } from '../actionDependencies';
 import { createCacheBridge } from '../cacheBridge';
 import { createChartDependencies } from '../chartDependencies';
+import { createDashboardDependencies } from '../dashboardDependencies';
 import { createDatasetDependencies } from '../datasetDependencies';
 import { createQueryClient } from '../queryClient';
 import { SessionLifecycle } from '../sessionLifecycle';
@@ -66,7 +67,6 @@ export function createDependencies(options: {
         ]),
         {
             onCommandConfirmed: event => {
-                bridge.invalidate(event);
                 const selected = ui.activeOrganization.getState().activeOrgId;
                 const selectedRef = selected
                     ? (`organization:${encodeURIComponent(selected)}` as const)
@@ -135,7 +135,8 @@ export function createDependencies(options: {
         ...operations,
         ...datasetOperations,
         ...createChartDependencies(cache, transport),
-        ...createActionDependencies(cache, transport, bridge),
+        ...createDashboardDependencies(cache, transport),
+        ...createActionDependencies(cache, transport),
         ...createUploadDependencies(cache, transport),
         ...createTableOptionsDependencies(cache, options.platform === 'browser'),
         cache,

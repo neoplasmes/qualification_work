@@ -6,11 +6,8 @@ import { useActiveOrganization, useSession } from '@/ui/session';
 import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
 import { Text, VStack } from '@qualification-work/design-system';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { Upload } from 'lucide-react';
 import { useMemo } from 'react';
-
-import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
@@ -35,7 +32,11 @@ export const DatasetsLeftPanel = () => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const dashboardsQuery = useListDashboardsQuery(org?.id ?? skipToken);
+    const dashboardsQuery = useRead(
+        useDependencies().listDashboards,
+        { orgId: org?.id ?? '' },
+        { enabled: Boolean(org?.id) }
+    );
 
     const selectedDatasetId = useDatasetsPageState(state => state.selectedDatasetId);
     const filterValues = useFilters(state => state.values['datasets']);

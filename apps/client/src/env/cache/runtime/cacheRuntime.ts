@@ -249,7 +249,7 @@ export class CacheRuntime {
             const codec = this.registry.get(query).codec;
             const result = await codec.normalize(output, input, staging);
             codec.resolve(result, staging);
-            for (const ref of compositionRefs(result, this.store)) {
+            for (const ref of compositionRefs(result, this.store, staging)) {
                 lease.add(ref);
             }
             for (const ref of lease) {

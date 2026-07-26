@@ -1,9 +1,10 @@
-import type { EntityStore, RecordRef } from '../entityStore';
+import type { EntityStore, RecordRef, StagingStore } from '../entityStore';
 import type { NormalizedResult } from './normalize';
 
 export function compositionRefs(
     result: NormalizedResult,
-    store: EntityStore
+    store: EntityStore,
+    source?: Pick<StagingStore, 'get'>
 ): RecordRef[] {
     const refs = new Set(
         result.refs.filter(
@@ -32,7 +33,7 @@ export function compositionRefs(
     }
     const pending = [...refs];
     while (pending.length) {
-        for (const child of store.references(pending.pop()!)) {
+        for (const child of store.references(pending.pop()!, source)) {
             if (!refs.has(child)) {
                 refs.add(child);
                 pending.push(child);

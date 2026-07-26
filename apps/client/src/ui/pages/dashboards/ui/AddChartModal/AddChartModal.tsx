@@ -13,7 +13,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
 import { formatDate } from '@/shared/lib/formatDate';
-import { EmptyState, Modal, WorkspaceLeftPanelItem } from '@/shared/ui';
+import { EmptyState, Modal, StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
 import { dashboardsTestIds } from '../../const';
 
@@ -27,6 +27,7 @@ type AddChartModalProps = {
     datasets: DatasetMetadata[] | undefined;
     selectedChartIds: string[];
     disabled: boolean;
+    error?: string;
     onToggleChart: (chartId: string) => void;
     onRemoveChart: (chartId: string) => void;
     onClearSelection: () => void;
@@ -39,6 +40,7 @@ export const AddChartModal = ({
     datasets,
     selectedChartIds,
     disabled,
+    error,
     onToggleChart,
     onRemoveChart,
     onClearSelection,
@@ -144,7 +146,7 @@ export const AddChartModal = ({
             <Button
                 className={styles['add-button']}
                 data-test-id={dashboardsTestIds.addChartButton}
-                disabled={selectedChartIds.length === 0 || disabled || disabled}
+                disabled={selectedChartIds.length === 0 || disabled}
                 aria-busy={disabled}
                 onClick={onAdd}
             >
@@ -165,6 +167,7 @@ export const AddChartModal = ({
             onClose={onClose}
         >
             <div className={styles['form']} data-stack="v" data-gap="md">
+                {error && <StatusMessage tone="error">{error}</StatusMessage>}
                 <div
                     className={styles['toolbar']}
                     data-stack="h"

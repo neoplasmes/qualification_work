@@ -39,6 +39,20 @@ vi.mock('@/env/cache/useRead', async importOriginal => {
     return {
         ...actual,
         useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listDashboards') {
+                return {
+                    data: [
+                        {
+                            id: 'dashboard-1',
+                            orgId: 'org-1',
+                            name: 'Sales',
+                            items: [],
+                            createdAt: '2026-01-01T00:00:00.000Z',
+                            updatedAt: '2026-01-01T00:00:00.000Z',
+                        },
+                    ],
+                };
+            }
             if (query.name === 'listCharts') {
                 return {
                     data: [
@@ -73,21 +87,6 @@ vi.mock('@/env/cache/useRead', async importOriginal => {
         },
     };
 });
-
-vi.mock('@/entities/dashboard', () => ({
-    useListDashboardsQuery: () => ({
-        data: [
-            {
-                id: 'dashboard-1',
-                orgId: 'org-1',
-                name: 'Sales',
-                items: [],
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-        ],
-    }),
-}));
 
 const testIds = {
     chip: 'filter-chip',

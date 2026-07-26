@@ -1,4 +1,4 @@
-import type { DashboardMetricItem } from '@/entities/dashboard';
+import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
 
 export type MetricTone = 'success' | 'danger' | 'neutral';
 export type MetricTargetDelta = {

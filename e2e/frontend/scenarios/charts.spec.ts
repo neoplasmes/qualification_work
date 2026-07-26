@@ -11,7 +11,7 @@ import {
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../apps/client/dist/migration-review/task-11'
+    '../../../.superpowers/sdd/2026-10-21-client-architecture-migration/task-13-browser-3/charts'
 );
 
 test('creates and edits all chart kinds with explicit previews and dashboard refresh', async ({
@@ -113,7 +113,9 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         const preview = page.locator('[aria-label="Chart preview"]');
         await expect(preview.getByTestId(`${kind}-chart-svg`)).toBeVisible();
         const renderer = preview.getByTestId(`${kind}-chart-svg`);
-        await expect(kind === 'bar' || kind === 'line' ? renderer.locator('svg').first() : renderer).toBeVisible();
+        await expect(
+            kind === 'bar' || kind === 'line' ? renderer.locator('svg').first() : renderer
+        ).toBeVisible();
         const bounds = await renderer.boundingBox();
         expect(bounds!.width).toBeGreaterThan(100);
         expect(bounds!.height).toBeGreaterThan(100);
@@ -308,7 +310,7 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         fullPage: true,
     });
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.getByRole('button', { name: 'Edit Browser bar', exact: true }).click();
+    await page.getByRole('link', { name: 'Edit Browser bar', exact: true }).click();
     await page.locator('[data-test-id="charts-rename-button"]').click();
     await page.locator('[data-test-id="charts-rename-input"]').fill('Renamed bar');
     const rename = page.waitForResponse(

@@ -28,10 +28,10 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
         await expect(page).toHaveURL(/\/dashboards\?id=/);
         const row = page
             .locator('[data-test-id="dashboards-list-item"]')
-            .filter({ hasText: 'New dashboard' });
+            .filter({ hasText: 'Новый дашборд' });
         await expect(row).toBeVisible();
         await visual(row).toHaveCSS('background-color', 'rgb(26, 22, 20)');
-        await visual(row.getByText('New dashboard', { exact: true })).toHaveCSS(
+        await visual(row.getByText('Новый дашборд', { exact: true })).toHaveCSS(
             'color',
             'rgb(244, 244, 231)'
         );

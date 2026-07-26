@@ -1,6 +1,7 @@
 import type { Action } from '@/core/entities/action';
 import type { ActionRun } from '@/core/entities/actionRun';
 import type { Chart, ChartData } from '@/core/entities/chart';
+import type { Dashboard } from '@/core/entities/dashboard';
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
 import type { DatasetRow } from '@/core/entities/datasetRow';
 import type { Session } from '@/core/entities/user';
@@ -26,6 +27,21 @@ import type {
     PreviewChartDataInput,
     UpdateChartInput,
 } from '@/app/ports/repos/chart';
+import type {
+    AddChartInput,
+    AddItemResult,
+    AddMetricInput,
+    CreateDashboardInput,
+    CreateDashboardResult,
+    DashboardItemScope,
+    DashboardScope,
+    ListDashboardsInput,
+    MetricPreview,
+    PreviewMetricInput,
+    RenameDashboardInput,
+    UpdateLayoutInput,
+    UpdateMetricInput,
+} from '@/app/ports/repos/dashboard';
 import type {
     DatasetMetadata,
     DatasetRowsPage,
@@ -78,6 +94,18 @@ export interface SessionController {
 }
 
 export interface Dependencies {
+    listDashboards: Query<ListDashboardsInput, Dashboard[]>;
+    getDashboard: Query<DashboardScope, Dashboard>;
+    previewDashboardMetric: Query<PreviewMetricInput, MetricPreview>;
+    createDashboard: Command<CreateDashboardInput, CreateDashboardResult>;
+    renameDashboard: Command<RenameDashboardInput, void>;
+    addDashboardChart: Command<AddChartInput, AddItemResult>;
+    addDashboardMetric: Command<AddMetricInput, AddItemResult>;
+    updateDashboardMetric: Command<UpdateMetricInput, void>;
+    updateDashboardLayout: Command<UpdateLayoutInput, void>;
+    removeDashboardItem: Command<DashboardItemScope, void>;
+    deleteDashboard: Command<DashboardScope, void>;
+
     listActions: Query<ListActionsInput, Action[]>;
     getAction: Query<ActionScope, Action>;
     listActionRuns: Query<ListRunsInput, ActionRun[]>;

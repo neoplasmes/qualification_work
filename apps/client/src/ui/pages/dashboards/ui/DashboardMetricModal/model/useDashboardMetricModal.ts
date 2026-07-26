@@ -1,28 +1,24 @@
+import type { Dashboard } from '@/core/entities/dashboard';
+import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
+import { useCommand } from '@/env/cache/useCommand';
+import { useDependencies } from '@/ui/di/dependencies';
+import type {
+    MetricBuilderDraft,
+    MetricBuilderOutput,
+} from '@/ui/pages/dashboards/ui/MetricBuilder';
 import { useCallback, useEffect, useMemo, useState, type SubmitEvent } from 'react';
 import { useStore } from 'zustand';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
-import type { MetricBuilderDraft, MetricBuilderOutput } from '@/widgets/MetricBuilder';
-
-import {
-    useAddDashboardMetricMutation,
-    useUpdateDashboardMetricMutation,
-} from '@/features/manageDashboards';
-
-import type { Dashboard, DashboardMetricItem } from '@/entities/dashboard';
-
 import { getApiErrorMessage } from '@/shared/api';
 
 import { createMetricFormStore, type WorkspaceMetricForm } from './metricForm.store';
 
-type Refetch = () => Promise<unknown> | unknown;
-
 type UseDashboardMetricModalParams = {
     dashboard: Dashboard | null | undefined;
     datasets: DatasetMetadata[] | undefined;
-    refetchDashboard: Refetch;
-    refetchDashboards: Refetch;
+    onSynchronizedError: (message: string) => void;
 };
 
 const getFirstDatasetId = (datasets: DatasetMetadata[] | undefined) =>
@@ -59,8 +55,7 @@ const itemToForm = (item: DashboardMetricItem): WorkspaceMetricForm => ({
 export const useDashboardMetricModal = ({
     dashboard,
     datasets,
-    refetchDashboard,
-    refetchDashboards,
+    onSynchronizedError,
 }: UseDashboardMetricModalParams) => {
     const [store] = useState(createMetricFormStore);
     const { clearWorkspaceMetricForm, setWorkspaceMetricForm } = store.getState();
@@ -86,8 +81,9 @@ export const useDashboardMetricModal = ({
     const timeColumn = useStore(store, state => state.workspaceMetricTimeColumn);
     const timeBucket = useStore(store, state => state.workspaceMetricTimeBucket);
 
-    const [addDashboardMetric, addState] = useAddDashboardMetricMutation();
-    const [updateDashboardMetric, updateState] = useUpdateDashboardMetricMutation();
+    const dependencies = useDependencies();
+    const addState = useCommand(dependencies.addDashboardMetric);
+    const updateState = useCommand(dependencies.updateDashboardMetric);
 
     useEffect(() => {
         setSelectedDatasetId(current => {
@@ -214,32 +210,28 @@ export const useDashboardMetricModal = ({
 
             try {
                 setError('');
-                if (editingMetricId) {
-                    await updateDashboardMetric({
-                        dashboardId: dashboard.id,
-                        itemId: editingMetricId,
-                        datasetId: submitValue.datasetId,
-                        name: nextName,
-                        expression: nextExpression,
-                        format: submitValue.format.trim(),
-                        valueMultiplier: parsedValueMultiplier,
-                        ...configPayload,
-                    }).unwrap();
-                } else {
-                    await addDashboardMetric({
-                        dashboardId: dashboard.id,
-                        datasetId: submitValue.datasetId,
-                        name: nextName,
-                        expression: nextExpression,
-                        format: submitValue.format.trim(),
-                        valueMultiplier: parsedValueMultiplier,
-                        ...configPayload,
-                    }).unwrap();
+                const payload = {
+                    orgId: dashboard.orgId,
+                    dashboardId: dashboard.id,
+                    datasetId: submitValue.datasetId,
+                    name: nextName,
+                    expression: nextExpression,
+                    format: submitValue.format.trim(),
+                    valueMultiplier: parsedValueMultiplier,
+                    ...configPayload,
+                };
+                const outcome = editingMetricId
+                    ? await updateState.executeOutcome({
+                          ...payload,
+                          itemId: editingMetricId,
+                      })
+                    : await addState.executeOutcome({ ...payload, height: 4 });
+                if (outcome.syncError) {
+                    onSynchronizedError(
+                        'Метрика сохранена, но обновление данных не удалось. Обновите данные.'
+                    );
                 }
-
                 close();
-                await refetchDashboard();
-                await refetchDashboards();
 
                 return true;
             } catch (saveError) {
@@ -253,20 +245,19 @@ export const useDashboardMetricModal = ({
             }
         },
         [
-            addDashboardMetric,
+            addState.executeOutcome,
             close,
             dashboard,
             editingMetricId,
             metricBuilderOutput,
-            refetchDashboard,
-            refetchDashboards,
-            updateDashboardMetric,
+            onSynchronizedError,
+            updateState.executeOutcome,
             value,
         ]
     );
 
     return {
-        disabled: addState.isLoading || updateState.isLoading,
+        disabled: addState.isPending || updateState.isPending,
         editing: editingMetricId !== null,
         error,
         value,

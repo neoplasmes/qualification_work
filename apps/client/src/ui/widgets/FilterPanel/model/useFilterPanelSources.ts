@@ -9,10 +9,7 @@ import {
     filterApplicationEffectKinds,
     filterApplicationEntityConfigs,
 } from '@/ui/widgets/FilterPanel/const';
-import { skipToken } from '@reduxjs/toolkit/query';
 import { useMemo } from 'react';
-
-import { useListDashboardsQuery } from '@/entities/dashboard';
 
 import type { StaticFilterPanelSourceItem } from './types';
 
@@ -40,8 +37,10 @@ export const useFilterPanelSources = (scope: FilterApplicationScope) => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(shouldLoadCharts && org) }
     );
-    const dashboardsQuery = useListDashboardsQuery(
-        shouldLoadDashboards && org ? org.id : skipToken
+    const dashboardsQuery = useRead(
+        dependencies.listDashboards,
+        { orgId: org?.id ?? '' },
+        { enabled: shouldLoadDashboards }
     );
 
     const effects = useMemo<StaticFilterPanelSourceItem[]>(

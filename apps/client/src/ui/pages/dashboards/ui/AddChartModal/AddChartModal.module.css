@@ -40,8 +40,8 @@
     align-items: center;
     justify-content: center;
 
-    width: 20px;
-    height: 20px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 0;
 
@@ -52,7 +52,8 @@
     &:hover,
     &:focus-visible {
         color: var(--color-on-surface);
-        outline: none;
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
     }
 
     &:disabled {

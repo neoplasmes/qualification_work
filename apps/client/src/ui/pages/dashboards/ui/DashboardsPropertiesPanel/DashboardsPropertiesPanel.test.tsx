@@ -1,10 +1,11 @@
+import type { Dashboard } from '@/core/entities/dashboard';
+import type * as readModule from '@/env/cache/useRead';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
+import { useDependencies } from '@/ui/di/dependencies';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import type { Dashboard } from '@/entities/dashboard';
 
 import { dashboardsTestIds } from '../../const';
 import { dashboardsPageInitialState } from '../../model';
@@ -21,17 +22,20 @@ const mocks = vi.hoisted(() => ({
 const dashboard = vi.hoisted(
     () =>
         ({
+            ref: 'dashboard:org-1/dashboard-1',
             id: 'dashboard-1',
             orgId: 'org-1',
             name: 'Sales',
             items: [
                 {
+                    ref: 'dashboardItem:org-1/dashboard-1/item-chart',
                     id: 'item-chart',
                     kind: 'chart',
                     chartId: 'chart-1',
                     layout: { posX: 0, posY: 0, width: 12, height: 8 },
                 },
                 {
+                    ref: 'dashboardItem:org-1/dashboard-1/item-metric',
                     id: 'item-metric',
                     kind: 'metric',
                     datasetId: 'dataset-1',
@@ -58,30 +62,6 @@ vi.mock('@/ui/session', () => ({
     useActiveOrganization: () => ({
         activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
     }),
-}));
-
-vi.mock('@/entities/dashboard', () => ({
-    useListDashboardsQuery: () => ({
-        data: [{ ...dashboard, items: undefined }],
-        refetch: mocks.refetchDashboards,
-    }),
-    useGetDashboardQuery: (dashboardId: string) => {
-        mocks.getDashboardQuery(dashboardId);
-        const currentData = dashboardId === dashboard.id ? dashboard : undefined;
-
-        return {
-            data: currentData,
-            currentData,
-            isLoading: false,
-            isFetching: false,
-            refetch: mocks.refetchDashboard,
-        };
-    },
-    useDeleteDashboardMutation: () => [mocks.deleteDashboard, { isLoading: false }],
-}));
-
-vi.mock('@/features/manageDashboards', () => ({
-    useRenameDashboardMutation: () => [mocks.renameDashboard, { isLoading: false }],
 }));
 
 const getByDataTestId = <T extends HTMLElement>(
@@ -153,6 +133,7 @@ describe('DashboardsPropertiesPanel', () => {
 
         await waitFor(() => expect(mocks.renameDashboard).toHaveBeenCalledTimes(1));
         expect(mocks.renameDashboard).toHaveBeenCalledWith({
+            orgId: 'org-1',
             dashboardId: 'dashboard-1',
             name: 'Operations',
         });
@@ -162,11 +143,62 @@ describe('DashboardsPropertiesPanel', () => {
         const user = userEvent.setup();
         const { store } = renderPropertiesPanel('dashboard-1');
 
-        await user.click(screen.getByRole('button', { name: 'Delete dashboard' }));
-        await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+        await user.click(screen.getByRole('button', { name: 'Удалить дашборд' }));
+        await user.click(screen.getByRole('button', { name: 'Подтвердить удаление' }));
 
         await waitFor(() => expect(mocks.deleteDashboard).toHaveBeenCalledTimes(1));
-        expect(mocks.deleteDashboard).toHaveBeenCalledWith('dashboard-1');
+        expect(mocks.deleteDashboard).toHaveBeenCalledWith({
+            orgId: 'org-1',
+            dashboardId: 'dashboard-1',
+        });
         expect(store.ui.dashboards.getState().rememberedDashboardId).toBeNull();
     });
 });
+
+vi.mock('@/env/cache/useRead', async importOriginal => {
+    const actual = await importOriginal<typeof readModule>();
+
+    return {
+        ...actual,
+        useRead: (query: { name: string }, input: unknown, options: unknown) => {
+            if (query.name === 'listDashboards') {
+                return { data: [dashboard], isPending: false };
+            }
+            if (query.name === 'getDashboard') {
+                const id = (input as { dashboardId: string }).dashboardId;
+                mocks.getDashboardQuery(id);
+
+                return {
+                    data: id === dashboard.id ? dashboard : undefined,
+                    isPending: false,
+                };
+            }
+
+            return actual.useRead(query as never, input, options as never);
+        },
+    };
+});
+
+vi.mock('@/env/cache/useCommand', () => ({
+    useCommand: (command: unknown) => {
+        const dependencies = useDependencies();
+        if (command === dependencies.renameDashboard) {
+            return {
+                executeOutcome: async (input: unknown) => ({
+                    data: await mocks.renameDashboard(input).unwrap(),
+                }),
+                isPending: false,
+            };
+        }
+        if (command === dependencies.deleteDashboard) {
+            return {
+                executeOutcome: async (input: unknown) => ({
+                    data: await mocks.deleteDashboard(input).unwrap(),
+                }),
+                isPending: false,
+            };
+        }
+
+        throw new Error('Unexpected command');
+    },
+}));

@@ -87,6 +87,7 @@ export const useDashboardGrid = (
 
     const [hosts, setHosts] = useState<Map<string, HTMLElement>>(new Map());
     const [gridVersion, setGridVersion] = useState(0);
+    const [mobile, setMobile] = useState(false);
 
     const applyResponsiveCellHeight = useRafThrottle(() => {
         const grid = gridRef.current;
@@ -95,6 +96,7 @@ export const useDashboardGrid = (
             return;
         }
 
+        setMobile(width <= 640);
         const next = getResponsiveCellHeight(width);
         if (cellHeightRef.current === next) {
             return;
@@ -128,7 +130,7 @@ export const useDashboardGrid = (
             cellHeightRef.current = initialCellHeight;
 
             const handleLayoutStop = () => {
-                if (applyingRef.current) {
+                if (applyingRef.current || grid.getColumn() !== dashboardGridColumns) {
                     return;
                 }
 
@@ -151,6 +153,7 @@ export const useDashboardGrid = (
                 hostsRef.current.clear();
             };
 
+            setMobile(container.clientWidth > 0 && container.clientWidth <= 640);
             setGridVersion(version => version + 1);
         });
 
@@ -168,9 +171,30 @@ export const useDashboardGrid = (
 
         applyingRef.current = true;
         grid.batchUpdate();
+        grid.column(mobile ? 1 : dashboardGridColumns, 'none');
+        grid.enableMove(!mobile);
+        grid.enableResize(!mobile);
+        let mobileY = 0;
+        const arrangedItems = mobile
+            ? [...items]
+                  .sort((a, b) => a.y - b.y || a.x - b.x)
+                  .map(item => {
+                      const next = {
+                          ...item,
+                          x: 0,
+                          y: mobileY,
+                          w: 1,
+                          minW: 1,
+                          h: Math.max(item.h, 5),
+                      };
+                      mobileY += next.h;
+
+                      return next;
+                  })
+            : items;
 
         const seen = new Set<string>();
-        for (const item of items) {
+        for (const item of arrangedItems) {
             seen.add(item.id);
             if (hostsRef.current.has(item.id)) {
                 const content = hostsRef.current.get(item.id);
@@ -212,7 +236,7 @@ export const useDashboardGrid = (
         grid.batchUpdate(false);
         applyingRef.current = false;
         setHosts(new Map(hostsRef.current));
-    }, [gridVersion, items]);
+    }, [gridVersion, items, mobile]);
 
     return { containerRef, hosts };
 };

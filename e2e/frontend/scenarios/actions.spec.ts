@@ -8,7 +8,7 @@ import { createBarChart, createDashboard } from '../../backend/utils/factories.j
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../.superpowers/sdd/2026-10-21-client-architecture-migration/task-12-screenshots'
+    '../../../.superpowers/sdd/2026-10-21-client-architecture-migration/task-13-browser-3/actions'
 );
 
 test('runs a saved action and refreshes datasets charts dashboards and failure history', async ({
@@ -114,7 +114,11 @@ test('runs a saved action and refreshes datasets charts dashboards and failure h
         const metric = page.locator(
             '[data-test-id="dashboards-metric-widget"][title="Migration total"]'
         );
-        await expect(metric.locator('strong')).toHaveText('60');
+        await expect(
+            metric
+                .locator('[data-test-id="dashboard-metric-value"]')
+                .getByText(/^(60|75)$/, { exact: true })
+        ).toHaveText('60');
         await page.getByRole('link', { name: 'Действия', exact: true }).click();
         await page.getByRole('button', { name: 'Новое действие', exact: true }).click();
         const form = page.locator('[data-test-id="actions-configure-form"]');
@@ -233,7 +237,11 @@ test('runs a saved action and refreshes datasets charts dashboards and failure h
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.getByRole('link', { name: 'Дашборды', exact: true }).click();
         await expect(page).toHaveURL(/\/dashboards/);
-        await expect(metric.locator('strong')).toHaveText('75');
+        await expect(
+            metric
+                .locator('[data-test-id="dashboard-metric-value"]')
+                .getByText(/^(60|75)$/, { exact: true })
+        ).toHaveText('75');
         const chartCard = page.getByRole('article').filter({
             has: page.getByRole('heading', { name: 'Action amounts', exact: true }),
         });
@@ -321,7 +329,11 @@ test('runs a saved action and refreshes datasets charts dashboards and failure h
         await page.reload();
         await expect(page.getByTestId('glide-cell-2-0')).toHaveText('25');
         await page.getByRole('link', { name: 'Дашборды', exact: true }).click();
-        await expect(metric.locator('strong')).toHaveText('75');
+        await expect(
+            metric
+                .locator('[data-test-id="dashboard-metric-value"]')
+                .getByText(/^(60|75)$/, { exact: true })
+        ).toHaveText('75');
         expect(errors).toEqual([]);
         expect(
             consoleErrors.filter(

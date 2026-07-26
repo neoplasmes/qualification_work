@@ -1,237 +1,17 @@
-import type * as readModule from '@/env/cache/useRead';
+import './test';
+
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
-import {
-    dashboardChartDefaultHeight,
-    type Chart,
-    type DatasetMetadata as DatasetMetadataFixture,
-} from '@qualification-work/types';
+import { dashboardChartDefaultHeight } from '@qualification-work/types';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore, useStore } from 'zustand';
 
-import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import type { Dashboard } from '@/entities/dashboard';
-
 import { dashboardsTestIds } from './const';
 import { DashboardsPage } from './Dashboards.page';
 import { dashboardsPageInitialState } from './model';
-
-const mocks = vi.hoisted(() => ({
-    renameDashboard: vi.fn(),
-    deleteDashboard: vi.fn(),
-    addDashboardChart: vi.fn(),
-    addDashboardMetric: vi.fn(),
-    updateDashboardMetric: vi.fn(),
-    updateDashboardLayout: vi.fn(),
-    removeDashboardItem: vi.fn(),
-    refetchDashboards: vi.fn(),
-    refetchDashboard: vi.fn(),
-    listQuery: vi.fn(),
-    detailQuery: vi.fn(),
-}));
-
-const chart = vi.hoisted(
-    () =>
-        ({
-            id: 'chart-1',
-            orgId: 'org-1',
-            datasetId: 'dataset-1',
-            name: 'Revenue',
-            chartType: 'bar',
-            config: {
-                kind: 'bar',
-                dimension: { columnId: 'column-1' },
-                measures: [{ aggregate: 'count' }],
-            },
-            createdAt: '2026-01-01T00:00:00.000Z',
-            updatedAt: '2026-01-01T00:00:00.000Z',
-        }) satisfies Chart
-);
-
-const secondChart = vi.hoisted(
-    () =>
-        ({
-            id: 'chart-2',
-            orgId: 'org-1',
-            datasetId: 'dataset-2',
-            name: 'Profit',
-            chartType: 'line',
-            config: {
-                kind: 'line',
-                dimension: { columnId: 'column-profit-date' },
-                measures: [{ aggregate: 'sum', columnId: 'column-profit' }],
-            },
-            createdAt: '2026-01-02T00:00:00.000Z',
-            updatedAt: '2026-01-02T00:00:00.000Z',
-        }) satisfies Chart
-);
-
-const dashboard = vi.hoisted(
-    () =>
-        ({
-            id: 'dashboard-1',
-            orgId: 'org-1',
-            name: 'Sales',
-            items: [],
-            createdAt: '2026-01-01T00:00:00.000Z',
-            updatedAt: '2026-01-01T00:00:00.000Z',
-        }) satisfies Dashboard
-);
-
-const dataset = vi.hoisted(
-    () =>
-        ({
-            dataset: {
-                ref: 'dataset:org-1/dataset-1',
-                id: 'dataset-1',
-                orgId: 'org-1',
-                name: 'Invoices',
-                sourceType: 'manual',
-                createdAt: '2026-01-01T00:00:00.000Z',
-                updatedAt: '2026-01-01T00:00:00.000Z',
-            },
-            columns: [
-                {
-                    ref: 'datasetColumn:org-1/dataset-1/column-score',
-                    id: 'column-score',
-                    datasetId: 'dataset-1',
-                    key: 'score',
-                    displayName: 'Score',
-                    dataType: 'number',
-                    orderIndex: 0,
-                    isAnalyzable: true,
-                },
-            ],
-            totalRows: 3,
-        }) satisfies DatasetMetadata
-);
-
-const secondDataset = vi.hoisted(
-    () =>
-        ({
-            dataset: {
-                ref: 'dataset:org-1/dataset-2',
-                id: 'dataset-2',
-                orgId: 'org-1',
-                name: 'Profit reports',
-                sourceType: 'manual',
-                createdAt: '2026-01-02T00:00:00.000Z',
-                updatedAt: '2026-01-02T00:00:00.000Z',
-            },
-            columns: [
-                {
-                    ref: 'datasetColumn:org-1/dataset-2/column-profit',
-                    id: 'column-profit',
-                    datasetId: 'dataset-2',
-                    key: 'profit',
-                    displayName: 'Profit',
-                    dataType: 'number',
-                    orderIndex: 0,
-                    isAnalyzable: true,
-                },
-                {
-                    ref: 'datasetColumn:org-1/dataset-2/column-profit-date',
-                    id: 'column-profit-date',
-                    datasetId: 'dataset-2',
-                    key: 'created_at',
-                    displayName: 'Created at',
-                    dataType: 'date',
-                    orderIndex: 1,
-                    isAnalyzable: true,
-                },
-            ],
-            totalRows: 5,
-        }) satisfies DatasetMetadata
-);
-
-vi.mock('@/ui/session', () => ({
-    useSession: () => ({ data: { id: 'user-1' } }),
-    useActiveOrganization: () => ({
-        activeOrg: { id: 'org-1', name: 'Test', role: 'owner' },
-    }),
-}));
-
-vi.mock('@/env/cache/useRead', async importOriginal => {
-    const actual = await importOriginal<typeof readModule>();
-
-    return {
-        ...actual,
-        useRead: (query: { name: string }, input: unknown, options: unknown) => {
-            if (query.name === 'listCharts') {
-                return {
-                    data: [chart, secondChart],
-                    isLoading: false,
-                    isFetching: false,
-                    refetch: vi.fn(),
-                    isPending: false,
-                };
-            }
-            if (query.name === 'getChartData') {
-                return {
-                    data: undefined,
-                    isPending: false,
-                    isFetching: false,
-                    error: null,
-                };
-            }
-
-            return actual.useRead(query as never, input, options as never);
-        },
-    };
-});
-
-const datasetMetadataFixtures: DatasetMetadataFixture[] = [dataset, secondDataset];
-
-vi.mock('@/entities/dashboard', () => ({
-    formatMetricValue: (value: unknown) =>
-        typeof value === 'number'
-            ? new Intl.NumberFormat('ru-RU', {
-                  maximumFractionDigits: 2,
-              }).format(value)
-            : String(value ?? ''),
-    useListDashboardsQuery: () =>
-        mocks.listQuery() ?? {
-            data: [dashboard],
-            isLoading: false,
-            isFetching: false,
-            refetch: mocks.refetchDashboards,
-        },
-    useGetDashboardQuery: (id: unknown) =>
-        mocks.detailQuery(id) ?? {
-            data: typeof id === 'string' ? dashboard : undefined,
-            currentData: typeof id === 'string' ? dashboard : undefined,
-            isLoading: false,
-            isFetching: false,
-            refetch: mocks.refetchDashboard,
-        },
-    useDeleteDashboardMutation: () => [mocks.deleteDashboard, { isLoading: false }],
-}));
-
-vi.mock('@/features/manageDashboards', () => ({
-    useRenameDashboardMutation: () => [mocks.renameDashboard, { isLoading: false }],
-    useAddDashboardChartMutation: () => [mocks.addDashboardChart, { isLoading: false }],
-    useAddDashboardMetricMutation: () => [mocks.addDashboardMetric, { isLoading: false }],
-    usePreviewDashboardMetricQuery: () => ({
-        data: { value: 12.5 },
-        isFetching: false,
-        error: undefined,
-    }),
-    useUpdateDashboardMetricMutation: () => [
-        mocks.updateDashboardMetric,
-        { isLoading: false },
-    ],
-    useUpdateDashboardLayoutMutation: () => [
-        mocks.updateDashboardLayout,
-        { isLoading: false },
-    ],
-    useRemoveDashboardItemMutation: () => [
-        mocks.removeDashboardItem,
-        { isLoading: false },
-    ],
-}));
+import { dashboard, datasetMetadataFixtures, mocks } from './test';
 
 const getByDataTestId = <T extends HTMLElement>(
     container: HTMLElement,
@@ -402,16 +182,20 @@ describe('DashboardsPage', () => {
 
         await waitFor(() => expect(mocks.addDashboardMetric).toHaveBeenCalledTimes(1));
         expect(mocks.addDashboardChart).toHaveBeenNthCalledWith(1, {
+            orgId: 'org-1',
             dashboardId: 'dashboard-1',
             chartId: 'chart-1',
             height: dashboardChartDefaultHeight,
         });
         expect(mocks.addDashboardChart).toHaveBeenNthCalledWith(2, {
+            orgId: 'org-1',
             dashboardId: 'dashboard-1',
             chartId: 'chart-2',
             height: dashboardChartDefaultHeight,
         });
         expect(mocks.addDashboardMetric).toHaveBeenCalledWith({
+            height: 4,
+            orgId: 'org-1',
             dashboardId: 'dashboard-1',
             datasetId: 'dataset-1',
             name: 'Average Score',

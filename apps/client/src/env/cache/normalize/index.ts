@@ -16,3 +16,4 @@ export { valueCodec } from './valueCodec';
 export { chartCodec, chartListCodec } from './chartCodec';
 export { actionCodec, actionListCodec } from './actionCodec';
 export { actionRunCodec, actionRunListCodec } from './actionRunCodec';
+export { dashboardCodec, dashboardListCodec } from './dashboardCodec';

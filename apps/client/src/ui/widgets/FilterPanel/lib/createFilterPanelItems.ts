@@ -1,12 +1,11 @@
 import type { Chart } from '@/core/entities/chart';
+import type { Dashboard } from '@/core/entities/dashboard';
 import type {
     FilterApplicationEntity,
     FilterApplicationScope,
 } from '@/core/processes/entityFiltering';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import type { Dashboard } from '@/entities/dashboard';
 
 import { formatDate } from '@/shared/lib/formatDate';
 

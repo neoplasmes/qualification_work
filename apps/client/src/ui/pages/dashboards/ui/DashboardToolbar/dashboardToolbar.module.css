@@ -1,0 +1,16 @@
+.toolbar {
+    min-height: 52px;
+    padding-block: var(--space-8);
+}
+
+.title {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (width <= 640px) {
+    .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

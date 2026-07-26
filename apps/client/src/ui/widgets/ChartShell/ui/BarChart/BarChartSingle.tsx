@@ -50,13 +50,13 @@ const getBarChartMargin = (
     showAxisTickLabels: boolean
 ) => {
     if (!showAxisTickLabels) {
-        return { top: 12, right: 8, bottom: 12, left: 12 };
+        return { top: 24, right: 8, bottom: 12, left: 12 };
     }
 
     const compact = height < 260;
 
     return {
-        top: compact ? 16 : 32,
+        top: compact ? 24 : 32,
         right: 16,
         bottom: rotateLabels
             ? Math.min(112, Math.max(56, height * 0.34))
@@ -262,12 +262,14 @@ export const BarChartSingle = ({
             color={color}
             width={frame.width}
             height={frame.height}
-            showAxisTickLabels={showAxisTickLabels}
+            showAxisTickLabels={
+                showAxisTickLabels && frame.width >= 120 && frame.height >= 96
+            }
         />
     );
 
     let content = null;
-    if (width > 0 && chartHeight > 0) {
+    if (frame.width > 20 && frame.height > 36) {
         content = aspectRatioConstraint ? (
             <div style={getChartAspectFrameStyle(chartHeight)}>{chartContent}</div>
         ) : (

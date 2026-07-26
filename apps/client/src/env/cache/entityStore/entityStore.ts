@@ -14,6 +14,7 @@ import type {
     RecordKind,
     RecordPatch,
     RecordRef,
+    StagingStore,
     StoreWrite,
     WriteGuard,
 } from './entityStore.types';
@@ -146,8 +147,11 @@ export class EntityStore {
         }
     }
 
-    references(ref: RecordRef): readonly RecordRef[] {
-        const row = this.get(ref);
+    references(
+        ref: RecordRef,
+        source: Pick<StagingStore, 'get'> = this
+    ): readonly RecordRef[] {
+        const row = source.get(ref);
 
         return row ? this.binding(ref).descriptor.references(row) : [];
     }

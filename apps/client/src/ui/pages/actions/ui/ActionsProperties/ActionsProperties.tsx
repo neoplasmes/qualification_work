@@ -29,6 +29,10 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
         null
     );
     const [error, setError] = useState('');
+    const [archiveReceipt, setArchiveReceipt] = useState<{
+        orgId: string;
+        refreshFailed: boolean;
+    }>();
     const meQuery = useSession();
     const { activeOrg: org } = useActiveOrganization(meQuery.data);
     const dependencies = useDependencies();
@@ -37,7 +41,7 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
-    const { patchAction, archiveAction } = useActionsController();
+    const { actionsQuery, patchAction, archiveAction } = useActionsController();
 
     const datasetsById = useMemo(
         () =>
@@ -76,9 +80,10 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
                 orgId: org!.id,
                 actionId: selectedAction.id,
             });
-            if (outcome.syncError) {
-                setError('Действие удалено, но обновить список не удалось.');
-            }
+            setArchiveReceipt({
+                orgId: org!.id,
+                refreshFailed: Boolean(outcome.syncError),
+            });
             selectAction(null);
             navigate(actionsWorkspaceIndexPath, { replace: true });
             setArchiveConfirmationId(null);
@@ -113,17 +118,64 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
         }
     };
 
+    const feedback = (
+        <>
+            {error && <StatusMessage tone="error">{error}</StatusMessage>}
+            {archiveReceipt && archiveReceipt.orgId === org?.id && (
+                <>
+                    <StatusMessage
+                        tone={archiveReceipt.refreshFailed ? 'error' : 'success'}
+                    >
+                        {archiveReceipt.refreshFailed
+                            ? 'Действие удалено, но обновить список не удалось.'
+                            : 'Действие удалено.'}
+                    </StatusMessage>
+                    {archiveReceipt.refreshFailed && (
+                        <Button
+                            variant="ghost"
+                            disabled={actionsQuery.isFetching}
+                            onClick={async () => {
+                                try {
+                                    await dependencies.cache.read(
+                                        dependencies.listActions,
+                                        {
+                                            orgId: archiveReceipt.orgId,
+                                        }
+                                    );
+                                    setArchiveReceipt({
+                                        ...archiveReceipt,
+                                        refreshFailed: false,
+                                    });
+                                } catch {
+                                    setArchiveReceipt({
+                                        ...archiveReceipt,
+                                        refreshFailed: true,
+                                    });
+                                }
+                            }}
+                        >
+                            Обновить список
+                        </Button>
+                    )}
+                </>
+            )}
+        </>
+    );
+
     if (!selectedAction) {
         return (
-            <p
-                className={styles['properties-placeholder']}
-                data-stack="h"
-                data-align="center"
-                data-justify="center"
-                data-flex
-            >
-                Выберите действие для просмотра свойств.
-            </p>
+            <section data-stack="v" data-gap="md" aria-label="Свойства действия">
+                {feedback}
+                <p
+                    className={styles['properties-placeholder']}
+                    data-stack="h"
+                    data-align="center"
+                    data-justify="center"
+                    data-flex
+                >
+                    Выберите действие для просмотра свойств.
+                </p>
+            </section>
         );
     }
 
@@ -174,7 +226,7 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
         <section data-stack="v" data-gap="md" aria-label="Свойства действия">
             {titleContent}
 
-            {error && <StatusMessage tone="error">{error}</StatusMessage>}
+            {feedback}
 
             <Table
                 aria-label="Свойства действия"

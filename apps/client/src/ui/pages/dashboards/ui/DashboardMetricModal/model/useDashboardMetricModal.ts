@@ -6,7 +6,15 @@ import type {
     MetricBuilderDraft,
     MetricBuilderOutput,
 } from '@/ui/pages/dashboards/ui/MetricBuilder';
-import { useCallback, useEffect, useMemo, useState, type SubmitEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type SubmitEvent,
+} from 'react';
 import { useStore } from 'zustand';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
@@ -57,6 +65,13 @@ export const useDashboardMetricModal = ({
     datasets,
     onSynchronizedError,
 }: UseDashboardMetricModalParams) => {
+    const generation = useRef(0);
+    useLayoutEffect(
+        () => () => {
+            generation.current++;
+        },
+        [dashboard?.orgId, dashboard?.id]
+    );
     const [store] = useState(createMetricFormStore);
     const { clearWorkspaceMetricForm, setWorkspaceMetricForm } = store.getState();
     const [selectedDatasetId, setSelectedDatasetId] = useState('');
@@ -139,6 +154,7 @@ export const useDashboardMetricModal = ({
     );
 
     const openAdd = useCallback(() => {
+        generation.current++;
         setEditingMetricId(null);
         setMetricBuilderOutput(null);
         setError('');
@@ -148,6 +164,7 @@ export const useDashboardMetricModal = ({
 
     const openEdit = useCallback(
         (item: DashboardMetricItem) => {
+            generation.current++;
             setEditingMetricId(item.id);
             setMetricBuilderOutput({ datasetId: item.datasetId, ...itemToForm(item) });
             setError('');
@@ -158,6 +175,7 @@ export const useDashboardMetricModal = ({
     );
 
     const close = useCallback(() => {
+        generation.current++;
         setEditingMetricId(null);
         setMetricBuilderOutput(null);
         setError('');
@@ -208,6 +226,7 @@ export const useDashboardMetricModal = ({
                 timeBucket: submitValue.timeBucket || null,
             };
 
+            const version = generation.current;
             try {
                 setError('');
                 const payload = {
@@ -226,6 +245,9 @@ export const useDashboardMetricModal = ({
                           itemId: editingMetricId,
                       })
                     : await addState.executeOutcome({ ...payload, height: 4 });
+                if (version !== generation.current) {
+                    return false;
+                }
                 if (outcome.syncError) {
                     onSynchronizedError(
                         'Метрика сохранена, но обновление данных не удалось. Обновите данные.'
@@ -235,6 +257,9 @@ export const useDashboardMetricModal = ({
 
                 return true;
             } catch (saveError) {
+                if (version !== generation.current) {
+                    return false;
+                }
                 const fallback = editingMetricId
                     ? 'Unable to update this metric.'
                     : 'Unable to add this metric.';

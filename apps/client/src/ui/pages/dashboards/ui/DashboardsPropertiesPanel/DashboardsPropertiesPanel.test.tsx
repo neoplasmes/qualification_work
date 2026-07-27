@@ -1,10 +1,11 @@
 import type { Dashboard } from '@/core/entities/dashboard';
 import type * as readModule from '@/env/cache/useRead';
+import { deferred } from '@/test/readFixtures';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import { useDependencies } from '@/ui/di/dependencies';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { dashboardsTestIds } from '../../const';
@@ -192,9 +193,11 @@ vi.mock('@/env/cache/useCommand', () => ({
         }
         if (command === dependencies.deleteDashboard) {
             return {
-                executeOutcome: async (input: unknown) => ({
-                    data: await mocks.deleteDashboard(input).unwrap(),
-                }),
+                executeOutcome: async (input: unknown) => {
+                    const outcome = mocks.deleteDashboard(input);
+
+                    return { data: await outcome.unwrap(), syncError: outcome.syncError };
+                },
                 isPending: false,
             };
         }
@@ -202,3 +205,66 @@ vi.mock('@/env/cache/useCommand', () => ({
         throw new Error('Unexpected command');
     },
 }));
+
+it.each(['confirmed', 'rejected'])(
+    'keeps a newer selection when an earlier delete completes: %s',
+    async result => {
+        mocks.deleteDashboard.mockReset();
+        const gate = deferred<void>();
+        mocks.deleteDashboard.mockReturnValue({ unwrap: () => gate.promise });
+        const store = createUiTestRuntime();
+        const router = createMemoryRouter(
+            [{ path: '*', element: <DashboardsPropertiesPanel /> }],
+            { initialEntries: ['/dashboards?id=dashboard-1'] }
+        );
+        render(
+            <Provider store={store}>
+                <RouterProvider router={router} />
+            </Provider>
+        );
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('button', { name: 'Удалить дашборд' }));
+        await user.click(screen.getByRole('button', { name: 'Подтвердить удаление' }));
+        await act(async () => {
+            store.ui.dashboards.getState().selectDashboard('dashboard-2');
+            await router.navigate('/dashboards?id=dashboard-2');
+        });
+        await act(async () => {
+            if (result === 'confirmed') {
+                gate.resolve();
+            } else {
+                gate.reject(new Error('write failed'));
+            }
+            await gate.promise.catch(() => {});
+        });
+        expect(router.state.location.search).toBe('?id=dashboard-2');
+        expect(store.ui.dashboards.getState().rememberedDashboardId).toBe('dashboard-2');
+        expect(mocks.deleteDashboard).toHaveBeenCalledOnce();
+    }
+);
+
+it('keeps a confirmed deletion receipt on the dashboard index', async () => {
+    mocks.deleteDashboard.mockReset().mockReturnValue({
+        unwrap: async () => undefined,
+        syncError: new Error('refresh failed'),
+    });
+    const store = createUiTestRuntime();
+    const router = createMemoryRouter(
+        [{ path: '*', element: <DashboardsPropertiesPanel /> }],
+        { initialEntries: ['/dashboards?id=dashboard-1'] }
+    );
+    render(
+        <Provider store={store}>
+            <RouterProvider router={router} />
+        </Provider>
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Удалить дашборд' }));
+    await user.click(screen.getByRole('button', { name: 'Подтвердить удаление' }));
+    expect(
+        await screen.findByText(/Дашборд удалён, но обновление списка не удалось/)
+    ).toBeVisible();
+    expect(router.state.location.search).toBe('');
+    expect(screen.getByRole('button', { name: 'Обновить данные' })).toBeVisible();
+    expect(mocks.deleteDashboard).toHaveBeenCalledOnce();
+});

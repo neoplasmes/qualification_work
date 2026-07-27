@@ -2,8 +2,8 @@ import { useCommand } from '@/env/cache/useCommand';
 import { useDashboardsPageActions } from '@/ui/pages/dashboards/model';
 import { Button } from '@qualification-work/design-system';
 import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLayoutEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -20,6 +20,8 @@ export const DashboardsPropertiesPanel = () => {
     const navigate = useNavigate();
     const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
     const [error, setError] = useState('');
+    const [errorScope, setErrorScope] = useState('');
+    const location = useLocation();
 
     const {
         dependencies,
@@ -27,6 +29,16 @@ export const DashboardsPropertiesPanel = () => {
         selectedListDashboard,
         dashboard: selectedDashboard,
     } = useDashboardsController();
+    const scope = `${orgId}:${location.pathname}${location.search}`;
+    const view = useMemo(() => ({ live: true }), [orgId, location.key]);
+    useLayoutEffect(() => {
+        view.live = true;
+
+        return () => {
+            view.live = false;
+        };
+    }, [view]);
+
     const renameState = useCommand(dependencies.renameDashboard);
     const deleteDashboardState = useCommand(dependencies.deleteDashboard);
 
@@ -41,12 +53,17 @@ export const DashboardsPropertiesPanel = () => {
             return;
         }
 
+        setErrorScope(scope);
         try {
             const outcome = await deleteDashboardState.executeOutcome({
                 orgId,
                 dashboardId: selectedDashboard.id,
             });
+            if (!view.live) {
+                return;
+            }
             if (outcome.syncError) {
+                setErrorScope(`${orgId}:${dashboardsWorkspaceIndexPath}`);
                 setError(
                     'Дашборд удалён, но обновление списка не удалось. Обновите данные.'
                 );
@@ -55,6 +72,9 @@ export const DashboardsPropertiesPanel = () => {
             navigate(dashboardsWorkspaceIndexPath, { replace: true });
             setDeleteConfirmationId(null);
         } catch (deleteError) {
+            if (!view.live) {
+                return;
+            }
             setError(getApiErrorMessage(deleteError, 'Unable to delete this dashboard.'));
         }
     };
@@ -65,18 +85,25 @@ export const DashboardsPropertiesPanel = () => {
         }
 
         try {
+            setErrorScope(scope);
             setError('');
             const outcome = await renameState.executeOutcome({
                 orgId,
                 dashboardId: selectedDashboard.id,
                 name,
             });
+            if (!view.live) {
+                return;
+            }
             if (outcome.syncError) {
                 setError(
                     'Название сохранено, но обновление данных не удалось. Обновите данные.'
                 );
             }
         } catch (renameError) {
+            if (!view.live) {
+                return;
+            }
             const message = getApiErrorMessage(
                 renameError,
                 'Unable to rename this dashboard.'
@@ -87,31 +114,38 @@ export const DashboardsPropertiesPanel = () => {
         }
     };
 
-    const feedback = error ? (
-        <StatusMessage tone="error">
-            {error}
-            <Button
-                variant="ghost"
-                onClick={() => {
-                    void Promise.all([
-                        dependencies.cache.read(dependencies.listDashboards, { orgId }),
-                        ...(selectedDashboard
-                            ? [
-                                  dependencies.cache.read(dependencies.getDashboard, {
-                                      orgId,
-                                      dashboardId: selectedDashboard.id,
-                                  }),
-                              ]
-                            : []),
-                    ])
-                        .then(() => setError(''))
-                        .catch(() => {});
-                }}
-            >
-                Обновить данные
-            </Button>
-        </StatusMessage>
-    ) : null;
+    const feedback =
+        error && errorScope === scope ? (
+            <StatusMessage tone="error">
+                {error}
+                <Button
+                    variant="ghost"
+                    onClick={() => {
+                        void Promise.all([
+                            dependencies.cache.read(dependencies.listDashboards, {
+                                orgId,
+                            }),
+                            ...(selectedDashboard
+                                ? [
+                                      dependencies.cache.read(dependencies.getDashboard, {
+                                          orgId,
+                                          dashboardId: selectedDashboard.id,
+                                      }),
+                                  ]
+                                : []),
+                        ])
+                            .then(() => {
+                                if (view.live) {
+                                    setError('');
+                                }
+                            })
+                            .catch(() => {});
+                    }}
+                >
+                    Обновить данные
+                </Button>
+            </StatusMessage>
+        ) : null;
 
     if (!selectedListDashboard) {
         return (

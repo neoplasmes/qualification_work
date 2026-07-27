@@ -1,8 +1,9 @@
 import { DashboardMetricModal } from '.';
 import type { Dashboard } from '@/core/entities/dashboard';
 import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
+import { deferred } from '@/test/readFixtures';
 import { createUiTestRuntime, UiTestProvider } from '@/test/uiRuntime';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, expect, it, vi } from 'vitest';
 
@@ -71,7 +72,9 @@ const datasets: DatasetMetadata[] = [
         totalRows: 1,
     },
 ];
-beforeEach(() => mocks.executeOutcome.mockReset());
+beforeEach(() => {
+    mocks.executeOutcome.mockReset();
+});
 
 it('keeps dirty metric fields when metadata and detail refresh while open', async () => {
     const store = createUiTestRuntime();
@@ -141,3 +144,62 @@ it('closes after a confirmed metric write and exposes synchronization failure', 
         expect.stringContaining('сохранена')
     );
 });
+
+it.each(['confirmed', 'rejected'])(
+    'retires a closed metric save before reopening: %s',
+    async result => {
+        const gate = deferred<{ data: undefined; syncError: Error }>();
+        mocks.executeOutcome.mockImplementation(async () => await gate.promise);
+        const store = createUiTestRuntime();
+        const onClose = vi.fn();
+        const onSynchronizedError = vi.fn();
+        const { rerender } = render(
+            <UiTestProvider store={store}>
+                <MemoryRouter>
+                    <DashboardMetricModal
+                        key="first"
+                        dashboard={dashboard}
+                        datasets={datasets}
+                        item={item}
+                        onClose={onClose}
+                        onSynchronizedError={onSynchronizedError}
+                    />
+                </MemoryRouter>
+            </UiTestProvider>
+        );
+        fireEvent.submit(screen.getByRole('form', { name: 'Edit metric' }));
+        expect(mocks.executeOutcome).toHaveBeenCalledOnce();
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(onClose).toHaveBeenCalledOnce();
+        rerender(
+            <UiTestProvider store={store}>
+                <MemoryRouter>
+                    <DashboardMetricModal
+                        key="second"
+                        dashboard={dashboard}
+                        datasets={datasets}
+                        item={item}
+                        onClose={onClose}
+                        onSynchronizedError={onSynchronizedError}
+                    />
+                </MemoryRouter>
+            </UiTestProvider>
+        );
+        fireEvent.change(screen.getByLabelText('Metric name'), {
+            target: { value: 'Second draft' },
+        });
+        const settled = gate.promise.catch(() => undefined);
+        if (result === 'confirmed') {
+            gate.resolve({ data: undefined, syncError: new Error('read failed') });
+        } else {
+            gate.reject(new Error('write failed'));
+        }
+        await act(async () => {
+            await settled;
+        });
+        expect(onClose).toHaveBeenCalledOnce();
+        expect(onSynchronizedError).not.toHaveBeenCalled();
+        expect(screen.getByLabelText('Metric name')).toHaveValue('Second draft');
+        expect(mocks.executeOutcome).toHaveBeenCalledOnce();
+    }
+);

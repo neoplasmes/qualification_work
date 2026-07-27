@@ -1,9 +1,10 @@
 import type * as readModule from '@/env/cache/useRead';
+import { deferred } from '@/test/readFixtures';
 import { createUiTestRuntime, UiTestProvider as Provider } from '@/test/uiRuntime';
 import { useDependencies } from '@/ui/di/dependencies';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DashboardsLeftPanel } from './DashboardsLeftPanel';
@@ -104,9 +105,11 @@ vi.mock('@/env/cache/useCommand', () => ({
         const dependencies = useDependencies();
         if (command === dependencies.createDashboard) {
             return {
-                executeOutcome: async (input: unknown) => ({
-                    data: await createDashboard(input).unwrap(),
-                }),
+                executeOutcome: async (input: unknown) => {
+                    const outcome = createDashboard(input);
+
+                    return { data: await outcome.unwrap(), syncError: outcome.syncError };
+                },
                 isPending: false,
             };
         }
@@ -114,3 +117,63 @@ vi.mock('@/env/cache/useCommand', () => ({
         throw new Error('Unexpected command');
     },
 }));
+
+it.each(['confirmed', 'rejected'])(
+    'does not navigate after leaving a pending create view: %s',
+    async result => {
+        createDashboard.mockReset();
+        const gate = deferred<{ id: string }>();
+        createDashboard.mockReturnValue({ unwrap: () => gate.promise });
+        const store = makeStore();
+        const router = createMemoryRouter(
+            [
+                { path: '/dashboards', element: <DashboardsLeftPanel /> },
+                { path: '/datasets', element: <p>Dataset view</p> },
+            ],
+            { initialEntries: ['/dashboards'] }
+        );
+        render(
+            <Provider store={store}>
+                <RouterProvider router={router} />
+            </Provider>
+        );
+        await userEvent.click(screen.getByRole('button', { name: 'Новый дашборд' }));
+        await act(async () => {
+            await router.navigate('/datasets');
+        });
+        await act(async () => {
+            if (result === 'confirmed') {
+                gate.resolve({ id: 'new-board' });
+            } else {
+                gate.reject(new Error('write failed'));
+            }
+            await gate.promise.catch(() => {});
+        });
+        expect(router.state.location.pathname).toBe('/datasets');
+        expect(store.ui.dashboards.getState().rememberedDashboardId).toBeNull();
+        expect(createDashboard).toHaveBeenCalledOnce();
+    }
+);
+
+it('keeps a confirmed creation receipt after selecting the new dashboard', async () => {
+    createDashboard.mockReset().mockReturnValue({
+        unwrap: async () => ({ id: 'created' }),
+        syncError: new Error('refresh failed'),
+    });
+    const store = makeStore();
+    const router = createMemoryRouter([{ path: '*', element: <DashboardsLeftPanel /> }], {
+        initialEntries: ['/dashboards'],
+    });
+    render(
+        <Provider store={store}>
+            <RouterProvider router={router} />
+        </Provider>
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Новый дашборд' }));
+    expect(
+        await screen.findByText(/Дашборд создан, но обновление данных не удалось/)
+    ).toBeVisible();
+    expect(router.state.location.search).toBe('?id=created');
+    expect(screen.getByRole('button', { name: 'Обновить список' })).toBeVisible();
+    expect(createDashboard).toHaveBeenCalledOnce();
+});

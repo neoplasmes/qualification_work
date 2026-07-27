@@ -1,5 +1,3 @@
-import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
-import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
 import {
@@ -7,14 +5,14 @@ import {
     useDashboardsPageState,
 } from '@/ui/pages/dashboards/model';
 import { Button, Divider } from '@qualification-work/design-system';
-import { dashboardChartDefaultHeight } from '@qualification-work/types';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from './const';
 import {
+    useDashboardInteractions,
     useDashboardLayoutController,
     useDashboardsController,
     useDashboardsWorkspaceRouteSync,
@@ -30,14 +28,6 @@ import styles from './dashboards.page.module.css';
 export const DashboardsPage = () => {
     const { initDashboardsWorkspaceDraft, resetDashboardsWorkspaceDraft } =
         useDashboardsPageActions();
-    const [selectedChartIds, setSelectedChartIds] = useState<string[]>([]);
-    const [activeModal, setActiveModal] = useState<'chart' | 'metric' | 'layout' | null>(
-        null
-    );
-    const [editingMetricItem, setEditingMetricItem] =
-        useState<DashboardMetricItem | null>(null);
-    const [error, setError] = useState('');
-
     const selectedDashboardId = useDashboardsPageState(
         state => state.selectedDashboardId
     );
@@ -61,6 +51,15 @@ export const DashboardsPage = () => {
         { orgId: org?.id ?? '' },
         { enabled: Boolean(org?.id) }
     );
+
+    const interactions = useDashboardInteractions(orgId, selectedDashboardId);
+    const {
+        selectedChartIds,
+        setSelectedChartIds,
+        activeModal,
+        editingMetricItem,
+        error,
+    } = interactions;
 
     const isDashboardLoading = Boolean(selectedListDashboard) && !dashboard;
     const layoutController = useDashboardLayoutController({
@@ -101,9 +100,6 @@ export const DashboardsPage = () => {
         [datasetsQuery.data]
     );
 
-    const addChartState = useCommand(dependencies.addDashboardChart);
-    const removeItemState = useCommand(dependencies.removeDashboardItem);
-
     useDashboardsWorkspaceRouteSync();
 
     useEffect(() => {
@@ -113,7 +109,6 @@ export const DashboardsPage = () => {
             }
 
             resetDashboardsWorkspaceDraft();
-            setEditingMetricItem(null);
 
             return;
         }
@@ -126,9 +121,6 @@ export const DashboardsPage = () => {
             dashboardId: dashboard.id,
             name: dashboard.name,
         });
-        setError('');
-        setEditingMetricItem(null);
-        setActiveModal(null);
     }, [dashboard?.id, selectedDashboardId, rememberedDashboardId]);
 
     useEffect(() => {
@@ -144,70 +136,6 @@ export const DashboardsPage = () => {
         });
     }, [chartsQuery.data]);
 
-    const handleAddChart = async () => {
-        if (!dashboard || selectedChartIds.length === 0) {
-            return;
-        }
-
-        setError('');
-
-        try {
-            for (const chartId of selectedChartIds) {
-                const outcome = await addChartState.executeOutcome({
-                    orgId,
-                    dashboardId: dashboard.id,
-                    chartId,
-                    height: dashboardChartDefaultHeight,
-                });
-                setSelectedChartIds(current => current.filter(id => id !== chartId));
-                if (outcome.syncError) {
-                    setError(
-                        'График добавлен, но обновление данных не удалось. Обновите данные.'
-                    );
-                }
-            }
-            setSelectedChartIds([]);
-            setActiveModal(null);
-        } catch (addError) {
-            setError(getApiErrorMessage(addError, 'Unable to add selected charts.'));
-        }
-    };
-
-    const toggleSelectedChart = useCallback((chartId: string) => {
-        setSelectedChartIds(current =>
-            current.includes(chartId)
-                ? current.filter(selectedChartId => selectedChartId !== chartId)
-                : [...current, chartId]
-        );
-    }, []);
-
-    const removeSelectedChart = useCallback((chartId: string) => {
-        setSelectedChartIds(current =>
-            current.filter(selectedChartId => selectedChartId !== chartId)
-        );
-    }, []);
-
-    const handleRemoveItem = async (itemId: string) => {
-        if (!dashboard) {
-            return;
-        }
-
-        try {
-            const outcome = await removeItemState.executeOutcome({
-                orgId,
-                dashboardId: dashboard.id,
-                itemId,
-            });
-            if (outcome.syncError) {
-                setError(
-                    'Виджет удалён, но обновление данных не удалось. Обновите данные.'
-                );
-            }
-        } catch (removeError) {
-            setError(getApiErrorMessage(removeError, 'Unable to remove this widget.'));
-        }
-    };
-
     return (
         <section
             className={styles['panel']}
@@ -217,6 +145,14 @@ export const DashboardsPage = () => {
             data-test-id={dashboardsTestIds.workspace}
             aria-label="Dashboard details"
         >
+            {error && (
+                <StatusMessage tone="error">
+                    {error}
+                    <Button variant="ghost" onClick={() => void interactions.refresh()}>
+                        Обновить данные
+                    </Button>
+                </StatusMessage>
+            )}
             {!selectedListDashboard && (
                 <p
                     className={styles['placeholder']}
@@ -265,11 +201,7 @@ export const DashboardsPage = () => {
                 <>
                     <DashboardToolbar
                         title={dashboardTitle}
-                        onOpen={modal => {
-                            setError('');
-                            setEditingMetricItem(null);
-                            setActiveModal(modal);
-                        }}
+                        onOpen={interactions.openModal}
                     />
 
                     <Divider />
@@ -280,25 +212,6 @@ export const DashboardsPage = () => {
                         data-gap="sm"
                         data-flex
                     >
-                        {error && (
-                            <StatusMessage tone="error">
-                                {error}
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => {
-                                        void dependencies.cache
-                                            .read(dependencies.getDashboard, {
-                                                orgId,
-                                                dashboardId: dashboard.id,
-                                            })
-                                            .then(() => setError(''))
-                                            .catch(() => {});
-                                    }}
-                                >
-                                    Обновить данные
-                                </Button>
-                            </StatusMessage>
-                        )}
                         {layoutController.error && (
                             <StatusMessage tone="error">
                                 {layoutController.error}
@@ -316,13 +229,10 @@ export const DashboardsPage = () => {
                             chartsById={chartsById}
                             datasetColumnsById={datasetColumnsById}
                             datasetNamesById={datasetNamesById}
-                            removing={removeItemState.isPending}
+                            removing={interactions.removing}
                             onLayoutChange={layout => void layoutController.save(layout)}
-                            onRemoveItem={itemId => void handleRemoveItem(itemId)}
-                            onEditMetric={item => {
-                                setEditingMetricItem(item);
-                                setActiveModal('metric');
-                            }}
+                            onRemoveItem={itemId => void interactions.removeItem(itemId)}
+                            onEditMetric={item => interactions.openModal('metric', item)}
                         />
                     </div>
 
@@ -330,7 +240,7 @@ export const DashboardsPage = () => {
                         <DashboardLayoutEditor
                             items={dashboardItems}
                             onSave={layout => void layoutController.save(layout)}
-                            onClose={() => setActiveModal(null)}
+                            onClose={interactions.closeModal}
                         />
                     )}
                     {activeModal === 'chart' && (
@@ -338,13 +248,23 @@ export const DashboardsPage = () => {
                             charts={chartsQuery.data}
                             datasets={datasetsQuery.data}
                             selectedChartIds={selectedChartIds}
-                            disabled={addChartState.isPending}
+                            disabled={interactions.adding}
                             error={error}
-                            onToggleChart={toggleSelectedChart}
-                            onRemoveChart={removeSelectedChart}
+                            onToggleChart={id =>
+                                setSelectedChartIds(current =>
+                                    current.includes(id)
+                                        ? current.filter(selected => selected !== id)
+                                        : [...current, id]
+                                )
+                            }
+                            onRemoveChart={id =>
+                                setSelectedChartIds(current =>
+                                    current.filter(selected => selected !== id)
+                                )
+                            }
                             onClearSelection={() => setSelectedChartIds([])}
-                            onAdd={() => void handleAddChart()}
-                            onClose={() => setActiveModal(null)}
+                            onAdd={() => void interactions.addCharts()}
+                            onClose={interactions.closeModal}
                         />
                     )}
 
@@ -353,11 +273,8 @@ export const DashboardsPage = () => {
                             dashboard={dashboard}
                             datasets={datasetsQuery.data}
                             item={editingMetricItem}
-                            onSynchronizedError={setError}
-                            onClose={() => {
-                                setEditingMetricItem(null);
-                                setActiveModal(null);
-                            }}
+                            onSynchronizedError={interactions.setFeedback}
+                            onClose={interactions.closeModal}
                         />
                     )}
                 </>

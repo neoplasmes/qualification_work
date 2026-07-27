@@ -10,8 +10,8 @@ import { useFilters } from '@/ui/widgets/FilterPanel';
 import { WorkspaceLeftPanel } from '@/ui/widgets/WorkspaceLeftPanel';
 import { Button } from '@qualification-work/design-system';
 import { LayoutDashboard, Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLayoutEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 
 import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
@@ -25,8 +25,20 @@ export const DashboardsLeftPanel = () => {
     const { selectDashboard } = useDashboardsPageActions();
     const navigate = useNavigate();
     const [error, setError] = useState('');
+    const [errorScope, setErrorScope] = useState('');
+    const location = useLocation();
 
-    const { org, dashboardsQuery, dependencies } = useDashboardsController();
+    const { org, orgId, dashboardsQuery, dependencies } = useDashboardsController();
+    const scope = `${orgId}:${location.pathname}${location.search}`;
+    const view = useMemo(() => ({ live: true }), [orgId, location.key]);
+    useLayoutEffect(() => {
+        view.live = true;
+
+        return () => {
+            view.live = false;
+        };
+    }, [view]);
+
     const chartsQuery = useRead(
         useDependencies().listCharts,
         { orgId: org?.id ?? '' },
@@ -50,7 +62,7 @@ export const DashboardsLeftPanel = () => {
     );
 
     const message =
-        error ||
+        (errorScope === scope ? error : '') ||
         (dashboardsQuery.error
             ? getApiErrorMessage(
                   dashboardsQuery.error,
@@ -63,6 +75,7 @@ export const DashboardsLeftPanel = () => {
             return;
         }
 
+        setErrorScope(scope);
         setError('');
 
         try {
@@ -70,15 +83,22 @@ export const DashboardsLeftPanel = () => {
                 orgId: org.id,
                 name: 'Новый дашборд',
             });
+            if (!view.live) {
+                return;
+            }
             const result = outcome.data;
             selectDashboard(result.id);
             navigate(getDashboardWorkspaceUrl(result.id));
             if (outcome.syncError) {
+                setErrorScope(`${orgId}:${getDashboardWorkspaceUrl(result.id)}`);
                 setError(
                     'Дашборд создан, но обновление данных не удалось. Обновите список.'
                 );
             }
         } catch (createError) {
+            if (!view.live) {
+                return;
+            }
             setError(getApiErrorMessage(createError, 'Unable to create this dashboard.'));
         }
     };
@@ -104,7 +124,11 @@ export const DashboardsLeftPanel = () => {
                                     .read(dependencies.listDashboards, {
                                         orgId: org?.id ?? '',
                                     })
-                                    .then(() => setError(''))
+                                    .then(() => {
+                                        if (view.live) {
+                                            setError('');
+                                        }
+                                    })
                                     .catch(() => {});
                             }}
                         >

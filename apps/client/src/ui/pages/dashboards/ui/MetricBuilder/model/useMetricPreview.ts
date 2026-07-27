@@ -39,7 +39,7 @@ export const useMetricPreview = ({
     }
 
     if (metricPreview.isFetching) {
-        return { content: 'Calculating...', isMuted: true };
+        return { content: 'Вычисление...', isMuted: true };
     }
 
     if (metricPreview.error) {

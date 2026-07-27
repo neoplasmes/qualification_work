@@ -9,7 +9,7 @@ import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { FilterPanel } from '../FilterPanel.widget';
+import { FilterPanel } from './FilterPanel.widget';
 
 vi.mock('@/ui/session', () => ({
     useSession: () => ({ data: { id: 'user-1' } }),

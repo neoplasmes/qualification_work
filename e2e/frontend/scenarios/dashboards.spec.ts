@@ -9,6 +9,11 @@ import {
     fetchDatasetColumns,
     uploadCsvDataset,
 } from '../../backend/utils/factories.js';
+import {
+    captureChartStates,
+    captureResponsivePages,
+    fillMetricEditor,
+} from './utils/index.js';
 
 const screenshots = path.resolve(
     import.meta.dirname,
@@ -75,40 +80,15 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
             preview: '500%',
         },
     ]) {
-        await page
-            .locator('[data-test-id="dashboards-open-add-metric-modal-button"]')
-            .click();
-        const dialog = page.getByRole('dialog', {
-            name: 'Добавить метрику',
-            exact: true,
-        });
-        await dialog
-            .locator('[data-test-id="dashboards-metric-dataset-select"]')
-            .selectOption(dataset.id);
-        await dialog.getByRole('tab', { name: 'Формула', exact: true }).click();
-        await dialog
-            .locator('[data-test-id="dashboards-metric-expression-input"]')
-            .fill(metric.expression);
-        await dialog.getByLabel('Название метрики', { exact: true }).fill(metric.name);
-        await dialog.getByLabel('Формат', { exact: true }).fill(metric.format);
-        await dialog
-            .locator('[data-test-id="dashboards-metric-value-multiplier-input"]')
-            .fill(metric.multiplier);
-        await dialog.getByRole('spinbutton', { name: /Цель/ }).fill(metric.target);
-        await expect(
-            dialog.locator('[data-test-id="dashboards-metric-preview-value"]')
-        ).toHaveText(metric.preview);
+        const dialog = await fillMetricEditor(page, { ...metric, datasetId: dataset.id });
         if (metric.name === 'Browser total') {
-            for (const width of [1440, 390, 1440]) {
-                await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-                await expect(
-                    dialog.getByRole('button', { name: 'Сохранить', exact: true })
-                ).toBeVisible();
-                await page.screenshot({
-                    path: path.join(screenshots, `metric-editor-${width}.png`),
-                    fullPage: true,
-                });
-            }
+            await captureResponsivePages({
+                page,
+                screenshots,
+                name: 'metric-editor',
+                widths: [1440, 390, 1440],
+                visible: dialog.getByRole('button', { name: 'Сохранить', exact: true }),
+            });
         }
         const save = page.waitForResponse(
             response =>
@@ -124,16 +104,15 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         .locator('[data-test-id="dashboards-add-chart-list-item"]')
         .filter({ hasText: 'Dashboard categories' })
         .click();
-    for (const width of [1440, 390, 1440]) {
-        await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-        await expect(
-            page.getByRole('dialog').getByRole('button', { name: 'Добавить на дашборд' })
-        ).toBeVisible();
-        await page.screenshot({
-            path: path.join(screenshots, `chart-chooser-${width}.png`),
-            fullPage: true,
-        });
-    }
+    await captureResponsivePages({
+        page,
+        screenshots,
+        name: 'chart-chooser',
+        widths: [1440, 390, 1440],
+        visible: page
+            .getByRole('dialog')
+            .getByRole('button', { name: 'Добавить на дашборд' }),
+    });
     await page.locator('[data-test-id="dashboards-add-chart-button"]').click();
     await expect(page.locator('[data-test-id="dashboards-chart-widget"]')).toHaveCount(1);
     const detail = await (await page.request.get(endpoint)).json();
@@ -344,28 +323,20 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         await page.keyboard.press('Tab');
     }
     await expect(exactValues).toBeFocused();
-    const phonePlot = phoneChart.getByTestId('bar-chart-svg').locator('svg').first();
-    const closedPlotBounds = await phonePlot.boundingBox();
-    const closedSummaryBounds = await exactValues.boundingBox();
-    expect(closedPlotBounds!.height).toBeGreaterThan(140);
-    expect(closedPlotBounds!.y + closedPlotBounds!.height).toBeLessThanOrEqual(
-        closedSummaryBounds!.y + 1
-    );
-    await page.keyboard.press('Enter');
+    const phoneFrames = await captureChartStates({
+        page,
+        card: phoneChart,
+        screenshots,
+        record: 'phone-chart-frames.json',
+        name: 'phone-chart',
+        widths: [390],
+        values: ['15', '35'],
+        tableValue: '35',
+        activation: 'keyboard',
+    });
     await expect(phoneChart.getByRole('table')).toContainText('35');
-    await expect
-        .poll(async () => {
-            const plotBounds = await phonePlot.boundingBox();
-            const summaryBounds = await exactValues.boundingBox();
-
-            return Boolean(
-                plotBounds &&
-                summaryBounds &&
-                plotBounds.height > 140 &&
-                plotBounds.y + plotBounds.height <= summaryBounds.y + 1
-            );
-        })
-        .toBe(true);
+    const closed = phoneFrames.find(frame => frame.phase === 'settled' && !frame.open)!;
+    const open = phoneFrames.find(frame => frame.phase === 'settled' && frame.open)!;
     await page.keyboard.press('Tab');
     await expect(phoneChart.getByRole('region', { name: /значения$/ })).toBeFocused();
     await phoneChart.screenshot({
@@ -376,11 +347,11 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         JSON.stringify(
             {
                 card: await phoneChart.boundingBox(),
-                closed: { plot: closedPlotBounds, summary: closedSummaryBounds },
+                closed: { plot: closed.plot, summary: closed.summary },
                 open: {
-                    plot: await phonePlot.boundingBox(),
-                    summary: await exactValues.boundingBox(),
-                    table: await phoneChart.getByRole('table').boundingBox(),
+                    plot: open.plot,
+                    summary: open.summary,
+                    table: open.table,
                 },
             },
             null,

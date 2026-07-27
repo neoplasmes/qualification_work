@@ -4,6 +4,13 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 import { registerAndLogin } from '../../backend/utils/auth.js';
+import {
+    captureChartStates,
+    captureResponsivePages,
+    expectChartRows,
+    fillMetricEditor,
+    fillSetAmountAction,
+} from './utils/index.js';
 
 const screenshots = path.resolve(
     import.meta.dirname,
@@ -40,13 +47,12 @@ test('propagates a complete UI workflow across caches navigation and organizatio
     try {
         for (const route of ['sign-up', 'sign-in']) {
             await page.goto(`/${route}`);
-            for (const width of [1440, 390]) {
-                await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-                await page.screenshot({
-                    path: path.join(screenshots, `${route}-${width}.png`),
-                    fullPage: true,
-                });
-            }
+            await captureResponsivePages({
+                page,
+                screenshots,
+                name: route,
+                widths: [1440, 390],
+            });
         }
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.getByLabel('Электронная почта').fill(user.email);
@@ -56,13 +62,12 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await page.getByTestId('workspace-select').selectOption(user.orgId);
         await page.getByRole('button', { name: 'Профиль', exact: true }).click();
         await expect(page.getByText(user.email, { exact: true })).toBeVisible();
-        for (const width of [1440, 390]) {
-            await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-            await page.screenshot({
-                path: path.join(screenshots, `profile-${width}.png`),
-                fullPage: true,
-            });
-        }
+        await captureResponsivePages({
+            page,
+            screenshots,
+            name: 'profile',
+            widths: [1440, 390],
+        });
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.getByRole('link', { name: 'Таблицы', exact: true }).click();
         const uploadTrigger = page.locator('[data-test-id="datasets-upload-button"]');
@@ -191,27 +196,14 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await expect(
             page.locator('[data-test-id="dashboards-chart-widget"]')
         ).toHaveCount(1);
-        await page
-            .locator('[data-test-id="dashboards-open-add-metric-modal-button"]')
-            .click();
-        dialog = page.getByRole('dialog', { name: 'Добавить метрику', exact: true });
-        await dialog
-            .locator('[data-test-id="dashboards-metric-dataset-select"]')
-            .selectOption(datasetId);
-        await dialog.getByRole('tab', { name: 'Формула', exact: true }).click();
-        await dialog
-            .locator('[data-test-id="dashboards-metric-expression-input"]')
-            .fill('sum(amount)');
-        await dialog
-            .getByLabel('Название метрики', { exact: true })
-            .fill('Migration total');
-        await dialog.getByLabel('Формат', { exact: true }).fill('');
-        await dialog
-            .locator('[data-test-id="dashboards-metric-value-multiplier-input"]')
-            .fill('1');
-        await expect(
-            dialog.locator('[data-test-id="dashboards-metric-preview-value"]')
-        ).toHaveText('65');
+        dialog = await fillMetricEditor(page, {
+            datasetId,
+            name: 'Migration total',
+            expression: 'sum(amount)',
+            format: '',
+            multiplier: '1',
+            preview: '65',
+        });
         await dialog.getByRole('button', { name: 'Сохранить', exact: true }).click();
         await expect(dialog).toBeHidden();
         const metricValue = page
@@ -222,50 +214,7 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await expect(metricValue).toHaveText('65');
         await page.getByRole('link', { name: 'Действия', exact: true }).click();
         await page.getByRole('button', { name: 'Новое действие', exact: true }).click();
-        const form = page.locator('[data-test-id="actions-configure-form"]');
-        await form
-            .locator('[data-test-id="actions-action-name-input"]')
-            .fill('Set amount');
-        const parameter = form.locator('[data-test-id="actions-parameter-row"]');
-        await parameter
-            .locator('[data-test-id="actions-parameter-label-input"]')
-            .fill('New amount');
-        await parameter
-            .locator('[data-test-id="actions-parameter-key-input"]')
-            .fill('newAmount');
-        await parameter
-            .locator('[data-test-id="actions-parameter-type-select"]')
-            .selectOption('number');
-        await parameter
-            .locator('[data-test-id="actions-parameter-required-checkbox"]')
-            .check();
-        const effect = form.locator('[data-test-id="actions-effect-card"]');
-        await effect
-            .locator('[data-test-id="actions-effect-type-select"]')
-            .selectOption('updateRowsByMatch');
-        await effect
-            .locator('[data-test-id="actions-effect-dataset-select"]')
-            .selectOption(datasetId);
-        await effect
-            .locator('[data-test-id="actions-effect-match-column-select"]')
-            .selectOption('sku');
-        await effect
-            .locator('[data-test-id="actions-effect-match-source-literal-button"]')
-            .click();
-        await effect
-            .locator('[data-test-id="actions-effect-match-literal-input"]')
-            .fill('A');
-        await effect.locator('[data-test-id="actions-effect-max-rows-input"]').fill('1');
-        const mapping = effect.locator('[data-test-id="actions-mapping-row"]');
-        await mapping
-            .locator('[data-test-id="actions-mapping-column-select"]')
-            .selectOption('amount');
-        await mapping
-            .locator('[data-test-id="actions-mapping-parameter-select"]')
-            .selectOption('newAmount');
-        await mapping
-            .locator('[data-test-id="actions-mapping-operation-select"]')
-            .selectOption('=');
+        await fillSetAmountAction(page, datasetId);
 
         const createdAction = page.waitForResponse(
             response =>
@@ -304,17 +253,11 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await expect(metricValue).toHaveText('75');
         await page.getByRole('link', { name: 'Графики', exact: true }).click();
         await savedChart.getByText('Точные значения', { exact: true }).click();
-        for (const [category, value] of [
+        await expectChartRows(savedChart, [
             ['A', '25'],
             ['B', '20'],
             ['C', '30'],
-        ]) {
-            await expect(
-                savedChart.getByRole('row').filter({
-                    has: page.getByRole('cell', { name: category, exact: true }),
-                })
-            ).toContainText(value);
-        }
+        ]);
         await page.getByRole('link', { name: 'Таблицы', exact: true }).click();
         for (const [index, value] of ['25', '20', '30'].entries()) {
             await expect(page.getByTestId(`glide-cell-2-${index}`)).toHaveText(value);
@@ -322,11 +265,7 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await page.goBack();
         await expect(page).toHaveURL(chartUrl);
         await savedChart.getByText('Точные значения', { exact: true }).click();
-        await expect(
-            savedChart
-                .getByRole('row')
-                .filter({ has: page.getByRole('cell', { name: 'A', exact: true }) })
-        ).toContainText('25');
+        await expectChartRows(savedChart, [['A', '25']]);
         await page.goBack();
         await expect(page).toHaveURL(dashboardUrl);
         await expect(metricValue).toHaveText('75');
@@ -334,178 +273,23 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await expect(page).toHaveURL(chartUrl);
         await page.reload();
         await savedChart.getByText('Точные значения', { exact: true }).click();
-        await expect(
-            savedChart
-                .getByRole('row')
-                .filter({ has: page.getByRole('cell', { name: 'A', exact: true }) })
-        ).toContainText('25');
+        await expectChartRows(savedChart, [['A', '25']]);
         await page.getByRole('link', { name: 'Дашборды', exact: true }).click();
         await page.reload();
         await expect(metricValue).toHaveText('75');
-        const chartFrames = [];
-        for (const [step, width] of [1440, 390, 1440].entries()) {
-            await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-            const plot = page
-                .locator(
-                    '[data-test-id="dashboards-chart-widget"] [data-testid="bar-chart-svg"] svg'
-                )
-                .first();
-            await writeFile(
-                path.join(screenshots, `chart-frame-before-${step}.json`),
-                JSON.stringify(
-                    {
-                        width,
-                        step,
-                        plot: await plot.boundingBox(),
-                        card: await page
-                            .locator('[data-test-id="dashboards-chart-widget"]')
-                            .boundingBox(),
-                    },
-                    null,
-                    2
-                )
-            );
-            await expect
-                .poll(async () => (await plot.boundingBox())?.width ?? 0)
-                .toBeGreaterThan(200);
-            await expect
-                .poll(async () => (await plot.boundingBox())?.height ?? 0)
-                .toBeGreaterThan(140);
-            const card = page.locator('[data-test-id="dashboards-chart-widget"]');
-            const summary = card.locator('summary');
-            for (const open of [false, true]) {
-                if (open) {
-                    await summary.click();
-                }
-                const frame = {
-                    phase: 'before',
-                    width,
-                    step,
-                    open,
-                    plot: await plot.boundingBox(),
-                    card: await card.boundingBox(),
-                    summary: await summary.boundingBox(),
-                    table: open ? await card.getByRole('table').boundingBox() : null,
-                };
-                chartFrames.push(frame);
-                await writeFile(
-                    path.join(screenshots, 'chart-frames.json'),
-                    JSON.stringify(chartFrames, null, 2)
-                );
-                await expect
-                    .poll(async () => {
-                        const plotBounds = await plot.boundingBox();
-                        const summaryBounds = await summary.boundingBox();
-
-                        return {
-                            readable: Boolean(
-                                plotBounds &&
-                                plotBounds.width > 200 &&
-                                plotBounds.height > 140
-                            ),
-                            separated: Boolean(
-                                plotBounds &&
-                                summaryBounds &&
-                                plotBounds.y + plotBounds.height <= summaryBounds.y + 1
-                            ),
-                        };
-                    })
-                    .toEqual({ readable: true, separated: true });
-                await plot.scrollIntoViewIfNeeded();
-                await expect(plot).toBeInViewport({ ratio: 0.9 });
-                await expect
-                    .poll(() =>
-                        plot.locator('.visx-bar').evaluateAll(
-                            elements =>
-                                elements.filter(element => {
-                                    const bounds = element.getBoundingClientRect();
-                                    const style = getComputedStyle(element);
-
-                                    return (
-                                        bounds.width > 10 &&
-                                        bounds.height > 10 &&
-                                        style.fill !== 'none' &&
-                                        style.visibility !== 'hidden' &&
-                                        Number(style.opacity) > 0
-                                    );
-                                }).length
-                        )
-                    )
-                    .toBe(3);
-                await expect
-                    .poll(() => plot.locator('text').allTextContents())
-                    .toEqual(expect.arrayContaining(['25', '20', '30']));
-                await expect
-                    .poll(() =>
-                        plot.locator('.visx-axis-line').evaluateAll(
-                            elements =>
-                                elements.filter(element => {
-                                    const bounds = element.getBoundingClientRect();
-
-                                    return Math.max(bounds.width, bounds.height) > 100;
-                                }).length
-                        )
-                    )
-                    .toBe(2);
-                if (width === 1440) {
-                    await expect
-                        .poll(() => plot.locator('text').allTextContents())
-                        .toEqual(expect.arrayContaining(['A', 'C']));
-                }
-                chartFrames.push({
-                    ...frame,
-                    phase: 'settled',
-                    marks: await plot.locator('.visx-bar').evaluateAll(elements =>
-                        elements.map(element => {
-                            const bounds = element.getBoundingClientRect();
-
-                            return {
-                                x: bounds.x,
-                                y: bounds.y,
-                                width: bounds.width,
-                                height: bounds.height,
-                                fill: getComputedStyle(element).fill,
-                            };
-                        })
-                    ),
-                    text: await plot.locator('text').allTextContents(),
-                    plot: await plot.boundingBox(),
-                    card: await card.boundingBox(),
-                    summary: await summary.boundingBox(),
-                    table: open ? await card.getByRole('table').boundingBox() : null,
-                });
-                await writeFile(
-                    path.join(screenshots, 'chart-frames.json'),
-                    JSON.stringify(chartFrames, null, 2)
-                );
-                if (open) {
-                    await expect(card.getByRole('table')).toContainText('25');
-                    const tableBounds = await card.getByRole('table').boundingBox();
-                    const summaryBounds = await summary.boundingBox();
-                    expect(tableBounds!.y).toBeGreaterThanOrEqual(
-                        summaryBounds!.y + summaryBounds!.height - 1
-                    );
-                }
-                await page.screenshot({
-                    path: path.join(
-                        screenshots,
-                        `completed-dashboard-${width}-${step}-${open ? 'open' : 'closed'}.png`
-                    ),
-                    fullPage: true,
-                });
-                await page.screenshot({
-                    path: path.join(
-                        screenshots,
-                        `completed-dashboard-${width}-${step}-${open ? 'open' : 'closed'}-viewport.png`
-                    ),
-                });
-            }
-            await summary.click();
-        }
-        await writeFile(
-            path.join(screenshots, 'chart-frames.json'),
-            JSON.stringify(chartFrames, null, 2)
-        );
+        const card = page.locator('[data-test-id="dashboards-chart-widget"]');
+        await captureChartStates({
+            page,
+            card,
+            screenshots,
+            record: 'chart-frames.json',
+            name: 'completed-dashboard',
+            widths: [1440, 390, 1440],
+            values: ['25', '20', '30'],
+            tableValue: '25',
+            desktopCategories: ['A', 'C'],
+        });
+        await card.locator('summary').click();
         await page.getByRole('link', { name: 'Действия', exact: true }).click();
         await page.locator('[data-test-id="actions-history-tab"]').click();
         await page
@@ -558,11 +342,7 @@ test('propagates a complete UI workflow across caches navigation and organizatio
         await page.getByRole('button', { name: /Migration amounts/ }).click();
         await expect(page).toHaveURL(new RegExp(`/charts/view\\?id=${chartId}$`));
         await savedChart.getByText('Точные значения', { exact: true }).click();
-        await expect(
-            savedChart
-                .getByRole('row')
-                .filter({ has: page.getByRole('cell', { name: 'A', exact: true }) })
-        ).toContainText('25');
+        await expectChartRows(savedChart, [['A', '25']]);
         await page.getByRole('button', { name: 'Выйти', exact: true }).click();
         await expect(page).toHaveURL(/\/sign-in$/);
         expect(consoleErrors).toEqual([]);

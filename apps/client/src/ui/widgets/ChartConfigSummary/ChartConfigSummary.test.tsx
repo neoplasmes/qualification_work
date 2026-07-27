@@ -63,7 +63,7 @@ describe('ChartConfigSummary', () => {
         expect(text).toContain('2025-12-31');
     });
 
-    it('renders bar with series, остальные объединены, and sum measure', () => {
+    it('renders bar with series, rest grouped, and sum measure', () => {
         const { container } = render(
             <ChartConfigSummary
                 chartType="bar"

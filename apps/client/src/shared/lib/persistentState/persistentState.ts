@@ -21,7 +21,7 @@ export type PersistedSliceDescriptor<S, P extends Record<string, unknown>> = {
  * Description placeholder
  *
  * @export
- * @template S - the whole redux store state
+ * @template S - the whole store state
  */
 export type PersistedSliceSubscription<S> = {
     key: string;

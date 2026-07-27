@@ -2,6 +2,8 @@ import type { MetricTimeBucket } from '@qualification-work/types';
 
 import styles from './MetricTrendDescription.module.css';
 
+const metricTimeBucketLabels = { day: 'День', week: 'Неделя', month: 'Месяц' };
+
 type MetricTrendDescriptionProps = {
     columnName: string;
     timeBucket: MetricTimeBucket;
@@ -12,8 +14,8 @@ export const MetricTrendDescription = ({
     timeBucket,
 }: MetricTrendDescriptionProps) => (
     <span className={styles['description']}>
-        <span>Trend over </span>
+        <span>Динамика по </span>
         <span className={styles['column-name']}>{columnName}</span>
-        <span className={styles['bucket']}> | {timeBucket}</span>
+        <span className={styles['bucket']}> | {metricTimeBucketLabels[timeBucket]}</span>
     </span>
 );

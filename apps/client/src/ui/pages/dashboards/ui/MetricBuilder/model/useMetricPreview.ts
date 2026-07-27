@@ -1,9 +1,8 @@
 import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useActiveOrganization, useSession } from '@/ui/session';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 import { formatMetricValue } from '../../DashboardWidgets/ui/MetricWidget/lib';
 
@@ -36,7 +35,7 @@ export const useMetricPreview = ({
     );
 
     if (!previewEnabled) {
-        return { content: 'No preview', isMuted: true };
+        return { content: 'Нет предпросмотра', isMuted: true };
     }
 
     if (metricPreview.isFetching) {
@@ -45,7 +44,7 @@ export const useMetricPreview = ({
 
     if (metricPreview.error) {
         return {
-            content: getApiErrorMessage(metricPreview.error, 'Preview unavailable.'),
+            content: getApiErrorMessage(metricPreview.error, 'Предпросмотр недоступен.'),
             isMuted: true,
         };
     }

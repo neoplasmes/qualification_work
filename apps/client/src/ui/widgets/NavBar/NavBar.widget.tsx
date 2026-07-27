@@ -40,7 +40,7 @@ export function NavBar() {
                 as="nav"
                 gap={4}
                 wrap
-                aria-label="Main navigation"
+                aria-label="Основная навигация"
                 className={styles.navigation}
             >
                 {navLinks.map(({ to, label }) => (
@@ -69,7 +69,9 @@ export function NavBar() {
                     <>
                         <IconButton
                             aria-label={
-                                isLeftCollapsed ? 'Show left panel' : 'Hide left panel'
+                                isLeftCollapsed
+                                    ? 'Показать левую панель'
+                                    : 'Скрыть левую панель'
                             }
                             aria-pressed={!isLeftCollapsed}
                             onClick={toggleLeftPanel}
@@ -78,7 +80,9 @@ export function NavBar() {
                         </IconButton>
                         <IconButton
                             aria-label={
-                                isRightCollapsed ? 'Show right panel' : 'Hide right panel'
+                                isRightCollapsed
+                                    ? 'Показать правую панель'
+                                    : 'Скрыть правую панель'
                             }
                             aria-pressed={!isRightCollapsed}
                             onClick={toggleRightPanel}
@@ -87,11 +91,11 @@ export function NavBar() {
                         </IconButton>
                     </>
                 )}
-                <IconButton aria-label="Profile" onClick={() => navigate('/profile')}>
+                <IconButton aria-label="Профиль" onClick={() => navigate('/profile')}>
                     <User size={18} />
                 </IconButton>
                 <IconButton
-                    aria-label="Sign out"
+                    aria-label="Выйти"
                     disabled={logout.isPending}
                     aria-busy={logout.isPending}
                     onClick={() => void logout.execute()}

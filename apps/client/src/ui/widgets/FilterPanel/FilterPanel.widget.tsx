@@ -23,10 +23,10 @@ import {
 import styles from './filterPanel.widget.module.css';
 
 const emptyTextByEntity = {
-    charts: 'No charts yet.',
-    dashboards: 'No dashboards yet.',
-    datasets: 'No datasets yet.',
-    effects: 'No effects yet.',
+    charts: 'Графиков пока нет.',
+    dashboards: 'Дашбордов пока нет.',
+    datasets: 'Таблиц пока нет.',
+    effects: 'Эффектов пока нет.',
 } satisfies Record<FilterApplicationEntity, string>;
 
 const filterPanelIconSize = 18;
@@ -90,7 +90,7 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
     let content;
 
     if (!items) {
-        content = <StatusMessage centered>Loading...</StatusMessage>;
+        content = <StatusMessage centered>Загружаем…</StatusMessage>;
     } else if (items.length === 0) {
         content = <EmptyState>{emptyTextByEntity[activeEntity]}</EmptyState>;
     } else {
@@ -126,7 +126,7 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
                     value={activeEntity}
                     options={tabOptions}
                     data-py="sm"
-                    ariaLabel="Filter section"
+                    ariaLabel="Раздел фильтра"
                     className={styles['entity-tabs']}
                     onChange={entity =>
                         setFilterApplicationActiveTab({
@@ -138,7 +138,7 @@ export const FilterPanel = ({ scope, testIds }: FilterPanelProps) => {
                 <IconButton
                     variant="ghost"
                     data-test-id={testIds?.clearButton}
-                    aria-label="Clear all filters"
+                    aria-label="Очистить все фильтры"
                     disabled={!hasSelectedValues}
                     onClick={() => clearFilterApplicationScopeValues(scope)}
                 >

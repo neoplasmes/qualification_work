@@ -108,7 +108,7 @@ describe('DashboardsPage', () => {
             dashboardsTestIds.metricNameInput
         );
 
-        await waitFor(() => expect(nameInput).toHaveValue('Average Score'));
+        await waitFor(() => expect(nameInput).toHaveValue('Среднее Score'));
         await user.clear(nameInput);
         await user.type(nameInput, 'Manual metric');
         await user.selectOptions(
@@ -129,7 +129,7 @@ describe('DashboardsPage', () => {
         await user.click(
             getByDataTestId(container, dashboardsTestIds.openAddChartModalButton)
         );
-        expect(screen.getByRole('dialog', { name: 'Add chart' })).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: 'Новый график' })).toBeInTheDocument();
         expect(
             getByDataTestId<HTMLSelectElement>(
                 document.body,
@@ -150,11 +150,13 @@ describe('DashboardsPage', () => {
         await user.click(
             getByDataTestId(container, dashboardsTestIds.openAddMetricModalButton)
         );
-        expect(screen.getByRole('dialog', { name: 'Add metric' })).toBeInTheDocument();
+        expect(
+            screen.getByRole('dialog', { name: 'Добавить метрику' })
+        ).toBeInTheDocument();
         await waitFor(() =>
             expect(
                 getByDataTestId(container, dashboardsTestIds.metricNameInput)
-            ).toHaveValue('Average Score')
+            ).toHaveValue('Среднее Score')
         );
         expect(
             getByDataTestId(container, dashboardsTestIds.metricPreviewValue)
@@ -168,7 +170,7 @@ describe('DashboardsPage', () => {
             dashboardsTestIds.metricValueMultiplierInput
         );
         const valueMultiplierSlider = screen.getByRole('slider', {
-            name: 'Multiplier',
+            name: 'Множитель',
         });
         fireEvent.change(valueMultiplierSlider, { target: { value: '12.5' } });
         expect(valueMultiplierInput).toHaveValue(12.5);
@@ -198,7 +200,7 @@ describe('DashboardsPage', () => {
             orgId: 'org-1',
             dashboardId: 'dashboard-1',
             datasetId: 'dataset-1',
-            name: 'Average Score',
+            name: 'Среднее Score',
             expression: 'avg(score)',
             format: '%',
             valueMultiplier: 100,
@@ -225,7 +227,7 @@ describe('DashboardsPage', () => {
         await user.click(getByDataTestId(container, dashboardsTestIds.addMetricButton));
 
         const alert = await screen.findByRole('alert');
-        const dialog = screen.getByRole('dialog', { name: 'Add metric' });
+        const dialog = screen.getByRole('dialog', { name: 'Добавить метрику' });
 
         expect(alert).toHaveTextContent('bind message supplies 2 parameters');
         expect(dialog).toContainElement(alert);

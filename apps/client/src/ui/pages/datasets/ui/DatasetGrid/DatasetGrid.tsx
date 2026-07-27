@@ -41,7 +41,7 @@ export const DatasetGrid = ({
         >
             {isEmpty ? (
                 <EmptyState icon={<FileSpreadsheet size={22} />}>
-                    Dataset has no preview rows.
+                    В таблице нет строк для предпросмотра.
                 </EmptyState>
             ) : (
                 gridWidth > 0 && (
@@ -51,7 +51,7 @@ export const DatasetGrid = ({
                                 className={styles['loading']}
                                 style={{ minHeight: gridHeight }}
                             >
-                                Loading table...
+                                Загружаем таблицу…
                             </div>
                         }
                         LazyComponent={LazyDatasetGridEditor}

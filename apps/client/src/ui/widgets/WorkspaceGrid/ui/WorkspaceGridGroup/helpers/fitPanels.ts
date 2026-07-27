@@ -23,6 +23,15 @@ export const fitPanels = (
     }
 
     if (totalSize > availableSize) {
+        const preferredIndex = preferredModel ? models.indexOf(preferredModel) : -1;
+        if (preferredIndex >= 0) {
+            const fitted = sizes[preferredIndex] - (totalSize - availableSize);
+            if (fitted >= models[preferredIndex].getMinSizePx()) {
+                models[preferredIndex].setFittedSizePx(fitted);
+
+                return;
+            }
+        }
         const minSizes = models.map(m => m.getMinSizePx());
         const totalMin = minSizes.reduce((sum, m) => sum + m, 0);
 

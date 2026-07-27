@@ -11,7 +11,7 @@ import {
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../.superpowers/sdd/2026-10-21-client-architecture-migration/task-13-browser-3/charts'
+    `../../../apps/client/dist/migration-review/${new Date().toISOString().replaceAll(':', '-')}-charts`
 );
 
 test('creates and edits all chart kinds with explicit previews and dashboard refresh', async ({
@@ -58,24 +58,31 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         }
     });
 
-    for (const kind of ['bar', 'line', 'pie', 'heatmap']) {
+    for (const [kind, label] of Object.entries({
+        bar: 'Столбцы',
+        line: 'Линия',
+        pie: 'Круговая диаграмма',
+        heatmap: 'Тепловая карта',
+    })) {
         await page.locator('[data-test-id="charts-create-chart-button"]').click();
         await page
-            .getByRole('dialog', { name: 'Select dataset' })
+            .getByRole('dialog', { name: 'Выберите таблицу' })
             .getByRole('button', { name: /chart-browser/ })
             .click();
-        const form = page.getByRole('form', { name: 'Add chart', exact: true });
+        const form = page.getByRole('form', { name: 'Новый график', exact: true });
         const previewCount = previews;
-        await form.getByLabel('Chart name', { exact: true }).fill(`Browser ${kind}`);
-        await form.getByRole('radio', { name: new RegExp(`^${kind}$`, 'i') }).click();
         await form
-            .getByLabel(kind === 'pie' ? 'Slice by' : 'X axis', { exact: true })
+            .getByLabel('Название графика', { exact: true })
+            .fill(`Browser ${kind}`);
+        await form.getByRole('radio', { name: label, exact: true }).click();
+        await form
+            .getByLabel(kind === 'pie' ? 'Сектора по полю' : 'Ось X', { exact: true })
             .selectOption(category);
         if (kind === 'heatmap') {
-            await form.getByLabel('Y axis', { exact: true }).selectOption(segment);
+            await form.getByLabel('Ось Y', { exact: true }).selectOption(segment);
         }
-        await form.getByLabel('Aggregation', { exact: true }).selectOption('sum');
-        await form.getByLabel('Column', { exact: true }).selectOption(value);
+        await form.getByLabel('Расчёт', { exact: true }).selectOption('sum');
+        await form.getByLabel('Поле', { exact: true }).selectOption(value);
         expect(previews).toBe(previewCount);
         if (kind === 'bar') {
             await page.screenshot({
@@ -88,7 +95,7 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
                 response.url().endsWith('/data/charts/preview') &&
                 response.request().method() === 'POST'
         );
-        await page.getByRole('button', { name: 'Preview', exact: true }).click();
+        await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click();
         const result = await (await response).json();
         expect(result.kind).toBe(kind);
         expect(result.rows).toEqual(
@@ -110,7 +117,7 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
                         ['B', 35],
                     ]
         );
-        const preview = page.locator('[aria-label="Chart preview"]');
+        const preview = page.locator('[aria-label="Предпросмотр графика"]');
         await expect(preview.getByTestId(`${kind}-chart-svg`)).toBeVisible();
         const renderer = preview.getByTestId(`${kind}-chart-svg`);
         await expect(
@@ -124,11 +131,11 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
                 .locator(kind === 'pie' || kind === 'line' ? 'path' : 'rect')
                 .count()
         ).toBeGreaterThan(0);
-        await preview.getByText('Exact values', { exact: true }).click();
+        await preview.getByText('Точные значения', { exact: true }).click();
         await expect(preview.getByRole('table')).toContainText(
             kind === 'heatmap' ? 'North' : '35'
         );
-        await preview.getByText('Exact values', { exact: true }).click();
+        await preview.getByText('Точные значения', { exact: true }).click();
         await page.screenshot({
             path: path.join(screenshots, `${kind}-desktop.png`),
             fullPage: true,
@@ -148,47 +155,45 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
                 response.url().endsWith('/data/charts') &&
                 response.request().method() === 'POST'
         );
-        await page.getByRole('button', { name: 'Save chart', exact: true }).click();
+        await page.getByRole('button', { name: 'Сохранить график', exact: true }).click();
         const { id } = await (await creation).json();
         created.push({ kind, id });
         await expect(page).toHaveURL(new RegExp(`/charts/view\\?id=${id}$`));
         await expect(
             page
-                .locator('[aria-label="Saved chart result"]')
+                .locator('[aria-label="Сохранённый график"]')
                 .getByTestId(`${kind}-chart-svg`)
         ).toBeVisible();
-        await page.getByRole('tab', { name: 'Edit', exact: true }).click();
-        const edit = page.getByRole('form', { name: 'Edit chart', exact: true });
+        await page.getByRole('tab', { name: 'Изменить', exact: true }).click();
+        const edit = page.getByRole('form', { name: 'Изменение графика', exact: true });
         if (kind === 'heatmap') {
-            await edit.getByLabel('X axis', { exact: true }).selectOption(segment);
-            await edit.getByLabel('Y axis', { exact: true }).selectOption(category);
+            await edit.getByLabel('Ось X', { exact: true }).selectOption(segment);
+            await edit.getByLabel('Ось Y', { exact: true }).selectOption(category);
         } else {
-            await edit.getByLabel('Aggregation', { exact: true }).selectOption('avg');
+            await edit.getByLabel('Расчёт', { exact: true }).selectOption('avg');
         }
         if (kind === 'bar') {
-            await page.getByRole('tab', { name: 'View', exact: true }).click();
-            await page.getByRole('tab', { name: 'Edit', exact: true }).click();
-            await expect(edit.getByLabel('Aggregation', { exact: true })).toHaveValue(
-                'avg'
-            );
-            await page.getByRole('button', { name: 'Cancel edit', exact: true }).click();
-            await page.getByRole('tab', { name: 'Edit', exact: true }).click();
-            await expect(edit.getByLabel('Aggregation', { exact: true })).toHaveValue(
-                'sum'
-            );
-            await edit.getByLabel('Aggregation', { exact: true }).selectOption('avg');
+            await page.getByRole('tab', { name: 'Просмотр', exact: true }).click();
+            await page.getByRole('tab', { name: 'Изменить', exact: true }).click();
+            await expect(edit.getByLabel('Расчёт', { exact: true })).toHaveValue('avg');
+            await page
+                .getByRole('button', { name: 'Отменить изменения', exact: true })
+                .click();
+            await page.getByRole('tab', { name: 'Изменить', exact: true }).click();
+            await expect(edit.getByLabel('Расчёт', { exact: true })).toHaveValue('sum');
+            await edit.getByLabel('Расчёт', { exact: true }).selectOption('avg');
         }
         const update = page.waitForResponse(
             response =>
                 response.url().endsWith(`/data/charts/${id}`) &&
                 response.request().method() === 'PUT'
         );
-        await page.getByRole('button', { name: 'Save', exact: true }).click();
+        await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
         expect((await update).status()).toBe(204);
-        await page.getByRole('tab', { name: 'View', exact: true }).click();
-        const saved = page.locator('[aria-label="Saved chart result"]');
+        await page.getByRole('tab', { name: 'Просмотр', exact: true }).click();
+        const saved = page.locator('[aria-label="Сохранённый график"]');
         await expect(saved.getByTestId(`${kind}-chart-svg`)).toBeVisible();
-        await saved.getByText('Exact values', { exact: true }).click();
+        await saved.getByText('Точные значения', { exact: true }).click();
         await expect(saved.getByRole('table')).toContainText(
             kind === 'heatmap' ? 'North' : '17.5'
         );
@@ -208,7 +213,7 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         await page.reload();
         await expect(
             page
-                .locator('[aria-label="Saved chart result"]')
+                .locator('[aria-label="Сохранённый график"]')
                 .getByTestId(`${kind}-chart-svg`)
         ).toBeVisible();
     }
@@ -218,21 +223,21 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         .getByRole('dialog')
         .getByRole('button', { name: /chart-browser/ })
         .click();
-    await page.getByLabel('Chart name', { exact: true }).fill('Retained draft');
-    await page.getByRole('radio', { name: 'Line', exact: true }).click();
-    await page.getByRole('button', { name: 'Change dataset', exact: true }).click();
+    await page.getByLabel('Название графика', { exact: true }).fill('Retained draft');
+    await page.getByRole('radio', { name: 'Линия', exact: true }).click();
+    await page.getByRole('button', { name: 'Сменить таблицу', exact: true }).click();
     await page
         .getByRole('dialog')
         .getByRole('button', { name: /second-chart/ })
         .click();
-    await expect(page.getByLabel('Chart name', { exact: true })).toHaveValue(
+    await expect(page.getByLabel('Название графика', { exact: true })).toHaveValue(
         'Retained draft'
     );
-    await expect(page.getByRole('radio', { name: 'Line', exact: true })).toBeChecked();
+    await expect(page.getByRole('radio', { name: 'Линия', exact: true })).toBeChecked();
     expect(secondDataset.id).not.toBe(dataset.id);
     await page.getByRole('link', { name: 'Таблицы', exact: true }).click();
     await page.getByRole('link', { name: 'Графики', exact: true }).click();
-    await expect(page.getByLabel('Chart name', { exact: true })).toHaveValue(
+    await expect(page.getByLabel('Название графика', { exact: true })).toHaveValue(
         'Retained draft'
     );
     await page.setViewportSize({ width: 390, height: 844 });
@@ -266,32 +271,40 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         await route.fulfill({ response });
     });
     try {
-        await page.getByRole('button', { name: 'Preview', exact: true }).click();
+        await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click();
         await oldResponse;
-        await page.getByRole('radio', { name: 'Pie', exact: true }).click();
+        await page
+            .getByRole('radio', { name: 'Круговая диаграмма', exact: true })
+            .click();
         const latest = page.waitForResponse(
             response =>
                 response.url().endsWith('/data/charts/preview') &&
                 response.request().postDataJSON().chartType === 'pie'
         );
-        await page.getByRole('button', { name: 'Preview', exact: true }).click();
+        await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click();
         expect((await (await latest).json()).kind).toBe('pie');
         await expect(
-            page.locator('[aria-label="Chart preview"]').getByTestId('pie-chart-svg')
+            page
+                .locator('[aria-label="Предпросмотр графика"]')
+                .getByTestId('pie-chart-svg')
         ).toBeVisible();
         releaseOld();
         await page.unrouteAll({ behavior: 'wait' });
         await expect(
-            page.locator('[aria-label="Chart preview"]').getByTestId('pie-chart-svg')
+            page
+                .locator('[aria-label="Предпросмотр графика"]')
+                .getByTestId('pie-chart-svg')
         ).toBeVisible();
         await expect(
-            page.locator('[aria-label="Chart preview"]').getByTestId('line-chart-svg')
+            page
+                .locator('[aria-label="Предпросмотр графика"]')
+                .getByTestId('line-chart-svg')
         ).toHaveCount(0);
     } finally {
         releaseOld();
         await page.unrouteAll({ behavior: 'wait' });
     }
-    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await page.getByRole('button', { name: 'Отмена', exact: true }).click();
     await expect(page).toHaveURL(/\/charts$/);
 
     await page.getByRole('link', { name: 'Дашборды', exact: true }).click();
@@ -310,7 +323,7 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         fullPage: true,
     });
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.getByRole('link', { name: 'Edit Browser bar', exact: true }).click();
+    await page.getByRole('link', { name: 'Изменить Browser bar', exact: true }).click();
     await page.locator('[data-test-id="charts-rename-button"]').click();
     await page.locator('[data-test-id="charts-rename-input"]').fill('Renamed bar');
     const rename = page.waitForResponse(
@@ -320,13 +333,13 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
     );
     await page.locator('[data-test-id="charts-rename-input"]').press('Enter');
     expect((await rename).status()).toBe(204);
-    await page.getByLabel('Aggregation', { exact: true }).selectOption('sum');
+    await page.getByLabel('Расчёт', { exact: true }).selectOption('sum');
     const update = page.waitForResponse(
         response =>
             response.url().endsWith(`/data/charts/${created[0]!.id}`) &&
             response.request().method() === 'PUT'
     );
-    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
     expect((await update).status()).toBe(204);
     await page.getByRole('link', { name: 'Дашборды', exact: true }).click();
     await expect(page).toHaveURL(/\/dashboards(?:\/view)?(?:\?|$)/);
@@ -334,7 +347,7 @@ test('creates and edits all chart kinds with explicit previews and dashboard ref
         .getByRole('article')
         .filter({ has: page.getByRole('heading', { name: 'Renamed bar', exact: true }) });
     await expect(barCard.getByTestId('bar-chart-svg')).toBeVisible();
-    await barCard.getByText('Exact values', { exact: true }).click();
+    await barCard.getByText('Точные значения', { exact: true }).click();
     await expect(barCard.getByRole('table')).toContainText('35');
     await expect(page).toHaveURL(/\/dashboards(?:\/view)?(?:\?|$)/);
     expect(errors).toEqual([]);

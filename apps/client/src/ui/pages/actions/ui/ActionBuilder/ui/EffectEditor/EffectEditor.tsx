@@ -46,7 +46,7 @@ export const EffectEditor = ({
     const summary = useMemo(() => {
         const datasetName = datasets.find(d => d.dataset.id === effect.datasetId)?.dataset
             .name;
-        const valuesPart = `${effect.values.length} value${effect.values.length !== 1 ? 's' : ''}`;
+        const valuesPart = `Значений: ${effect.values.length}`;
 
         return datasetName ? `${datasetName} · ${valuesPart}` : valuesPart;
     }, [datasets, effect.datasetId, effect.values.length]);

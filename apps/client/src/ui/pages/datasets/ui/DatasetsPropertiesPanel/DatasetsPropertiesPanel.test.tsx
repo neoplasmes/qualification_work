@@ -48,7 +48,7 @@ it('renames and confirms deletion through scoped commands', async () => {
             <DatasetsPropertiesPanel />
         </UiTestProvider>
     );
-    await user.click(await screen.findByRole('button', { name: 'Rename' }));
+    await user.click(await screen.findByRole('button', { name: 'Переименовать' }));
     await user.clear(screen.getByLabelText('Название таблицы'));
     await user.type(screen.getByLabelText('Название таблицы'), 'Renamed{Enter}');
     await waitFor(() =>

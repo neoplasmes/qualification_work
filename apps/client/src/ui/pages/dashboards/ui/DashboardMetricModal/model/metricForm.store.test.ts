@@ -6,7 +6,7 @@ it('stores and clears metric form fields', () => {
     let state = (() => {
         const store = createMetricFormStore();
         store.getState().setWorkspaceMetricForm({
-            name: 'Average',
+            name: 'Среднее',
             expression: 'avg(score)',
             format: '%',
             valueMultiplier: '100',
@@ -20,7 +20,7 @@ it('stores and clears metric form fields', () => {
         return store.getState();
     })();
 
-    expect(state.workspaceMetricName).toBe('Average');
+    expect(state.workspaceMetricName).toBe('Среднее');
     expect(state.workspaceMetricExpression).toBe('avg(score)');
     expect(state.workspaceMetricFormat).toBe('%');
     expect(state.workspaceMetricValueMultiplier).toBe('100');

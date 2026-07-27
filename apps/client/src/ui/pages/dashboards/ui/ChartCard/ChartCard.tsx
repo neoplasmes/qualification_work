@@ -92,7 +92,7 @@ export const ChartCard = ({
                         .filter(Boolean)
                         .join(' ')}
                 >
-                    Aggregated at {formatDate(data.aggregatedAt)}
+                    Рассчитано {formatDate(data.aggregatedAt)}
                 </span>
             </div>
         )}

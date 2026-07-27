@@ -1,6 +1,7 @@
 import type { Action } from '@/core/entities/action';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import {
     ActionBuilder,
     builderDraftToActionPayload,
@@ -17,7 +18,6 @@ import {
     type SetStateAction,
 } from 'react';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';
 
 import { useActionsController } from '../../../../model';
@@ -116,7 +116,7 @@ export const ActionConfigureTab = ({
                 setError(
                     saveError instanceof Error
                         ? saveError.message
-                        : getApiErrorMessage(saveError, 'Unable to save this action.')
+                        : getApiErrorMessage(saveError, 'Не удалось сохранить действие.')
                 );
             }
         },

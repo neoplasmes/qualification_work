@@ -32,7 +32,7 @@ const createDatasetItems = (
         id: item.dataset.id,
         label: item.dataset.name,
         meta: [
-            `${item.totalRows} rows`,
+            `Строк: ${item.totalRows}`,
             formatDate(
                 scope === 'actions' ? item.dataset.updatedAt : item.dataset.createdAt
             ),

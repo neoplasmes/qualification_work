@@ -18,7 +18,7 @@ const action: Action = {
     description: null,
     parameters: [
         { key: 'amount', label: 'Amount', type: 'number', required: true },
-        { key: 'paid', label: 'Paid', type: 'bool', required: false },
+        { key: 'paid', label: 'Оплачен', type: 'bool', required: false },
     ],
     effects: [],
     createdAt: '2026-01-01T00:00:00.000Z',

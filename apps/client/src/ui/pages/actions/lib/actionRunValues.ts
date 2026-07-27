@@ -47,19 +47,19 @@ const formatDateForRunPayload = (value: string) => {
 
 const getRunValueTypeError = (parameter: ActionParameter) => {
     if (parameter.type === 'number') {
-        return `${parameter.label} expects a number.`;
+        return `${parameter.label}: введите число.`;
     }
     if (parameter.type === 'date') {
-        return `${parameter.label} expects a date in DD-MM-YYYY format.`;
+        return `${parameter.label}: введите дату в формате ДД-ММ-ГГГГ.`;
     }
     if (parameter.type === 'day_of_week') {
-        return `${parameter.label} expects a weekday.`;
+        return `${parameter.label}: введите день недели.`;
     }
     if (parameter.type === 'bool') {
-        return `${parameter.label} expects true or false.`;
+        return `${parameter.label}: выберите да или нет.`;
     }
 
-    return `${parameter.label} has an invalid value.`;
+    return `${parameter.label}: некорректное значение.`;
 };
 
 export const getDefaultRunValues = (parameters: ActionParameter[]) =>

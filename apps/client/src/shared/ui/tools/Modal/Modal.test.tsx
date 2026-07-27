@@ -9,13 +9,13 @@ it('contains keyboard focus and restores the opener', () => {
     opener.focus();
     const close = vi.fn();
     const mounted = render(
-        <Modal title="Edit" onClose={close}>
+        <Modal title="Изменить" onClose={close}>
             <input aria-label="Name" />
-            <button>Save</button>
+            <button>Сохранить</button>
         </Modal>
     );
-    const first = screen.getByRole('button', { name: 'Close modal' });
-    const last = screen.getByRole('button', { name: 'Save' });
+    const first = screen.getByRole('button', { name: 'Закрыть окно' });
+    const last = screen.getByRole('button', { name: 'Сохранить' });
     expect(first).toHaveFocus();
     last.focus();
     fireEvent.keyDown(last, { key: 'Tab' });

@@ -31,9 +31,7 @@
 
 .chart-area {
     display: flex;
-    min-height: 160px;
-    overflow: hidden;
-    flex: 1 1 auto;
+    flex: 1 0 auto;
 }
 
 .chart-area > * {

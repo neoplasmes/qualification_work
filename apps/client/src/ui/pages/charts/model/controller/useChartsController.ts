@@ -2,10 +2,9 @@ import type { ChartConfig, ChartData } from '@/core/entities/chart';
 import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 import {
     configToBuilderDraft,
@@ -133,7 +132,7 @@ export function useChartsController({
         isSaving: createPending || updating,
         async previewChart() {
             if (!output?.config || !datasetId) {
-                setError(output?.error ?? 'Choose a dataset first.');
+                setError(output?.error ?? 'Сначала выберите таблицу.');
 
                 return;
             }
@@ -162,7 +161,9 @@ export function useChartsController({
                     request.current === controller &&
                     mounted.current
                 ) {
-                    setError(getApiErrorMessage(cause, 'Unable to preview this chart.'));
+                    setError(
+                        getApiErrorMessage(cause, 'Не удалось построить предпросмотр.')
+                    );
                 }
             } finally {
                 if (request.current === controller && mounted.current) {
@@ -180,7 +181,7 @@ export function useChartsController({
         async saveChart(usePreview: boolean) {
             const config = usePreview ? preview?.config : output?.config;
             if (!config || !output || !dataset) {
-                setError(output?.error ?? 'Choose a dataset first.');
+                setError(output?.error ?? 'Сначала выберите таблицу.');
 
                 return;
             }
@@ -242,7 +243,7 @@ export function useChartsController({
                     scope.current.orgId === orgId &&
                     scope.current.chartId === chartId
                 ) {
-                    setError(getApiErrorMessage(cause, 'Unable to save this chart.'));
+                    setError(getApiErrorMessage(cause, 'Не удалось сохранить график.'));
                 }
 
                 return;
@@ -273,7 +274,7 @@ export function useChartsController({
             setPreview(null);
             if (refreshError) {
                 setSyncError(
-                    'Chart saved. Refresh failed. Reload this page to retrieve the saved chart.'
+                    'График сохранён, но обновить данные не удалось. Перезагрузите страницу.'
                 );
             }
             onSaved(savedId);

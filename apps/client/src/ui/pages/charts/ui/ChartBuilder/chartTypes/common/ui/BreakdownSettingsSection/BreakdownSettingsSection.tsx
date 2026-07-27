@@ -23,8 +23,8 @@ export const BreakdownSettingsSection = <T extends object>({
     showOtherBucket,
 }: BreakdownSettingsSectionProps<T>) => {
     return (
-        <config.Section name="Breakdown" enabledField={enabledField}>
-            <Field label="Split by">
+        <config.Section name="Разбиение" enabledField={enabledField}>
+            <Field label="Разбить по полю">
                 <config.Select bind={columnBind}>
                     {columns.map(column => (
                         <option
@@ -38,15 +38,15 @@ export const BreakdownSettingsSection = <T extends object>({
                 </config.Select>
             </Field>
 
-            <Field label="Max categories">
+            <Field label="Максимум категорий">
                 <config.Input bind={topNBind} type="number" min={1} max={50} />
             </Field>
 
             {showOtherBucket && otherBucketBind && (
-                <Field label="Group others">
+                <Field label="Объединять остальные">
                     <config.Select bind={otherBucketBind}>
-                        <option value="on">On</option>
-                        <option value="off">Off</option>
+                        <option value="on">Да</option>
+                        <option value="off">Нет</option>
                     </config.Select>
                 </Field>
             )}

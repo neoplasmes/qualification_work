@@ -1,11 +1,11 @@
 import { useCommand } from '@/env/cache/useCommand';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useDashboardsPageActions } from '@/ui/pages/dashboards/model';
 import { Button } from '@qualification-work/design-system';
 import { Trash2 } from 'lucide-react';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { EditableText, StatusMessage, Table } from '@/shared/ui';
 
@@ -75,7 +75,7 @@ export const DashboardsPropertiesPanel = () => {
             if (!view.live) {
                 return;
             }
-            setError(getApiErrorMessage(deleteError, 'Unable to delete this dashboard.'));
+            setError(getApiErrorMessage(deleteError, 'Не удалось удалить дашборд.'));
         }
     };
 
@@ -106,7 +106,7 @@ export const DashboardsPropertiesPanel = () => {
             }
             const message = getApiErrorMessage(
                 renameError,
-                'Unable to rename this dashboard.'
+                'Не удалось переименовать дашборд.'
             );
             setError(message);
 
@@ -175,7 +175,7 @@ export const DashboardsPropertiesPanel = () => {
     const widgetsCount = selectedDashboard.items.length;
 
     return (
-        <section data-stack="v" data-gap="md" aria-label="Dashboard properties">
+        <section data-stack="v" data-gap="md" aria-label="Свойства дашборда">
             <EditableText
                 title={selectedDashboard.name}
                 fallbackTitle="Без названия"
@@ -188,12 +188,12 @@ export const DashboardsPropertiesPanel = () => {
             {feedback}
 
             <Table
-                aria-label="Dashboard properties"
-                headers={{ key: 'Property', value: 'Value' }}
+                aria-label="Свойства дашборда"
+                headers={{ key: 'Свойство', value: 'Значение' }}
                 rows={[
-                    { key: 'Widgets', value: widgetsCount },
-                    { key: 'Created', value: formatDate(selectedDashboard.createdAt) },
-                    { key: 'Updated', value: formatDate(selectedDashboard.updatedAt) },
+                    { key: 'Виджеты', value: widgetsCount },
+                    { key: 'Создан', value: formatDate(selectedDashboard.createdAt) },
+                    { key: 'Обновлён', value: formatDate(selectedDashboard.updatedAt) },
                 ]}
             />
 

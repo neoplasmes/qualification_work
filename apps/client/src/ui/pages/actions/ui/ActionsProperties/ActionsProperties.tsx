@@ -1,6 +1,7 @@
 import type { Action } from '@/core/entities/action';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useActionsPageActions } from '@/ui/pages/actions/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { Button, Sheet, Text } from '@qualification-work/design-system';
@@ -8,7 +9,6 @@ import { Trash2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { EditableText, StatusMessage, Table } from '@/shared/ui';
 
@@ -88,7 +88,7 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
             navigate(actionsWorkspaceIndexPath, { replace: true });
             setArchiveConfirmationId(null);
         } catch (archiveError) {
-            setError(getApiErrorMessage(archiveError, 'Unable to delete this action.'));
+            setError(getApiErrorMessage(archiveError, 'Не удалось удалить действие.'));
         }
     };
 
@@ -110,7 +110,7 @@ export const ActionsProperties = ({ selectedAction }: ActionsPropertiesProps) =>
         } catch (renameError) {
             const message = getApiErrorMessage(
                 renameError,
-                'Unable to rename this action.'
+                'Не удалось переименовать действие.'
             );
             setError(message);
 

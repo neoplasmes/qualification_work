@@ -25,11 +25,11 @@ export const moveItem = <T>(items: T[], index: number, direction: -1 | 1) => {
 
 export const summarizeRun = (run: ActionRun) => {
     if (run.status === 'failed') {
-        return run.errorMessage ?? 'Run failed.';
+        return run.errorMessage ?? 'Выполнение не удалось.';
     }
 
     if (run.changes.length === 0) {
-        return 'No changes recorded.';
+        return 'Изменений нет.';
     }
 
     return `${run.changes.length} changes`;

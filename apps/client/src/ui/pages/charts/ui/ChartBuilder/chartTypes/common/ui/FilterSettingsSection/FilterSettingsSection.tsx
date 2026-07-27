@@ -35,8 +35,8 @@ export const FilterSettingsSection = <T extends object>({
     }
 
     return (
-        <config.Section name="Filter" enabledField={enabledField}>
-            <Field label="Filter column">
+        <config.Section name="Фильтр" enabledField={enabledField}>
+            <Field label="Поле фильтра">
                 <config.Select bind={columnBind}>
                     {columns.map(column => (
                         <option
@@ -50,7 +50,7 @@ export const FilterSettingsSection = <T extends object>({
                 </config.Select>
             </Field>
 
-            <Field label="Condition">
+            <Field label="Условие">
                 <config.Select field={operationField}>
                     {filterOperations.map(operation => (
                         <option key={operation} value={operation}>
@@ -61,7 +61,7 @@ export const FilterSettingsSection = <T extends object>({
             </Field>
 
             {!isNullaryFilterOperation(operation) && (
-                <Field label="Value">
+                <Field label="Значение">
                     <config.Input
                         field={valueField}
                         placeholder={filterValuePlaceholder}

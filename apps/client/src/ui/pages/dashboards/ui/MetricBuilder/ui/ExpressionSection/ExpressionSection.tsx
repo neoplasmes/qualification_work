@@ -17,8 +17,8 @@ import styles from './ExpressionSection.module.css';
 
 const metricExpressionModeOptions: readonly SegmentedControlOption<MetricExpressionMode>[] =
     [
-        { value: 'builder', label: 'Builder' },
-        { value: 'formula', label: 'Formula' },
+        { value: 'builder', label: 'Конструктор' },
+        { value: 'formula', label: 'Формула' },
     ];
 
 type ExpressionSectionProps = {
@@ -99,7 +99,7 @@ export const ExpressionSection = ({
     ]);
 
     const metricPreviewField = (
-        <Field label="Preview" className={styles['preview-field']}>
+        <Field label="Предпросмотр" className={styles['preview-field']}>
             <div
                 className={[styles['preview'], metricPreviewClassName].join(' ')}
                 data-stack="h"
@@ -114,7 +114,7 @@ export const ExpressionSection = ({
     );
     const expressionRow = (
         <div className={styles['expression-row']}>
-            <Field label="Expression" data-flex>
+            <Field label="Выражение" data-flex>
                 <metricBuilderConfig.Input
                     field="expression"
                     data-test-id={metricBuilderTestIds.expressionInput}
@@ -136,7 +136,7 @@ export const ExpressionSection = ({
     if (expressionMode === 'builder') {
         expressionContent = (
             <>
-                <Field label="Operation">
+                <Field label="Операция">
                     <metricBuilderConfig.Select
                         bind={aggregateBind}
                         data-test-id={metricBuilderTestIds.aggregateSelect}
@@ -148,7 +148,7 @@ export const ExpressionSection = ({
                         ))}
                     </metricBuilderConfig.Select>
                 </Field>
-                <Field label="Column">
+                <Field label="Поле">
                     <metricBuilderConfig.Select
                         bind={columnIdBind}
                         data-test-id={metricBuilderTestIds.columnSelect}
@@ -177,14 +177,14 @@ export const ExpressionSection = ({
     }
 
     return (
-        <metricBuilderConfig.Section name="Expression" className={styles['section']}>
-            <Field label="Mode">
+        <metricBuilderConfig.Section name="Выражение" className={styles['section']}>
+            <Field label="Режим">
                 <div data-test-id={metricBuilderTestIds.expressionModeSelect}>
                     <SegmentedControl
                         className={styles['mode-control']}
                         value={expressionMode}
                         options={metricExpressionModeOptions}
-                        ariaLabel="Metric expression mode"
+                        ariaLabel="Режим выражения метрики"
                         onChange={setExpressionMode}
                     />
                 </div>

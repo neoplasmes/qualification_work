@@ -1,4 +1,4 @@
-const formatter = new Intl.DateTimeFormat('en', {
+const formatter = new Intl.DateTimeFormat('ru-RU', {
     month: 'short',
     day: '2-digit',
     year: 'numeric',

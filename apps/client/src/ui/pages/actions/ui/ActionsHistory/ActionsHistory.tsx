@@ -27,7 +27,7 @@ export const ActionsHistory = ({
     const dependencies = useDependencies();
     const [offset, setOffset] = useState(0);
     const [selectedId, setSelectedId] = useState<string>();
-    const [retryError, setRetryError] = useState(false);
+    const [retryError, setRetryError] = useState<{ orgId: string; offset: number }>();
     const input = { kind: 'org' as const, orgId: org?.id ?? '', offset, limit: 50 };
     const runsQuery = useRead(dependencies.listActionRuns, input, {
         enabled: Boolean(org),
@@ -42,7 +42,8 @@ export const ActionsHistory = ({
             {runsQuery.isPending && !runsQuery.error && (
                 <Text role="status">Загрузка журнала…</Text>
             )}
-            {(Boolean(runsQuery.error) || retryError) && (
+            {(Boolean(runsQuery.error) ||
+                (retryError?.orgId === input.orgId && retryError?.offset === offset)) && (
                 <Notice tone="danger" role="alert">
                     Не удалось загрузить журнал.
                 </Notice>
@@ -52,10 +53,10 @@ export const ActionsHistory = ({
                 disabled={runsQuery.isFetching || !org}
                 onClick={async () => {
                     try {
-                        setRetryError(false);
+                        setRetryError(undefined);
                         await dependencies.cache.read(dependencies.listActionRuns, input);
                     } catch {
-                        setRetryError(true);
+                        setRetryError({ orgId: input.orgId, offset: input.offset });
                     }
                 }}
             >
@@ -91,6 +92,7 @@ export const ActionsHistory = ({
                     variant="ghost"
                     disabled={offset === 0 || runsQuery.isFetching}
                     onClick={() => {
+                        setRetryError(undefined);
                         setOffset(value => Math.max(0, value - 50));
                         setSelectedId(undefined);
                     }}
@@ -102,6 +104,7 @@ export const ActionsHistory = ({
                     variant="ghost"
                     disabled={runsQuery.isFetching || runsQuery.data?.length !== 50}
                     onClick={() => {
+                        setRetryError(undefined);
                         setOffset(value => value + 50);
                         setSelectedId(undefined);
                     }}

@@ -11,6 +11,7 @@ import DataEditor, {
 
 import '@glideapps/glide-data-grid/dist/index.css';
 
+import { Notice } from '@qualification-work/design-system';
 import { useCallback, useEffect, useMemo, useRef, type ComponentProps } from 'react';
 
 import { gridTheme, headerHeight, rowHeight } from '../../../../const';
@@ -47,7 +48,8 @@ export const DatasetGridEditor = ({
 }: DatasetGridEditorProps) => {
     const gridRef = useRef<DataEditorRef>(null);
     const handledScrollSignal = useRef(0);
-    const { widths, setColumnWidth, isHydrated } = useDatasetTableOptions(datasetId);
+    const { widths, setColumnWidth, isHydrated, error } =
+        useDatasetTableOptions(datasetId);
     const rowCount = totalRows;
 
     useEffect(() => {
@@ -190,6 +192,12 @@ export const DatasetGridEditor = ({
 
     return (
         <div style={{ width: gridWidth, height: gridHeight }}>
+            {Boolean(error) && (
+                <Notice tone="danger" role="status">
+                    Не удалось сохранить или загрузить ширину полей. Таблица доступна, но
+                    настройки могут потеряться после перезагрузки.
+                </Notice>
+            )}
             {isHydrated && (
                 <DataEditor
                     ref={gridRef}

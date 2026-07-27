@@ -1,6 +1,6 @@
 .values-card {
     border: 1px dashed var(--rule-dash);
-    background: var(--raised);
+    background: var(--paper-raised);
 }
 
 .eyebrow {

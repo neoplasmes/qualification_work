@@ -69,8 +69,8 @@ export const ChartHeatmapChartSection = ({
     const yGroupingModes = getGroupingModes(activeYColumn?.dataType);
 
     return (
-        <config.Section name="Chart">
-            <Field label="X axis">
+        <config.Section name="График">
+            <Field label="Ось X">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.xColumnId(
                         columns,
@@ -89,7 +89,7 @@ export const ChartHeatmapChartSection = ({
                 </config.Select>
             </Field>
 
-            <Field label="Y axis">
+            <Field label="Ось Y">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.yColumnId(
                         columns,
@@ -108,7 +108,7 @@ export const ChartHeatmapChartSection = ({
                 </config.Select>
             </Field>
 
-            <Field label="Group X by">
+            <Field label="Группировка X">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.xGroupingMode(xGroupingModes)}
                     disabled={xGroupingModes.length === 1}
@@ -122,7 +122,7 @@ export const ChartHeatmapChartSection = ({
             </Field>
 
             {draft.xGroupingMode === 'time' && (
-                <Field label="X time unit">
+                <Field label="Единица времени X">
                     <config.Select field="xGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -134,7 +134,7 @@ export const ChartHeatmapChartSection = ({
             )}
 
             {draft.xGroupingMode === 'numeric' && (
-                <Field label="X bucket size">
+                <Field label="Размер интервала X">
                     <config.Input
                         bind={chartHeatmapChartSectionBinds.xStep}
                         type="number"
@@ -143,7 +143,7 @@ export const ChartHeatmapChartSection = ({
                 </Field>
             )}
 
-            <Field label="Group Y by">
+            <Field label="Группировка Y">
                 <config.Select
                     bind={chartHeatmapChartSectionBinds.yGroupingMode(yGroupingModes)}
                     disabled={yGroupingModes.length === 1}
@@ -157,7 +157,7 @@ export const ChartHeatmapChartSection = ({
             </Field>
 
             {draft.yGroupingMode === 'time' && (
-                <Field label="Y time unit">
+                <Field label="Единица времени Y">
                     <config.Select field="yGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -169,7 +169,7 @@ export const ChartHeatmapChartSection = ({
             )}
 
             {draft.yGroupingMode === 'numeric' && (
-                <Field label="Y bucket size">
+                <Field label="Размер интервала Y">
                     <config.Input
                         bind={chartHeatmapChartSectionBinds.yStep}
                         type="number"

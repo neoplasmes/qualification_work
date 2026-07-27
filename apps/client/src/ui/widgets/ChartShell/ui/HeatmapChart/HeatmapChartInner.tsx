@@ -83,7 +83,6 @@ export const HeatmapChartInner = ({
         0,
         Math.min(gridHeight, height - effectiveTop - margin.bottom)
     );
-    const cellRadius = Math.round(Math.min(10, Math.max(1, cellSize * 0.14)));
     const axisOffset = 6;
 
     const columnData: ColumnDatum[] = useMemo(
@@ -191,7 +190,7 @@ export const HeatmapChartInner = ({
                 width={width}
                 height={height}
                 role="img"
-                aria-label="Heatmap chart"
+                aria-label="Тепловая карта"
                 data-testid="heatmap-chart-svg"
             >
                 <Group left={effectiveLeft} top={effectiveTop}>
@@ -216,7 +215,6 @@ export const HeatmapChartInner = ({
                                         y={cell.y}
                                         width={cell.width}
                                         height={cell.height}
-                                        rx={cellRadius}
                                         fill={cell.color ?? lowValueColor}
                                         onMouseMove={event => {
                                             const source = sourceByCell.get(

@@ -84,18 +84,18 @@ export const builderDraftToActionPayload = (
 ): ActionDefinitionPayload => {
     const name = draft.name.trim();
     if (!name) {
-        throw new Error('Action name can not be empty.');
+        throw new Error('Укажите название действия.');
     }
 
     const parameters = getPayloadParameters(draft);
     const parameterKeys = new Set(parameters.map(parameter => parameter.key));
     if (parameterKeys.size !== parameters.length) {
-        throw new Error('Parameter keys must be unique.');
+        throw new Error('Ключи параметров должны быть уникальными.');
     }
 
     const effects = getPayloadEffects(draft, parameterKeys);
     if (effects.length === 0) {
-        throw new Error('Action needs at least one effect.');
+        throw new Error('Добавьте хотя бы один эффект.');
     }
 
     return {
@@ -118,7 +118,8 @@ export const createActionBuilderOutput = (
     } catch (error) {
         return {
             payload: null,
-            error: error instanceof Error ? error.message : 'Unable to save this action.',
+            error:
+                error instanceof Error ? error.message : 'Не удалось сохранить действие.',
             canSave: false,
         };
     }
@@ -131,7 +132,7 @@ const getPayloadParameters = (draft: ActionBuilderDraft): ActionParameter[] =>
             const key = parameter.key.trim();
             const label = parameter.label.trim();
             if (!key || !label) {
-                throw new Error('Each parameter needs a key and label.');
+                throw new Error('Укажите ключ и название каждого параметра.');
             }
 
             const nextParameter: ActionParameter = {
@@ -162,10 +163,10 @@ const getPayloadEffects = (
         const datasetId = effect.datasetId.trim();
         const values = actionBuilderValuesToMap(effect.values, effect.kind);
         if (!datasetId) {
-            throw new Error(`Effect ${index + 1} needs a dataset.`);
+            throw new Error(`Эффект ${index + 1}: выберите таблицу.`);
         }
         if (Object.keys(values).length === 0) {
-            throw new Error(`Effect ${index + 1} needs at least one value mapping.`);
+            throw new Error(`Эффект ${index + 1}: укажите хотя бы одно значение поля.`);
         }
         assertValueSourcesKnown(values, parameterKeys, index);
 
@@ -184,18 +185,20 @@ const getUpdateRowsEffect = (
     parameterKeys: Set<string>
 ): ActionEffect => {
     if (!effect.matchColumnKey) {
-        throw new Error(`Effect ${index + 1} needs a match column.`);
+        throw new Error(`Эффект ${index + 1}: выберите поле для поиска.`);
     }
 
     if (effect.matchSourceKind === 'parameter') {
         if (!effect.matchParameterKey || !parameterKeys.has(effect.matchParameterKey)) {
-            throw new Error(`Effect ${index + 1} uses an unknown match parameter.`);
+            throw new Error(`Эффект ${index + 1}: неизвестный параметр поиска.`);
         }
     }
 
     const maxRows = Number(effect.maxRows || 1);
     if (!Number.isInteger(maxRows) || maxRows < 1) {
-        throw new Error(`Effect ${index + 1} max rows must be a positive integer.`);
+        throw new Error(
+            `Эффект ${index + 1}: максимальное число строк должно быть целым и положительным.`
+        );
     }
 
     return {
@@ -227,14 +230,14 @@ const assertValueSourcesKnown = (
     for (const source of Object.values(values)) {
         if (source.kind === 'parameter') {
             if (!source.key || !parameterKeys.has(source.key)) {
-                throw new Error(`Effect ${index + 1} uses an unknown value parameter.`);
+                throw new Error(`Эффект ${index + 1}: неизвестный параметр значения.`);
             }
         } else if (
             source.kind === 'computed' &&
             (!parameterKeys.has(source.leftParameterKey) ||
                 !parameterKeys.has(source.rightParameterKey))
         ) {
-            throw new Error(`Effect ${index + 1} uses an unknown computed parameter.`);
+            throw new Error(`Эффект ${index + 1}: неизвестный параметр вычисления.`);
         }
     }
 };

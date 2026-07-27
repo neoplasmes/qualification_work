@@ -1,11 +1,11 @@
 import type { ActionParameterType } from '@qualification-work/types';
 
 const valueTypePlaceholders: Record<ActionParameterType, string> = {
-    string: 'text',
-    number: 'number',
-    date: 'date, DD-MM-YYYY',
-    bool: 'boolean',
-    day_of_week: 'weekday, e.g. Monday or пн',
+    string: 'текст',
+    number: 'число',
+    date: 'дата, ДД-ММ-ГГГГ',
+    bool: 'да или нет',
+    day_of_week: 'день недели, например пн',
 };
 
 export const getValueTypePlaceholder = (type: ActionParameterType) =>

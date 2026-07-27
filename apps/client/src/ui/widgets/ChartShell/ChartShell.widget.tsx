@@ -77,7 +77,7 @@ export const ChartShell = ({
     }));
     const heatmapWarnings =
         activeKind === 'heatmap' && heatmapRows.length !== data.rows.length
-            ? ['Rows with non-numeric measure values were omitted.']
+            ? ['Строки с нечисловыми значениями пропущены.']
             : [];
     const chartWarnings = [...new Set([...chart.warnings, ...heatmapWarnings])];
     const className = [
@@ -114,19 +114,25 @@ export const ChartShell = ({
 
             {data.rows.length > 0 && (
                 <details className={styles['values']}>
-                    <summary>Exact values</summary>
+                    <summary>Точные значения</summary>
                     <div
                         className={styles['table-scroll']}
                         tabIndex={0}
                         role="region"
-                        aria-label={`${ariaLabel} values`}
+                        aria-label={`${ariaLabel}: значения`}
                     >
-                        <table aria-label={`${ariaLabel} values`}>
+                        <table aria-label={`${ariaLabel}: значения`}>
                             <thead>
                                 <tr>
                                     {data.columns.map((column, index) => (
                                         <th key={index} scope="col">
-                                            {column.name}
+                                            {column.name === 'dim'
+                                                ? 'Категория'
+                                                : column.name === 'series'
+                                                  ? 'Группа'
+                                                  : /^m\d+$/.test(column.name)
+                                                    ? `Значение ${data.columns.slice(0, index + 1).filter(item => item.role === 'measure').length}`
+                                                    : column.name}
                                         </th>
                                     ))}
                                 </tr>
@@ -173,8 +179,12 @@ export const ChartShell = ({
                     data-gap="sm"
                     data-wrap="wrap"
                 >
-                    {showResultSummary && <span>{data.rows.length} result rows</span>}
-                    {showResultSummary && data.truncated && <span>Result truncated</span>}
+                    {showResultSummary && (
+                        <span>Строк результата: {data.rows.length}</span>
+                    )}
+                    {showResultSummary && data.truncated && (
+                        <span>Результат сокращён</span>
+                    )}
                     {children}
                 </div>
             )}

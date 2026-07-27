@@ -33,11 +33,11 @@ export const ChartBuilderPreview = ({
 }: ChartBuilderPreviewProps) => (
     <>
         <div data-stack="h" data-gap="sm" data-align="center">
-            Preview
+            Предпросмотр
         </div>
         <div data-stack="v" data-gap="sm">
             {!editMode && (
-                <Field label="Chart name">
+                <Field label="Название графика">
                     <Input
                         value={output.chartName}
                         placeholder={`${selectedDataset.dataset.name} ${output.chartType}`}
@@ -49,7 +49,7 @@ export const ChartBuilderPreview = ({
             <ChartShell
                 data={previewData}
                 kind={previewData.kind}
-                ariaLabel="Chart preview"
+                ariaLabel="Предпросмотр графика"
                 color={output.chartColor}
                 barsLimit={8}
                 showResultSummary={false}

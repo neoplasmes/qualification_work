@@ -17,7 +17,7 @@ export const PreviewActions = ({
     <div data-stack="h" data-gap="sm" data-align="center">
         <Button type="button" size="regular" disabled={isSaving} onClick={onBackToConfig}>
             <PencilLine size={16} />
-            Edit
+            Изменить
         </Button>
         <Button
             type="button"
@@ -27,7 +27,7 @@ export const PreviewActions = ({
             onClick={onSave}
         >
             <Save size={16} />
-            {editMode ? 'Save changes' : 'Save chart'}
+            {editMode ? 'Сохранить изменения' : 'Сохранить график'}
         </Button>
     </div>
 );

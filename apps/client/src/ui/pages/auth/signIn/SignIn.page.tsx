@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useAuthentication } from '@/ui/session';
 import { entranceFormStyles as formStyles } from '@/ui/widgets/EntranceLayout';
 import {
@@ -9,8 +10,6 @@ import {
     VStack,
 } from '@qualification-work/design-system';
 import { useState } from 'react';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 import styles from './signIn.page.module.css';
 
@@ -39,7 +38,7 @@ export const SignIn = () => {
             if (!lifetime.active) {
                 return;
             }
-            setError(getApiErrorMessage(submitError, 'Unable to sign in right now.'));
+            setError(getApiErrorMessage(submitError, 'Не удалось войти.'));
         }
     };
 
@@ -53,11 +52,7 @@ export const SignIn = () => {
                     Таблицы, графики и действия вашей организации.
                 </Text>
             </VStack>
-            <form
-                aria-label="Sign in"
-                className={formStyles.form}
-                onSubmit={handleSubmit}
-            >
+            <form aria-label="Вход" className={formStyles.form} onSubmit={handleSubmit}>
                 <Field label="Электронная почта">
                     <Input
                         id="sign-in-email"

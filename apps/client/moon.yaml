@@ -16,7 +16,7 @@ fileGroups:
   - '!src/**/test/**'
   test-unit:
   - '{src,server}/**/*.test.{ts,tsx}'
-  - src/test/**/*.ts
+  - src/test/**/*.{ts,tsx}
   - src/**/test/**/*.{ts,tsx}
   test-int: []
   cfg:

@@ -8,11 +8,11 @@ export type ParsedMetricBuilderExpression = {
 };
 
 const metricAggregateLabels: Record<MetricAggregate, string> = {
-    avg: 'Average',
-    sum: 'Sum',
-    min: 'Minimum',
-    max: 'Maximum',
-    count: 'Count',
+    avg: 'Среднее',
+    sum: 'Сумма',
+    min: 'Минимум',
+    max: 'Максимум',
+    count: 'Количество',
 };
 
 export const metricAggregateOptions = Object.entries(metricAggregateLabels).map(

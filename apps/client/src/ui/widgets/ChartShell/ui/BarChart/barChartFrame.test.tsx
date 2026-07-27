@@ -8,7 +8,7 @@ vi.mock('../../lib/useRafChartSize', () => ({
 }));
 
 const series = {
-    name: 'Value',
+    name: 'Значение',
     points: [
         { label: 'A', value: 15 },
         { label: 'B', value: 35 },

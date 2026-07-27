@@ -94,7 +94,7 @@ it.each([
             fetch.mock.calls.filter(([url]) => String(url).includes('/commit'))
         ).toHaveLength(1);
         if (dismissal === 'close') {
-            await user.click(screen.getByRole('button', { name: 'Close modal' }));
+            await user.click(screen.getByRole('button', { name: 'Закрыть окно' }));
             await act(async () => {});
             expect(
                 fetch.mock.calls.filter(([, init]) => init?.method === 'DELETE')
@@ -238,7 +238,7 @@ it.each([
         expect(screen.getByRole('button', { name: 'Подтвердить' })).toBeDisabled();
         await user.click(screen.getByRole('button', { name: 'Подтвердить' }));
         if (dismissal === 'close') {
-            await user.click(screen.getByRole('button', { name: 'Close modal' }));
+            await user.click(screen.getByRole('button', { name: 'Закрыть окно' }));
         }
         view.unmount();
         expect(

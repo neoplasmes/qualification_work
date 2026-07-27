@@ -1,6 +1,7 @@
 import type { DatasetColumn } from '@/core/entities/datasetColumn';
+import { useDependencies } from '@/ui/di/dependencies';
 import { Button, HStack, Text } from '@qualification-work/design-system';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
 
@@ -26,6 +27,17 @@ type DatasetWorkspaceProps = {
 };
 
 export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => {
+    const dependencies = useDependencies();
+    const [recoveredErrors, setRecoveredErrors] = useState<unknown[]>([]);
+    const scope = `${selectedDataset?.dataset.orgId}/${selectedDataset?.dataset.id}`;
+    const liveScope = useRef<string | undefined>(scope);
+    liveScope.current = scope;
+    useEffect(
+        () => () => {
+            liveScope.current = undefined;
+        },
+        []
+    );
     const columns = selectedDataset?.columns ?? [];
     const datasetId = selectedDataset?.dataset.id;
     const [contextMenu, setContextMenu] = useState<DatasetRowContextMenuState | null>(
@@ -105,6 +117,12 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
         columnActions.closeColumnContextMenu();
     }, [columnActions.closeColumnContextMenu, rowActions.closeRowContextMenu]);
 
+    const syncErrors = [
+        cellEditing.syncError,
+        rowActions.syncError,
+        columnActions.syncError,
+    ].filter(error => error && !recoveredErrors.includes(error));
+
     const gridHeight = Math.max(gridSize.h, headerHeight + rowHeight);
     const showScrollToBottom = totalRows > rowsPageSize && !isAtBottom;
 
@@ -114,7 +132,7 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
             data-stack="v"
             data-gap="sm"
             data-flex
-            aria-label="Dataset preview"
+            aria-label="Предпросмотр таблицы"
         >
             {selectedDataset && (
                 <HStack className={styles.heading} gap={16} justify="space-between" wrap>
@@ -150,9 +168,7 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
                     данные перед повторным изменением.
                 </StatusMessage>
             )}
-            {Boolean(
-                cellEditing.syncError || rowActions.syncError || columnActions.syncError
-            ) && (
+            {syncErrors.length > 0 && (
                 <StatusMessage tone="error">
                     Изменения сохранены, но обновить данные не удалось. Повторите
                     загрузку.
@@ -168,16 +184,35 @@ export const DatasetWorkspace = ({ selectedDataset }: DatasetWorkspaceProps) => 
                         Двойной щелчок — изменить ячейку. Правый щелчок — действия со
                         строкой или полем.
                     </Text>
-                    {Boolean(
-                        error ||
-                        cellEditing.syncError ||
-                        rowActions.syncError ||
-                        columnActions.syncError
-                    ) && (
+                    {Boolean(error || syncErrors.length) && (
                         <Button
                             variant="ghost"
-                            onClick={() => {
-                                void retry().catch(() => {});
+                            onClick={async () => {
+                                const captured = syncErrors;
+                                try {
+                                    await Promise.all([
+                                        retry(),
+                                        dependencies.cache.read(
+                                            dependencies.getDatasetMetadata,
+                                            {
+                                                orgId: selectedDataset.dataset.orgId,
+                                                datasetId: selectedDataset.dataset.id,
+                                            }
+                                        ),
+                                        dependencies.cache.read(
+                                            dependencies.listDatasets,
+                                            { orgId: selectedDataset.dataset.orgId }
+                                        ),
+                                    ]);
+                                    if (liveScope.current === scope) {
+                                        setRecoveredErrors(current => [
+                                            ...current,
+                                            ...captured,
+                                        ]);
+                                    }
+                                } catch {
+                                    // retain confirmed feedback until every affected read recovers
+                                }
                             }}
                         >
                             Повторить загрузку

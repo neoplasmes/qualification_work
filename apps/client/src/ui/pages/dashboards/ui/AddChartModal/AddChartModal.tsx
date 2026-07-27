@@ -80,9 +80,9 @@ export const AddChartModal = ({
     let listContent;
 
     if (!charts) {
-        listContent = <EmptyState>Loading charts...</EmptyState>;
+        listContent = <EmptyState>Загружаем графики…</EmptyState>;
     } else if (filteredCharts.length === 0) {
-        listContent = <EmptyState>No charts for this dataset.</EmptyState>;
+        listContent = <EmptyState>Для этой таблицы пока нет графиков.</EmptyState>;
     } else {
         listContent = filteredCharts.map(chart => {
             const ChartIcon = chartKindIcons[chart.chartType];
@@ -95,7 +95,7 @@ export const AddChartModal = ({
                     header={chart.name}
                     details={[
                         formatDate(chart.createdAt),
-                        datasetNameById.get(chart.datasetId) ?? 'Unknown dataset',
+                        datasetNameById.get(chart.datasetId) ?? 'Неизвестная таблица',
                     ]}
                     iconElement={<ChartIcon size={chartIconSize} />}
                     onClick={() => {
@@ -112,7 +112,7 @@ export const AddChartModal = ({
 
     if (selectedCharts.length === 0) {
         selectedChartsContent = (
-            <span className={styles['empty-selection']}>No charts selected</span>
+            <span className={styles['empty-selection']}>Графики не выбраны</span>
         );
     } else {
         selectedChartsContent = selectedCharts.map(chart => (
@@ -121,7 +121,7 @@ export const AddChartModal = ({
                 <button
                     type="button"
                     className={styles['remove-chart']}
-                    aria-label={`Remove ${chart.name}`}
+                    aria-label={`Удалить ${chart.name}`}
                     disabled={disabled}
                     onClick={() => onRemoveChart(chart.id)}
                 >
@@ -138,7 +138,7 @@ export const AddChartModal = ({
                 data-gap="xs"
                 data-wrap="wrap"
                 data-align="center"
-                aria-label="Selected charts"
+                aria-label="Выбранные графики"
             >
                 {selectedChartsContent}
             </div>
@@ -151,14 +151,14 @@ export const AddChartModal = ({
                 onClick={onAdd}
             >
                 <Plus size={18} />
-                Add to dashboard
+                Добавить на дашборд
             </Button>
         </div>
     );
 
     return (
         <Modal
-            title="Add chart"
+            title="Новый график"
             testId={dashboardsTestIds.addChartModal}
             size="md"
             padding="md"
@@ -174,14 +174,14 @@ export const AddChartModal = ({
                     data-gap="sm"
                     data-align="end"
                 >
-                    <Field data-grow label="Dataset">
+                    <Field data-grow label="Таблица">
                         <Select
                             data-test-id={dashboardsTestIds.addChartDatasetSelect}
                             value={datasetId}
                             disabled={disabled}
                             onChange={event => setDatasetId(event.target.value)}
                         >
-                            <option value={allDatasetsValue}>All</option>
+                            <option value={allDatasetsValue}>Все</option>
                             {datasets?.map(dataset => (
                                 <option
                                     key={dataset.dataset.id}
@@ -194,8 +194,8 @@ export const AddChartModal = ({
                     </Field>
                     <IconButton
                         data-test-id={dashboardsTestIds.clearAddChartSelectionButton}
-                        aria-label="Clear selected charts"
-                        title="Clear selected charts"
+                        aria-label="Очистить выбор графиков"
+                        title="Очистить выбор графиков"
                         disabled={disabled || selectedChartIds.length === 0}
                         onClick={onClearSelection}
                     >
@@ -207,7 +207,7 @@ export const AddChartModal = ({
                     className={styles['list']}
                     data-stack="v"
                     data-gap="xs"
-                    aria-label="Saved charts"
+                    aria-label="Сохранённые графики"
                 >
                     {listContent}
                 </div>

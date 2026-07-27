@@ -154,7 +154,7 @@ vi.mock('@/ui/pages/charts/ui/ChartBuilder', async importOriginal => ({
                     Save edit
                 </button>
                 <button type="button" onClick={() => onSave(false)}>
-                    Save chart
+                    Сохранить график
                 </button>
             </div>
         );
@@ -259,8 +259,8 @@ describe('ChartsPage', () => {
             'Unsaved Revenue'
         );
 
-        await user.click(screen.getByRole('tab', { name: /View/i }));
-        await user.click(screen.getByRole('tab', { name: /Edit/i }));
+        await user.click(screen.getByRole('tab', { name: /Просмотр/i }));
+        await user.click(screen.getByRole('tab', { name: /Изменить/i }));
 
         expect(await screen.findByTestId('builder-name')).toHaveTextContent(
             'Unsaved Revenue'
@@ -296,7 +296,7 @@ describe('ChartsPage', () => {
         expect(store.chartEditor.getState().showDatasetPicker).toBe(false);
         expect(screen.getByTestId('chart-builder')).toHaveTextContent('Invoices');
 
-        await user.click(screen.getByRole('button', { name: 'Save chart' }));
+        await user.click(screen.getByRole('button', { name: 'Сохранить график' }));
 
         await waitFor(() =>
             expect(store.ui.charts.getState().rememberedChartId).toBe('chart-new')
@@ -339,10 +339,10 @@ describe('ChartsPage', () => {
 
         expect(await screen.findByTestId('chart-builder')).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: 'Change dataset' })
+            screen.getByRole('button', { name: 'Сменить таблицу' })
         ).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: 'Cancel' }));
+        await user.click(screen.getByRole('button', { name: 'Отмена' }));
 
         expect(store.chartEditor.getState().createDraft?.datasetId ?? null).toBeNull();
         expect(screen.queryByTestId('chart-builder')).not.toBeInTheDocument();

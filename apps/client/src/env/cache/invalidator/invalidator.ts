@@ -38,6 +38,7 @@ export class CacheInvalidator {
     }
 
     async invalidateAll(): Promise<void> {
+        const epoch = this.runtime.epoch;
         const queries = this.runtime.queryClient
             .getQueryCache()
             .getAll()
@@ -47,6 +48,9 @@ export class CacheInvalidator {
         const predicate = (query: Parameters<CacheRuntime['matches']>[0]) =>
             this.runtime.matches(query);
         await this.runtime.queryClient.cancelQueries({ predicate });
+        if (epoch !== this.runtime.epoch) {
+            return;
+        }
         await this.runtime.queryClient.invalidateQueries(
             { predicate },
             { throwOnError: true }

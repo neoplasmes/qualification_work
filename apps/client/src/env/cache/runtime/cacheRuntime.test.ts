@@ -293,3 +293,40 @@ it('rejects the old epoch before fetching an incomplete cached read', async () =
         await runtime.dispose();
     }
 });
+
+it('does not invalidate a new epoch after old cancellation completes', async () => {
+    const { runtime, queryClient } = createReadHarness();
+    const query = {
+        name: 'independent',
+        execute: async () => datasetFixture,
+        reads: () => [],
+    };
+    runtime.registerRead(query, datasetCodec);
+    await runtime.read(query, undefined);
+    const ready = deferred<void>();
+    const resume = deferred<void>();
+    const cancel = queryClient.cancelQueries.bind(queryClient);
+    const spy = vi
+        .spyOn(queryClient, 'cancelQueries')
+        .mockImplementationOnce(async options => {
+            await cancel(options);
+            ready.resolve();
+            await resume.promise;
+        });
+    const invalidation = runtime.invalidator.invalidateAll();
+    try {
+        await ready.promise;
+        await runtime.clear();
+        await runtime.read(query, undefined);
+        resume.resolve();
+        await invalidation;
+        expect(queryClient.getQueryState(['independent', undefined])?.isInvalidated).toBe(
+            false
+        );
+    } finally {
+        resume.resolve();
+        await invalidation;
+        spy.mockRestore();
+        await runtime.dispose();
+    }
+});

@@ -18,16 +18,7 @@ const architecture = {
         'app/model',
         'app/ui',
     ],
-    legacyImports: [
-        {
-            from: 'main/dependencies/dependencies.ts',
-            to: 'app/model/store',
-        },
-        {
-            from: 'main/sessionLifecycle/sessionLifecycle.ts',
-            to: 'app/model/store',
-        },
-    ] satisfies Array<{ from: string; to: string }>,
+    legacyImports: [] satisfies Array<{ from: string; to: string }>,
 };
 
 export default architecture;

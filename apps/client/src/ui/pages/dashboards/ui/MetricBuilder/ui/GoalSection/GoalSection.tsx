@@ -9,8 +9,8 @@ import { metricBuilderConfig } from '../../model';
 import styles from './GoalSection.module.css';
 
 const directionOptions = [
-    { value: 'higher', label: 'Higher is better' },
-    { value: 'lower', label: 'Lower is better' },
+    { value: 'higher', label: 'Больше — лучше' },
+    { value: 'lower', label: 'Меньше — лучше' },
 ] as const satisfies readonly SegmentedControlOption<MetricTargetDirection>[];
 
 type GoalSectionProps = {
@@ -23,7 +23,7 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
     const hasTarget = targetInput.value.trim() !== '';
     const targetLabel = (
         <span data-display="inline-flex" data-gap="xs" data-align="center">
-            Target
+            Цель
             {metricName && (
                 <span data-display="inline-flex" data-align="center" data-flex>
                     <span className={styles['target-metric-name']}>{metricName}</span>
@@ -33,7 +33,7 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
     );
 
     return (
-        <metricBuilderConfig.Section name="Goal" className={styles['section']}>
+        <metricBuilderConfig.Section name="Цель" className={styles['section']}>
             <Field label={targetLabel}>
                 <metricBuilderConfig.Input
                     field="target"
@@ -45,10 +45,10 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
             <Field
                 label={
                     <span data-display="inline-flex" data-gap="xs" data-align="center">
-                        Goal direction
+                        Направление цели
                         <Explain
-                            label="Explain goal direction"
-                            description="Colors the value against the target."
+                            label="Как работает направление цели"
+                            description="Цвет значения показывает, достигнута ли цель."
                         />
                     </span>
                 }
@@ -56,7 +56,7 @@ export const GoalSection = ({ metricName }: GoalSectionProps) => {
                 <SegmentedControl
                     value={targetDirectionInput.value}
                     options={directionOptions}
-                    ariaLabel="Goal direction"
+                    ariaLabel="Направление цели"
                     className={styles['direction-tabs']}
                     disabled={!hasTarget}
                     onChange={targetDirectionInput.setValue}

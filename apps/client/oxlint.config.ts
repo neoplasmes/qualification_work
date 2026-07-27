@@ -13,6 +13,7 @@ export default defineConfig({
     ],
     rules: {
         'rules-of-hooks': 'error',
+        // final boundaries have no production legacy exceptions
         'fsd/frontend-architecture': ['error', architecture],
         'fsd/no-cross-slice-dependency': 'error',
         'fsd/no-public-api-sidestep': 'error',

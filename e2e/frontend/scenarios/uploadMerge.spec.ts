@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../apps/client/dist/migration-review/task-10'
+    `../../../apps/client/dist/migration-review/${new Date().toISOString().replaceAll(':', '-')}-uploadMerge`
 );
 
 test('uploads multipart files and merges into the returned table', async ({
@@ -33,6 +33,13 @@ test('uploads multipart files and merges into the returned table', async ({
     await page.getByLabel('Пароль').fill(user.password);
     await page.getByRole('button', { name: 'Войти', exact: true }).click();
     await expect(page).toHaveURL(/\/datasets$/);
+    const workspace = page.locator('[style*="--direction"]').first();
+    const before = await workspace
+        .locator(':scope > [data-p]')
+        .evaluateAll(elements =>
+            elements.map(element => element.getBoundingClientRect().width)
+        );
+    const preference = await page.evaluate(() => localStorage.getItem('panelLayout_v2'));
     await page.locator('[data-test-id="datasets-upload-button"]').click();
     await page.getByLabel('Файлы таблицы').setInputFiles([
         {
@@ -53,6 +60,21 @@ test('uploads multipart files and merges into the returned table', async ({
         fullPage: true,
     });
     await page.setViewportSize({ width: 390, height: 844 });
+    console.log(
+        'workspace mobile',
+        JSON.stringify(
+            await workspace.evaluate(element => ({
+                direction: getComputedStyle(element).flexDirection,
+                widths: [
+                    ...element.querySelectorAll<HTMLElement>(':scope > [data-p]'),
+                ].map(panel => ({
+                    measured: panel.offsetWidth,
+                    inline: panel.style.width,
+                })),
+                preference: localStorage.getItem('panelLayout_v2'),
+            }))
+        )
+    );
     expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
     ).toBe(true);
@@ -70,7 +92,7 @@ test('uploads multipart files and merges into the returned table', async ({
             }));
             const close = element
                 .closest('[role="dialog"]')!
-                .querySelector('[aria-label="Close modal"]')!
+                .querySelector('[aria-label="Закрыть окно"]')!
                 .getBoundingClientRect();
 
             return {
@@ -95,6 +117,27 @@ test('uploads multipart files and merges into the returned table', async ({
         fullPage: true,
     });
     await page.setViewportSize({ width: 1440, height: 1000 });
+    const after = await workspace.locator(':scope > [data-p]').evaluateAll(elements =>
+        elements.map(element => ({
+            width: element.getBoundingClientRect().width,
+            inline: (element as HTMLElement).style.width,
+        }))
+    );
+    console.log('workspace return', JSON.stringify({ before, after, preference }));
+    await expect
+        .poll(async () =>
+            workspace
+                .locator(':scope > [data-p]')
+                .evaluateAll(elements =>
+                    elements.map(element =>
+                        Math.round(element.getBoundingClientRect().width)
+                    )
+                )
+        )
+        .toEqual(before.map(Math.round));
+    expect(await page.evaluate(() => localStorage.getItem('panelLayout_v2'))).toBe(
+        preference
+    );
     const created = page.waitForResponse(
         response =>
             /\/merge\/[^/]+\/commit\?/.test(response.url()) &&
@@ -166,9 +209,105 @@ test('uploads multipart files and merges into the returned table', async ({
         response =>
             response.url().includes('/merge/') && response.request().method() === 'DELETE'
     );
-    await page.getByRole('button', { name: 'Close modal' }).click();
+    await page.getByRole('button', { name: 'Закрыть окно' }).click();
     const cancellation = await cancelled;
     expect(cancellation.status()).toBe(204);
     expect(new URL(cancellation.url()).searchParams.get('orgId')).toBeTruthy();
+    for (const variant of ['custom', 'collapsed']) {
+        if (variant === 'custom') {
+            await page.evaluate(() =>
+                localStorage.setItem(
+                    'panelLayout_v2',
+                    JSON.stringify({
+                        sizes: { workspace: [360, 684, 340] },
+                        isLeftCollapsed: false,
+                        isRightCollapsed: false,
+                    })
+                )
+            );
+            await page.reload();
+            await expect(page.getByTestId('glide-cell-1-2')).toHaveText('C');
+        } else {
+            await page
+                .getByRole('button', { name: 'Скрыть левую панель', exact: true })
+                .click();
+            await expect(
+                page.getByRole('button', { name: 'Показать левую панель', exact: true })
+            ).toBeVisible();
+        }
+        const panels = workspace.locator(':scope > [data-p]');
+        const original = await panels.evaluateAll(elements =>
+            elements.map(element => element.getBoundingClientRect().width)
+        );
+        if (variant === 'custom') {
+            expect(Math.abs(original[0]! - 360)).toBeLessThan(2);
+            expect(Math.abs(original[2]! - 340)).toBeLessThan(2);
+        }
+        const persisted = await page.evaluate(() =>
+            localStorage.getItem('panelLayout_v2')
+        );
+        for (let attempt = 0; attempt < 2; attempt++) {
+            await page.setViewportSize({ width: 390, height: 844 });
+            await expect
+                .poll(() =>
+                    workspace.evaluate(element => getComputedStyle(element).flexDirection)
+                )
+                .toBe('column');
+            console.log(
+                'workspace variant phone',
+                variant,
+                JSON.stringify(
+                    await panels.evaluateAll(elements =>
+                        elements.map(element => ({
+                            width: element.getBoundingClientRect().width,
+                            inline: (element as HTMLElement).style.width,
+                            hidden: element.hasAttribute('data-hidden'),
+                        }))
+                    )
+                )
+            );
+            await page.setViewportSize({ width: 1440, height: 1000 });
+            await expect
+                .poll(async () => {
+                    const actual = await panels.evaluateAll(elements =>
+                        elements.map(element => element.getBoundingClientRect().width)
+                    );
+
+                    return actual.every(
+                        (width, index) => Math.abs(width - original[index]!) < 2
+                    );
+                })
+                .toBe(true);
+            expect(
+                await page.evaluate(() => localStorage.getItem('panelLayout_v2'))
+            ).toBe(persisted);
+        }
+        console.log(
+            'workspace variant return',
+            variant,
+            JSON.stringify({
+                original,
+                persisted,
+                restored: await panels.evaluateAll(elements =>
+                    elements.map(element => element.getBoundingClientRect().width)
+                ),
+            })
+        );
+        await page.screenshot({
+            path: path.join(screenshots, `workspace-${variant}-return.png`),
+            fullPage: true,
+        });
+    }
+    await page
+        .getByRole('button', { name: 'Показать левую панель', exact: true })
+        .click();
+    await expect
+        .poll(async () =>
+            Math.abs(
+                (await workspace.locator(':scope > [data-p]').first().boundingBox())!
+                    .width - 360
+            )
+        )
+        .toBeLessThan(2);
     expect(errors).toEqual([]);
 });

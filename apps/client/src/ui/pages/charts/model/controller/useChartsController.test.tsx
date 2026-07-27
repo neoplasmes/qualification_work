@@ -163,7 +163,7 @@ describe('chart controller', () => {
         expect(create).toHaveBeenCalledTimes(1);
         expect(onSaved).toHaveBeenCalledWith('new');
         expect(result.current.error).toBe('');
-        expect(result.current.syncError).toContain('Chart saved');
+        expect(result.current.syncError).toContain('График сохранён');
     });
 
     it('refreshes metadata on rename and chart values only on config changes', async () => {

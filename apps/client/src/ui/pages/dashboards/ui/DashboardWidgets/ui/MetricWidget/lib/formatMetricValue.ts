@@ -12,7 +12,7 @@ export const formatMetricValue = (
     valueMultiplier?: number
 ) => {
     if (value === null || value === undefined || !Number.isFinite(value)) {
-        return 'No value';
+        return 'Нет значения';
     }
 
     const defaultMultiplier = format === 'percent' ? 100 : 1;

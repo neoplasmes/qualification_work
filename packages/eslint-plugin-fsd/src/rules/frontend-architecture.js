@@ -132,7 +132,7 @@ const rule = {
                     return;
                 }
 
-                const isReact = /^(?:react|react-dom|react-router)(?:\/|$)/.test(
+                const isReact = /^(?:react|react-dom|react-router|react-router-dom)(?:\/|$)/.test(
                     imported
                 );
                 const isTanstack = imported.startsWith('@tanstack/');

@@ -63,7 +63,7 @@ const datasets: DatasetMetadata[] = [
                 id: 'c',
                 datasetId: 'data',
                 key: 'value',
-                displayName: 'Value',
+                displayName: 'Значение',
                 dataType: 'number',
                 orderIndex: 0,
                 isAnalyzable: true,
@@ -93,10 +93,10 @@ it('keeps dirty metric fields when metadata and detail refresh while open', asyn
             </MemoryRouter>
         </UiTestProvider>
     );
-    fireEvent.change(screen.getByLabelText('Metric name'), {
+    fireEvent.change(screen.getByLabelText('Название метрики'), {
         target: { value: 'Unsaved local name' },
     });
-    fireEvent.change(screen.getByLabelText(/Target.*Unsaved local name/), {
+    fireEvent.change(screen.getByLabelText(/Цель.*Unsaved local name/), {
         target: { value: '75' },
     });
     rerender(
@@ -112,8 +112,8 @@ it('keeps dirty metric fields when metadata and detail refresh while open', asyn
             </MemoryRouter>
         </UiTestProvider>
     );
-    expect(screen.getByLabelText('Metric name')).toHaveValue('Unsaved local name');
-    expect(screen.getByLabelText(/Target.*Unsaved local name/)).toHaveValue(75);
+    expect(screen.getByLabelText('Название метрики')).toHaveValue('Unsaved local name');
+    expect(screen.getByLabelText(/Цель.*Unsaved local name/)).toHaveValue(75);
 });
 
 it('closes after a confirmed metric write and exposes synchronization failure', async () => {
@@ -137,7 +137,7 @@ it('closes after a confirmed metric write and exposes synchronization failure', 
             </MemoryRouter>
         </UiTestProvider>
     );
-    fireEvent.submit(screen.getByRole('form', { name: 'Edit metric' }));
+    fireEvent.submit(screen.getByRole('form', { name: 'Изменить метрику' }));
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
     expect(mocks.executeOutcome).toHaveBeenCalledOnce();
     expect(onSynchronizedError).toHaveBeenCalledWith(
@@ -167,7 +167,7 @@ it.each(['confirmed', 'rejected'])(
                 </MemoryRouter>
             </UiTestProvider>
         );
-        fireEvent.submit(screen.getByRole('form', { name: 'Edit metric' }));
+        fireEvent.submit(screen.getByRole('form', { name: 'Изменить метрику' }));
         expect(mocks.executeOutcome).toHaveBeenCalledOnce();
         fireEvent.keyDown(document, { key: 'Escape' });
         expect(onClose).toHaveBeenCalledOnce();
@@ -185,7 +185,7 @@ it.each(['confirmed', 'rejected'])(
                 </MemoryRouter>
             </UiTestProvider>
         );
-        fireEvent.change(screen.getByLabelText('Metric name'), {
+        fireEvent.change(screen.getByLabelText('Название метрики'), {
             target: { value: 'Second draft' },
         });
         const settled = gate.promise.catch(() => undefined);
@@ -199,7 +199,7 @@ it.each(['confirmed', 'rejected'])(
         });
         expect(onClose).toHaveBeenCalledOnce();
         expect(onSynchronizedError).not.toHaveBeenCalled();
-        expect(screen.getByLabelText('Metric name')).toHaveValue('Second draft');
+        expect(screen.getByLabelText('Название метрики')).toHaveValue('Second draft');
         expect(mocks.executeOutcome).toHaveBeenCalledOnce();
     }
 );

@@ -112,11 +112,11 @@ export const parseChartResult = (
     }
 
     if (omittedRows > 0) {
-        warnings.push('Rows with non-numeric measure values were omitted.');
+        warnings.push('Строки с нечисловыми значениями пропущены.');
     }
 
     if (visualRowsTruncated) {
-        warnings.push(`Chart preview shows the first ${limit} result rows.`);
+        warnings.push(`Предпросмотр показывает первые ${limit} строк результата.`);
     }
 
     let series = [...seriesByName.entries()].map(([name, points]) => ({
@@ -172,7 +172,9 @@ export const parseChartResult = (
     const positivePoints = points.filter(point => point.value > 0);
 
     if (positivePoints.length === 0 && points.length > 0) {
-        warnings.push('Pie chart needs at least one positive value.');
+        warnings.push(
+            'Для круговой диаграммы нужно хотя бы одно положительное значение.'
+        );
     }
 
     return {

@@ -56,8 +56,8 @@ export const ChartPieChartSection = ({
     const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
 
     return (
-        <config.Section name="Chart">
-            <Field label="Slice by">
+        <config.Section name="График">
+            <Field label="Сектора по полю">
                 <config.Select
                     bind={chartPieChartSectionBinds.dimensionColumnId(
                         columns,
@@ -76,7 +76,7 @@ export const ChartPieChartSection = ({
                 </config.Select>
             </Field>
 
-            <Field label="Group by">
+            <Field label="Группировка">
                 <config.Select
                     bind={chartPieChartSectionBinds.dimensionGroupingMode(groupingModes)}
                     disabled={groupingModes.length === 1}
@@ -90,7 +90,7 @@ export const ChartPieChartSection = ({
             </Field>
 
             {draft.dimensionGroupingMode === 'time' && (
-                <Field label="Time unit">
+                <Field label="Единица времени">
                     <config.Select field="dimensionGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -102,7 +102,7 @@ export const ChartPieChartSection = ({
             )}
 
             {draft.dimensionGroupingMode === 'numeric' && (
-                <Field label="Bucket size">
+                <Field label="Размер интервала">
                     <config.Input
                         bind={chartPieChartSectionBinds.dimensionStep}
                         type="number"

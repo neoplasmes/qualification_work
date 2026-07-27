@@ -15,6 +15,7 @@ const writeDebounceMs = 150;
 export const useDatasetTableOptions = (datasetId: string | undefined) => {
     const dependencies = useDependencies();
     const { execute: save, error } = useCommand(dependencies.saveDatasetTableOptions);
+    const [loadError, setLoadError] = useState<{ datasetId: string; error: unknown }>();
     const [state, setState] = useState<{
         datasetId: string | undefined;
         widths: ColumnWidths;
@@ -29,6 +30,7 @@ export const useDatasetTableOptions = (datasetId: string | undefined) => {
         let active = true;
         const version = ++revision.current;
         widthsRef.current = {};
+        setLoadError(undefined);
         setState({ datasetId, widths: {}, hydrated: !datasetId });
         if (datasetId) {
             void dependencies.cache
@@ -46,8 +48,9 @@ export const useDatasetTableOptions = (datasetId: string | undefined) => {
                             });
                         }
                     },
-                    () => {
+                    error => {
                         if (active) {
+                            setLoadError({ datasetId, error });
                             setState({
                                 datasetId,
                                 widths: widthsRef.current,
@@ -97,6 +100,7 @@ export const useDatasetTableOptions = (datasetId: string | undefined) => {
         widths: state.datasetId === datasetId ? state.widths : {},
         setColumnWidth,
         isHydrated: state.datasetId === datasetId && state.hydrated,
-        error,
+        error:
+            (loadError?.datasetId === datasetId ? loadError?.error : undefined) ?? error,
     };
 };

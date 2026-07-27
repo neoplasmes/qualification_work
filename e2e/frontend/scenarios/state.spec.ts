@@ -25,7 +25,7 @@ const registerByApi = async (request: APIRequestContext, user: TestUser) => {
 
 const loginThroughUi = async (page: Page, user: TestUser) => {
     await page.goto('/sign-in');
-    const form = page.getByRole('form', { name: 'Sign in' });
+    const form = page.getByRole('form', { name: 'Вход' });
 
     await form.getByLabel('Электронная почта').fill(user.email);
     await form.getByLabel('Пароль').fill(user.password);
@@ -92,14 +92,17 @@ test.describe('session state', () => {
         const authReads: string[] = [];
         const hydrationErrors: string[] = [];
         page.on('request', request => {
-            if (request.url().endsWith('/api/auth/me')) {authReads.push(request.url());}
+            if (request.url().endsWith('/api/auth/me')) {
+                authReads.push(request.url());
+            }
         });
         page.on('console', message => {
             if (
                 message.type() === 'error' &&
                 /hydration|did not match/i.test(message.text())
-            )
-                {hydrationErrors.push(message.text());}
+            ) {
+                hydrationErrors.push(message.text());
+            }
         });
         await page.reload();
         await expect(page).toHaveURL(/\/datasets$/);
@@ -119,7 +122,7 @@ test.describe('session state', () => {
                 response.url().includes('/api/auth/logout') &&
                 response.request().method() === 'POST'
         );
-        await page.getByRole('button', { name: 'Sign out' }).click();
+        await page.getByRole('button', { name: 'Выйти' }).click();
         expect((await logoutResponse).status()).toBe(204);
 
         const cookies = await page.context().cookies();
@@ -133,7 +136,7 @@ test.describe('session state', () => {
         await registerByApi(request, user);
         await loginThroughUi(page, user);
 
-        await page.getByRole('button', { name: 'Sign out' }).click();
+        await page.getByRole('button', { name: 'Выйти' }).click();
         await expect(page).toHaveURL(/\/sign-in$/);
 
         await page.goto('/datasets');
@@ -200,13 +203,17 @@ test('keeps shell controls reachable on a phone and retains layout on logout', a
             'document.documentElement.scrollWidth <= window.innerWidth'
         )
     ).toBe(true);
-    await page.getByRole('button', { name: 'Hide left panel' }).click();
-    await expect(page.getByRole('button', { name: 'Show left panel' })).toBeVisible();
+    await page.getByRole('button', { name: 'Скрыть левую панель' }).click();
+    await expect(
+        page.getByRole('button', { name: 'Показать левую панель' })
+    ).toBeVisible();
     const layout = await page.evaluate(() => localStorage.getItem('panelLayout_v2'));
     expect(JSON.parse(layout!).isLeftCollapsed).toBe(true);
     await page.reload();
-    await expect(page.getByRole('button', { name: 'Show left panel' })).toBeVisible();
-    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(
+        page.getByRole('button', { name: 'Показать левую панель' })
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Выйти' }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
     expect(await page.evaluate(() => localStorage.getItem('panelLayout_v2'))).toBe(
         layout

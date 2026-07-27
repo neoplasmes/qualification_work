@@ -8,7 +8,7 @@ import { createBarChart, createDashboard } from '../../backend/utils/factories.j
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../.superpowers/sdd/2026-10-21-client-architecture-migration/task-13-browser-3/actions'
+    `../../../apps/client/dist/migration-review/${new Date().toISOString().replaceAll(':', '-')}-actions`
 );
 
 test('runs a saved action and refreshes datasets charts dashboards and failure history', async ({
@@ -102,8 +102,8 @@ test('runs a saved action and refreshes datasets charts dashboards and failure h
         ).toBe(true);
         await page.getByRole('link', { name: 'Графики', exact: true }).click();
         await page.getByRole('button', { name: /Action amounts/ }).click();
-        const savedChart = page.locator('[aria-label="Saved chart result"]');
-        await savedChart.getByText('Exact values', { exact: true }).click();
+        const savedChart = page.locator('[aria-label="Сохранённый график"]');
+        await savedChart.getByText('Точные значения', { exact: true }).click();
         await expect(
             savedChart
                 .getByRole('row')
@@ -245,7 +245,7 @@ test('runs a saved action and refreshes datasets charts dashboards and failure h
         const chartCard = page.getByRole('article').filter({
             has: page.getByRole('heading', { name: 'Action amounts', exact: true }),
         });
-        await chartCard.getByText('Exact values', { exact: true }).click();
+        await chartCard.getByText('Точные значения', { exact: true }).click();
         await expect(
             chartCard
                 .getByRole('row')
@@ -257,7 +257,7 @@ test('runs a saved action and refreshes datasets charts dashboards and failure h
         });
         await page.getByRole('link', { name: 'Графики', exact: true }).click();
         await expect(page).toHaveURL(/\/charts\/view/);
-        await savedChart.getByText('Exact values', { exact: true }).click();
+        await savedChart.getByText('Точные значения', { exact: true }).click();
         await expect(
             savedChart
                 .getByRole('row')

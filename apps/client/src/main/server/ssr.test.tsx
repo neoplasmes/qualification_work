@@ -44,7 +44,6 @@ it('isolates requests and restores canonical session without another read', asyn
         b.cache.read(b.dependencies.getSession, undefined),
     ]);
     expect(a.cache).not.toBe(b.cache);
-    expect(a.legacyStore).not.toBe(b.legacyStore);
     expect(first.user.id).toBe('a');
     expect(second.user.id).toBe('b');
     const snapshot = createAppSnapshot(a.cache, a.scopeId);

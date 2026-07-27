@@ -68,7 +68,7 @@ describe('NavBar', () => {
 
         renderNavBar();
 
-        await user.click(screen.getByRole('button', { name: 'Sign out' }));
+        await user.click(screen.getByRole('button', { name: 'Выйти' }));
 
         await waitFor(() => expect(localStorage.getItem('chartsPage_v1')).toBeNull());
         authenticatedSessionStorageKeys.forEach(key => {

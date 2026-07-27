@@ -78,7 +78,7 @@ const chartFallback = (
         data-align="center"
         data-justify="center"
     >
-        Loading chart...
+        Загружаем график…
     </div>
 );
 
@@ -97,7 +97,7 @@ export const ChartRenderer = ({
         if (heatmapCells.length === 0) {
             return (
                 <p className={styles['chart-unavailable']}>
-                    No plottable values for this chart.
+                    Нет данных для построения графика.
                 </p>
             );
         }
@@ -120,7 +120,7 @@ export const ChartRenderer = ({
     if (chart.points.length === 0) {
         return (
             <p className={styles['chart-unavailable']}>
-                No plottable values for this chart.
+                Нет данных для построения графика.
             </p>
         );
     }

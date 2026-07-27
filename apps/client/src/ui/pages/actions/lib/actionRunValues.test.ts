@@ -32,13 +32,13 @@ describe('actionRunValues', () => {
             })
         ).toBeNull();
         expect(validateRunValues(parameters, { amount: 'abc' })).toBe(
-            'Amount expects a number.'
+            'Amount: введите число.'
         );
         expect(validateRunValues(parameters, { date: '31-02-2026' })).toBe(
-            'Date expects a date in DD-MM-YYYY format.'
+            'Date: введите дату в формате ДД-ММ-ГГГГ.'
         );
         expect(validateRunValues(parameters, { weekday: 'coffee' })).toBe(
-            'Weekday expects a weekday.'
+            'Weekday: введите день недели.'
         );
     });
 

@@ -193,7 +193,7 @@ export const ChartBuilder = ({
             id={formId}
             className={styles['form']}
             data-flex
-            aria-label={editMode ? 'Edit chart' : 'Add chart'}
+            aria-label={editMode ? 'Изменение графика' : 'Новый график'}
             value={value.chartDraft as object}
             onChange={handleChartDraftChange}
             onSubmit={handlePreview}

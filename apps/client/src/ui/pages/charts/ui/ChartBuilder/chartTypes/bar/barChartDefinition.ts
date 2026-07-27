@@ -10,7 +10,7 @@ import { BarChartSettings } from './ui';
 
 export const barChartDefinition: ChartTypeDefinition<BarChartDraft> = {
     chartType: 'bar',
-    label: 'Bar',
+    label: 'Столбцы',
     config: barChartConfig,
     createDraft: createBarChartDraft,
     configToDraft: configToBarChartDraft,

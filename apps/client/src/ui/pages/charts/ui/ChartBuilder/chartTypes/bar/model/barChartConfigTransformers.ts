@@ -92,7 +92,7 @@ export const draftToBarChartBuilderOutput = ({
         return {
             ...appearance,
             config: null,
-            error: 'Choose columns included in analysis for this chart.',
+            error: 'Выберите поля, включённые в анализ.',
             canPreview: false,
         };
     }

@@ -25,20 +25,20 @@ it('keeps a second metric draft after closing the first pending save', async () 
     );
     fireEvent.click(screen.getByRole('button', { name: 'Метрика' }));
     await waitFor(() =>
-        expect(screen.getByLabelText('Metric name')).toHaveValue('Average Score')
+        expect(screen.getByLabelText('Название метрики')).toHaveValue('Среднее Score')
     );
-    fireEvent.submit(screen.getByRole('form', { name: 'Add metric' }));
+    fireEvent.submit(screen.getByRole('form', { name: 'Добавить метрику' }));
     expect(mocks.addDashboardMetric).toHaveBeenCalledOnce();
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'Метрика' }));
-    fireEvent.change(screen.getByLabelText('Metric name'), {
+    fireEvent.change(screen.getByLabelText('Название метрики'), {
         target: { value: 'Second local draft' },
     });
     await act(async () => {
         gate.resolve({ itemId: 'first', posY: 0 });
         await gate.promise;
     });
-    expect(screen.getByRole('dialog', { name: 'Add metric' })).toBeVisible();
-    expect(screen.getByLabelText('Metric name')).toHaveValue('Second local draft');
+    expect(screen.getByRole('dialog', { name: 'Добавить метрику' })).toBeVisible();
+    expect(screen.getByLabelText('Название метрики')).toHaveValue('Second local draft');
     expect(mocks.addDashboardMetric).toHaveBeenCalledOnce();
 });

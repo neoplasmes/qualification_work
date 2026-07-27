@@ -60,16 +60,16 @@ export const ChartsLeftPanel = () => {
 
     return (
         <WorkspaceLeftPanel
-            title="Charts"
-            countLabel={`Total: ${filteredCharts?.length ?? 0} charts`}
+            title="Графики"
+            countLabel={`Всего графиков: ${filteredCharts?.length ?? 0}`}
             testId={chartsTestIds.listPanel}
-            listLabel="Saved charts"
+            listLabel="Сохранённые графики"
             loading={chartsQuery.isPending}
-            loadingText="Loading charts..."
+            loadingText="Загружаем графики…"
             empty={filteredCharts?.length === 0}
-            emptyText="Build a chart from a dataset to see it here."
+            emptyText="Создайте график на основе таблицы."
             action={{
-                label: 'Create chart',
+                label: 'Создать график',
                 Icon: Plus,
                 testId: chartsTestIds.createChartButton,
                 onClick: () => {
@@ -89,7 +89,7 @@ export const ChartsLeftPanel = () => {
                         header={chart.name}
                         details={[
                             formatDate(chart.createdAt),
-                            datasetNameById.get(chart.datasetId) ?? 'Unknown dataset',
+                            datasetNameById.get(chart.datasetId) ?? 'Неизвестная таблица',
                         ]}
                         iconElement={<ChartIcon size={chartIconSize} />}
                         onClick={() => {

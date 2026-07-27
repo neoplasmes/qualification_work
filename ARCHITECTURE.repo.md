@@ -252,10 +252,10 @@ Other tool configuration belongs in `tools/` or `env/`.
   component files use PascalCase (`RepeatedPageComponent/RepeatedPageComponent.tsx`);
   their CSS modules use lower camelCase (`repeatedPageComponent.module.css`).
   Widgets are reused on more than one distinct page and live at
-  `widgets/WidgetName/WidgetName.widget.tsx` with `widgetName.widget.module.css`.
+  `ui/widgets/WidgetName/WidgetName.widget.tsx` with `widgetName.widget.module.css`.
   Pages own `<PageName>.page.tsx`, `<pageName>.page.module.css`, populated
   segments, and `index.ts` at the slice root
-  (`executor/catalog/ExecutorCatalog.page.tsx`); see
+  (`ui/pages/executor/catalog/ExecutorCatalog.page.tsx`); see
   [the page slice contract](ARCHITECTURE.frontend.md#page-slices).
 - Page and widget child components are extracted only for repeated use within the
   owner or to split a file over 300 lines, with recursive `ui`, `model`, `lib`

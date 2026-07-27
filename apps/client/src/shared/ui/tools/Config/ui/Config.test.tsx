@@ -269,7 +269,7 @@ describe('Config', () => {
         await user.click(screen.getByRole('switch', { name: 'Filter' }));
 
         expect(screen.getByLabelText('Column')).toHaveValue('country');
-        expect(screen.getByLabelText('Explain Filter')).toBeInTheDocument();
+        expect(screen.getByLabelText('Пояснение: Filter')).toBeInTheDocument();
     });
 
     it('supports renderless input and typed hooks', async () => {

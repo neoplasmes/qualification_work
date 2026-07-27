@@ -56,8 +56,8 @@ export const ChartLineChartSection = ({
     const groupingModes = getGroupingModes(activeDimensionColumn?.dataType);
 
     return (
-        <config.Section name="Chart">
-            <Field label="X axis">
+        <config.Section name="График">
+            <Field label="Ось X">
                 <config.Select
                     bind={chartLineChartSectionBinds.dimensionColumnId(
                         columns,
@@ -76,7 +76,7 @@ export const ChartLineChartSection = ({
                 </config.Select>
             </Field>
 
-            <Field label="Group X by">
+            <Field label="Группировка X">
                 <config.Select
                     bind={chartLineChartSectionBinds.dimensionGroupingMode(groupingModes)}
                     disabled={groupingModes.length === 1}
@@ -90,7 +90,7 @@ export const ChartLineChartSection = ({
             </Field>
 
             {draft.dimensionGroupingMode === 'time' && (
-                <Field label="Time unit">
+                <Field label="Единица времени">
                     <config.Select field="dimensionGranularity">
                         {timeGranularities.map(item => (
                             <option key={item} value={item}>
@@ -102,7 +102,7 @@ export const ChartLineChartSection = ({
             )}
 
             {draft.dimensionGroupingMode === 'numeric' && (
-                <Field label="Bucket size">
+                <Field label="Размер интервала">
                     <config.Input
                         bind={chartLineChartSectionBinds.dimensionStep}
                         type="number"

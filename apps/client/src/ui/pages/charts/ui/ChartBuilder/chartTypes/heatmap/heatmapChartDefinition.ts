@@ -10,7 +10,7 @@ import { HeatmapChartSettings } from './ui';
 
 export const heatmapChartDefinition: ChartTypeDefinition<HeatmapChartDraft> = {
     chartType: 'heatmap',
-    label: 'Heatmap',
+    label: 'Тепловая карта',
     config: heatmapChartConfig,
     createDraft: createHeatmapChartDraft,
     configToDraft: configToHeatmapChartDraft,

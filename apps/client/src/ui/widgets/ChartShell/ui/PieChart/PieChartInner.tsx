@@ -86,7 +86,7 @@ export const PieChartInner = ({
                 width={width}
                 height={height}
                 role="img"
-                aria-label="Pie chart"
+                aria-label="Круговая диаграмма"
                 data-testid="pie-chart-svg"
             >
                 <Group top={cy} left={cx}>

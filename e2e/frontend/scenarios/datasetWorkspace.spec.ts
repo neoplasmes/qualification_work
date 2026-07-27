@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../apps/client/dist/migration-review/task-9'
+    `../../../apps/client/dist/migration-review/${new Date().toISOString().replaceAll(':', '-')}-datasetWorkspace`
 );
 
 async function openFirstCell(page: Page, column = 0) {
@@ -49,7 +49,7 @@ test('edits a paged dataset and preserves local table preferences', async ({
     const user = {
         email: `dataset-${randomUUID()}@example.com`,
         password: 'S3curePassword!',
-        name: 'Dataset',
+        name: 'Таблица',
         family: 'Tester',
     };
     expect((await request.post('/api/auth/register', { data: user })).ok()).toBe(true);

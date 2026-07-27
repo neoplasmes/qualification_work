@@ -48,12 +48,14 @@ it('retains confirmed delete refresh feedback after selection and route clear', 
         </UiTestProvider>
     );
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'Delete chart' }));
-    await user.click(screen.getByRole('button', { name: 'Confirm delete' }));
+    await user.click(await screen.findByRole('button', { name: 'Удалить график' }));
+    await user.click(screen.getByRole('button', { name: 'Подтвердить удаление' }));
     expect(
-        await screen.findByText('Chart deleted. Refresh failed. Reload the page.')
+        await screen.findByText(
+            'График удалён, но обновить список не удалось. Перезагрузите страницу.'
+        )
     ).toBeVisible();
     expect(
-        screen.queryByRole('button', { name: 'Confirm delete' })
+        screen.queryByRole('button', { name: 'Подтвердить удаление' })
     ).not.toBeInTheDocument();
 });

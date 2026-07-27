@@ -76,14 +76,14 @@ export const ChartConfigSummary = ({
         if (agg === 'count') {
             return (
                 <>
-                    <strong>{label}</strong> of rows
+                    <strong>{label}</strong> строк
                 </>
             );
         }
 
         return (
             <>
-                <strong>{label}</strong> of <Col id={m?.columnId} />
+                <strong>{label}</strong> поля <Col id={m?.columnId} />
             </>
         );
     };
@@ -102,7 +102,7 @@ export const ChartConfigSummary = ({
             return (
                 <>
                     {' '}
-                    (by <Val>{label.toLowerCase()}</Val>)
+                    (период: <Val>{label.toLowerCase()}</Val>)
                 </>
             );
         }
@@ -111,7 +111,7 @@ export const ChartConfigSummary = ({
             return (
                 <>
                     {' '}
-                    (step <Val>{grouping.step}</Val>)
+                    (шаг <Val>{grouping.step}</Val>)
                 </>
             );
         }
@@ -127,7 +127,7 @@ export const ChartConfigSummary = ({
         if (op === 'between' && Array.isArray(value)) {
             return (
                 <>
-                    <Val>{String(value[0] ?? '')}</Val> and{' '}
+                    <Val>{String(value[0] ?? '')}</Val> и{' '}
                     <Val>{String(value[1] ?? '')}</Val>
                 </>
             );
@@ -147,10 +147,10 @@ export const ChartConfigSummary = ({
 
         return (
             <>
-                , filtered where{' '}
+                , условие:{' '}
                 {filters.map((f, i) => (
                     <Fragment key={`${f.columnId}-${i}`}>
-                        {i > 0 && ' and '}
+                        {i > 0 && ' и '}
                         <Col id={f.columnId} />{' '}
                         <strong>{filterOpShort[f.op] ?? f.op}</strong>
                         {(() => {
@@ -173,11 +173,11 @@ export const ChartConfigSummary = ({
 
             return (
                 <>
-                    <strong>Pie</strong> chart sliced by <Col id={slice.columnId} />,
-                    showing {renderMeasure(measure)}
+                    <strong>Круговая диаграмма</strong> по полю{' '}
+                    <Col id={slice.columnId} />, показатель: {renderMeasure(measure)}
                     {typeof slice.topN === 'number' && (
                         <>
-                            , top <Val>{slice.topN}</Val> slices
+                            , первые <Val>{slice.topN}</Val> секторов
                         </>
                     )}
                     {renderFilters(filters)}.
@@ -192,7 +192,7 @@ export const ChartConfigSummary = ({
 
             return (
                 <>
-                    <strong>Heatmap</strong> of {renderMeasure(measure)} across{' '}
+                    <strong>Тепловая карта</strong>: {renderMeasure(measure)} по{' '}
                     <Col id={x.columnId} />
                     {renderGrouping(x.grouping)} × <Col id={y.columnId} />
                     {renderGrouping(y.grouping)}
@@ -206,28 +206,27 @@ export const ChartConfigSummary = ({
         const series = config.series as SeriesLike | undefined;
         const measures = (config.measures as MeasureLike[] | undefined) ?? [];
         const isBar = chartType === 'bar';
-        const preposition = chartType === 'line' ? 'over' : 'per';
-        const typeLabel = isBar ? 'Bar' : 'Line';
+        const typeLabel = isBar ? 'Столбцы' : 'Линия';
 
         return (
             <>
-                <strong>{typeLabel}</strong> chart with{' '}
+                <strong>{typeLabel}</strong>:{' '}
                 {measures.map((m, i) => (
                     <Fragment key={i}>
-                        {i > 0 && ' and '}
+                        {i > 0 && ' и '}
                         {renderMeasure(m)}
                     </Fragment>
                 ))}{' '}
-                {preposition} <Col id={dim.columnId} />
+                по полю <Col id={dim.columnId} />
                 {renderGrouping(dim.grouping)}
                 {series && series.columnId && (
                     <>
-                        , separated by <Col id={series.columnId} />
+                        , разбиение по <Col id={series.columnId} />
                         {typeof series.topN === 'number' && (
                             <>
                                 {' '}
-                                (top <Val>{series.topN}</Val>
-                                {series.otherBucket && ', rest grouped'})
+                                (первые <Val>{series.topN}</Val>
+                                {series.otherBucket && ', остальные объединены'})
                             </>
                         )}
                     </>

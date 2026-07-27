@@ -156,7 +156,7 @@ const BarChartSingleInner = ({
     return (
         <div data-testid="bar-chart-svg" style={{ position: 'relative' }}>
             <XYChart
-                accessibilityLabel="Bar chart"
+                accessibilityLabel="Столбчатый график"
                 width={width}
                 height={height}
                 margin={margin}
@@ -219,7 +219,7 @@ const BarChartSingleInner = ({
                             maxValue
                         );
                     }}
-                    radius={4}
+                    radius={0}
                     radiusTop
                 />
                 <ValueLabels series={seriesArr} valueFormat={valueFormat} />

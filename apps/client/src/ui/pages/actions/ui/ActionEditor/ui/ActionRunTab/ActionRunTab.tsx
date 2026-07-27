@@ -1,9 +1,9 @@
 import type { Action } from '@/core/entities/action';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { Button, Notice } from '@qualification-work/design-system';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';
 
 import styles from '../../../../actions.page.module.css';
@@ -72,7 +72,7 @@ export const ActionRunTab = ({
                 setLastRunMessage(
                     result.status === 'success'
                         ? `Выполнено. Изменений: ${result.changes.length}.`
-                        : (result.errorMessage ?? 'Run failed.')
+                        : (result.errorMessage ?? 'Выполнение не удалось.')
                 );
             } catch (runError) {
                 setError(
@@ -83,7 +83,7 @@ export const ActionRunTab = ({
                                   runError.message
                               )
                             : runError.message
-                        : getApiErrorMessage(runError, 'Unable to run this action.')
+                        : getApiErrorMessage(runError, 'Не удалось выполнить действие.')
                 );
             }
         },

@@ -19,16 +19,16 @@ export const SelectDatasetForChartModal = ({
     onClose,
 }: SelectDatasetForChartModalProps) => (
     <Modal
-        title="Select dataset"
-        ariaLabel="Select dataset"
+        title="Выберите таблицу"
+        ariaLabel="Выберите таблицу"
         testId={chartsTestIds.createChartModal}
         closeButtonTestId={chartsTestIds.modalCloseButton}
         onClose={onClose}
     >
         <div data-stack="v" data-gap="xs">
-            {!datasets && <StatusMessage centered>Loading...</StatusMessage>}
+            {!datasets && <StatusMessage centered>Загружаем…</StatusMessage>}
             {datasets?.length === 0 && (
-                <EmptyState>No datasets. Upload one first.</EmptyState>
+                <EmptyState>Таблиц пока нет. Сначала загрузите данные.</EmptyState>
             )}
             {datasets?.map(item => (
                 <WorkspaceLeftPanelItem
@@ -36,8 +36,8 @@ export const SelectDatasetForChartModal = ({
                     testId={chartsTestIds.modalDatasetItem}
                     header={item.dataset.name}
                     details={[
-                        `${item.totalRows} rows`,
-                        `${item.columns.length} columns`,
+                        `Строк: ${item.totalRows}`,
+                        `Полей: ${item.columns.length}`,
                         formatDate(item.dataset.createdAt),
                     ]}
                     iconElement={<Sheet size={18} />}

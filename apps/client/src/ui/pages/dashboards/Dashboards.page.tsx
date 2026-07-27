@@ -1,5 +1,6 @@
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import {
     useDashboardsPageActions,
     useDashboardsPageState,
@@ -7,7 +8,6 @@ import {
 import { Button, Divider } from '@qualification-work/design-system';
 import { useEffect, useMemo } from 'react';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { StatusMessage } from '@/shared/ui';
 
 import { dashboardsTestIds } from './const';
@@ -143,7 +143,7 @@ export const DashboardsPage = () => {
             data-gap="sm"
             data-flex
             data-test-id={dashboardsTestIds.workspace}
-            aria-label="Dashboard details"
+            aria-label="Сведения о дашборде"
         >
             {error && (
                 <StatusMessage tone="error">

@@ -155,7 +155,7 @@ export const Modal = ({
                             data-p="xs"
                             variant="ghost"
                             data-test-id={closeButtonTestId}
-                            aria-label="Close modal"
+                            aria-label="Закрыть окно"
                             onClick={onClose}
                         >
                             <X size={20} strokeWidth={2.6} />

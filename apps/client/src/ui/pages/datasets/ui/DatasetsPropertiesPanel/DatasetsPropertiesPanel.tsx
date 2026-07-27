@@ -1,6 +1,7 @@
 import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useDatasetsPageActions, useDatasetsPageState } from '@/ui/pages/datasets/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import {
@@ -16,7 +17,6 @@ import {
 import { GitMerge, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { getSelected } from '@/shared/lib/getSelected';
 
@@ -86,7 +86,7 @@ export const DatasetsPropertiesPanel = () => {
             selectDataset(null);
             setDeleteConfirmationId(null);
         } catch (error) {
-            setDatasetError(getApiErrorMessage(error, 'Unable to delete this dataset.'));
+            setDatasetError(getApiErrorMessage(error, 'Не удалось удалить таблицу.'));
         }
     };
 
@@ -105,7 +105,10 @@ export const DatasetsPropertiesPanel = () => {
                 orgId: selectedDataset.dataset.orgId,
             });
         } catch (error) {
-            const message = getApiErrorMessage(error, 'Unable to rename this dataset.');
+            const message = getApiErrorMessage(
+                error,
+                'Не удалось переименовать таблицу.'
+            );
             setDatasetError(message);
 
             throw new Error(message);
@@ -128,7 +131,11 @@ export const DatasetsPropertiesPanel = () => {
 
     return (
         <>
-            <section className={styles['details']} data-flex aria-label="Dataset details">
+            <section
+                className={styles['details']}
+                data-flex
+                aria-label="Свойства таблицы"
+            >
                 <div className={styles['details-header']}>
                     {renaming && (
                         <form
@@ -163,7 +170,7 @@ export const DatasetsPropertiesPanel = () => {
                                 {selectedDataset.dataset.name}
                             </Text>
                             <IconButton
-                                aria-label="Rename"
+                                aria-label="Переименовать"
                                 data-test-id={datasetsTestIds.renameButton}
                                 variant="ghost"
                                 onClick={() => {
@@ -213,8 +220,16 @@ export const DatasetsPropertiesPanel = () => {
                         <li key={column.id}>
                             <Text variant="body-sm">{column.displayName}</Text>
                             <Text variant="label">
-                                {column.dataType} ·{' '}
-                                {column.isAnalyzable ? 'В анализе' : 'Исключено'}
+                                {
+                                    {
+                                        string: 'Текст',
+                                        number: 'Число',
+                                        bool: 'Да/нет',
+                                        day_of_week: 'День недели',
+                                        date: 'Дата',
+                                    }[column.dataType]
+                                }{' '}
+                                · {column.isAnalyzable ? 'В анализе' : 'Исключено'}
                             </Text>
                         </li>
                     ))}

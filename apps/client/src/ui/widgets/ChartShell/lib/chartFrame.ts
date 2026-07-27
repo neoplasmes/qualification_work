@@ -66,7 +66,6 @@ export const getChartAspectFrameStyle = (height: number): CSSProperties => ({
     display: 'flex',
     width: '100%',
     height,
-    minWidth: 0,
     minHeight: 0,
     alignItems: 'center',
     justifyContent: 'center',

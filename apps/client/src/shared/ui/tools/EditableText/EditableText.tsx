@@ -63,7 +63,7 @@ export const EditableText = ({
         const nextName = draft.trim();
 
         if (!nextName) {
-            setError('Name can not be empty.');
+            setError('Название не может быть пустым.');
 
             return;
         }
@@ -83,7 +83,7 @@ export const EditableText = ({
             setError(
                 renameError instanceof Error
                     ? renameError.message
-                    : 'Unable to rename this item.'
+                    : 'Не удалось переименовать элемент.'
             );
         }
     };
@@ -183,7 +183,7 @@ export const EditableText = ({
                 <IconButton
                     data-py="xs"
                     data-px="none"
-                    aria-label="Save name"
+                    aria-label="Сохранить название"
                     disabled={saving}
                     onMouseDown={event => event.preventDefault()}
                     onClick={() => void commit()}
@@ -193,7 +193,7 @@ export const EditableText = ({
                 <IconButton
                     data-py="xs"
                     data-px="none"
-                    aria-label="Cancel rename"
+                    aria-label="Отменить переименование"
                     disabled={saving}
                     onMouseDown={event => event.preventDefault()}
                     onClick={cancel}
@@ -222,7 +222,7 @@ export const EditableText = ({
                 </h2>
                 <IconButton
                     variant="ghost"
-                    aria-label="Rename"
+                    aria-label="Переименовать"
                     data-test-id={editButtonTestId}
                     onClick={() => {
                         hideTooltip();

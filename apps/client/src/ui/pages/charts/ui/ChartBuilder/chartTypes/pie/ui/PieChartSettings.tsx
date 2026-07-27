@@ -42,7 +42,7 @@ export const PieChartSettings = ({
                 editMode={editMode}
                 maxMeasureCount={1}
             >
-                <Field label="Max slices">
+                <Field label="Максимум секторов">
                     <config.Input
                         bind={pieChartSettingsBinds.topN}
                         type="number"

@@ -141,6 +141,10 @@ export const buildChartPalette = (baseColor: string, size: number) => {
             return base;
         }
 
+        if (base === defaultChartColor && index === 1) {
+            return '#a89a1a';
+        }
+
         return rgbToHex(
             hslToRgb({
                 h: (hsl.h + index * 34) % 360,

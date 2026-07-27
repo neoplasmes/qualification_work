@@ -21,10 +21,10 @@ afterEach(async () => {
 });
 
 it.each([
-    { page: 'Sign in', path: '/sign-in', endpoint: '/auth/login', leave: true },
-    { page: 'Sign up', path: '/sign-up', endpoint: '/auth/register', leave: true },
-    { page: 'Sign in', path: '/sign-in', endpoint: '/auth/login', leave: false },
-    { page: 'Sign up', path: '/sign-up', endpoint: '/auth/register', leave: false },
+    { page: 'Вход', path: '/sign-in', endpoint: '/auth/login', leave: true },
+    { page: 'Регистрация', path: '/sign-up', endpoint: '/auth/register', leave: true },
+    { page: 'Вход', path: '/sign-in', endpoint: '/auth/login', leave: false },
+    { page: 'Регистрация', path: '/sign-up', endpoint: '/auth/register', leave: false },
 ])(
     'respects $page owner lifetime after command completion (departed: $leave)',
     async ({ page, path, endpoint, leave }) => {
@@ -80,7 +80,7 @@ it.each([
         fireEvent.change(screen.getByLabelText('Пароль'), {
             target: { value: 'password123' },
         });
-        if (page === 'Sign up') {
+        if (page === 'Регистрация') {
             fireEvent.change(screen.getByLabelText('Имя'), {
                 target: { value: 'A' },
             });

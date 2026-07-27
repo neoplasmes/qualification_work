@@ -79,7 +79,7 @@ export const ConfigSection = <T extends object>({
                 <span data-display="inline-flex" data-gap="xs" data-align="center">
                     <span id={labelId}>{name}</span>
                     {explain && (
-                        <Explain label={`Explain ${name}`} description={explain} />
+                        <Explain label={`Пояснение: ${name}`} description={explain} />
                     )}
                 </span>
                 {hasSwitch && (

@@ -14,13 +14,9 @@ import { createDeleteOrganization } from '@/app/commands/deleteOrganization';
 import { createLogin } from '@/app/commands/login';
 import { createLogout } from '@/app/commands/logout';
 import { createRegister } from '@/app/commands/register';
-import { createStore } from '@/app/model/store';
 import { createGetSession } from '@/app/queries/getSession';
 
-import { api } from '@/shared/api';
-
 import { createActionDependencies } from '../actionDependencies';
-import { createCacheBridge } from '../cacheBridge';
 import { createChartDependencies } from '../chartDependencies';
 import { createDashboardDependencies } from '../dashboardDependencies';
 import { createDatasetDependencies } from '../datasetDependencies';
@@ -31,10 +27,15 @@ import { createUiState } from '../uiState';
 import { createUploadDependencies } from '../uploadDependencies';
 import { sessionCodec } from './sessionCodec';
 
+export type ApplicationOperations = Omit<
+    Dependencies,
+    'cache' | 'session' | 'ui' | 'uploads'
+>;
+
 export interface ApplicationRuntime {
+    operations: ApplicationOperations;
     dependencies: Dependencies;
     cache: CacheRuntime;
-    legacyStore: ReturnType<typeof createStore>;
     readonly scopeId: string;
     acceptScope(scopeId: string): void;
     dispose(): Promise<void>;
@@ -83,14 +84,6 @@ export function createDependencies(options: {
             },
         }
     );
-    const bridge = createCacheBridge(cache, error =>
-        console.error('Legacy cache synchronization failed', error)
-    );
-    const legacyStore = createStore(undefined, {
-        apiExtraArgument: { requestCookie: options.requestCookie },
-        middleware: bridge.middleware,
-    });
-    bridge.attach(legacyStore.dispatch);
     const transport = new HttpTransport({
         baseUrl: options.apiBaseUrl,
         fetch: globalThis.fetch.bind(globalThis),
@@ -107,7 +100,6 @@ export function createDependencies(options: {
     };
     const rotate = () => {
         scopeId = crypto.randomUUID();
-        bridge.reset();
         detach();
         const epoch = cache.epoch;
         detach = sessionRepo.attachInterceptors({
@@ -124,21 +116,25 @@ export function createDependencies(options: {
     const session = new SessionLifecycle({
         cache,
         operations,
-        store: legacyStore,
         browser: options.platform === 'browser',
         rotate,
         ui,
     });
     rotate();
     const datasetOperations = createDatasetDependencies(cache, transport);
-    const dependencies: Dependencies = {
+    const { uploads, ...uploadOperations } = createUploadDependencies(cache, transport);
+    const applicationOperations: ApplicationOperations = {
         ...operations,
         ...datasetOperations,
         ...createChartDependencies(cache, transport),
         ...createDashboardDependencies(cache, transport),
         ...createActionDependencies(cache, transport),
-        ...createUploadDependencies(cache, transport),
+        ...uploadOperations,
         ...createTableOptionsDependencies(cache, options.platform === 'browser'),
+    };
+    const dependencies: Dependencies = {
+        ...applicationOperations,
+        uploads,
         cache,
         session,
         ui,
@@ -181,13 +177,8 @@ export function createDependencies(options: {
         live = false;
         options.requestSignal?.removeEventListener('abort', abort);
         detach();
-        bridge.dispose();
         session.dispose();
         ui.dispose();
-        for (const read of legacyStore.dispatch(api.util.getRunningQueriesThunk())) {
-            read.abort();
-        }
-        legacyStore.dispatch(api.util.resetApiState());
         cleanup = cache.dispose();
 
         return cleanup;
@@ -202,8 +193,8 @@ export function createDependencies(options: {
 
     return {
         dependencies,
+        operations: applicationOperations,
         cache,
-        legacyStore,
         get scopeId() {
             return scopeId;
         },

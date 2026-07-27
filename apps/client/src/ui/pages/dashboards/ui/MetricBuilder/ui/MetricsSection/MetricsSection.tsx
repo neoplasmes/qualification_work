@@ -54,8 +54,8 @@ export const MetricsSection = ({
     };
 
     return (
-        <metricBuilderConfig.Section name="Metrics" className={styles['section']}>
-            <Field label="Dataset">
+        <metricBuilderConfig.Section name="Метрики" className={styles['section']}>
+            <Field label="Таблица">
                 <metricBuilderConfig.Select
                     field="datasetId"
                     data-test-id={metricBuilderTestIds.datasetSelect}
@@ -67,17 +67,17 @@ export const MetricsSection = ({
                     ))}
                 </metricBuilderConfig.Select>
             </Field>
-            <Field label="Metric name">
+            <Field label="Название метрики">
                 <metricBuilderConfig.Input
                     field="name"
                     data-test-id={metricBuilderTestIds.nameInput}
-                    placeholder={metricNamePlaceholder || 'Average score'}
+                    placeholder={metricNamePlaceholder || 'Среднее значение'}
                     onValueChange={() => {
                         onMetricNameDirtyChange(true);
                     }}
                 />
             </Field>
-            <Field label="Format">
+            <Field label="Формат">
                 <metricBuilderConfig.Input
                     field="format"
                     data-test-id={metricBuilderTestIds.formatInput}
@@ -86,7 +86,7 @@ export const MetricsSection = ({
                     onValueChange={handleFormatValueChange}
                 />
             </Field>
-            <Field label="Multiplier">
+            <Field label="Множитель">
                 <div
                     className={styles['multiplier-row']}
                     data-stack="h"
@@ -104,7 +104,7 @@ export const MetricsSection = ({
                     <Slider
                         className={styles['multiplier-slider']}
                         data-flex
-                        aria-label="Multiplier"
+                        aria-label="Множитель"
                         min={metricMultiplierSliderMin}
                         max={metricMultiplierSliderMax}
                         step={metricMultiplierSliderStep}

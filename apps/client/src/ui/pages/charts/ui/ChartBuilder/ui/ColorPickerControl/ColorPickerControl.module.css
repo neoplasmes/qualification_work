@@ -77,7 +77,7 @@
     font: inherit;
     color: var(--ink);
 
-    background-color: var(--paperest);
+    background-color: var(--paper-raised);
 
     &:focus {
         border-color: var(--ink);

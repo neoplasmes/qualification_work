@@ -33,21 +33,21 @@ export const AppearanceSection = ({
             data-align="center"
         >
             <Divider data-flex />
-            <span>Appearance</span>
+            <span>Оформление</span>
         </div>
 
         <config-section-body data-stack="v" data-gap="sm">
             {!editMode && (
-                <Field label="Chart name">
+                <Field label="Название графика">
                     <Input
                         value={value.chartName}
-                        placeholder={`${selectedDataset.dataset.name} chart`}
+                        placeholder={`${selectedDataset.dataset.name} — график`}
                         onChange={event => onNameChange(event.target.value)}
                     />
                 </Field>
             )}
 
-            <Field label="Chart type">
+            <Field label="Тип графика">
                 <Choice
                     value={value.chartType}
                     onValueChange={type => onTypeChange(type as ChartType)}

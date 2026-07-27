@@ -47,7 +47,12 @@ it('pages history and retries only the failed read', async () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
         'Не удалось загрузить журнал.'
     );
+    await user.click(screen.getByRole('button', { name: 'Обновить журнал' }));
+    await waitFor(() => expect(read).toHaveBeenCalledTimes(3));
     fail = false;
+    await user.click(screen.getByRole('button', { name: 'Назад' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: 'Далее' }));
     await user.click(screen.getByRole('button', { name: 'Обновить журнал' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
     expect(read).toHaveBeenLastCalledWith(

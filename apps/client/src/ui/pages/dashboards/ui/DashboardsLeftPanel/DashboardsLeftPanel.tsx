@@ -2,6 +2,7 @@ import { filterDashboards } from '@/core/processes/entityFiltering';
 import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import {
     useDashboardsPageActions,
     useDashboardsPageState,
@@ -13,7 +14,6 @@ import { LayoutDashboard, Plus } from 'lucide-react';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { StatusMessage, WorkspaceLeftPanelItem } from '@/shared/ui';
 
@@ -99,7 +99,7 @@ export const DashboardsLeftPanel = () => {
             if (!view.live) {
                 return;
             }
-            setError(getApiErrorMessage(createError, 'Unable to create this dashboard.'));
+            setError(getApiErrorMessage(createError, 'Не удалось создать дашборд.'));
         }
     };
 

@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
@@ -112,6 +112,28 @@ describe('MetricBuilder', () => {
         expect(
             getByDataTestId(container, metricBuilderTestIds.expressionInput)
         ).toHaveValue('avg("Средний чек")');
+    });
+
+    it('keeps trend bucket wire values under localized labels', async () => {
+        const onChange = vi.fn();
+        render(
+            <MetricBuilder
+                datasets={datasets}
+                value={value}
+                editing
+                onChange={onChange}
+                onSubmit={vi.fn()}
+            />
+        );
+        const bucket = screen.getByLabelText('Период');
+        expect(bucket).toHaveValue('month');
+        expect(screen.getByRole('option', { name: 'Месяц' })).toHaveValue('month');
+        fireEvent.change(bucket, { target: { value: 'week' } });
+        await waitFor(() =>
+            expect(onChange).toHaveBeenCalledWith(
+                expect.objectContaining({ timeBucket: 'week' })
+            )
+        );
     });
 
     it('keeps formula expressions in formula mode instead of overwriting them', async () => {

@@ -21,7 +21,7 @@ const mappingSourceOptions = [
         value: 'parameter',
         label: (
             <span data-test-id={actionBuilderTestIds.mappingSourceParameterButton}>
-                param
+                Параметр
             </span>
         ),
     },
@@ -29,7 +29,7 @@ const mappingSourceOptions = [
         value: 'literal',
         label: (
             <span data-test-id={actionBuilderTestIds.mappingSourceLiteralButton}>
-                literal
+                Значение
             </span>
         ),
     },
@@ -37,7 +37,7 @@ const mappingSourceOptions = [
         value: 'computed',
         label: (
             <span data-test-id={actionBuilderTestIds.mappingSourceComputedButton}>
-                computed
+                Формула
             </span>
         ),
     },
@@ -195,7 +195,7 @@ export const MappingRow = ({
                         data-test-id={actionBuilderTestIds.mappingLiteralInput}
                         bind={literalValueBind}
                         disabled={disabled}
-                        placeholder="Paid"
+                        placeholder="Оплачен"
                     />
                 )}
             </>

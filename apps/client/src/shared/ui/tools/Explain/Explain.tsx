@@ -13,7 +13,7 @@ type ExplainProps = {
 
 export const Explain = ({
     description,
-    label = 'Show explanation',
+    label = 'Показать пояснение',
     className,
 }: ExplainProps) => {
     const tooltipId = useId();

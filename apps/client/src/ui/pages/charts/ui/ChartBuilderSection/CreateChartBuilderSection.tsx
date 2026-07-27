@@ -48,7 +48,7 @@ export const CreateChartBuilderSection = ({
         <>
             <div className={styles['builder-header']}>
                 <div data-stack="v" data-gap="xs">
-                    <span className={styles['eyebrow']}>New chart</span>
+                    <span className={styles['eyebrow']}>Новый график</span>
                     <h2 className={styles['title']}>{dataset.dataset.name}</h2>
                 </div>
                 <div data-stack="h" data-gap="sm" data-align="center">
@@ -58,14 +58,14 @@ export const CreateChartBuilderSection = ({
                         onClick={onChangeDataset}
                     >
                         <Database size={18} aria-hidden />
-                        Change dataset
+                        Сменить таблицу
                     </Button>
                     <Button
                         data-test-id={chartsTestIds.cancelCreateButton}
                         onClick={onCancel}
                     >
                         <X size={18} aria-hidden />
-                        Cancel
+                        Отмена
                     </Button>
                     <div
                         ref={setActionsEl}

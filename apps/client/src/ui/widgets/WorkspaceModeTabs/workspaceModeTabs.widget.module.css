@@ -48,10 +48,14 @@
     transition: color 0.2s ease;
 
     &:hover,
-    &:focus-visible,
-    &.active {
+    &:focus-visible {
         color: var(--color-on-background);
         outline: none;
+    }
+
+    &.active {
+        color: var(--on-ink);
+        background: var(--ink);
     }
 
     &:disabled {

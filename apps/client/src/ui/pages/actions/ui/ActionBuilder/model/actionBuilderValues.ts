@@ -36,7 +36,7 @@ export const parseActionBuilderDraftValue = (
     if (type === 'number') {
         const numberValue = Number(trimmed);
         if (!Number.isFinite(numberValue)) {
-            throw new Error(`Default value for ${type} parameter must be a number.`);
+            throw new Error('Значение параметра по умолчанию должно быть числом.');
         }
 
         return numberValue;
@@ -47,7 +47,7 @@ export const parseActionBuilderDraftValue = (
     }
 
     if (type === 'day_of_week' && !isDayOfWeekValue(trimmed)) {
-        throw new Error(`Default value for ${type} parameter must be a weekday.`);
+        throw new Error('Значение параметра по умолчанию должно быть днём недели.');
     }
 
     return trimmed;

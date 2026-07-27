@@ -10,7 +10,7 @@ import { PieChartSettings } from './ui';
 
 export const pieChartDefinition: ChartTypeDefinition<PieChartDraft> = {
     chartType: 'pie',
-    label: 'Pie',
+    label: 'Круговая диаграмма',
     config: pieChartConfig,
     createDraft: createPieChartDraft,
     configToDraft: configToPieChartDraft,

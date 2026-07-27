@@ -30,7 +30,7 @@ const action = vi.hoisted(
             description: null,
             parameters: [
                 { key: 'amount', label: 'Amount', type: 'number', required: true },
-                { key: 'paid', label: 'Paid', type: 'bool', required: false },
+                { key: 'paid', label: 'Оплачен', type: 'bool', required: false },
             ],
             effects: [
                 {

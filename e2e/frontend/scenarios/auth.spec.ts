@@ -25,7 +25,7 @@ const registerByApi = async (request: APIRequestContext, user: TestUser) => {
 
 const signUpThroughUi = async (page: Page, user: TestUser) => {
     await page.goto('/sign-up');
-    const form = page.getByRole('form', { name: 'Sign up' });
+    const form = page.getByRole('form', { name: 'Регистрация' });
 
     await form.getByLabel('Имя').fill(user.name);
     await form.getByLabel('Фамилия').fill(user.family);
@@ -58,7 +58,7 @@ test.describe('auth through gateway', () => {
         await registerByApi(request, user);
 
         await page.goto('/sign-in');
-        const form = page.getByRole('form', { name: 'Sign in' });
+        const form = page.getByRole('form', { name: 'Вход' });
 
         await form.getByLabel('Электронная почта').fill(user.email);
         await form.getByLabel('Пароль').fill(user.password);
@@ -75,7 +75,7 @@ test.describe('auth through gateway', () => {
 
     test('shows an error for invalid login', async ({ page }) => {
         await page.goto('/sign-in');
-        const form = page.getByRole('form', { name: 'Sign in' });
+        const form = page.getByRole('form', { name: 'Вход' });
 
         await form
             .getByLabel('Электронная почта')
@@ -98,7 +98,7 @@ test('failed logout still clears authenticated browser state', async ({ page }) 
         localStorage.setItem('panelLayout_v2', JSON.stringify({ sizes: {} }));
     });
     await page.route('**/api/auth/logout', route => route.abort());
-    await page.getByRole('button', { name: 'Sign out' }).click();
+    await page.getByRole('button', { name: 'Выйти' }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
     expect(await page.evaluate(() => localStorage.getItem('chartsPage_v1'))).toBeNull();
     expect(

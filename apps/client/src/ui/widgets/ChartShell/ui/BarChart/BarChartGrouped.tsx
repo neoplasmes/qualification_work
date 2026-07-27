@@ -142,7 +142,7 @@ const BarChartGroupedInner = ({
     return (
         <div data-testid="bar-chart-svg" style={{ position: 'relative' }}>
             <XYChart
-                accessibilityLabel="Grouped bar chart"
+                accessibilityLabel="Групповой столбчатый график"
                 width={width}
                 height={height}
                 margin={margin}
@@ -200,7 +200,7 @@ const BarChartGroupedInner = ({
                             xAccessor={point => point.label}
                             yAccessor={point => point.value}
                             colorAccessor={() => getSeriesColor(color, seriesIndex)}
-                            radius={4}
+                            radius={0}
                             radiusTop
                         />
                     ))}

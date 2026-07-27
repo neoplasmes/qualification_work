@@ -56,10 +56,10 @@ describe('DashboardWidgets', () => {
         ).toHaveAttribute('title', 'Average score');
         expect(screen.getAllByText('Invoices')).toHaveLength(3);
         expect(screen.getByText(/42\s?%/)).toBeInTheDocument();
-        await user.click(screen.getByLabelText('Edit Revenue'));
-        await user.click(screen.getByLabelText('Edit Average score'));
-        await user.click(screen.getByLabelText('Remove Average score'));
-        await user.click(screen.getByLabelText('Remove Revenue'));
+        await user.click(screen.getByLabelText('Изменить Revenue'));
+        await user.click(screen.getByLabelText('Изменить Average score'));
+        await user.click(screen.getByLabelText('Удалить Average score'));
+        await user.click(screen.getByLabelText('Удалить Revenue'));
 
         expect(mocks.navigate).toHaveBeenCalledWith('/charts/edit?id=chart-1');
         expect(onEditMetric).toHaveBeenCalledWith(items[1]);
@@ -200,7 +200,7 @@ describe('DashboardWidgets', () => {
         renderWidgets({ items: [items[0]] });
 
         await waitFor(() => expect(mocks.getChartData).toHaveBeenCalledWith('chart-1'));
-        expect(screen.queryByText('Loading chart data...')).not.toBeInTheDocument();
+        expect(screen.queryByText('Загружаем данные графика…')).not.toBeInTheDocument();
         expect(screen.getByTestId('chart-result')).toHaveTextContent(
             'Aggregated at 2026-05-28T13:37:00.000Z'
         );
@@ -221,7 +221,7 @@ describe('DashboardWidgets', () => {
             );
 
             expect(await screen.findByText('Created at')).toBeInTheDocument();
-            expect(screen.getByText('| month')).toBeInTheDocument();
+            expect(screen.getByText('| Месяц')).toBeInTheDocument();
             expect(screen.getByText('+13,3%')).toBeInTheDocument();
             expect(screen.queryByRole('meter')).not.toBeInTheDocument();
         } finally {

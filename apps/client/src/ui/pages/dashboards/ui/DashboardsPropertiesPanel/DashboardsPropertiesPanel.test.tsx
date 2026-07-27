@@ -113,9 +113,9 @@ describe('DashboardsPropertiesPanel', () => {
 
         expect(mocks.getDashboardQuery).toHaveBeenCalledWith('dashboard-1');
         expect(screen.getByRole('heading', { name: 'Sales' })).toBeInTheDocument();
-        expect(screen.getByText('Widgets')).toBeInTheDocument();
+        expect(screen.getByText('Виджеты')).toBeInTheDocument();
         expect(screen.getByText('2')).toBeInTheDocument();
-        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+        expect(screen.queryByText('Загружаем…')).not.toBeInTheDocument();
     });
 
     it('renames dashboard from properties title', async () => {

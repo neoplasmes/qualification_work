@@ -1,10 +1,6 @@
 import type { CacheRuntime } from '@/env/cache/runtime';
 import type { Dependencies, SessionController, UiState } from '@/ui/di/dependencies';
 
-import type { AppStore } from '@/app/model/store';
-
-import { api } from '@/shared/api';
-
 export class SessionLifecycle implements SessionController {
     canRead = true;
     authenticated = false;
@@ -19,7 +15,6 @@ export class SessionLifecycle implements SessionController {
         private readonly options: {
             cache: CacheRuntime;
             operations: Pick<Dependencies, 'getSession' | 'logout'>;
-            store: AppStore;
             browser: boolean;
             rotate(): void;
             ui: UiState;
@@ -65,12 +60,6 @@ export class SessionLifecycle implements SessionController {
         this.publish();
         const clearing = this.options.cache.clear();
         this.options.rotate();
-        for (const read of this.options.store.dispatch(
-            api.util.getRunningQueriesThunk()
-        )) {
-            read.abort();
-        }
-        this.options.store.dispatch(api.util.resetApiState());
         this.options.ui.reset();
         await clearing;
     }

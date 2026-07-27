@@ -42,11 +42,11 @@ export const ColorPickerControl = ({ value, onChange }: ColorPickerControlProps)
 
     return (
         <div ref={rootRef} className={styles['root']} data-stack="v" data-gap="xs">
-            <span className={styles['label']}>Color</span>
+            <span className={styles['label']}>Цвет</span>
             <button
                 type="button"
                 className={styles['trigger']}
-                aria-label="Choose chart color"
+                aria-label="Выбрать цвет графика"
                 aria-expanded={open}
                 onClick={() => setOpen(current => !current)}
             >
@@ -67,7 +67,7 @@ export const ColorPickerControl = ({ value, onChange }: ColorPickerControlProps)
                         onChange={onChange}
                     />
                     <label className={styles['hex-input']} data-stack="v" data-gap="xs">
-                        <span>Hex</span>
+                        <span>Код цвета</span>
                         <HexColorInput
                             prefixed
                             color={color}

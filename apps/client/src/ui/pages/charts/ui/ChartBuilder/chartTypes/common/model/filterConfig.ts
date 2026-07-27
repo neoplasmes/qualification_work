@@ -65,7 +65,7 @@ export const createFilterResult = ({
 
     if (!activeColumn || !isAnalysisColumnEnabled(columns, activeColumn.id)) {
         return {
-            error: 'Choose columns included in analysis for this chart.',
+            error: 'Выберите поля, включённые в анализ.',
             filter: null,
         };
     }
@@ -79,7 +79,7 @@ export const createFilterResult = ({
 
     if (!value.trim()) {
         return {
-            error: 'Fill filter value or turn the filter off.',
+            error: 'Укажите значение фильтра или отключите его.',
             filter: null,
         };
     }
@@ -92,7 +92,7 @@ export const createFilterResult = ({
 
         if (parts.length !== 2) {
             return {
-                error: 'Between filter expects two comma-separated values.',
+                error: 'Для диапазона нужны два значения через запятую.',
                 filter: null,
             };
         }

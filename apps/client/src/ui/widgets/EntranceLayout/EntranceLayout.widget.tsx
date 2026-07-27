@@ -14,7 +14,7 @@ export function Entrance() {
                     as="nav"
                     gap={24}
                     className={styles.navigation}
-                    aria-label="Authentication"
+                    aria-label="Вход и регистрация"
                 >
                     <Link as={NavLink} to="/sign-in">
                         Вход

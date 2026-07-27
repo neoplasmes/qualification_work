@@ -111,13 +111,13 @@ export const ParameterRow = ({
                 data-align="center"
                 data-px="xs"
             >
-                <span>key:</span>
+                <span>Код:</span>
                 <actionBuilderConfig.Input
                     data-flex
                     data-test-id={actionBuilderTestIds.parameterKeyInput}
                     bind={keyBind}
                     disabled={disabled}
-                    placeholder="auto"
+                    placeholder="автоматически"
                 />
             </div>
         </div>

@@ -17,7 +17,7 @@ const matchSourceOptions = [
         value: 'parameter',
         label: (
             <span data-test-id={actionBuilderTestIds.effectMatchSourceParameterButton}>
-                param
+                Параметр
             </span>
         ),
     },
@@ -25,7 +25,7 @@ const matchSourceOptions = [
         value: 'literal',
         label: (
             <span data-test-id={actionBuilderTestIds.effectMatchSourceLiteralButton}>
-                literal
+                Значение
             </span>
         ),
     },

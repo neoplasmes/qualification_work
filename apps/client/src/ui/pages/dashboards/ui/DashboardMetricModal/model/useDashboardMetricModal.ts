@@ -2,6 +2,7 @@ import type { Dashboard } from '@/core/entities/dashboard';
 import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
 import { useCommand } from '@/env/cache/useCommand';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import type {
     MetricBuilderDraft,
     MetricBuilderOutput,
@@ -18,8 +19,6 @@ import {
 import { useStore } from 'zustand';
 
 import type { DatasetMetadata } from '@/app/ports/repos/dataset';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 import { createMetricFormStore, type WorkspaceMetricForm } from './metricForm.store';
 
@@ -195,7 +194,7 @@ export const useDashboardMetricModal = ({
             const nextName = submitValue.name.trim();
             const nextExpression = submitValue.expression.trim();
             if (!nextName || !nextExpression) {
-                setError('Metric name and expression are required.');
+                setError('Укажите название метрики и выражение.');
 
                 return false;
             }
@@ -203,7 +202,7 @@ export const useDashboardMetricModal = ({
             const trimmedTarget = submitValue.target.trim();
             const parsedTarget = trimmedTarget === '' ? null : Number(trimmedTarget);
             if (parsedTarget !== null && !Number.isFinite(parsedTarget)) {
-                setError('Target must be a number.');
+                setError('Цель должна быть числом.');
 
                 return false;
             }
@@ -212,7 +211,7 @@ export const useDashboardMetricModal = ({
             const parsedValueMultiplier =
                 trimmedValueMultiplier === '' ? 1 : Number(trimmedValueMultiplier);
             if (!Number.isFinite(parsedValueMultiplier)) {
-                setError('Multiplier must be a number.');
+                setError('Множитель должен быть числом.');
 
                 return false;
             }
@@ -261,8 +260,8 @@ export const useDashboardMetricModal = ({
                     return false;
                 }
                 const fallback = editingMetricId
-                    ? 'Unable to update this metric.'
-                    : 'Unable to add this metric.';
+                    ? 'Не удалось обновить метрику.'
+                    : 'Не удалось добавить метрику.';
 
                 setError(getApiErrorMessage(saveError, fallback));
 

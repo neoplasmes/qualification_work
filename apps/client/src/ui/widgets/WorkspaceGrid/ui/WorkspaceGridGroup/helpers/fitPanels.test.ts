@@ -26,6 +26,16 @@ const toMap = (...entries: ReturnType<typeof fake>[]) => {
 };
 
 describe('fitPanels', () => {
+    it('returns expanded space from the grow panel when a saved side panel reopens', () => {
+        const left = fake(360, 300);
+        const center = fake(1048, 600);
+        const right = fake(340, 300);
+        fitPanels(1384, toMap(left, center, right), center.model);
+
+        expect(left.setFittedSizePx).not.toHaveBeenCalled();
+        expect(right.setFittedSizePx).not.toHaveBeenCalled();
+        expect(center.setFittedSizePx).toHaveBeenCalledWith(684);
+    });
     it('no-ops on non-positive available size', () => {
         const a = fake(200, 100);
         fitPanels(0, toMap(a));

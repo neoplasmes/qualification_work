@@ -103,7 +103,7 @@ export const LineChartInner = ({
     return (
         <div data-testid="line-chart-svg" style={{ position: 'relative' }}>
             <XYChart
-                accessibilityLabel="Line chart"
+                accessibilityLabel="Линейный график"
                 width={width}
                 height={height}
                 margin={margin}

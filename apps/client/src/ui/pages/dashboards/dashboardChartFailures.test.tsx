@@ -38,14 +38,16 @@ it('shows a rejected chart add inside the open dialog', async () => {
     mocks.addDashboardChart.mockReturnValueOnce({
         unwrap: vi.fn().mockRejectedValue(new Error('failed')),
     });
-    const dialog = screen.getByRole('dialog', { name: 'Add chart' });
+    const dialog = screen.getByRole('dialog', { name: 'Новый график' });
     fireEvent.click(within(dialog).getByRole('button', { name: /Revenue/ }));
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Add to dashboard' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Добавить на дашборд' }));
     await waitFor(() =>
-        expect(within(dialog).getByText('Unable to add selected charts.')).toBeVisible()
+        expect(
+            within(dialog).getByText('Не удалось добавить выбранные графики.')
+        ).toBeVisible()
     );
     expect(
-        within(dialog).getByRole('button', { name: 'Add to dashboard' })
+        within(dialog).getByRole('button', { name: 'Добавить на дашборд' })
     ).toBeEnabled();
 });
 
@@ -54,9 +56,9 @@ it('closes a confirmed add with refresh feedback and no repeated write', async (
         unwrap: vi.fn().mockResolvedValue({ itemId: 'added', posY: 0 }),
         syncError: new Error('refresh failed'),
     });
-    const dialog = screen.getByRole('dialog', { name: 'Add chart' });
+    const dialog = screen.getByRole('dialog', { name: 'Новый график' });
     fireEvent.click(within(dialog).getByRole('button', { name: /Revenue/ }));
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Add to dashboard' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Добавить на дашборд' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(
         screen.getByText(/График добавлен, но обновление данных не удалось/)
@@ -70,14 +72,16 @@ it('retries only the unconfirmed chart after a partial add', async () => {
             unwrap: vi.fn().mockResolvedValue({ itemId: 'first', posY: 0 }),
         })
         .mockReturnValueOnce({ unwrap: vi.fn().mockRejectedValue(new Error('failed')) });
-    const dialog = screen.getByRole('dialog', { name: 'Add chart' });
+    const dialog = screen.getByRole('dialog', { name: 'Новый график' });
     fireEvent.click(within(dialog).getByRole('button', { name: /Revenue/ }));
     fireEvent.click(within(dialog).getByRole('button', { name: /Profit/ }));
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Add to dashboard' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Добавить на дашборд' }));
     await waitFor(() =>
-        expect(within(dialog).getByText('Unable to add selected charts.')).toBeVisible()
+        expect(
+            within(dialog).getByText('Не удалось добавить выбранные графики.')
+        ).toBeVisible()
     );
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Add to dashboard' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Добавить на дашборд' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(mocks.addDashboardChart.mock.calls.map(([input]) => input.chartId)).toEqual([
         'chart-1',
@@ -91,12 +95,14 @@ it.each(['confirmed', 'rejected'])(
     async result => {
         const gate = deferred<{ itemId: string; posY: number }>();
         mocks.addDashboardChart.mockReturnValueOnce({ unwrap: () => gate.promise });
-        const first = screen.getByRole('dialog', { name: 'Add chart' });
+        const first = screen.getByRole('dialog', { name: 'Новый график' });
         fireEvent.click(within(first).getByRole('button', { name: /Revenue/ }));
-        fireEvent.click(within(first).getByRole('button', { name: 'Add to dashboard' }));
+        fireEvent.click(
+            within(first).getByRole('button', { name: 'Добавить на дашборд' })
+        );
         fireEvent.keyDown(document, { key: 'Escape' });
         fireEvent.click(screen.getByRole('button', { name: 'График' }));
-        const second = screen.getByRole('dialog', { name: 'Add chart' });
+        const second = screen.getByRole('dialog', { name: 'Новый график' });
         fireEvent.click(within(second).getByRole('button', { name: /Profit/ }));
         await act(async () => {
             if (result === 'confirmed') {
@@ -106,11 +112,13 @@ it.each(['confirmed', 'rejected'])(
             }
             await gate.promise.catch(() => {});
         });
-        expect(screen.getByRole('dialog', { name: 'Add chart' })).toBeVisible();
+        expect(screen.getByRole('dialog', { name: 'Новый график' })).toBeVisible();
         expect(
-            within(second).getByRole('button', { name: 'Remove Profit' })
+            within(second).getByRole('button', { name: 'Удалить Profit' })
         ).toBeVisible();
-        expect(within(second).queryByText('Unable to add selected charts.')).toBeNull();
+        expect(
+            within(second).queryByText('Не удалось добавить выбранные графики.')
+        ).toBeNull();
         expect(mocks.addDashboardChart).toHaveBeenCalledOnce();
     }
 );

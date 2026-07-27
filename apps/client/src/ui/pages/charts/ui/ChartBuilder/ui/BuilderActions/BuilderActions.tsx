@@ -27,7 +27,7 @@ export const BuilderActions = ({
             aria-busy={previewLoading}
         >
             <Play size={16} />
-            Preview
+            Предпросмотр
         </Button>
         {editMode && (
             <Button
@@ -38,7 +38,7 @@ export const BuilderActions = ({
                 onClick={onSaveWithoutPreview}
             >
                 <Save size={16} />
-                Save
+                Сохранить
             </Button>
         )}
     </div>

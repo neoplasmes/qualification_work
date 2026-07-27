@@ -28,7 +28,7 @@ describe('ChartShell', () => {
         expect(
             await screen.findByTestId('heatmap-chart-svg', {}, { timeout: 3000 })
         ).toBeVisible();
-        expect(screen.getByText('2 result rows')).toBeVisible();
+        expect(screen.getByText('Строк результата: 2')).toBeVisible();
     });
 
     it('shows a friendly empty state when chart rows are not plottable', () => {
@@ -47,7 +47,7 @@ describe('ChartShell', () => {
             />
         );
 
-        expect(screen.getByText('No plottable values for this chart.')).toBeVisible();
+        expect(screen.getByText('Нет данных для построения графика.')).toBeVisible();
     });
 });
 
@@ -68,9 +68,9 @@ it('provides exact values without hover and retains truncation status', () => {
             }}
         />
     );
-    expect(screen.getByText('Exact values')).toBeInTheDocument();
+    expect(screen.getByText('Точные значения')).toBeInTheDocument();
     expect(
-        screen.getByRole('table', { hidden: true, name: 'Accessible result values' })
+        screen.getByRole('table', { hidden: true, name: 'Accessible result: значения' })
     ).toHaveTextContent('15');
-    expect(screen.getByText('Result truncated')).toBeVisible();
+    expect(screen.getByText('Результат сокращён')).toBeVisible();
 });

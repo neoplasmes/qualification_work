@@ -75,7 +75,7 @@ export const DatasetWorkspaceOverlays = ({
                 <IconButton
                     data-test-id={datasetsTestIds.scrollToBottomButton}
                     className={styles['scroll-bottom']}
-                    aria-label="Scroll to end"
+                    aria-label="Перейти к последней строке"
                     data-p="sm"
                     onClick={onScrollToBottom}
                 >

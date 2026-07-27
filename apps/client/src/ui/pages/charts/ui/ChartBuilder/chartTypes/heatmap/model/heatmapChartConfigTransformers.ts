@@ -83,7 +83,7 @@ export const draftToHeatmapChartBuilderOutput = ({
         return {
             ...appearance,
             config: null,
-            error: 'X and Y axes must be different columns.',
+            error: 'Для осей X и Y выберите разные поля.',
             canPreview: false,
         };
     }
@@ -98,7 +98,7 @@ export const draftToHeatmapChartBuilderOutput = ({
         return {
             ...appearance,
             config: null,
-            error: 'Choose columns included in analysis for this chart.',
+            error: 'Выберите поля, включённые в анализ.',
             canPreview: false,
         };
     }

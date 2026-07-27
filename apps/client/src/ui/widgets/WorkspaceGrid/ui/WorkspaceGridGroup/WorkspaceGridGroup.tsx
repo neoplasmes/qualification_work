@@ -175,6 +175,9 @@ export const WorkspaceGridGroup = <K extends string = string>({
         }
 
         const computed = getComputedStyle(groupElement);
+        if (direction === 'row' && computed.flexDirection === 'column') {
+            return;
+        }
         const inset =
             direction === 'row'
                 ? (Number.parseFloat(computed.paddingLeft) || 0) +

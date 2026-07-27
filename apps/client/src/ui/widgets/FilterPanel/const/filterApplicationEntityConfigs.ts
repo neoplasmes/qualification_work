@@ -11,26 +11,26 @@ type FilterApplicationEntityConfig = {
 export const filterApplicationEntityConfigs = {
     actions: {
         tabs: [
-            { entity: 'datasets', label: 'Datasets' },
-            { entity: 'effects', label: 'Effects' },
+            { entity: 'datasets', label: 'Таблицы' },
+            { entity: 'effects', label: 'Эффекты' },
         ],
     },
     charts: {
         tabs: [
-            { entity: 'datasets', label: 'Datasets' },
-            { entity: 'dashboards', label: 'Dashboards' },
+            { entity: 'datasets', label: 'Таблицы' },
+            { entity: 'dashboards', label: 'Дашборды' },
         ],
     },
     dashboards: {
         tabs: [
-            { entity: 'charts', label: 'Charts' },
-            { entity: 'datasets', label: 'Datasets' },
+            { entity: 'charts', label: 'Графики' },
+            { entity: 'datasets', label: 'Таблицы' },
         ],
     },
     datasets: {
         tabs: [
-            { entity: 'charts', label: 'Charts' },
-            { entity: 'dashboards', label: 'Dashboards' },
+            { entity: 'charts', label: 'Графики' },
+            { entity: 'dashboards', label: 'Дашборды' },
         ],
     },
 } as const satisfies Record<FilterApplicationScope, FilterApplicationEntityConfig>;

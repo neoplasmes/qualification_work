@@ -110,3 +110,21 @@ it('keeps the latest resize immediate and writes once after 150ms', async () => 
         vi.useRealTimers();
     }
 });
+
+it('reports storage hydration failure while keeping usable widths', async () => {
+    const store = createUiTestRuntime({}, true);
+    const failure = new Error('Storage unavailable');
+    store.runtime.dependencies.getDatasetTableOptions.execute = async () => {
+        throw failure;
+    };
+    function Wrapper({ children }: PropsWithChildren) {
+        return <UiTestProvider store={store}>{children}</UiTestProvider>;
+    }
+    const { result } = renderHook(() => useDatasetTableOptions('unavailable'), {
+        wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
+    expect(result.current.error).toBe(failure);
+    act(() => result.current.setColumnWidth('amount', 240));
+    expect(result.current.widths).toEqual({ amount: 240 });
+});

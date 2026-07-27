@@ -1,6 +1,7 @@
 import { useCommand } from '@/env/cache/useCommand';
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useChartsPageActions, useChartsPageState } from '@/ui/pages/charts/model';
 import { useActiveOrganization, useSession } from '@/ui/session';
 import { Button } from '@qualification-work/design-system';
@@ -8,7 +9,6 @@ import { Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { getApiErrorMessage } from '@/shared/api';
 import { formatDate } from '@/shared/lib/formatDate';
 import { EditableText, StatusMessage, Table } from '@/shared/ui';
 
@@ -45,7 +45,7 @@ export const ChartsPropertiesPanel = () => {
             selectedChart
                 ? (datasetsQuery.data?.find(
                       item => item.dataset.id === selectedChart.datasetId
-                  )?.dataset.name ?? 'Unknown dataset')
+                  )?.dataset.name ?? 'Неизвестная таблица')
                 : '',
         [datasetsQuery.data, selectedChart]
     );
@@ -67,13 +67,15 @@ export const ChartsPropertiesPanel = () => {
                 chartId: selectedChart.id,
             });
             if (outcome.syncError) {
-                setError('Chart deleted. Refresh failed. Reload the page.');
+                setError(
+                    'График удалён, но обновить список не удалось. Перезагрузите страницу.'
+                );
             }
             selectChart(null);
             navigate(chartsWorkspaceIndexPath, { replace: true });
             setDeleteConfirmationId(null);
         } catch (deleteError) {
-            setError(getApiErrorMessage(deleteError, 'Unable to delete this chart.'));
+            setError(getApiErrorMessage(deleteError, 'Не удалось удалить график.'));
         }
     };
 
@@ -81,7 +83,7 @@ export const ChartsPropertiesPanel = () => {
         // editor only renders when a chart is selected; bail loudly if invariant breaks
         // (silent return would leave the editor showing the new name while server keeps old)
         if (!selectedChart) {
-            throw new Error('No chart selected for rename.');
+            throw new Error('Выберите график для переименования.');
         }
 
         try {
@@ -92,12 +94,14 @@ export const ChartsPropertiesPanel = () => {
                 name,
             });
             if (outcome.syncError) {
-                setError('Chart renamed. Refresh failed. Reload the page.');
+                setError(
+                    'Название сохранено, но обновить данные не удалось. Перезагрузите страницу.'
+                );
             }
         } catch (renameError) {
             const message = getApiErrorMessage(
                 renameError,
-                'Unable to rename this chart.'
+                'Не удалось переименовать график.'
             );
             setError(message);
 
@@ -110,13 +114,13 @@ export const ChartsPropertiesPanel = () => {
             return <StatusMessage tone="error">{error}</StatusMessage>;
         }
         if (selectedChartId && selectedChartQuery.isPending) {
-            return <StatusMessage>Loading chart properties...</StatusMessage>;
+            return <StatusMessage>Загружаем свойства графика…</StatusMessage>;
         }
 
         if (selectedChartId && Boolean(selectedChartQuery.error)) {
             return (
                 <StatusMessage tone="error">
-                    Unable to load this chart properties.
+                    Не удалось загрузить свойства графика.
                 </StatusMessage>
             );
         }
@@ -129,16 +133,16 @@ export const ChartsPropertiesPanel = () => {
                 data-justify="center"
                 data-flex
             >
-                Select a chart to view properties.
+                Выберите график, чтобы увидеть свойства.
             </p>
         );
     }
 
     return (
-        <section data-stack="v" data-gap="md" aria-label="Chart properties">
+        <section data-stack="v" data-gap="md" aria-label="Свойства графика">
             <EditableText
                 title={selectedChart.name}
-                fallbackTitle="Untitled chart"
+                fallbackTitle="График без названия"
                 saving={patchChart.isPending}
                 editButtonTestId={chartsTestIds.renameButton}
                 inputTestId={chartsTestIds.renameInput}
@@ -148,13 +152,21 @@ export const ChartsPropertiesPanel = () => {
             {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
 
             <Table
-                aria-label="Chart properties"
-                headers={{ key: 'Property', value: 'Value' }}
+                aria-label="Свойства графика"
+                headers={{ key: 'Свойство', value: 'Значение' }}
                 rows={[
-                    { key: 'Type', value: selectedChart.chartType },
-                    { key: 'Dataset', value: selectedDatasetName },
-                    { key: 'Created', value: formatDate(selectedChart.createdAt) },
-                    { key: 'Updated', value: formatDate(selectedChart.updatedAt) },
+                    {
+                        key: 'Тип',
+                        value: {
+                            bar: 'Столбцы',
+                            line: 'Линия',
+                            pie: 'Круговая диаграмма',
+                            heatmap: 'Тепловая карта',
+                        }[selectedChart.chartType],
+                    },
+                    { key: 'Таблица', value: selectedDatasetName },
+                    { key: 'Создан', value: formatDate(selectedChart.createdAt) },
+                    { key: 'Обновлён', value: formatDate(selectedChart.updatedAt) },
                 ]}
             />
 
@@ -165,8 +177,8 @@ export const ChartsPropertiesPanel = () => {
             >
                 <Trash2 size={18} />
                 {deleteConfirmationId === selectedChart.id
-                    ? 'Confirm delete'
-                    : 'Delete chart'}
+                    ? 'Подтвердить удаление'
+                    : 'Удалить график'}
             </Button>
         </section>
     );

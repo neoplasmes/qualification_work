@@ -10,7 +10,7 @@ import { LineChartSettings } from './ui';
 
 export const lineChartDefinition: ChartTypeDefinition<LineChartDraft> = {
     chartType: 'line',
-    label: 'Line',
+    label: 'Линия',
     config: lineChartConfig,
     createDraft: createLineChartDraft,
     configToDraft: configToLineChartDraft,

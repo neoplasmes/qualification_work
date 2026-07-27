@@ -95,14 +95,14 @@ export const MetricWidget = ({
                     <div data-stack="h" data-align="center" data-gap="xs">
                         <IconButton
                             variant="ghost"
-                            aria-label={`Edit ${item.name}`}
+                            aria-label={`Изменить ${item.name}`}
                             onClick={() => onEditItem(item)}
                         >
                             <Pencil size={14} />
                         </IconButton>
                         <IconButton
                             variant="ghost"
-                            aria-label={`Remove ${item.name}`}
+                            aria-label={`Удалить ${item.name}`}
                             disabled={removing}
                             onClick={() => onRemoveItem(item.id)}
                         >
@@ -144,7 +144,7 @@ export const MetricWidget = ({
                                 variant="data"
                                 tone="mutedCanvas"
                                 className={styles['progress-target']}
-                                title="Target"
+                                title="Цель"
                             >
                                 {formatMetricValue(
                                     item.target,

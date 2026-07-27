@@ -54,16 +54,16 @@ describe('ChartConfigSummary', () => {
             />
         );
         const text = container.textContent ?? '';
-        expect(text).toContain('Pie');
-        expect(text).toContain('sliced by Категория');
-        expect(text).toContain('Count');
-        expect(text).toContain('top 12 slices');
-        expect(text).toContain('filtered where Дата between');
+        expect(text).toContain('Круговая диаграмма');
+        expect(text).toContain('по полю Категория');
+        expect(text).toContain('Количество');
+        expect(text).toContain('первые 12 секторов');
+        expect(text).toContain('условие: Дата между');
         expect(text).toContain('2025-01-01');
         expect(text).toContain('2025-12-31');
     });
 
-    it('renders bar with series, rest grouped, and sum measure', () => {
+    it('renders bar with series, остальные объединены, and sum measure', () => {
         const { container } = render(
             <ChartConfigSummary
                 chartType="bar"
@@ -79,12 +79,12 @@ describe('ChartConfigSummary', () => {
             />
         );
         const text = container.textContent ?? '';
-        expect(text).toContain('Bar');
-        expect(text).toContain('Sum of Выручка');
-        expect(text).toContain('per Категория');
-        expect(text).toContain('separated by Дата');
-        expect(text).toContain('top 5');
-        expect(text).toContain('rest grouped');
+        expect(text).toContain('Столбцы');
+        expect(text).toContain('Сумма поля Выручка');
+        expect(text).toContain('по полю Категория');
+        expect(text).toContain('разбиение по Дата');
+        expect(text).toContain('первые 5');
+        expect(text).toContain('остальные объединены');
     });
 
     it('renders heatmap with both axes and no filter clause', () => {
@@ -108,12 +108,12 @@ describe('ChartConfigSummary', () => {
             />
         );
         const text = container.textContent ?? '';
-        expect(text).toContain('Heatmap');
-        expect(text).toContain('Average of Выручка');
+        expect(text).toContain('Тепловая карта');
+        expect(text).toContain('Среднее поля Выручка');
         expect(text).toContain('Дата');
-        expect(text).toContain('(by month)');
+        expect(text).toContain('(период: месяц)');
         expect(text).toContain('Категория');
-        expect(text).not.toContain('filtered');
+        expect(text).not.toContain('условие:');
     });
 
     it('falls back to id when column has been removed', () => {

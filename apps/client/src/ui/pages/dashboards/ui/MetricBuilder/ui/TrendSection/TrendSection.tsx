@@ -8,6 +8,8 @@ import { metricBuilderConfig } from '../../model';
 
 import styles from './TrendSection.module.css';
 
+const metricTimeBucketLabels = { day: 'День', week: 'Неделя', month: 'Месяц' };
+
 type TrendSectionProps = {
     datasets: DatasetMetadata[] | undefined;
 };
@@ -26,14 +28,14 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
 
     return (
         <metricBuilderConfig.Section
-            name="Trend"
-            explain="Show a sparkline of the value over time."
+            name="Динамика"
+            explain="Показывает изменение значения во времени."
             enabledField="showTrend"
             className={styles['section']}
         >
-            <Field label="Time column">
+            <Field label="Поле времени">
                 <metricBuilderConfig.Select field="timeColumn">
-                    <option value="">Auto</option>
+                    <option value="">Автоматически</option>
                     {dateColumns.map(column => (
                         <option key={column.id} value={column.key}>
                             {column.displayName}
@@ -41,12 +43,12 @@ export const TrendSection = ({ datasets }: TrendSectionProps) => {
                     ))}
                 </metricBuilderConfig.Select>
             </Field>
-            <Field label="Bucket">
+            <Field label="Период">
                 <metricBuilderConfig.Select field="timeBucket">
-                    <option value="">Auto</option>
+                    <option value="">Автоматически</option>
                     {metricTimeBuckets.map(bucket => (
                         <option key={bucket} value={bucket}>
-                            {bucket}
+                            {metricTimeBucketLabels[bucket]}
                         </option>
                     ))}
                 </metricBuilderConfig.Select>

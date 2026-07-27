@@ -1,7 +1,6 @@
 import { useRead } from '@/env/cache/useRead';
 import { useDependencies } from '@/ui/di/dependencies';
-
-import { getApiErrorMessage } from '@/shared/api';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 
 import type { ChartsWorkspaceMode } from '../model';
 
@@ -20,7 +19,7 @@ export const useChartDataResult = (
     return {
         chartResult,
         error: query.error
-            ? getApiErrorMessage(query.error, 'Unable to load chart data.')
+            ? getApiErrorMessage(query.error, 'Не удалось загрузить данные графика.')
             : '',
         isFetching: !chartResult && (query.isPending || query.isFetching),
     };

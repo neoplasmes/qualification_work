@@ -23,7 +23,7 @@ export const SavedChartDetails = ({
     <>
         {error && <StatusMessage tone="error">{error}</StatusMessage>}
 
-        {isLoadingData && <StatusMessage>Loading chart data...</StatusMessage>}
+        {isLoadingData && <StatusMessage>Загружаем данные графика…</StatusMessage>}
 
         {chartResult && (
             <>
@@ -36,7 +36,7 @@ export const SavedChartDetails = ({
                     data={chartResult}
                     kind={chart.chartType}
                     color={getChartColorFromConfig(chart.config)}
-                    ariaLabel="Saved chart result"
+                    ariaLabel="Сохранённый график"
                 />
             </>
         )}

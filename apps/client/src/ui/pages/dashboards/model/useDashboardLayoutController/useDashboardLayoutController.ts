@@ -1,13 +1,12 @@
 import { useCommand } from '@/env/cache/useCommand';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useRef, useState } from 'react';
 
 import type {
     DashboardItemLayoutInput,
     DashboardScope,
 } from '@/app/ports/repos/dashboard';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 type LayoutDraft = {
     scope: string;

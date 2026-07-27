@@ -84,14 +84,14 @@ export const DashboardChartCard = ({
                     <Link
                         as={RouterLink}
                         to={`/charts/edit?id=${encodeURIComponent(item.chartId)}`}
-                        aria-label={`Edit ${chartName}`}
+                        aria-label={`Изменить ${chartName}`}
                     >
                         Открыть
                     </Link>
                     <IconButton
                         variant="ghost"
                         data-p="none"
-                        aria-label={`Remove ${chartName}`}
+                        aria-label={`Удалить ${chartName}`}
                         disabled={removing}
                         onClick={() => onRemove(item.id)}
                     >
@@ -102,10 +102,14 @@ export const DashboardChartCard = ({
 
             <Divider />
 
-            {isLoadingChartData && <StatusMessage>Loading chart data...</StatusMessage>}
+            {isLoadingChartData && (
+                <StatusMessage>Загружаем данные графика…</StatusMessage>
+            )}
 
             {Boolean(chartDataQuery.error) && !chartData && (
-                <StatusMessage tone="error">Unable to load chart data.</StatusMessage>
+                <StatusMessage tone="error">
+                    Не удалось загрузить данные графика.
+                </StatusMessage>
             )}
 
             {chartData && (
@@ -114,7 +118,7 @@ export const DashboardChartCard = ({
                         chart={chart}
                         columns={columns}
                         data={chartData}
-                        ariaLabel={`${chart?.name ?? item.chartId} dashboard chart`}
+                        ariaLabel={`${chart?.name ?? item.chartId}: график дашборда`}
                         chartHeight="fill"
                         descriptionSize="small"
                         constrainAspectRatio

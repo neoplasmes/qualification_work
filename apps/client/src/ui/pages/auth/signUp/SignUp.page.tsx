@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { useAuthentication } from '@/ui/session';
 import { entranceFormStyles as formStyles } from '@/ui/widgets/EntranceLayout';
 import {
@@ -9,8 +10,6 @@ import {
     VStack,
 } from '@qualification-work/design-system';
 import { useState } from 'react';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 import styles from './signUp.page.module.css';
 
@@ -45,9 +44,7 @@ export const SignUp = () => {
             if (!lifetime.active) {
                 return;
             }
-            setError(
-                getApiErrorMessage(submitError, 'Unable to create account right now.')
-            );
+            setError(getApiErrorMessage(submitError, 'Не удалось создать аккаунт.'));
         }
     };
 
@@ -62,7 +59,7 @@ export const SignUp = () => {
                 </Text>
             </VStack>
             <form
-                aria-label="Sign up"
+                aria-label="Регистрация"
                 className={formStyles.form}
                 onSubmit={handleSubmit}
             >

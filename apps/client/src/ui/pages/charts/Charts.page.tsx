@@ -37,13 +37,13 @@ import styles from './charts.page.module.css';
 const chartsWorkspaceModeTabs = [
     {
         value: 'view',
-        label: 'View',
+        label: 'Просмотр',
         icon: Eye,
         testId: chartsTestIds.workspaceViewTab,
     },
     {
         value: 'edit',
-        label: 'Edit',
+        label: 'Изменить',
         icon: PencilLine,
         testId: chartsTestIds.workspaceEditTab,
     },
@@ -100,7 +100,7 @@ export const ChartsPage = () => {
         draft: editBuilderDraft,
     } = controller;
     const selectedChart = selectedChartQuery.data ?? null;
-    const chartTitle = selectedChart?.name.trim() || 'Untitled chart';
+    const chartTitle = selectedChart?.name.trim() || 'График без названия';
     const chartData = useChartDataResult(
         org?.id ?? '',
         selectedChart?.id ?? null,
@@ -181,7 +181,7 @@ export const ChartsPage = () => {
             data-gap="sm"
             data-flex
             data-test-id={chartsTestIds.workspace}
-            aria-label="Chart details"
+            aria-label="Данные графика"
         >
             {controller.syncError && (
                 <StatusMessage tone="error">{controller.syncError}</StatusMessage>
@@ -194,22 +194,22 @@ export const ChartsPage = () => {
                     data-justify="center"
                     data-flex
                 >
-                    Select a chart or create a new one.
+                    Выберите график или создайте новый.
                 </p>
             )}
 
             {createDraft && !builderDataset && (
                 // TODO: create <SkeletonLoader /> component
-                <StatusMessage>Loading dataset...</StatusMessage>
+                <StatusMessage>Загружаем таблицу…</StatusMessage>
             )}
 
             {selectedChartId && selectedChartQuery.isPending && (
                 // TODO: create <SkeletonLoader /> component
-                <StatusMessage>Loading chart...</StatusMessage>
+                <StatusMessage>Загружаем график…</StatusMessage>
             )}
 
             {selectedChartId && Boolean(selectedChartQuery.error) && (
-                <StatusMessage tone="error">Unable to load this chart.</StatusMessage>
+                <StatusMessage tone="error">Не удалось загрузить график.</StatusMessage>
             )}
 
             {createDraft && builderDataset && org && (
@@ -263,7 +263,7 @@ export const ChartsPage = () => {
                                     handleWorkspaceModeChange('view');
                                 }}
                             >
-                                Cancel edit
+                                Отменить изменения
                             </Button>
                         )}
                         <div
@@ -293,7 +293,7 @@ export const ChartsPage = () => {
                     )}
 
                     {workspaceMode === 'edit' && !editDataset && (
-                        <StatusMessage>Loading dataset...</StatusMessage>
+                        <StatusMessage>Загружаем таблицу…</StatusMessage>
                     )}
 
                     {workspaceMode === 'edit' &&

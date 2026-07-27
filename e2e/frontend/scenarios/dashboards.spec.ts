@@ -1,4 +1,5 @@
 /// <reference lib="dom" />
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
@@ -11,7 +12,7 @@ import {
 
 const screenshots = path.resolve(
     import.meta.dirname,
-    '../../../.superpowers/sdd/2026-10-21-client-architecture-migration/task-13-browser-5/dashboards'
+    `../../../apps/client/dist/migration-review/${new Date().toISOString().replaceAll(':', '-')}-dashboards`
 );
 
 test('saves metric semantics and real dashboard gestures without phone layout writes', async ({
@@ -77,29 +78,44 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         await page
             .locator('[data-test-id="dashboards-open-add-metric-modal-button"]')
             .click();
-        const dialog = page.getByRole('dialog', { name: 'Add metric', exact: true });
+        const dialog = page.getByRole('dialog', {
+            name: 'Добавить метрику',
+            exact: true,
+        });
         await dialog
             .locator('[data-test-id="dashboards-metric-dataset-select"]')
             .selectOption(dataset.id);
-        await dialog.getByRole('tab', { name: 'Formula', exact: true }).click();
+        await dialog.getByRole('tab', { name: 'Формула', exact: true }).click();
         await dialog
             .locator('[data-test-id="dashboards-metric-expression-input"]')
             .fill(metric.expression);
-        await dialog.getByLabel('Metric name', { exact: true }).fill(metric.name);
-        await dialog.getByLabel('Format', { exact: true }).fill(metric.format);
+        await dialog.getByLabel('Название метрики', { exact: true }).fill(metric.name);
+        await dialog.getByLabel('Формат', { exact: true }).fill(metric.format);
         await dialog
             .locator('[data-test-id="dashboards-metric-value-multiplier-input"]')
             .fill(metric.multiplier);
-        await dialog.getByRole('spinbutton', { name: /Target/ }).fill(metric.target);
+        await dialog.getByRole('spinbutton', { name: /Цель/ }).fill(metric.target);
         await expect(
             dialog.locator('[data-test-id="dashboards-metric-preview-value"]')
         ).toHaveText(metric.preview);
+        if (metric.name === 'Browser total') {
+            for (const width of [1440, 390, 1440]) {
+                await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+                await expect(
+                    dialog.getByRole('button', { name: 'Сохранить', exact: true })
+                ).toBeVisible();
+                await page.screenshot({
+                    path: path.join(screenshots, `metric-editor-${width}.png`),
+                    fullPage: true,
+                });
+            }
+        }
         const save = page.waitForResponse(
             response =>
                 response.url().endsWith(`${dashboardId}/items`) &&
                 response.request().method() === 'POST'
         );
-        await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+        await dialog.getByRole('button', { name: 'Сохранить', exact: true }).click();
         expect((await save).status()).toBe(201);
         await expect(dialog).not.toBeVisible();
     }
@@ -108,6 +124,16 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         .locator('[data-test-id="dashboards-add-chart-list-item"]')
         .filter({ hasText: 'Dashboard categories' })
         .click();
+    for (const width of [1440, 390, 1440]) {
+        await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+        await expect(
+            page.getByRole('dialog').getByRole('button', { name: 'Добавить на дашборд' })
+        ).toBeVisible();
+        await page.screenshot({
+            path: path.join(screenshots, `chart-chooser-${width}.png`),
+            fullPage: true,
+        });
+    }
     await page.locator('[data-test-id="dashboards-add-chart-button"]').click();
     await expect(page.locator('[data-test-id="dashboards-chart-widget"]')).toHaveCount(1);
     const detail = await (await page.request.get(endpoint)).json();
@@ -156,7 +182,7 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
     await expect
         .poll(() => compact.evaluate(element => element.scrollTop))
         .toBeGreaterThan(0);
-    const target = compact.locator('[title="Target"]');
+    const target = compact.locator('[title="Цель"]');
     const meterBounds = await compact.getByRole('meter').boundingBox();
     const targetBounds = await target.boundingBox();
     expect(meterBounds!.x + meterBounds!.width).toBeLessThanOrEqual(targetBounds!.x);
@@ -181,7 +207,7 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
     });
     await compact.focus();
     await compact.press('Home');
-    for (const name of ['Edit Browser ratio', 'Remove Browser ratio']) {
+    for (const name of ['Изменить Browser ratio', 'Удалить Browser ratio']) {
         const control = compact.getByRole('button', { name, exact: true });
         await control.focus();
         await expect(control).toBeFocused();
@@ -300,6 +326,68 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         fullPage: true,
     });
     await totalCard.screenshot({ path: path.join(screenshots, 'metric-phone.png') });
+    const phoneChart = page.locator('[data-test-id="dashboards-chart-widget"]');
+    await phoneChart.focus();
+    await phoneChart.press('End');
+    await expect
+        .poll(() => phoneChart.evaluate(element => element.scrollTop))
+        .toBeGreaterThan(0);
+    const exactValues = phoneChart
+        .locator('summary')
+        .filter({ hasText: 'Точные значения' });
+    for (
+        let step = 0;
+        step < 5 &&
+        !(await exactValues.evaluate(element => element === document.activeElement));
+        step++
+    ) {
+        await page.keyboard.press('Tab');
+    }
+    await expect(exactValues).toBeFocused();
+    const phonePlot = phoneChart.getByTestId('bar-chart-svg').locator('svg').first();
+    const closedPlotBounds = await phonePlot.boundingBox();
+    const closedSummaryBounds = await exactValues.boundingBox();
+    expect(closedPlotBounds!.height).toBeGreaterThan(140);
+    expect(closedPlotBounds!.y + closedPlotBounds!.height).toBeLessThanOrEqual(
+        closedSummaryBounds!.y + 1
+    );
+    await page.keyboard.press('Enter');
+    await expect(phoneChart.getByRole('table')).toContainText('35');
+    await expect
+        .poll(async () => {
+            const plotBounds = await phonePlot.boundingBox();
+            const summaryBounds = await exactValues.boundingBox();
+
+            return Boolean(
+                plotBounds &&
+                summaryBounds &&
+                plotBounds.height > 140 &&
+                plotBounds.y + plotBounds.height <= summaryBounds.y + 1
+            );
+        })
+        .toBe(true);
+    await page.keyboard.press('Tab');
+    await expect(phoneChart.getByRole('region', { name: /значения$/ })).toBeFocused();
+    await phoneChart.screenshot({
+        path: path.join(screenshots, 'phone-chart-keyboard-values.png'),
+    });
+    await writeFile(
+        path.join(screenshots, 'saved-phone-chart-frames.json'),
+        JSON.stringify(
+            {
+                card: await phoneChart.boundingBox(),
+                closed: { plot: closedPlotBounds, summary: closedSummaryBounds },
+                open: {
+                    plot: await phonePlot.boundingBox(),
+                    summary: await exactValues.boundingBox(),
+                    table: await phoneChart.getByRole('table').boundingBox(),
+                },
+            },
+            null,
+            2
+        )
+    );
+
     expect(requests).toHaveLength(beforePhone);
     const afterPhone = await (await page.request.get(endpoint)).json();
     expect(
@@ -317,11 +405,11 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
     await expect(cell).toHaveAttribute('gs-w', '4');
 
     await totalCard
-        .getByRole('button', { name: 'Edit Browser total', exact: true })
+        .getByRole('button', { name: 'Изменить Browser total', exact: true })
         .click();
-    const edit = page.getByRole('dialog', { name: 'Edit metric', exact: true });
-    await edit.getByRole('tab', { name: 'Lower is better', exact: true }).click();
-    await edit.getByRole('button', { name: 'Save', exact: true }).click();
+    const edit = page.getByRole('dialog', { name: 'Изменить метрику', exact: true });
+    await edit.getByRole('tab', { name: 'Меньше — лучше', exact: true }).click();
+    await edit.getByRole('button', { name: 'Сохранить', exact: true }).click();
     await expect(edit).not.toBeVisible();
     await expect(totalCard.getByRole('meter')).toHaveAttribute('aria-valuenow', '80');
     await totalCard.screenshot({ path: path.join(screenshots, 'metric-adverse.png') });
@@ -338,7 +426,7 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
             name: 'Browser null',
             expression: 'sum(value) / 0',
             expected: null,
-            preview: 'No value',
+            preview: 'Нет значения',
             trend: false,
         },
         {
@@ -352,28 +440,31 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
         await page
             .locator('[data-test-id="dashboards-open-add-metric-modal-button"]')
             .click();
-        const dialog = page.getByRole('dialog', { name: 'Add metric', exact: true });
-        await dialog.getByRole('tab', { name: 'Formula', exact: true }).click();
+        const dialog = page.getByRole('dialog', {
+            name: 'Добавить метрику',
+            exact: true,
+        });
+        await dialog.getByRole('tab', { name: 'Формула', exact: true }).click();
         await dialog
             .locator('[data-test-id="dashboards-metric-expression-input"]')
             .fill(metric.expression);
-        await dialog.getByLabel('Metric name', { exact: true }).fill(metric.name);
+        await dialog.getByLabel('Название метрики', { exact: true }).fill(metric.name);
         if (metric.name === 'Browser zero') {
-            await dialog.getByRole('spinbutton', { name: /Target/ }).fill('0');
+            await dialog.getByRole('spinbutton', { name: /Цель/ }).fill('0');
         }
         if (metric.trend) {
-            const trend = dialog.getByRole('switch', { name: 'Trend', exact: true });
+            const trend = dialog.getByRole('switch', { name: 'Динамика', exact: true });
             await trend.locator('..').click();
             await expect(trend).toBeChecked();
             await dialog
-                .getByLabel('Time column', { exact: true })
+                .getByLabel('Поле времени', { exact: true })
                 .selectOption('created');
-            await dialog.getByLabel('Bucket', { exact: true }).selectOption('month');
+            await dialog.getByLabel('Период', { exact: true }).selectOption('month');
         }
         await expect(
             dialog.locator('[data-test-id="dashboards-metric-preview-value"]')
         ).toHaveText(metric.preview);
-        await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+        await dialog.getByRole('button', { name: 'Сохранить', exact: true }).click();
         await expect(dialog).not.toBeVisible();
         const saved = await (await page.request.get(endpoint)).json();
         const item = saved.items.find(
@@ -408,7 +499,7 @@ test('saves metric semantics and real dashboard gestures without phone layout wr
     }
     await page
         .locator('[data-test-id="dashboards-metric-widget"][title="Browser null"]')
-        .getByRole('button', { name: 'Remove Browser null', exact: true })
+        .getByRole('button', { name: 'Удалить Browser null', exact: true })
         .click();
     await expect(
         page.locator('[data-test-id="dashboards-metric-widget"][title="Browser null"]')

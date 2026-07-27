@@ -1,11 +1,10 @@
 import type { DashboardMetricItem } from '@/core/entities/dashboardItem';
 import { useCommand } from '@/env/cache/useCommand';
 import { useDependencies } from '@/ui/di/dependencies';
+import { getApiErrorMessage } from '@/ui/errors/apiError';
 import { dashboardChartDefaultHeight } from '@qualification-work/types';
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
-
-import { getApiErrorMessage } from '@/shared/api';
 
 type Modal = 'chart' | 'metric' | 'layout';
 
@@ -94,7 +93,9 @@ export function useDashboardInteractions(orgId: string, dashboardId: string | nu
             }
         } catch (cause) {
             if (view.live && version === modalGeneration.current) {
-                setFeedback(getApiErrorMessage(cause, 'Unable to add selected charts.'));
+                setFeedback(
+                    getApiErrorMessage(cause, 'Не удалось добавить выбранные графики.')
+                );
             }
         }
     };
@@ -116,7 +117,7 @@ export function useDashboardInteractions(orgId: string, dashboardId: string | nu
             }
         } catch (cause) {
             if (view.live) {
-                setFeedback(getApiErrorMessage(cause, 'Unable to remove this widget.'));
+                setFeedback(getApiErrorMessage(cause, 'Не удалось удалить виджет.'));
             }
         }
     };

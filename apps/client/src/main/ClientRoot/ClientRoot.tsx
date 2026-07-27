@@ -1,7 +1,6 @@
 import { CacheProvider } from '@/env/cache/context';
 import { dependenciesContext } from '@/ui/di/dependencies';
 import type { PropsWithChildren } from 'react';
-import { Provider } from 'react-redux';
 import { RouterProvider, type createBrowserRouter } from 'react-router';
 
 import type { ApplicationRuntime } from '../dependencies';
@@ -22,11 +21,9 @@ export function ClientRoot({
     return (
         <dependenciesContext.Provider value={runtime.dependencies}>
             <CacheProvider runtime={runtime.cache}>
-                <Provider store={runtime.legacyStore}>
-                    <div data-theme="paper" style={{ height: '100%' }}>
-                        {content}
-                    </div>
-                </Provider>
+                <div data-theme="paper" style={{ height: '100%' }}>
+                    {content}
+                </div>
             </CacheProvider>
         </dependenciesContext.Provider>
     );

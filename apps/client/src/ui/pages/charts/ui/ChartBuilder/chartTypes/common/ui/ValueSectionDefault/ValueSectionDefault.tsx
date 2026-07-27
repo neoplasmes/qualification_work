@@ -71,7 +71,11 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
     };
 
     return (
-        <config.Section name="Values" data-gap="sm" className={styles['value-section']}>
+        <config.Section
+            name="Показатели"
+            data-gap="sm"
+            className={styles['value-section']}
+        >
             {draft.measures.map((measure, index) => {
                 const acceptableMeasureColumns =
                     getAcceptableColumnsForSelectedAggregationType(
@@ -97,13 +101,13 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                         >
                             <span
                                 className={styles['measure-label']}
-                            >{`Y value ${index + 1}`}</span>
+                            >{`Значение Y ${index + 1}`}</span>
                             {canRemoveMeasure && (
                                 <IconButton
                                     variant="ghost"
                                     data-p="none"
                                     className={styles['measure-remove']}
-                                    aria-label={`Remove Y value ${index + 1}`}
+                                    aria-label={`Удалить значение Y ${index + 1}`}
                                     onClick={() => handleRemoveMeasure(index)}
                                 >
                                     <Trash2 size={14} />
@@ -112,7 +116,7 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                         </div>
 
                         <config-section-body>
-                            <Field label="Aggregation">
+                            <Field label="Расчёт">
                                 <config.Select bind={measureBinds.aggregate}>
                                     {aggregates.map(item => (
                                         <option key={item} value={item}>
@@ -123,7 +127,7 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                             </Field>
 
                             {measure.aggregate !== 'count' && (
-                                <Field label="Column">
+                                <Field label="Поле">
                                     <config.Select bind={measureBinds.columnId}>
                                         {acceptableMeasureColumns.columns.map(column => (
                                             <option
@@ -138,7 +142,7 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                                 </Field>
                             )}
 
-                            <Field label="Value format">
+                            <Field label="Формат значения">
                                 <config.Input
                                     bind={measureBinds.valueFormat}
                                     maxLength={measureValueFormatMaxLength}
@@ -160,7 +164,7 @@ export const ValueSectionDefault = <T extends ValueSectionDefaultDraft>({
                     onClick={handleAddMeasure}
                 >
                     <Plus size={16} />
-                    Add measure
+                    Добавить показатель
                 </Button>
             )}
         </config.Section>

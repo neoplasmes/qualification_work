@@ -101,10 +101,10 @@ export const DashboardWidgets = ({
         <div
             className={styles['widgets']}
             data-test-id={dashboardsTestIds.widgetList}
-            aria-label="Dashboard widgets"
+            aria-label="Виджеты дашборда"
         >
             {items.length === 0 && (
-                <EmptyState>Add a saved chart to this dashboard.</EmptyState>
+                <EmptyState>Добавьте сохранённый график на дашборд.</EmptyState>
             )}
 
             <div ref={containerRef} className={`grid-stack ${styles['grid']}`} />

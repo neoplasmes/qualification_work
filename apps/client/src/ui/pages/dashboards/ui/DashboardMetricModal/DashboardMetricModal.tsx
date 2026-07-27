@@ -38,7 +38,7 @@ export const DashboardMetricModal = ({
         !metricModal.value.datasetId ||
         !metricModal.value.expression.trim() ||
         metricModal.disabled;
-    const modalTitle = item ? 'Edit metric' : 'Add metric';
+    const modalTitle = item ? 'Изменить метрику' : 'Добавить метрику';
     const modalActions = (
         <Button
             type="submit"
@@ -51,7 +51,7 @@ export const DashboardMetricModal = ({
             aria-busy={metricModal.disabled}
         >
             <Save size={18} />
-            Save
+            Сохранить
         </Button>
     );
 

@@ -1,10 +1,8 @@
 .banner {
     width: 400px;
     max-width: 100%;
-}
 
-@media (width <= 900px) {
-    .banner {
+    @media (width <= 900px) {
         width: 480px;
     }
 }

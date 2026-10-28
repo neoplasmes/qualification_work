@@ -8,7 +8,7 @@ const config = {
     framework: '@storybook/react-vite',
     addons: ['@storybook/addon-docs', '@storybook/addon-a11y'],
     core: { disableTelemetry: true },
-    viteFinal: (config) => ({
+    viteFinal: config => ({
         ...config,
         css: { ...config.css, transformer: 'postcss', postcss: workspaceRoot },
     }),

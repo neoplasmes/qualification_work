@@ -22,11 +22,11 @@
     flex-flow: row wrap;
     align-items: start;
     gap: var(--space-20);
-}
 
-.form-grid > * {
-    flex: 1 1 220px;
-    max-width: 100%;
+    & > * {
+        flex: 1 1 220px;
+        max-width: 100%;
+    }
 }
 
 .effect-section > :first-child {

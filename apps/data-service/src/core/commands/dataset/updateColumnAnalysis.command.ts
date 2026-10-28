@@ -14,10 +14,9 @@ export type UpdateColumnAnalysisInput = {
     isAnalyzable: boolean;
 };
 
-export class UpdateColumnAnalysisCommand implements Executable<
-    [UpdateColumnAnalysisInput],
-    Promise<DatasetColumn>
-> {
+export class UpdateColumnAnalysisCommand
+    implements Executable<[UpdateColumnAnalysisInput], Promise<DatasetColumn>>
+{
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
     async execute(input: UpdateColumnAnalysisInput): Promise<DatasetColumn> {

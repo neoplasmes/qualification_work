@@ -49,8 +49,8 @@ export const WorkspaceLeftPanelItem = ({
 
         return Boolean(
             headerElement &&
-            tooltipText &&
-            headerElement.scrollWidth > headerElement.clientWidth
+                tooltipText &&
+                headerElement.scrollWidth > headerElement.clientWidth
         );
     };
 

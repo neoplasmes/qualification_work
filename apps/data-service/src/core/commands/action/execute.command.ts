@@ -28,10 +28,9 @@ export type ExecuteActionInput = {
     parameters: Record<string, unknown>;
 };
 
-export class ExecuteActionCommand implements Executable<
-    [ExecuteActionInput],
-    Promise<ActionRun>
-> {
+export class ExecuteActionCommand
+    implements Executable<[ExecuteActionInput], Promise<ActionRun>>
+{
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(input: ExecuteActionInput): Promise<ActionRun> {

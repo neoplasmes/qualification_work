@@ -36,10 +36,9 @@ export type CommitMergeResult = {
 
 type ExistingRowsByTuple = Map<string, string>;
 
-export class CommitMergeCommand implements Executable<
-    [CommitMergeInput],
-    Promise<CommitMergeResult>
-> {
+export class CommitMergeCommand
+    implements Executable<[CommitMergeInput], Promise<CommitMergeResult>>
+{
     constructor(
         private readonly datasetRepo: DatasetRepo,
         private readonly mergeSessionRepo: MergeSessionRepo,

@@ -13,10 +13,9 @@ export type PatchDatasetPayload = {
     name?: string;
 };
 
-export class PatchDatasetCommand implements Executable<
-    [string, PatchDatasetPayload, OrgMembership[]],
-    Promise<void>
-> {
+export class PatchDatasetCommand
+    implements Executable<[string, PatchDatasetPayload, OrgMembership[]], Promise<void>>
+{
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
     async execute(

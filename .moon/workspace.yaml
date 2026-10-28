@@ -10,14 +10,13 @@ projects:
   primitive-server: "packages/primitive-server"
   types: "packages/types"
   design-system: "packages/design-system"
-  eslint-plugin-fsd: "packages/eslint-plugin-fsd"
-  microservice-config: "packages/microservice-config"
   microservice-utils: "packages/microservice-utils"
   openresty-discovery: "apps/openresty-discovery"
   e2e-backend: "e2e/backend"
   e2e-frontend: "e2e/frontend"
+  env: "env"
 
-# moon run command (without :) will run exactly command for default project 
+# moon run command (without :) will run exactly command for default project
 # and thus using root "moon.yml"
 defaultProject: "root"
 
@@ -58,8 +57,12 @@ docker:
       - stylelint.config.js
       - .browserslistrc
       - packages/design-system/src/theme/theme.css
-      - packages/design-system/src/theme/tokens.json
+      - packages/design-system/src/theme/tokens.css
+      - tools/exctract-tokens-to-stylelint/*.js
       - apps/*/package.json
       - packages/*/package.json
+      - tools/*/package.json
+      # shared tool configs imported by app configs (tsconfig, vitest)
+      - tools/microservice-config/*
       # root script used by client:build-assets; client does not depend on the root project
-      - tools/build-client/*.nu
+      - apps/client/scripts/*.nu

@@ -7,10 +7,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetActionByIdQuery implements Executable<
-    [string, OrgMembership[]],
-    Promise<Action>
-> {
+export class GetActionByIdQuery
+    implements Executable<[string, OrgMembership[]], Promise<Action>>
+{
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(actionId: string, orgs: OrgMembership[]): Promise<Action> {

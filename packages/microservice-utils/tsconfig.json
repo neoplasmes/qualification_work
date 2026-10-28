@@ -1,5 +1,8 @@
 {
-    "extends": "@qualification-work/microservice-config/tsconfig.json",
+    "extends": [
+        "../../tsconfig.json",
+        "@qualification-work/microservice-config/tsconfig.json"
+    ],
     "compilerOptions": {
         "module": "NodeNext",
         "moduleResolution": "nodenext",

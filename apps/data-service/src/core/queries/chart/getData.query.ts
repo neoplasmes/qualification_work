@@ -14,10 +14,9 @@ export type GetChartDataInput = {
     orgs: OrgMembership[];
 };
 
-export class GetChartDataQuery implements Executable<
-    [GetChartDataInput],
-    Promise<ChartResponse>
-> {
+export class GetChartDataQuery
+    implements Executable<[GetChartDataInput], Promise<ChartResponse>>
+{
     constructor(
         private readonly chartRepo: ChartRepo,
         private readonly compiler: ChartCompilerTool

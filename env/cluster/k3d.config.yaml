@@ -15,7 +15,7 @@ ports:
       - loadbalancer
 
 options:
-  # k3d cluster create will throw zero (0) exit code only 
+  # k3d cluster create will throw zero (0) exit code only
   # after full local deployment will be completed.
   k3d:
     wait: true

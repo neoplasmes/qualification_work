@@ -6,10 +6,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetDatasetMetadataByDatasetIdQuery implements Executable<
-    [string, OrgMembership[]],
-    Promise<DatasetMetadata>
-> {
+export class GetDatasetMetadataByDatasetIdQuery
+    implements Executable<[string, OrgMembership[]], Promise<DatasetMetadata>>
+{
     constructor(private readonly datasetRepository: DatasetRepo) {}
 
     async execute(datasetId: string, orgs: OrgMembership[]) {

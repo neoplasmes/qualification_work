@@ -7,6 +7,20 @@ export type ButtonProps = ComponentPropsWithRef<'button'> & {
     fullWidth?: boolean;
 };
 
-export function Button({ variant = 'primary', size = 'regular', fullWidth, className, type = 'button', ...props }: ButtonProps) {
-    return <button {...props} type={type} className={`${styles.button} ${styles[variant]} ${styles[size]}${className ? ` ${className}` : ''}`} data-wide={fullWidth || undefined} />;
+export function Button({
+    variant = 'primary',
+    size = 'regular',
+    fullWidth,
+    className,
+    type = 'button',
+    ...props
+}: ButtonProps) {
+    return (
+        <button
+            {...props}
+            type={type}
+            className={`${styles.button} ${styles[variant]} ${styles[size]}${className ? ` ${className}` : ''}`}
+            data-wide={fullWidth || undefined}
+        />
+    );
 }

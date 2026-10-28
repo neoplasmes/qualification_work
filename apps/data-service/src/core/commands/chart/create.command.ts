@@ -8,10 +8,9 @@ import { assertChartConfigUsesAnalyzableColumns } from '@/core/domain/chart';
 import type { ChartRepo, CreateChartPayload } from '@/core/ports/driven/repos';
 import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
-export class CreateChartCommand implements Executable<
-    [CreateChartPayload],
-    Promise<{ id: string }>
-> {
+export class CreateChartCommand
+    implements Executable<[CreateChartPayload], Promise<{ id: string }>>
+{
     constructor(private readonly chartRepo: ChartRepo) {}
 
     async execute(payload: CreateChartPayload) {

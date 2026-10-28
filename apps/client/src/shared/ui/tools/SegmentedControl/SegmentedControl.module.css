@@ -16,12 +16,12 @@
     border-radius: var(--radius-sm);
 
     background-color: var(--color-surface-container-low);
-}
 
-.control.disabled {
-    cursor: not-allowed;
-    border-color: var(--color-surface-container-high);
-    background-color: var(--color-surface-container-lowest);
+    &.disabled {
+        cursor: not-allowed;
+        border-color: var(--color-surface-container-high);
+        background-color: var(--color-surface-container-lowest);
+    }
 }
 
 .indicator {
@@ -35,10 +35,10 @@
     border-radius: calc(var(--radius-sm) - 2px);
 
     background-color: var(--color-primary);
-}
 
-.control.disabled .indicator {
-    background-color: var(--color-surface-container-high);
+    .control.disabled & {
+        background-color: var(--color-surface-container-high);
+    }
 }
 
 .item {
@@ -121,10 +121,10 @@
 
 .control.disabled .item {
     color: var(--color-on-surface-muted);
-}
 
-.control.disabled .item.active {
-    color: var(--color-on-surface);
+    &.active {
+        color: var(--color-on-surface);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

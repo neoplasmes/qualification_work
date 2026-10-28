@@ -1,5 +1,8 @@
 {
-    "includes": ["**/*.{js,ts,tsx,json,jsonc,css,scss,html,go,yaml,yml,md}"],
+    "includes": [
+        "**/*.{js,ts,tsx,json,jsonc,css,scss,html,go,yaml,yml,md,toml}",
+        "**/.prototools"
+    ],
     "excludes": [
         "**/node_modules",
         "**/dist",
@@ -11,46 +14,41 @@
         "docs",
         "generation",
         "diplom-notes",
+        "packages/design-system/refs",
+        // exact token snapshot and its projection, verified by tokenContract.test.ts
+        "packages/design-system/src/theme/tokens.{json,css}",
+        // contracts edited by hand only
+        "ARCHITECTURE.frontend.md",
+        "apps/auth/ARCHITECTURE.md",
         "**/test-results",
-        "**/playwright-report",
+        "**/playwright-report"
     ],
     "exec": {
         "cwd": "${configDir}",
         "commands": [
             {
-                "command": "proto run node -- node_modules/prettier/bin/prettier.cjs --stdin-filepath {{file_path}}",
-                "exts": [
-                    "js",
-                    "ts",
-                    "tsx",
-                    "json",
-                    "jsonc",
-                    "css",
-                    "scss",
-                    "html",
-                    "yaml",
-                    "yml",
-                    "md",
-                ],
-                "cacheKeyFiles": [
-                    "prettier.config.js",
-                    "pnpm-lock.yaml",
-                    "apps/client/prettier.config.js",
-                    "packages/microservice-config/prettier.js",
-                    "apps/server/prettier.config.js",
-                    "apps/data-service/prettier.config.js",
-                    ".prettierignore",
-                    ".prototools",
-                ],
+                "command": "node_modules/.bin/biome format --stdin-file-path={{file_path}}",
+                "exts": ["js", "ts", "tsx", "json", "jsonc", "css", "scss", "html"],
+                "cacheKeyFiles": ["biome.json", "pnpm-lock.yaml", ".prototools"]
             },
             {
                 "command": "proto run go --exe gofmt",
                 "exts": ["go"],
-                "cacheKeyFiles": [".prototools"],
-            },
-        ],
+                "cacheKeyFiles": [".prototools"]
+            }
+        ]
+    },
+    "markdown": {
+        "lineWidth": 90,
+        "textWrap": "maintain"
+    },
+    "yaml": {
+        "indentWidth": 2
     },
     "plugins": [
-        "https://github.com/dprint/dprint-plugin-exec/releases/download/0.7.3/plugin.json@a7898d5f1897e77bff474cec3d948c3ec3a7f455e32de2cc60c8adb9a5dd24aa",
-    ],
+        "./node_modules/@dprint/markdown/plugin.wasm",
+        "./node_modules/@dprint/toml/plugin.wasm",
+        "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm",
+        "https://github.com/dprint/dprint-plugin-exec/releases/download/0.7.3/plugin.json@a7898d5f1897e77bff474cec3d948c3ec3a7f455e32de2cc60c8adb9a5dd24aa"
+    ]
 }

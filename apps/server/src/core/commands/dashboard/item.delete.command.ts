@@ -6,10 +6,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { getWritableOrgIds } from '@/shared/checkOrgMembership';
 
-export class DeleteDashboardItemCommand implements Executable<
-    [string, string, OrgMembership[]],
-    Promise<void>
-> {
+export class DeleteDashboardItemCommand
+    implements Executable<[string, string, OrgMembership[]], Promise<void>>
+{
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
     async execute(

@@ -1,19 +1,19 @@
 packages:
-  - 'apps/client'
-  - 'apps/data-service'
-  - 'apps/server'
-  - 'packages/eslint-plugin-fsd'
-  - 'packages/microservice-config'
-  - 'packages/microservice-utils'
-  - 'packages/primitive-server'
-  - 'packages/types'
-  - 'packages/design-system'
-  - 'e2e/backend'
-  - 'e2e/frontend'
-  - 'generation'
+  - "apps/client"
+  - "apps/data-service"
+  - "apps/server"
+  - "packages/microservice-utils"
+  - "packages/primitive-server"
+  - "packages/types"
+  - "packages/design-system"
+  - "e2e/backend"
+  - "e2e/frontend"
+  - "tools/eslint-plugin-fsd"
+  - "tools/microservice-config"
+  - "generation"
 allowBuilds:
-  '@parcel/watcher': true
-  '@swc/core': true
+  "@parcel/watcher": true
+  "@swc/core": true
   argon2: true
   cpu-features: false
   esbuild: true

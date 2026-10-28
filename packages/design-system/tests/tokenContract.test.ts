@@ -23,7 +23,12 @@ for (const [family, value] of Object.entries(source.type.families)) {
 
 for (const group of source.type.groups) {
     for (const style of group.styles) {
-        for (const [field, prefix] of [['fontSize', 'font-size'], ['lineHeight', 'line-height'], ['fontWeight', 'font-weight'], ['letterSpacing', 'letter-spacing']]) {
+        for (const [field, prefix] of [
+            ['fontSize', 'font-size'],
+            ['lineHeight', 'line-height'],
+            ['fontWeight', 'font-weight'],
+            ['letterSpacing', 'letter-spacing'],
+        ]) {
             if (field in style) {
                 expected.set(`--${prefix}-${style.name}`, String(style[field]));
             }
@@ -34,13 +39,17 @@ for (const group of source.type.groups) {
 describe('canonical token contract', () => {
     it('ships the verified source json snapshot', () => {
         const snapshot = readFileSync(`${packageRoot}src/theme/tokens.json`);
-        expect(createHash('sha256').update(snapshot).digest('hex')).toBe('1d5dab008f77a2f2b1882fafdd143c112e0a0dfef6bf574ff25f1b780fa7856e');
+        expect(createHash('sha256').update(snapshot).digest('hex')).toBe(
+            '1d5dab008f77a2f2b1882fafdd143c112e0a0dfef6bf574ff25f1b780fa7856e'
+        );
     });
 
     it('projects exactly the source names and values', () => {
         const actual = new Map<string, string>();
-        const stylesheet = parse(readFileSync(`${packageRoot}src/theme/tokens.css`, 'utf8'));
-        stylesheet.walkDecls((declaration) => {
+        const stylesheet = parse(
+            readFileSync(`${packageRoot}src/theme/tokens.css`, 'utf8')
+        );
+        stylesheet.walkDecls(declaration => {
             if (declaration.prop.startsWith('--')) {
                 actual.set(declaration.prop, declaration.value);
             }
@@ -54,8 +63,11 @@ describe('canonical token contract', () => {
         const violations: string[] = [];
         for (const path of globSync('src/**/*.css', { cwd: packageRoot })) {
             const stylesheet = parse(readFileSync(`${packageRoot}${path}`, 'utf8'));
-            stylesheet.walkDecls((declaration) => {
-                if (declaration.prop.startsWith('--') && !expected.has(declaration.prop)) {
+            stylesheet.walkDecls(declaration => {
+                if (
+                    declaration.prop.startsWith('--') &&
+                    !expected.has(declaration.prop)
+                ) {
                     violations.push(`${path}: ${declaration.prop}`);
                 }
                 for (const match of declaration.value.matchAll(/var\(\s*(--[\w-]+)/g)) {
@@ -90,13 +102,18 @@ describe('canonical token contract', () => {
             '.probe { accent-color: var(--space-4); }',
         ];
         for (const code of cases) {
-            const result = await stylelint.lint({ code, codeFilename: `${packageRoot}src/theme/contract.module.css`, configFile: `${workspaceRoot}stylelint.config.js` });
+            const result = await stylelint.lint({
+                code,
+                codeFilename: `${packageRoot}src/theme/contract.module.css`,
+                configFile: `${workspaceRoot}stylelint.config.js`,
+            });
             expect(result.errored, code).toBe(true);
         }
 
         const result = await stylelint.lint({
             code: '.probe {\n color: var(--ink);\n padding: var(--space-4);\n border: var(--border-hair) solid var(--ink);\n margin-inline-start: calc(-1 * var(--border-hair));\n}',
-            codeFilename: `${packageRoot}src/theme/contract.module.css`, configFile: `${workspaceRoot}stylelint.config.js`,
+            codeFilename: `${packageRoot}src/theme/contract.module.css`,
+            configFile: `${workspaceRoot}stylelint.config.js`,
         });
         expect(result.errored).toBe(false);
     });

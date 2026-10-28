@@ -7,7 +7,14 @@ const meta = {
     component: Token,
     tags: ['autodocs'],
     args: { children: 'Выручка' },
-    parameters: { docs: { description: { component: 'Кнопка для значения, поля или добавления части выражения. Меню и выбранное значение управляются снаружи.' } } },
+    parameters: {
+        docs: {
+            description: {
+                component:
+                    'Кнопка для значения, поля или добавления части выражения. Меню и выбранное значение управляются снаружи.',
+            },
+        },
+    },
 } satisfies Meta<typeof Token>;
 
 export default meta;
@@ -19,5 +26,11 @@ export const add: Story = { args: { variant: 'add', children: '+ добавит�
 export const disabled: Story = { args: { disabled: true } };
 export const sentence: Story = {
     render: () => <SentenceExample />,
-    parameters: { docs: { description: { story: 'Откройте список клавишами Enter, Пробел или стрелкой вниз. Выберите показатель стрелками и Enter. Escape закрывает меню и возвращает фокус к Token.' } } },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Откройте список клавишами Enter, Пробел или стрелкой вниз. Выберите показатель стрелками и Enter. Escape закрывает меню и возвращает фокус к Token.',
+            },
+        },
+    },
 };

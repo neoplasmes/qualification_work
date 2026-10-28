@@ -16,10 +16,10 @@
 
 .merge-stat {
     flex: 1 1 160px;
-}
 
-.merge-stat dd {
-    margin: var(--space-8) 0 0;
+    & dd {
+        margin: var(--space-8) 0 0;
+    }
 }
 
 .section-title {
@@ -67,14 +67,14 @@
     font-size: var(--font-size-data);
     line-height: var(--line-height-data);
     font-weight: var(--font-weight-data);
-}
 
-.merge-conflicts-table th,
-.merge-conflicts-table td {
-    padding: var(--space-8) var(--space-12);
-    border-bottom: 1px dashed var(--rule-dash);
-    text-align: left;
-    vertical-align: top;
+    & th,
+    & td {
+        padding: var(--space-8) var(--space-12);
+        border-bottom: 1px dashed var(--rule-dash);
+        text-align: left;
+        vertical-align: top;
+    }
 }
 
 .modal-actions {

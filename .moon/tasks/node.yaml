@@ -1,10 +1,10 @@
 inheritedBy:
   tags: node
 implicitInputs:
-- /package.json
-- /pnpm-lock.yaml
-- /pnpm-workspace.yaml
-- /tsconfig.json
+  - /package.json
+  - /pnpm-lock.yaml
+  - /pnpm-workspace.yaml
+  - /tsconfig.json
 fileGroups:
   test-unit: []
   test-int: []
@@ -13,12 +13,10 @@ fileGroups:
   assets: []
   cfg-code: []
   cfg-fmt:
-  - /dprint.jsonc
-  - /prettier.config.js
-  - /.prettierignore
-  - /packages/microservice-config/prettier.js
+    - /dprint.jsonc
+    - /biome.json
   cfg-lint:
-  - /oxlint.config.ts
+    - /oxlint.config.ts
 taskOptions:
   runFromWorkspaceRoot: false
 tasks:
@@ -26,28 +24,28 @@ tasks:
     command: dprint fmt @files(src) @files(test-unit) @files(test-int) @files(test-e2e) @files(css) @files(cfg)
       @files(assets)
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(test-int)'
-    - '@group(test-e2e)'
-    - '@group(cfg-code)'
-    - '@group(css)'
-    - '@group(assets)'
-    - '@group(cfg)'
-    - '@group(cfg-fmt)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(test-int)"
+      - "@group(test-e2e)"
+      - "@group(cfg-code)"
+      - "@group(css)"
+      - "@group(assets)"
+      - "@group(cfg)"
+      - "@group(cfg-fmt)"
     deps:
-    - ~:lint-fix
+      - ~:lint-fix
   lint:
     command: pnpm exec oxlint --config $workspaceRoot/oxlint.config.ts --no-error-on-unmatched-pattern @files(src)
       @files(test-unit) @files(test-int) @files(test-e2e) @files(cfg-code)
     inputs: &lint-inputs
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(test-int)'
-    - '@group(test-e2e)'
-    - '@group(cfg-code)'
-    - '@group(cfg)'
-    - '@group(cfg-lint)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(test-int)"
+      - "@group(test-e2e)"
+      - "@group(cfg-code)"
+      - "@group(cfg)"
+      - "@group(cfg-lint)"
   lint-fix:
     command: pnpm exec oxlint --config $workspaceRoot/oxlint.config.ts --no-error-on-unmatched-pattern @files(src)
       @files(test-unit) @files(test-int) @files(test-e2e) @files(cfg-code)
@@ -57,5 +55,5 @@ tasks:
     command: noop
     inputs: []
     deps:
-    - ~:fmt
-    - ~:lint-fix
+      - ~:fmt
+      - ~:lint-fix

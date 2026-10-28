@@ -132,9 +132,10 @@ const rule = {
                     return;
                 }
 
-                const isReact = /^(?:react|react-dom|react-router|react-router-dom)(?:\/|$)/.test(
-                    imported
-                );
+                const isReact =
+                    /^(?:react|react-dom|react-router|react-router-dom)(?:\/|$)/.test(
+                        imported
+                    );
                 const isTanstack = imported.startsWith('@tanstack/');
                 const isZustand = /^zustand(?:\/|$)/.test(imported);
                 const isCache = from.startsWith('env/cache/');
@@ -155,7 +156,11 @@ const rule = {
                             layer === 'main' ||
                             layer === 'ui' ||
                             from.startsWith('shared/ui/') ||
-                            (isCache && (isHook || /^env\/cache\/context\/(?:context\.ts|cacheProvider\.tsx)$/.test(from))) ||
+                            (isCache &&
+                                (isHook ||
+                                    /^env\/cache\/context\/(?:context\.ts|cacheProvider\.tsx)$/.test(
+                                        from
+                                    ))) ||
                             /^entry\.(?:client|server)\.tsx$/.test(from)
                         )) ||
                     (isTanstack &&

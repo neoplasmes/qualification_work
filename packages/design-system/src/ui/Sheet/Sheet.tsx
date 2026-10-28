@@ -8,6 +8,15 @@ export type SheetProps<E extends ElementType = 'section'> = {
     border?: 'rule' | 'dashed' | 'ink';
 } & Omit<ComponentPropsWithRef<E>, 'as'>;
 
-export function Sheet<E extends ElementType = 'section'>({ as, variant = 'paper', border = 'rule', className, ...props }: SheetProps<E>) {
-    return createElement(as ?? 'section', { ...props, className: `${styles.sheet} ${styles[variant]} ${styles[border]}${className ? ` ${className}` : ''}` });
+export function Sheet<E extends ElementType = 'section'>({
+    as,
+    variant = 'paper',
+    border = 'rule',
+    className,
+    ...props
+}: SheetProps<E>) {
+    return createElement(as ?? 'section', {
+        ...props,
+        className: `${styles.sheet} ${styles[variant]} ${styles[border]}${className ? ` ${className}` : ''}`,
+    });
 }

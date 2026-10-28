@@ -7,7 +7,18 @@ const meta = {
     title: 'Foundations/VStack',
     component: VStack,
     tags: ['autodocs'],
-    args: { gap: 16, children: <><Text variant="heading-sm">Заголовок</Text><Text>Содержимое / Content</Text><Text tone="muted" variant="body-sm">Подсказка</Text></> },
+    args: {
+        gap: 16,
+        children: (
+            <>
+                <Text variant="heading-sm">Заголовок</Text>
+                <Text>Содержимое / Content</Text>
+                <Text tone="muted" variant="body-sm">
+                    Подсказка
+                </Text>
+            </>
+        ),
+    },
     argTypes: { gap: { control: 'select', options: gaps } },
 } satisfies Meta<typeof VStack>;
 

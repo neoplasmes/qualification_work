@@ -4,14 +4,12 @@
     overflow: auto;
     background: var(--paper);
     border: 1px solid var(--rule);
-}
 
-.workspace-grid-panel[data-hidden] {
-    display: none;
-}
+    &[data-hidden] {
+        display: none;
+    }
 
-@media (width <= 1000px) {
-    .workspace-grid-panel {
+    @media (width <= 1000px) {
         width: 100% !important;
         max-width: 100% !important;
         flex-basis: auto !important;

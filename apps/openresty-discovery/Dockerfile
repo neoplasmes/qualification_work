@@ -4,15 +4,19 @@
 # with other Go images, so the build stage keeps only the binary. go.sum is used as is:
 # no `go mod tidy` during the build.
 
-FROM golang:1.27.1-alpine AS build
+ARG GO_VERSION=1.27.1
+
+FROM golang:${GO_VERSION}-alpine AS build
 
 RUN --mount=type=bind,source=apps/openresty-discovery,target=/src \
     --mount=type=cache,id=go-mod,target=/go/pkg/mod,sharing=locked \
     --mount=type=cache,id=go-build,target=/root/.cache/go-build,sharing=locked \
-    cd /src && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' -o /discovery .
+    cd /src && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' -o /discovery ./cmd/openresty-discovery
 
-FROM gcr.io/distroless/static-debian12:latest
+FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=build /discovery /discovery
 
+USER nonroot
+HEALTHCHECK --interval=10s --timeout=2s CMD ["/discovery", "health"]
 ENTRYPOINT ["/discovery"]

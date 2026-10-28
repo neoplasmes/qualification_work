@@ -10,10 +10,13 @@ import { getWritableOrgIds } from '@/shared/checkOrgMembership';
 
 export type UpdateDashboardItemInput = { kind: 'metric' } & DashboardMetricSpec;
 
-export class UpdateDashboardItemCommand implements Executable<
-    [string, string, UpdateDashboardItemInput, OrgMembership[]],
-    Promise<void>
-> {
+export class UpdateDashboardItemCommand
+    implements
+        Executable<
+            [string, string, UpdateDashboardItemInput, OrgMembership[]],
+            Promise<void>
+        >
+{
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
     async execute(

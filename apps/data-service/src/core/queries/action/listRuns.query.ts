@@ -24,10 +24,9 @@ export type ListActionRunsInput =
           orgs: OrgMembership[];
       };
 
-export class ListActionRunsQuery implements Executable<
-    [ListActionRunsInput],
-    Promise<ActionRun[]>
-> {
+export class ListActionRunsQuery
+    implements Executable<[ListActionRunsInput], Promise<ActionRun[]>>
+{
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(input: ListActionRunsInput): Promise<ActionRun[]> {

@@ -1,0 +1,36 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|MultiEdit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$CLAUDE_PROJECT_DIR/tools/agent-hooks/gateway.ts\" claude"
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Edit|MultiEdit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$CLAUDE_PROJECT_DIR/tools/agent-hooks/gateway.ts\" claude"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$CLAUDE_PROJECT_DIR/tools/agent-hooks/gateway.ts\" claude"
+                    }
+                ]
+            }
+        ]
+    }
+}

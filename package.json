@@ -9,18 +9,21 @@
     "license": "ISC",
     "packageManager": "pnpm@11.1.2",
     "devDependencies": {
-        "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-        "@stylistic/eslint-plugin": "^5.10.0",
+        "@biomejs/biome": "2.6.3",
+        "@dprint/markdown": "0.28.0",
+        "@dprint/toml": "0.9.0",
+        "@stylistic/eslint-plugin": "5.10.0",
         "@types/node": "^25.4.0",
-        "oxlint": "^1.63.0",
-        "prettier": "^3.8.3",
-        "testcontainers": "catalog:devtools",
-        "typescript": "^6.0.3",
-        "vitest": "^4.1.5",
+        "oxlint": "1.63.0",
         "postcss": "^8.5.8",
         "postcss-preset-env": "^11.2.0",
         "stylelint": "^17.6.0",
         "stylelint-config-standard": "^40.0.0",
-        "stylelint-config-standard-scss": "^17.0.0"
+        "stylelint-config-standard-scss": "^17.0.0",
+        "stylelint-order": "8.1.2",
+        "stylelint-use-nesting": "6.0.2",
+        "testcontainers": "catalog:devtools",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.5"
     }
 }

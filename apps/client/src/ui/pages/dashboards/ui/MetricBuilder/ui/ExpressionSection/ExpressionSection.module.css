@@ -3,11 +3,10 @@
 }
 
 .mode-control {
-    box-sizing: border-box;
-    width: 100%;
-
     --segmented-item-min-height: 44px;
     --segmented-item-padding-x: var(--spacing-sm);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .expression-row {

@@ -12,10 +12,13 @@ export type AddDashboardItemInput =
     | { kind: 'chart'; chartId: string; height?: number }
     | ({ kind: 'metric'; height?: number } & DashboardMetricSpec);
 
-export class AddDashboardItemCommand implements Executable<
-    [string, AddDashboardItemInput, OrgMembership[]],
-    Promise<{ itemId: string; posY: number }>
-> {
+export class AddDashboardItemCommand
+    implements
+        Executable<
+            [string, AddDashboardItemInput, OrgMembership[]],
+            Promise<{ itemId: string; posY: number }>
+        >
+{
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
     async execute(

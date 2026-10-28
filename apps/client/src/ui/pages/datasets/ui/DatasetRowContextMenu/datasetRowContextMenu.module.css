@@ -27,11 +27,11 @@
     color: var(--ink);
     text-align: left;
     background: transparent;
-}
 
-.menu-item:hover,
-.menu-item:focus-visible {
-    background: var(--marker);
+    &:hover,
+    &:focus-visible {
+        background: var(--marker);
+    }
 }
 
 .danger {

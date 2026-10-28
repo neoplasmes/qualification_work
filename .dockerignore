@@ -25,7 +25,12 @@ deploy
 **/.env
 **/.env.*
 
-k8s
+env/cluster/**/secret.yaml
+env/cluster/**/values.yaml
+.secrets
+.cache
+.local
+**/userlist.txt
 
 *-logs
 coverage
@@ -36,5 +41,5 @@ mdnDocsHeaders.html
 lefthook.yaml
 oxlint.config.ts
 vitest.config.ts
-prettier.config.js
+biome.json
 commitlint.config.js

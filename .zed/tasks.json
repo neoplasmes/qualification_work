@@ -1,8 +1,8 @@
 [
-  {
-    "label": "design-system:dev",
-    "command": "moon",
-    "args": ["run", "design-system:dev"],
-    "cwd": "$ZED_WORKTREE_ROOT"
-  }
+    {
+        "label": "design-system:dev",
+        "command": "moon",
+        "args": ["run", "design-system:dev"],
+        "cwd": "$ZED_WORKTREE_ROOT"
+    }
 ]

@@ -104,8 +104,8 @@ export const EditableText = ({
 
         return Boolean(
             titleElement &&
-            shownTitle &&
-            titleElement.scrollWidth > titleElement.clientWidth
+                shownTitle &&
+                titleElement.scrollWidth > titleElement.clientWidth
         );
     };
 

@@ -1,14 +1,14 @@
 language: typescript
 layer: library
 tags:
-- node
+  - node
 fileGroups:
   src:
-  - '**/*.ts'
+    - "**/*.ts"
   test-unit: []
   cfg:
-  - package.json
-  - tsconfig.json
+    - package.json
+    - tsconfig.json
   cfg-code: []
 
 docker:

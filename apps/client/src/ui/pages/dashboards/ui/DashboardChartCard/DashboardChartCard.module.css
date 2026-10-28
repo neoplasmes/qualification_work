@@ -11,29 +11,29 @@
 .card-header {
     flex: 0 0 auto;
     flex-wrap: wrap;
-}
 
-.card-header h3 {
-    margin: 0;
-    overflow-wrap: anywhere;
+    & h3 {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
 }
 
 .card-actions {
     flex: 0 0 auto;
     align-items: center;
-}
 
-.card-actions a {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
+    & a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+    }
 }
 
 .chart-area {
     display: flex;
     flex: 1 0 auto;
-}
 
-.chart-area > * {
-    flex: 1 1 auto;
+    & > * {
+        flex: 1 1 auto;
+    }
 }

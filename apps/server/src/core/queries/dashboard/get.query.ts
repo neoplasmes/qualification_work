@@ -7,10 +7,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { getReadableOrgIds } from '@/shared/checkOrgMembership';
 
-export class GetDashboardQuery implements Executable<
-    [string, OrgMembership[]],
-    Promise<Dashboard>
-> {
+export class GetDashboardQuery
+    implements Executable<[string, OrgMembership[]], Promise<Dashboard>>
+{
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
     async execute(id: string, orgs: OrgMembership[]): Promise<Dashboard> {

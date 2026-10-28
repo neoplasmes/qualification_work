@@ -5,10 +5,8 @@
     overflow: hidden;
     gap: 0;
     padding: var(--space-24);
-}
 
-@media (width <= 1000px) {
-    .workspace-grid-group {
+    @media (width <= 1000px) {
         flex-direction: column;
         overflow: visible;
         gap: var(--space-20);

@@ -2,20 +2,21 @@ inheritedBy:
   tags: css
 fileGroups:
   cfg-css:
-  - /stylelint.config.js
-  - /packages/design-system/src/theme/tokens.json
+    - /stylelint.config.js
+    - /packages/design-system/src/theme/tokens.css
+    - /tools/exctract-tokens-to-stylelint/**/*.js
 tasks:
   fmt:
     deps:
-    - ~:lint-css-fix
+      - ~:lint-css-fix
   lint-css:
     command: pnpm exec stylelint @files(css)
     inputs:
-    - '@group(css)'
-    - '@group(cfg-css)'
+      - "@group(css)"
+      - "@group(cfg-css)"
   lint-css-fix:
     extends: lint-css
     args: --fix
   check:
     deps:
-    - ~:lint-css-fix
+      - ~:lint-css-fix

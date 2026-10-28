@@ -17,10 +17,9 @@ export type UpdateRowValuesInput = {
     values: Record<string, unknown>;
 };
 
-export class UpdateRowValuesCommand implements Executable<
-    [UpdateRowValuesInput],
-    Promise<DatasetRow[]>
-> {
+export class UpdateRowValuesCommand
+    implements Executable<[UpdateRowValuesInput], Promise<DatasetRow[]>>
+{
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
     async execute(input: UpdateRowValuesInput): Promise<DatasetRow[]> {

@@ -1,4 +1,11 @@
-def main [imageDir: string] {
+def main [...imageDirs: string] {
+    for imageDir in $imageDirs {
+        build $imageDir
+    }
+}
+
+# builds one application image and pushes it to the registry
+def build [imageDir: string] {
     let directory = $imageDir | str trim --right --char '/'
 
     if $directory == '' or ($directory | path parse | get parent | str starts-with '/') or ($directory | str starts-with '/') or ($directory | str contains '..') or not ($directory | path exists) {

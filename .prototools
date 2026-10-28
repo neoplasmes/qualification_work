@@ -8,12 +8,12 @@ k9s = "0.51.0"
 kubectl = "1.37.1"
 helm = "3.22.0"
 helmfile = "1.8.1"
-pkl = "0.32.1"
 cocogitto = "7.0.0"
 golangci-lint = "2.14.0"
 swag = "2.0.0-rc6"
 dprint = "0.60.1"
 codebase-memory-mcp = "0.11.0"
+kubernetes-mcp-server = "0.0.69"
 lefthook = "2.1.6"
 
 [tools.nu]
@@ -34,9 +34,6 @@ plugin = "file://./.proto/plugins/helm.toml"
 [tools.helmfile]
 plugin = "file://./.proto/plugins/helmfile.toml"
 
-[tools.pkl]
-plugin = "file://./.proto/plugins/pkl.toml"
-
 [tools.cocogitto]
 plugin = "file://./.proto/plugins/cocogitto.toml"
 
@@ -51,6 +48,9 @@ plugin = "file://./.proto/plugins/dprint.toml"
 
 [tools.codebase-memory-mcp]
 plugin = "file://./.proto/plugins/codebase-memory-mcp.toml"
+
+[tools.kubernetes-mcp-server]
+plugin = "file://./.proto/plugins/kubernetes-mcp-server.toml"
 
 [tools.lefthook]
 plugin = "file://./.proto/plugins/lefthook.toml"

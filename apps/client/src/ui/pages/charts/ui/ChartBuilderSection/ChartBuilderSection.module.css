@@ -12,11 +12,11 @@
 }
 
 .eyebrow {
-    font: 400 14px/1.5 var(--font-mono);
+    font: 400 14px / 1.5 var(--font-mono);
     color: var(--ink-2);
 }
 
 .title {
-    font: 400 28px/1.2 var(--font-serif);
+    font: 400 28px / 1.2 var(--font-serif);
     overflow-wrap: anywhere;
 }

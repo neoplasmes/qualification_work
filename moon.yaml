@@ -2,25 +2,28 @@ language: unknown
 layer: configuration
 fileGroups:
   tools-nu:
-  - tools/**/*.nu
+    - "{tools,env,apps}/**/*.nu"
+    - "!**/node_modules/**"
   cfg-code:
-  - oxlint.config.ts
-  - prettier.config.js
+    - oxlint.config.ts
+    - stylelint.config.js
+    - postcss.config.js
+    - tools/**/*.{js,ts}
+    - "!tools/**/node_modules/**"
   fmt:
-  - '*.json'
-  - '*.jsonc'
-  - '*.yaml'
-  - '*.md'
-  - .moon/**/*.yaml
-  - .github/**/*.yaml
+    - "*.json"
+    - "*.jsonc"
+    - "*.yaml"
+    - "*.md"
+    - .moon/**/*.yaml
+    - .github/**/*.yaml
   cfg-fmt:
-  - dprint.jsonc
-  - prettier.config.js
-  - .prettierignore
+    - dprint.jsonc
+    - biome.json
   cfg-lint:
-  - oxlint.config.ts
-  - package.json
-  - pnpm-lock.yaml
+    - oxlint.config.ts
+    - package.json
+    - pnpm-lock.yaml
 tasks:
   setup-tools:
     command: proto install
@@ -30,14 +33,14 @@ tasks:
   setup-hooks:
     command: lefthook install
     deps:
-    - root:setup-tools
+      - root:setup-tools
     options:
       cache: false
       runInCI: false
   setup:
     command: pnpm install --frozen-lockfile
     deps:
-    - root:setup-hooks
+      - root:setup-hooks
     options:
       cache: false
       runInCI: false
@@ -55,72 +58,47 @@ tasks:
   fmt:
     command: dprint fmt @files(fmt) @files(cfg-code)
     inputs:
-    - '@group(fmt)'
-    - '@group(cfg-code)'
-    - '@group(cfg-fmt)'
+      - "@group(fmt)"
+      - "@group(cfg-code)"
+      - "@group(cfg-fmt)"
     deps:
-    - root:lint-fix
+      - root:lint-fix
   lint:
     command: pnpm exec oxlint --config oxlint.config.ts @files(cfg-code)
     inputs:
-    - '@group(cfg-code)'
-    - '@group(cfg-lint)'
+      - "@group(cfg-code)"
+      - "@group(cfg-lint)"
   lint-fix:
     extends: lint
     args: --fix
+  typecheck:
+    command: pnpm exec tsc --noEmit --project tools
+    inputs:
+      - tools/**/*.ts
+      - tools/tsconfig.json
+      - tsconfig.json
+  test-int:
+    command: pnpm exec vitest run --config tools/vitest.config.ts
+    inputs:
+      - tools/agent-hooks/**/*.ts
+      - tools/vitest.config.ts
   lint-nu:
     command: nu --no-config-file tools/nu-check/nu-check.nu @files(tools-nu)
     inputs:
-    - '@group(tools-nu)'
+      - "@group(tools-nu)"
   lint-hooks:
     command: lefthook validate
     inputs:
-    - lefthook.yaml
+      - lefthook.yaml
   check:
     command: noop
     inputs: []
     deps:
-    - root:fmt
-    - root:lint-fix
-    - root:lint-nu
-    - root:lint-hooks
-  deploy-to-registry:
-    command: nu --no-config-file tools/registry/deploy.nu
-    preset: utility
-  # todo: universality or delete
-  migrate:
-    command: nu --no-config-file tools/migrations/apply-migration.nu
-    preset: utility
-  compose-up:
-    command: docker compose -f docker-compose.database.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
-      300
-    options:
-      cache: false
-      runInCI: false
-  compose-down:
-    command: docker compose -f docker-compose.database.yaml down -v --rmi local
-    options:
-      cache: false
-      runInCI: false
-  compose-logs:
-    command: docker compose -f docker-compose.database.yaml logs --tail=200
-    options:
-      cache: false
-      runInCI: false
-  # k3d management for local testing of kubernetes (k3s) (not for weak machines)
-  # todo: as project grows, this set of commands should be reconsidered
-  cluster-create:
-    command: k3d cluster create local-development --config k8s/k3d.config.yaml
-    preset: utility
-  cluster-run:
-    command: k3d cluster start local-development
-    preset: utility
-  cluster-stop:
-    command: k3d cluster stop local-development
-    preset: utility
-  cluster-delete:
-    command: k3d cluster delete local-development
-    preset: utility
+      - root:fmt
+      - root:lint-fix
+      - root:typecheck
+      - root:lint-nu
+      - root:lint-hooks
 
 # server and data-service depend on the root project; without this the whole
 # repository would be copied into their images

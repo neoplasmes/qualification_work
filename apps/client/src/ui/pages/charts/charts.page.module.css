@@ -13,7 +13,7 @@
 
 .placeholder {
     min-height: 240px;
-    font: 400 24px/1.4 var(--font-serif);
+    font: 400 24px / 1.4 var(--font-serif);
     color: var(--ink-2);
     text-align: center;
 }
@@ -36,7 +36,7 @@
 }
 
 .title {
-    font: 400 36px/1.1 var(--font-serif);
+    font: 400 36px / 1.1 var(--font-serif);
     overflow-wrap: anywhere;
 }
 

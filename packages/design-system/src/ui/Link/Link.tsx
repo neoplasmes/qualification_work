@@ -8,6 +8,15 @@ export type LinkProps<E extends ElementType = 'a'> = {
     block?: boolean;
 } & Omit<ComponentPropsWithRef<E>, 'as'>;
 
-export function Link<E extends ElementType = 'a'>({ as, variant = 'normal', block, className, ...props }: LinkProps<E>) {
-    return createElement(as ?? 'a', { ...props, className: `${styles.link} ${styles[variant]}${block ? ` ${styles.block}` : ''}${className ? ` ${className}` : ''}` });
+export function Link<E extends ElementType = 'a'>({
+    as,
+    variant = 'normal',
+    block,
+    className,
+    ...props
+}: LinkProps<E>) {
+    return createElement(as ?? 'a', {
+        ...props,
+        className: `${styles.link} ${styles[variant]}${block ? ` ${styles.block}` : ''}${className ? ` ${className}` : ''}`,
+    });
 }

@@ -47,10 +47,9 @@ export type PreviewMergeConfig = {
     maxExistingRowsForMerge: number;
 };
 
-export class PreviewMergeCommand implements Executable<
-    [PreviewMergeInput],
-    Promise<MergePreviewResult>
-> {
+export class PreviewMergeCommand
+    implements Executable<[PreviewMergeInput], Promise<MergePreviewResult>>
+{
     constructor(
         private readonly datasetRepo: DatasetRepo,
         private readonly mergeSessionRepo: MergeSessionRepo,

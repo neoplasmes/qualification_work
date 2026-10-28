@@ -3,10 +3,10 @@
     border: 1px solid var(--rule);
     background: var(--paper);
     gap: var(--space-20);
-}
 
-.form p {
-    color: var(--ink-3);
+    & p {
+        color: var(--ink-3);
+    }
 }
 
 .section-title {

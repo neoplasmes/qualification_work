@@ -11,7 +11,9 @@
 #### do not create functions whose body performs only ONE operation. Inline the operation at the call site.
 
 #### проставляй пробелы между кусками сплошного определения констант и хуков, разделяя это всё на логические секции.
+
 пример:
+
 ```ts
 const snapshot = config.useConfig();
 const draft = snapshot.draft;
@@ -29,7 +31,7 @@ Use only camelCase for constants in .ts, .js, .tsx, .jsx files.
 #### Package manager
 
 pnpm instead of npm always should be used; proto should be used for the ecosystem-agnostic tools;
-specifically a binary downloads through proto plugins should be preferred instead of downloads through pnpm/npm, if a tool does not used in typescript development; for example - lefthook can be downloaded through pnpm, but in this repo it MUST be downloaded through protoools; 
+specifically a binary downloads through proto plugins should be preferred instead of downloads through pnpm/npm, if a tool does not used in typescript development; for example - lefthook can be downloaded through pnpm, but in this repo it MUST be downloaded through protoools;
 
 #### monorepo managment
 
@@ -49,14 +51,14 @@ Bad:
 
 ```ts
 // old-file.ts
-export { createUser } from "./new-file";
+export { createUser } from './new-file';
 ```
 
 Good:
 
 ```ts
 // consumer.ts
-import { createUser } from "./new-file";
+import { createUser } from './new-file';
 ```
 
 When choosing between:
@@ -89,13 +91,14 @@ symbols from another package merely to avoid updating imports.
 1. Размеры файлов не должны превышать 350 строк (можно разве что чуть-чуть). Если больше - проводится декомпозиция по функциям, UI компонентам, возможно что-то выносится в переиспользуемый хук и т.д.
 2. Соблюдение принципов FSD. Настройка api - в api папочке. Модели данных и Redux - в model. Общие типы (не props и не прочие локальные) - в types, константы - в const. Везде должен быть определён index.ts файл и реэкспорт из него. Тестируемые утилиты - в lib. Смешивать слайсы НЕ НАДО. НЕ НАДО в файле .tsx писать гигантские хелперы например.
 3. Главный React-компонент слайса/модуля должен лежать на уровне папки слайса/модуля, а не внутри `ui`. Папка `ui` предназначена для вспомогательных компонентов главного компонента.
-4. Если мы работаем в папке ui и у нас намечается очень большой компонент, который надо декомпозировать, при этом компоненты эти локальные, и не нужны в слое виджетов или shared, то в папке этого компонента опять создаётся папка ui с index.ts 
+4. Если мы работаем в папке ui и у нас намечается очень большой компонент, который надо декомпозировать, при этом компоненты эти локальные, и не нужны в слое виджетов или shared, то в папке этого компонента опять создаётся папка ui с index.ts
 5. Стили компонентов должны лежать рядом с компонентами. Один гигантский файл стилей - это антипаттерн.
 6. index.ts всегда должен использоваться на уровне любой папки. Если есть папка с ts/tsx файлами - она должна содержать index.ts
 7. Используй flex контейнеры преимущественно вместо grid. Grid используй тогда и только тогда, когда не получается решить задачу флекс-контейнерами и ТОЛЬКО ЕСЛИ Я ТЕБЕ РАЗРЕШИЛ НАПРЯМУЮ В ПРОМПТЕ.
 8. Не забывай использовать аттрибуты стилевые из global.d.ts
 9. НЕЛЬЗЯ ОПРЕДЕЛЯТЬ ДВА РЕАКТ КОМПОНЕНТА В ОДНОМ ФАЙЛЕ
 10. Для самых крупных инлайн jsx кусков, либо когда такой тернарный кусок всего 1, вместо `{condition ? <OneComponent> : <AnotherComponent>}` Используй:
+
 ```ts
 let content;
 
@@ -131,6 +134,7 @@ Apply SOLID pragmatically: clarity, explicitness, and simple code are more impor
 3. Никогда не удаляй комментарии, составленные пользователем - можно только чуть менять содержимое, если это уместно в контексте.
 4. Никогда не ставь точки в конце комментариев. Комментарии всегда начинай с маленькой буквы.
 5. Пример правильного JSDoc (должны быть указаны все параметры и returns):
+
 ```
 /**
 * Description placeholder
@@ -142,6 +146,7 @@ Apply SOLID pragmatically: clarity, explicitness, and simple code are more impor
 * @returns
 */
 ```
+
 6. Пиши комментарии и описания тестов очень кратко.
 7. Не пиши дерьмовый с точки зрения производительности код. Всегда взвешивай, как улучшить производительность, следи за количеством аллокаций и так далее.
 8. В `apps/client` главный React-компонент слайса/модуля всегда должен лежать на уровне папки слайса/модуля, а не внутри `ui`. В `ui` кладутся вспомогательные компоненты главного компонента.

@@ -1,22 +1,22 @@
 language: typescript
 layer: automation
 tags:
-- node
-- e2e
+  - node
+  - e2e
 fileGroups:
   src: []
   test-e2e:
-  - scenarios/**/*.ts
+    - scenarios/**/*.ts
   cfg:
-  - package.json
-  - tsconfig.json
-  - playwright.config.ts
+    - package.json
+    - tsconfig.json
+    - playwright.config.ts
   cfg-code:
-  - playwright.config.ts
+    - playwright.config.ts
   stack:
-  - /e2e/docker-compose/**/*.{yaml,conf,ini,pem,sql}
-  - /apps/*/Dockerfile
-  - /infrastructure/**/*.{sql,ini,conf}
+    - /e2e/docker-compose/**/*.{yaml,conf,ini,pem,sql}
+    - /apps/*/Dockerfile
+    - /env/database/**/*.{sql,ini,conf}
 tasks:
   browser:
     command: pnpm exec playwright install chromium
@@ -27,55 +27,52 @@ tasks:
     command: nu --no-config-file $workspaceRoot/tools/compose-test/compose-test.nu $workspaceRoot/e2e/docker-compose/docker-compose.yaml
       pnpm exec playwright test
     inputs:
-    - '@group(src)'
-    - '@group(test-e2e)'
-    - '@group(cfg)'
-    - '@group(stack)'
-    - /tools/compose-test/compose-test.nu
-    - project: auth
-      group: src
-    - project: auth
-      group: cfg
-    - project: server
-      group: src
-    - project: server
-      group: cfg
-    - project: data-service
-      group: src
-    - project: data-service
-      group: cfg
-    - project: client
-      group: src
-    - project: client
-      group: cfg
-    - project: openresty-discovery
-      group: src
-    - project: openresty-discovery
-      group: cfg
-    - project: primitive-server
-      group: src
-    - project: primitive-server
-      group: cfg
-    - project: types
-      group: src
-    - project: types
-      group: cfg
-    - project: microservice-utils
-      group: src
-    - project: microservice-utils
-      group: cfg
-    - project: microservice-config
-      group: src
-    - project: microservice-config
-      group: cfg
-    - project: client
-      group: css
-    - project: client
-      group: assets
+      - "@group(src)"
+      - "@group(test-e2e)"
+      - "@group(cfg)"
+      - "@group(stack)"
+      - /tools/compose-test/compose-test.nu
+      - project: auth
+        group: src
+      - project: auth
+        group: cfg
+      - project: server
+        group: src
+      - project: server
+        group: cfg
+      - project: data-service
+        group: src
+      - project: data-service
+        group: cfg
+      - project: client
+        group: src
+      - project: client
+        group: cfg
+      - project: openresty-discovery
+        group: src
+      - project: openresty-discovery
+        group: cfg
+      - project: primitive-server
+        group: src
+      - project: primitive-server
+        group: cfg
+      - project: types
+        group: src
+      - project: types
+        group: cfg
+      - project: microservice-utils
+        group: src
+      - project: microservice-utils
+        group: cfg
+      - /tools/microservice-config/*
+      - project: client
+        group: css
+      - project: client
+        group: assets
     env:
       NODE_EXTRA_CA_CERTS: $workspaceRoot/e2e/docker-compose/keys/ca.pem
       VITE_HMR_PROTOCOL: ws
-      VITE_HMR_CLIENT_PORT: '24678'
+      VITE_HMR_CLIENT_PORT: "24678"
     options:
       mutex: docker-tests
   compose-up:
@@ -95,12 +92,11 @@ tasks:
       cache: false
       runInCI: false
 dependsOn:
-- auth
-- server
-- data-service
-- client
-- openresty-discovery
-- primitive-server
-- types
-- microservice-utils
-- microservice-config
+  - auth
+  - server
+  - data-service
+  - client
+  - openresty-discovery
+  - primitive-server
+  - types
+  - microservice-utils

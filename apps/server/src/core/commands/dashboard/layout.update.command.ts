@@ -22,10 +22,10 @@ const entriesOverlap = (
     a.posY < b.posY + b.height &&
     a.posY + a.height > b.posY;
 
-export class UpdateDashboardLayoutCommand implements Executable<
-    [string, DashboardItemLayoutInput[], OrgMembership[]],
-    Promise<void>
-> {
+export class UpdateDashboardLayoutCommand
+    implements
+        Executable<[string, DashboardItemLayoutInput[], OrgMembership[]], Promise<void>>
+{
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
     async execute(

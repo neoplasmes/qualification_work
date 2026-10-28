@@ -10,10 +10,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { checkWritableOrgMembership } from '@/shared/checkOrgMembership';
 
-export class CreateActionCommand implements Executable<
-    [CreateActionPayload, OrgMembership[]],
-    Promise<{ id: string }>
-> {
+export class CreateActionCommand
+    implements Executable<[CreateActionPayload, OrgMembership[]], Promise<{ id: string }>>
+{
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(

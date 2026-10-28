@@ -11,8 +11,8 @@ type TextBaseProps<E extends ElementType> = {
     tabular?: boolean;
 };
 
-export type TextProps<E extends ElementType = 'span'> = TextBaseProps<E>
-    & Omit<ComponentPropsWithRef<E>, keyof TextBaseProps<E>>;
+export type TextProps<E extends ElementType = 'span'> = TextBaseProps<E> &
+    Omit<ComponentPropsWithRef<E>, keyof TextBaseProps<E>>;
 
 export function Text<E extends ElementType = 'span'>({
     as,

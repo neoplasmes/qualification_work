@@ -15,10 +15,9 @@ type DatasetRow = Record<string, unknown>;
 
 const PREVIEW_ROWS_LIMIT = 10;
 
-export class UploadDatasetCommand implements Executable<
-    [string, MultipartFile],
-    Promise<{ id: string }>
-> {
+export class UploadDatasetCommand
+    implements Executable<[string, MultipartFile], Promise<{ id: string }>>
+{
     constructor(
         private readonly resolveParser: ResolveDatasetParser,
         private readonly datasetRepo: DatasetRepo

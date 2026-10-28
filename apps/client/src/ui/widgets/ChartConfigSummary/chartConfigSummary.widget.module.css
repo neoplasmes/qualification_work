@@ -1,16 +1,16 @@
 .summary {
     margin: 0;
-    font: 400 20px/1.5 var(--font-serif);
+    font: 400 20px / 1.5 var(--font-serif);
     color: var(--ink);
     overflow-wrap: anywhere;
-}
 
-.summary strong {
-    font-weight: 400;
+    & strong {
+        font-weight: 400;
+    }
 }
 
 .small {
-    font: 400 14px/1.5 var(--font-sans);
+    font: 400 14px / 1.5 var(--font-sans);
 }
 
 .col {

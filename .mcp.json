@@ -15,16 +15,25 @@
             "env": {}
         },
         "kubernetes": {
-            "command": "npx",
-            "args": ["-y", "kubernetes-mcp-server@latest"],
+            "type": "stdio",
+            "command": "proto",
+            "args": [
+                "run",
+                "kubernetes-mcp-server",
+                "--log",
+                "error",
+                "--reporter",
+                "text",
+                "--"
+            ],
             "env": {
                 "KUBECONFIG": "/home/neoplasmes/.kube/config"
             }
         },
         "moon": {
             "type": "stdio",
-            "command": "moon",
-            "args": ["mcp"],
+            "command": "proto",
+            "args": ["run", "moon", "--log", "error", "--reporter", "text", "--", "mcp"],
             "env": {
                 "MOON_WORKSPACE_ROOT": "/home/neoplasmes/qualification_work"
             }

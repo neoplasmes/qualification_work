@@ -20,7 +20,8 @@
             background: var(--marker);
         }
 
-        &[aria-current], &[aria-selected='true'] {
+        &[aria-current],
+        &[aria-selected='true'] {
             background: var(--ink);
             color: var(--on-ink);
             text-decoration: none;

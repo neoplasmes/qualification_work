@@ -1,15 +1,22 @@
 [mcp_servers.codebase-memory-mcp]
 command = "proto"
 args = [
-    "run",
-    "codebase-memory-mcp",
-    "--log",
-    "error",
-    "--reporter",
-    "text",
-    "--",
+  "run",
+  "codebase-memory-mcp",
+  "--log",
+  "error",
+  "--reporter",
+  "text",
+  "--",
 ]
 cwd = "/home/neoplasmes/qualification_work"
 enabled = true
 startup_timeout_sec = 30
 tool_timeout_sec = 180
+
+[mcp_servers.moon]
+command = "proto"
+args = ["run", "moon", "--log", "error", "--reporter", "text", "--", "mcp"]
+cwd = "/home/neoplasmes/qualification_work"
+enabled = true
+startup_timeout_sec = 30

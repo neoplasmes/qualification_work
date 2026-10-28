@@ -1,4 +1,5 @@
-package main
+// Package upstream renders OpenResty upstream blocks from EndpointSlice state
+package upstream
 
 import (
 	"bytes"
@@ -11,28 +12,24 @@ import (
 	"syscall"
 
 	discoveryv1 "k8s.io/api/discovery/v1"
-)
 
-type Service struct {
-	Upstream string // "client_backend"
-	Service  string // "client"
-	Port     int    // 3000
-	Algo     string // "least_conn" | "ip_hash" | "" (round-robin)
-}
+	"openresty-discovery/internal/config"
+)
 
 // State aggregates EndpointSlices into a per-service IP list.
 // One Service in k8s can be backed by multiple EndpointSlices (chunked for scale),
 // so we key by (serviceName, sliceName) and merge on render.
 type State struct {
 	mu       sync.Mutex
-	services []Service
+	services []config.Service
 	slices   map[string]map[string][]string // service name -> slice name -> [IP,...]
 	outPath  string
 	pidPath  string
 	lastConf []byte
 }
 
-func newState(services []Service, outPath, pidPath string) *State {
+// NewState creates an empty state for the watched services
+func NewState(services []config.Service, outPath, pidPath string) *State {
 	return &State{
 		services: services,
 		slices:   make(map[string]map[string][]string),
@@ -41,7 +38,8 @@ func newState(services []Service, outPath, pidPath string) *State {
 	}
 }
 
-func (s *State) applySlice(es *discoveryv1.EndpointSlice, deleted bool) {
+// ApplySlice merges or removes one EndpointSlice and rewrites upstreams on change
+func (s *State) ApplySlice(es *discoveryv1.EndpointSlice, deleted bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -80,6 +78,15 @@ func (s *State) matters(name string) bool {
 	return false
 }
 
+// CollectIPs returns unique ready IPs of a service
+func (s *State) CollectIPs(serviceName string) []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.collectIPs(serviceName)
+}
+
+// collectIPs expects s.mu to be held
 func (s *State) collectIPs(serviceName string) []string {
 	var all []string
 	seen := make(map[string]struct{})

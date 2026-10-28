@@ -17,10 +17,9 @@ export type InsertRowInput = {
     data: Record<string, unknown>;
 };
 
-export class InsertRowCommand implements Executable<
-    [InsertRowInput],
-    Promise<DatasetRow>
-> {
+export class InsertRowCommand
+    implements Executable<[InsertRowInput], Promise<DatasetRow>>
+{
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
     async execute(input: InsertRowInput): Promise<DatasetRow> {

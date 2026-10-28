@@ -19,16 +19,16 @@
     color: var(--ink);
     text-align: left;
     background: var(--paper);
-}
 
-.chip:focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 2px;
-}
+    &:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+    }
 
-.chip[data-selected='true'] {
-    background: var(--marker);
-    border-color: var(--ink);
+    &[data-selected='true'] {
+        background: var(--marker);
+        border-color: var(--ink);
+    }
 }
 
 .name {

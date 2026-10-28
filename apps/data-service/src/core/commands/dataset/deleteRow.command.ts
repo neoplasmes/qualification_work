@@ -14,10 +14,9 @@ export type DeleteRowInput = {
     rowIds: string[];
 };
 
-export class DeleteRowCommand implements Executable<
-    [DeleteRowInput],
-    Promise<DatasetRow[]>
-> {
+export class DeleteRowCommand
+    implements Executable<[DeleteRowInput], Promise<DatasetRow[]>>
+{
     constructor(private readonly datasetRepo: DatasetRepo) {}
 
     async execute(input: DeleteRowInput): Promise<DatasetRow[]> {

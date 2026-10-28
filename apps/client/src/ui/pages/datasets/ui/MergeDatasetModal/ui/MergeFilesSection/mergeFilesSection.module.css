@@ -20,10 +20,10 @@
     font-size: var(--font-size-data);
     line-height: var(--line-height-data);
     font-weight: var(--font-weight-data);
-}
 
-.file-names span {
-    overflow-wrap: anywhere;
-    padding: var(--space-8);
-    border: 1px solid var(--rule);
+    & span {
+        overflow-wrap: anywhere;
+        padding: var(--space-8);
+        border: 1px solid var(--rule);
+    }
 }

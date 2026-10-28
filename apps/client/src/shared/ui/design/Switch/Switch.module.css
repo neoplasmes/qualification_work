@@ -58,11 +58,11 @@
 .root input:checked + .track {
     border-color: var(--color-primary);
     background-color: var(--color-primary);
-}
 
-.root input:checked + .track .thumb {
-    transform: translate(16px, -50%);
-    background-color: var(--on-ink);
+    & .thumb {
+        transform: translate(16px, -50%);
+        background-color: var(--on-ink);
+    }
 }
 
 .root input:focus-visible + .track {

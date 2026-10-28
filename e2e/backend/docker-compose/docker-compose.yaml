@@ -8,9 +8,9 @@ services:
       POSTGRES_PASSWORD: e2e_password
       POSTGRES_DB: qualification
     volumes:
-      - ../../../infrastructure/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ../../../env/database/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U admin -d qualification']
+      test: ["CMD-SHELL", "pg_isready -U admin -d qualification"]
       interval: 2s
       timeout: 3s
       retries: 30
@@ -19,16 +19,16 @@ services:
     image: redis:8.6-alpine
     command:
       [
-        'redis-server',
-        '--requirepass',
-        'e2e_password',
-        '--save',
-        '',
-        '--appendonly',
-        'no',
+        "redis-server",
+        "--requirepass",
+        "e2e_password",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
       ]
     healthcheck:
-      test: ['CMD-SHELL', 'redis-cli -a e2e_password ping | grep PONG']
+      test: ["CMD-SHELL", "redis-cli -a e2e_password ping | grep PONG"]
       interval: 2s
       timeout: 3s
       retries: 30
@@ -47,11 +47,11 @@ services:
       context: ../../..
       dockerfile: apps/auth/Dockerfile
     environment:
-      AUTH_PORT: '3002'
+      AUTH_PORT: "3002"
       AUTH_LOG_LEVEL: info
-      AUTH_CORS_ENABLED: 'false'
+      AUTH_CORS_ENABLED: "false"
       AUTH_PEPPER: e2e_pepper
-      AUTH_MAX_FAILED_ATTEMPTS: '5'
+      AUTH_MAX_FAILED_ATTEMPTS: "5"
       AUTH_LOCKOUT_DURATION: 2s
       AUTH_JWT_PRIVATE_KEY_PATH: /run/secrets/jwt.private.pem
       AUTH_JWT_KID: e2e-key
@@ -60,9 +60,9 @@ services:
       AUTH_INTERNAL_JWT_TTL: 5m
       DATABASE_URL: postgres://admin:e2e_password@pgbouncer:5432/qualification?sslmode=disable&default_query_exec_mode=simple_protocol&pool_max_conns=50
       REDIS_HOST: redis
-      REDIS_PORT: '6379'
+      REDIS_PORT: "6379"
       REDIS_PASSWORD: e2e_password
-      REDIS_DB: '0'
+      REDIS_DB: "0"
     volumes:
       - ./keys/jwt.private.pem:/run/secrets/jwt.private.pem:ro
     depends_on:
@@ -79,11 +79,11 @@ services:
       dockerfile: apps/server/Dockerfile
     environment:
       NODE_ENV: production
-      SERVER_PORT: '3001'
+      SERVER_PORT: "3001"
       CLIENT_ORIGIN: http://localhost:3000
       DATABASE_URL: postgres://admin:e2e_password@pgbouncer:5432/qualification?sslmode=disable
       REDIS_HOST: redis
-      REDIS_PORT: '6379'
+      REDIS_PORT: "6379"
       REDIS_PASSWORD: e2e_password
       AUTH_JWKS_URL: http://auth:3002/gateway/.well-known/jwks.json
       AUTH_JWT_ISSUER: qualification-auth
@@ -102,11 +102,11 @@ services:
       dockerfile: apps/data-service/Dockerfile
     environment:
       NODE_ENV: production
-      DATA_SERVICE_PORT: '3003'
+      DATA_SERVICE_PORT: "3003"
       CLIENT_ORIGIN: http://localhost:3000
       DATABASE_URL: postgres://admin:e2e_password@pgbouncer:5432/qualification?sslmode=disable
       REDIS_HOST: redis
-      REDIS_PORT: '6379'
+      REDIS_PORT: "6379"
       REDIS_PASSWORD: e2e_password
       AUTH_JWKS_URL: http://auth:3002/gateway/.well-known/jwks.json
       AUTH_JWT_ISSUER: qualification-auth
@@ -122,7 +122,7 @@ services:
   gateway:
     image: openresty/openresty:1.29.2.3-alpine-fat
     ports:
-      - '${GATEWAY_PORT:-8443}:443'
+      - "${GATEWAY_PORT:-8443}:443"
     volumes:
       - ./openresty/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
       - ./openresty/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -130,22 +130,22 @@ services:
       - ./keys/localhost.pem:/run/secrets/localhost.pem:ro
       - ./keys/localhost-key.pem:/run/secrets/localhost-key.pem:ro
     depends_on:
-      auth: 
+      auth:
         condition: service_started
-      server: 
+      server:
         condition: service_started
-      data-service: 
+      data-service:
         condition: service_started
     healthcheck:
       test:
         [
-          'CMD',
-          'wget',
-          '-qO-',
-          '--tries=1',
-          '--timeout=2',
-          '--no-check-certificate',
-          'https://localhost/_gateway/health',
+          "CMD",
+          "wget",
+          "-qO-",
+          "--tries=1",
+          "--timeout=2",
+          "--no-check-certificate",
+          "https://localhost/_gateway/health",
         ]
       interval: 2s
       timeout: 3s

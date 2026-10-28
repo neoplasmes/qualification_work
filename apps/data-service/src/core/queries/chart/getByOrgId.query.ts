@@ -6,10 +6,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetChartsByOrgIdQuery implements Executable<
-    [string, OrgMembership[]],
-    Promise<Chart[]>
-> {
+export class GetChartsByOrgIdQuery
+    implements Executable<[string, OrgMembership[]], Promise<Chart[]>>
+{
     constructor(private readonly chartRepo: ChartRepo) {}
 
     async execute(orgId: string, orgs: OrgMembership[]): Promise<Chart[]> {

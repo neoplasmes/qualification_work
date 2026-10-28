@@ -7,10 +7,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { checkOrgMembership } from '@/shared/checkOrgMembership';
 
-export class GetChartByIdQuery implements Executable<
-    [string, OrgMembership[]],
-    Promise<Chart>
-> {
+export class GetChartByIdQuery
+    implements Executable<[string, OrgMembership[]], Promise<Chart>>
+{
     constructor(private readonly chartRepo: ChartRepo) {}
 
     async execute(chartId: string, orgs: OrgMembership[]): Promise<Chart> {

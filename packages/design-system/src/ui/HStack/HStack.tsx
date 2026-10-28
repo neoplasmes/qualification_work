@@ -18,7 +18,8 @@ export function HStack<E extends ElementType = 'div'>({
 }: HStackProps<E>) {
     const component = as ?? 'div';
     const classes = `${styles.stack}${fullWidth ? ` ${styles.fullWidth}` : ''}${className ? ` ${className}` : ''}`;
-    const stackStyle = gap === undefined ? style : { ...style, gap: `var(--space-${gap})` };
+    const stackStyle =
+        gap === undefined ? style : { ...style, gap: `var(--space-${gap})` };
 
     return createElement(component, {
         ...nativeProps,

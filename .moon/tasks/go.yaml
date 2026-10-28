@@ -4,7 +4,7 @@ fileGroups:
   test-unit: []
   test-int: []
   cfg-lint-go:
-  - /.golangci.yaml
+    - /.golangci.yaml
 taskOptions:
   runFromWorkspaceRoot: false
 tasks:
@@ -20,21 +20,21 @@ tasks:
   fmt:
     command: dprint fmt @files(src) @files(test-unit) @files(test-int)
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(test-int)'
-    - '@group(cfg)'
-    - /dprint.jsonc
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(test-int)"
+      - "@group(cfg)"
+      - /dprint.jsonc
     deps:
-    - ~:lint-fix
+      - ~:lint-fix
   lint:
     command: golangci-lint run --config $workspaceRoot/.golangci.yaml ./...
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(test-int)'
-    - '@group(cfg)'
-    - '@group(cfg-lint-go)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(test-int)"
+      - "@group(cfg)"
+      - "@group(cfg-lint-go)"
     options:
       mutex: golangci-lint
   lint-fix:
@@ -43,14 +43,14 @@ tasks:
   typecheck:
     command: go vet ./...
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(test-int)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(test-int)"
+      - "@group(cfg)"
   check:
     command: noop
     inputs: []
     deps:
-    - ~:fmt
-    - ~:lint-fix
-    - ~:typecheck
+      - ~:fmt
+      - ~:lint-fix
+      - ~:typecheck

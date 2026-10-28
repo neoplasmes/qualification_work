@@ -1,0 +1,36 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "^apply_patch$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$(git rev-parse --show-toplevel)/tools/agent-hooks/gateway.ts\" codex"
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "^apply_patch$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$(git rev-parse --show-toplevel)/tools/agent-hooks/gateway.ts\" codex"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$(git rev-parse --show-toplevel)/tools/agent-hooks/gateway.ts\" codex"
+                    }
+                ]
+            }
+        ]
+    }
+}

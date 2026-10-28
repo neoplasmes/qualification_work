@@ -64,11 +64,7 @@ export async function dbQuery<T extends QueryResultRow = QueryResultRow>(
 }
 
 export async function createTestUser(
-    data: {
-        email?: string;
-        name?: string;
-        family?: string;
-    } = {}
+    data: { email?: string; name?: string; family?: string } = {}
 ): Promise<{ id: string }> {
     const email = data.email ?? `test-${randomUUID()}@example.com`;
     const name = data.name ?? 'Test';

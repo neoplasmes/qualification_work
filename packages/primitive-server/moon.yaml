@@ -2,40 +2,40 @@
 language: typescript
 layer: library
 tags:
-- node
+  - node
 fileGroups:
   src:
-  - src/**/*.ts
-  - '!src/**/*.test.ts'
-  - '!src/**/*.loadtest.ts'
-  - '!src/test-utils/**/*.ts'
+    - src/**/*.ts
+    - "!src/**/*.test.ts"
+    - "!src/**/*.loadtest.ts"
+    - "!src/test-utils/**/*.ts"
   test-unit:
-  - src/**/*.test.ts
-  - src/test-utils/**/*.ts
+    - src/**/*.test.ts
+    - src/test-utils/**/*.ts
   cfg:
-  - package.json
-  - tsconfig.json
-  - vitest.config.ts
-  - tsup.config.ts
+    - package.json
+    - tsconfig.json
+    - vitest.config.ts
+    - tsup.config.ts
   cfg-code:
-  - vitest.config.ts
-  - tsup.config.ts
+    - vitest.config.ts
+    - tsup.config.ts
   bench:
-  - src/**/*.loadtest.ts
+    - src/**/*.loadtest.ts
 tasks:
   test-unit:
     command: pnpm exec vitest run
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(cfg)"
   build:
     command: pnpm exec tsup
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(cfg)"
     outputs:
-    - dist
+      - dist
   loadtest:
     command: pnpm exec tsx src/Application.loadtest.ts
     preset: utility

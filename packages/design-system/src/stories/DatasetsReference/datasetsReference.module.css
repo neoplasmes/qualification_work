@@ -55,10 +55,10 @@
     .tableName {
         text-decoration: underline;
         text-underline-offset: var(--space-4);
-    }
 
-    .tableLink[aria-current] .tableName {
-        text-decoration: none;
+        .tableLink[aria-current] & {
+            text-decoration: none;
+        }
     }
 
     .upload {
@@ -90,7 +90,6 @@
     .heading {
         row-gap: var(--space-4);
     }
-
 
     .filters {
         row-gap: var(--space-4);
@@ -133,44 +132,46 @@
         line-height: var(--line-height-data);
         letter-spacing: normal;
         font-variant-numeric: tabular-nums;
-    }
 
-    .table th {
-        font-weight: var(--font-weight-data);
-    }
+        & th {
+            font-weight: var(--font-weight-data);
+        }
 
-    .table thead th {
-        padding-block: var(--space-8);
-        padding-inline: var(--space-12);
-        border-bottom: var(--border-hair) solid var(--ink);
-        font-size: var(--font-size-label);
-        line-height: var(--line-height-label);
-        letter-spacing: var(--letter-spacing-label);
-        text-transform: uppercase;
-        color: var(--ink-3);
-        text-align: right;
-        vertical-align: bottom;
-    }
+        & thead th {
+            padding-block: var(--space-8);
+            padding-inline: var(--space-12);
+            border-bottom: var(--border-hair) solid var(--ink);
+            font-size: var(--font-size-label);
+            line-height: var(--line-height-label);
+            letter-spacing: var(--letter-spacing-label);
+            text-transform: uppercase;
+            color: var(--ink-3);
+            text-align: right;
+            vertical-align: bottom;
+        }
 
-    .table tbody th, .table td {
-        padding-block: var(--space-12);
-        padding-inline: var(--space-12);
-        border-bottom: var(--border-hair) dashed var(--rule-dash);
-        text-align: right;
-    }
+        & tbody th,
+        & td {
+            padding-block: var(--space-12);
+            padding-inline: var(--space-12);
+            border-bottom: var(--border-hair) dashed var(--rule-dash);
+            text-align: right;
+        }
 
-    .table tr[aria-selected='true'] > * {
-        background: var(--marker);
-    }
+        & tr[aria-selected='true'] > * {
+            background: var(--marker);
+        }
 
-    .table .left {
-        text-align: left;
-    }
+        & .left {
+            text-align: left;
+        }
 
-    .table tfoot td, .table tfoot th {
-        border-top: var(--border-hair) solid var(--ink);
-        border-bottom: var(--border-total) double var(--ink);
-        font-weight: var(--font-weight-ui);
+        & tfoot td,
+        & tfoot th {
+            border-top: var(--border-hair) solid var(--ink);
+            border-bottom: var(--border-total) double var(--ink);
+            font-weight: var(--font-weight-ui);
+        }
     }
 
     .notes {

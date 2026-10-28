@@ -23,10 +23,9 @@ export type PreviewChartDataInput = {
     orgs: OrgMembership[];
 };
 
-export class PreviewChartDataQuery implements Executable<
-    [PreviewChartDataInput],
-    Promise<ChartResponse>
-> {
+export class PreviewChartDataQuery
+    implements Executable<[PreviewChartDataInput], Promise<ChartResponse>>
+{
     constructor(
         private readonly chartRepo: ChartRepo,
         private readonly compiler: ChartCompilerTool

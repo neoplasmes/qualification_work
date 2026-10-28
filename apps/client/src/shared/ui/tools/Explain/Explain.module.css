@@ -39,11 +39,11 @@
         opacity 0.16s ease,
         transform 0.16s ease,
         visibility 0.16s ease;
-}
 
-.root:hover .tooltip,
-.root:focus-within .tooltip {
-    visibility: visible;
-    opacity: 1;
-    transform: translate(-50%, 0);
+    .root:hover &,
+    .root:focus-within & {
+        visibility: visible;
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
 }

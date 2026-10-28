@@ -1,175 +1,154 @@
 {
-        "file_types": {
-                "Nginx": [
-                        "*.conf"
-                ],
-                "YAML": [
-                        "*.yaml.gotmpl"
-                ],
-                "TOML": [
-                        ".prototools",
-                        "*.prototools"
-                ]
-        },
-        "formatter": {
-                "external": {
-                        "command": "dprint",
-                        "arguments": [
-                                "fmt",
-                                "--stdin",
-                                "{buffer_path}"
-                        ]
-                }
-        },
-        "prettier": {
-                "allowed": false
-        },
-        "format_on_save": "on",
-        "languages": {
-                "TypeScript": {
-                        "language_servers": [
-                                "typescript-ls",
-                                "!vtsls",
-                                "!typescript-language-server",
-                                "!tailwindcss-language-server",
-                                "!tailwindcss-intellisense-css",
-                                "..."
-                        ]
-                },
-                "TSX": {
-                        "language_servers": [
-                                "typescript-ls",
-                                "!vtsls",
-                                "!typescript-language-server",
-                                "!tailwindcss-language-server",
-                                "!tailwindcss-intellisense-css",
-                                "..."
-                        ]
-                },
-                "JavaScript": {
-                        "language_servers": [
-                                "typescript-ls",
-                                "!vtsls",
-                                "!typescript-language-server",
-                                "!tailwindcss-language-server",
-                                "!tailwindcss-intellisense-css",
-                                "..."
-                        ]
-                },
-                "JSX": {
-                        "language_servers": [
-                                "typescript-ls",
-                                "!vtsls",
-                                "!typescript-language-server",
-                                "!tailwindcss-language-server",
-                                "!tailwindcss-intellisense-css",
-                                "..."
-                        ]
-                },
-                "HTML": {
-                        "language_servers": [
-                                "!tailwindcss-language-server",
-                                "!tailwindcss-intellisense-css",
-                                "..."
-                        ]
-                },
-                "Markdown": {
-                        "enable_language_server": false,
-                        "format_on_save": "off",
-                        "formatter": "none"
-                },
-                "CSS": {
-                        "language_servers": [
-                                "vscode-css-language-server",
-                                "!tailwindcss-intellisense-css",
-                                "!tailwindcss-language-server",
-                                "..."
-                        ]
-                },
-                "Go": {
-                        "language_servers": [
-                                "gopls",
-                                "golangci-lint",
-                                "..."
-                        ]
-                },
-                "TOML": {
-                        "formatter": {
-                                "external": {
-                                        "command": "dprint",
-                                        "arguments": [
-                                                "fmt",
-                                                "--stdin",
-                                                "toml"
-                                        ]
-                                }
-                        }
-                }
-        },
-        "auto_install_extensions": {
-                "nginx": true,
-                "golangci-lint": true
-        },
-        "lsp": {
-                "gopls": {
-                        "initialization_options": {
-                                "buildFlags": [
-                                        "-tags=integration"
-                                ]
-                        }
-                },
-                "golangci-lint": {
-                        "initialization_options": {
-                                "command": [
-                                        "golangci-lint",
-                                        "run",
-                                        "--fast",
-                                        "--config",
-                                        ".golangci.yaml",
-                                        "--output.json.path",
-                                        "stdout",
-                                        "--show-stats=false",
-                                        "--output.text.path="
-                                ]
-                        }
-                },
-                "yaml-language-server": {
-                        "settings": {
-                                "yaml": {
-                                        "schemas": {
-                                                "./.moon/cache/schemas/workspace.json": [
-                                                        ".moon/workspace.yaml",
-                                                        ".moon/workspace.yml"
-                                                ],
-                                                "./.moon/cache/schemas/toolchains.json": [
-                                                        ".moon/toolchains.yaml",
-                                                        ".moon/toolchains.yml"
-                                                ],
-                                                "./.moon/cache/schemas/tasks.json": [
-                                                        ".moon/tasks.yaml",
-                                                        ".moon/tasks.yml",
-                                                        ".moon/tasks/**/*.yaml",
-                                                        ".moon/tasks/**/*.yml"
-                                                ],
-                                                "./.moon/cache/schemas/project.json": [
-                                                        "**/moon.yaml",
-                                                        "**/moon.yml"
-                                                ],
-                                                "./.moon/cache/schemas/extensions.json": [
-                                                        ".moon/extensions.yaml",
-                                                        ".moon/extensions.yml"
-                                                ],
-                                                "./.moon/cache/schemas/template.json": [
-                                                        "**/template.yaml",
-                                                        "**/template.yml"
-                                                ],
-                                                "./.moon/cache/schemas/toolchain.json": [
-                                                        ".moon/toolchain.yaml",
-                                                        ".moon/toolchain.yml"
-                                                ]
-                                        }
-                                }
-                        }
-                }
+    "file_types": {
+        "Nginx": ["*.conf"],
+        "YAML": ["*.yaml.gotmpl"],
+        "TOML": [".prototools", "*.prototools"]
+    },
+    "formatter": {
+        "external": {
+            "command": "dprint",
+            "arguments": ["fmt", "--stdin", "{buffer_path}"]
         }
+    },
+    "prettier": {
+        "allowed": false
+    },
+    "format_on_save": "on",
+    "languages": {
+        "TypeScript": {
+            "language_servers": [
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "!tailwindcss-language-server",
+                "!tailwindcss-intellisense-css",
+                "..."
+            ]
+        },
+        "TSX": {
+            "language_servers": [
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "!tailwindcss-language-server",
+                "!tailwindcss-intellisense-css",
+                "..."
+            ]
+        },
+        "JavaScript": {
+            "language_servers": [
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "!tailwindcss-language-server",
+                "!tailwindcss-intellisense-css",
+                "..."
+            ]
+        },
+        "JSX": {
+            "language_servers": [
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "!tailwindcss-language-server",
+                "!tailwindcss-intellisense-css",
+                "..."
+            ]
+        },
+        "HTML": {
+            "language_servers": [
+                "!tailwindcss-language-server",
+                "!tailwindcss-intellisense-css",
+                "..."
+            ]
+        },
+        "Markdown": {
+            "enable_language_server": false,
+            "format_on_save": "off",
+            "formatter": "none"
+        },
+        "CSS": {
+            "language_servers": [
+                "vscode-css-language-server",
+                "!tailwindcss-intellisense-css",
+                "!tailwindcss-language-server",
+                "..."
+            ]
+        },
+        "Go": {
+            "language_servers": ["gopls", "golangci-lint", "..."]
+        },
+        "TOML": {
+            "formatter": {
+                "external": {
+                    "command": "dprint",
+                    "arguments": ["fmt", "--stdin", "toml"]
+                }
+            }
+        }
+    },
+    "auto_install_extensions": {
+        "nginx": true,
+        "golangci-lint": true
+    },
+    "lsp": {
+        "gopls": {
+            "initialization_options": {
+                "buildFlags": ["-tags=integration"]
+            }
+        },
+        "golangci-lint": {
+            "initialization_options": {
+                "command": [
+                    "golangci-lint",
+                    "run",
+                    "--fast",
+                    "--config",
+                    ".golangci.yaml",
+                    "--output.json.path",
+                    "stdout",
+                    "--show-stats=false",
+                    "--output.text.path="
+                ]
+            }
+        },
+        "yaml-language-server": {
+            "settings": {
+                "yaml": {
+                    "schemas": {
+                        "./.moon/cache/schemas/workspace.json": [
+                            ".moon/workspace.yaml",
+                            ".moon/workspace.yml"
+                        ],
+                        "./.moon/cache/schemas/toolchains.json": [
+                            ".moon/toolchains.yaml",
+                            ".moon/toolchains.yml"
+                        ],
+                        "./.moon/cache/schemas/tasks.json": [
+                            ".moon/tasks.yaml",
+                            ".moon/tasks.yml",
+                            ".moon/tasks/**/*.yaml",
+                            ".moon/tasks/**/*.yml"
+                        ],
+                        "./.moon/cache/schemas/project.json": [
+                            "**/moon.yaml",
+                            "**/moon.yml"
+                        ],
+                        "./.moon/cache/schemas/extensions.json": [
+                            ".moon/extensions.yaml",
+                            ".moon/extensions.yml"
+                        ],
+                        "./.moon/cache/schemas/template.json": [
+                            "**/template.yaml",
+                            "**/template.yml"
+                        ],
+                        "./.moon/cache/schemas/toolchain.json": [
+                            ".moon/toolchain.yaml",
+                            ".moon/toolchain.yml"
+                        ]
+                    }
+                }
+            }
+        }
+    }
 }

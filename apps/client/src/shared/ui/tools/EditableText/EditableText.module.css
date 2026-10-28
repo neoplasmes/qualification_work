@@ -32,14 +32,13 @@
 }
 
 .tooltip {
+    --tooltip-x: 0;
+    --tooltip-y: 0;
+    --tooltip-gap: var(--spacing-sm);
     position: fixed;
     top: 0;
     left: 0;
     z-index: 60;
-
-    --tooltip-x: 0;
-    --tooltip-y: 0;
-    --tooltip-gap: var(--spacing-sm);
 
     max-width: min(260px, calc(100vw - 16px));
     overflow-wrap: break-word;

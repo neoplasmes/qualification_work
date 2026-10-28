@@ -1,70 +1,76 @@
 language: go
 layer: application
 dependsOn:
-- root
+  - root
 fileGroups:
   src:
-  - '{cmd,internal}/**/*.go'
-  - '!**/*_test.go'
+    - "{cmd,internal}/**/*.go"
+    - "!**/*_test.go"
   test-unit:
-  - '{cmd,internal}/**/*_test.go'
+    - "{cmd,internal}/**/*_test.go"
   test-int:
-  - test/integration/**/*.go
+    - test/integration/**/*.go
   cfg:
-  - go.mod
-  - go.sum
+    - go.mod
+    - go.sum
   fixtures:
-  - test/integration/**/*.{conf,ini,pem}
-  - docker-compose.test.yaml
-  - .env.test
+    - test/integration/**/*.{conf,ini,pem}
+    - docker-compose.test.yaml
+    - .env.test
 tasks:
   test-unit:
     command: go test -count 1 ./cmd/... ./internal/...
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(cfg)"
   test-int:
     command: nu --no-config-file $workspaceRoot/tools/compose-test/compose-test.nu docker-compose.test.yaml go test
       -tags integration -count 1 ./test/integration/...
     inputs:
-    - '@group(src)'
-    - '@group(test-int)'
-    - '@group(cfg)'
-    - '@group(fixtures)'
-    - /tools/compose-test/compose-test.nu
+      - "@group(src)"
+      - "@group(test-int)"
+      - "@group(cfg)"
+      - "@group(fixtures)"
+      - /tools/compose-test/compose-test.nu
     options:
       mutex: docker-tests
   dev:
     command: go run ./cmd/auth
     preset: server
     deps:
-    - root:compose-up
+      - env:compose-up
     options:
       envFile: .env
   build:
     command: go build -o bin/auth ./cmd/auth
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(cfg)"
     outputs:
-    - bin/auth
+      - bin/auth
   swagger:
     command: swag init -d cmd/auth,internal/adapters/driving/http/auth,internal/adapters/driving/http/_helpers,internal/adapters/driving/http/gateway,internal/adapters/driving/http/health
       -g main.go -o docs --v3.1 --parseInternal --outputTypes json
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(cfg)"
     outputs:
-    - docs/swagger.json
+      - docs/swagger.json
   start-swagger:
-    command: nu --no-config-file $workspaceRoot/tools/swagger/start-swagger.nu
+    command: nu --no-config-file scripts/start-swagger.nu
     preset: utility
     deps:
-    - auth:swagger
+      - auth:swagger
   stop-swagger:
     command: docker rm -f auth-swagger
     preset: utility
+  image:
+    command: docker build -f apps/auth/Dockerfile -t auth:local .
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+      runInCI: false
   compose-up:
     command: docker compose -f docker-compose.test.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
       300

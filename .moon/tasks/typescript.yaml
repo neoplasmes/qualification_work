@@ -4,13 +4,13 @@ tasks:
   typecheck:
     command: pnpm exec tsc --noEmit --project $projectRoot
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(test-int)'
-    - '@group(test-e2e)'
-    - '@group(cfg-code)'
-    - '@group(cfg)'
-    - '@group(css)'
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(test-int)"
+      - "@group(test-e2e)"
+      - "@group(cfg-code)"
+      - "@group(cfg)"
+      - "@group(css)"
   check:
     deps:
-    - ~:typecheck
+      - ~:typecheck

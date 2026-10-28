@@ -45,4 +45,3 @@ spec:
                 name: app-env-config
             - secretRef:
                 name: app-secret
-          

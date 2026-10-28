@@ -7,7 +7,16 @@ const meta = {
     title: 'Foundations/HStack',
     component: HStack,
     tags: ['autodocs'],
-    args: { gap: 16, children: <><Text>Бумага</Text><Text>Чернила</Text><Text>Paper and ink</Text></> },
+    args: {
+        gap: 16,
+        children: (
+            <>
+                <Text>Бумага</Text>
+                <Text>Чернила</Text>
+                <Text>Paper and ink</Text>
+            </>
+        ),
+    },
     argTypes: { gap: { control: 'select', options: gaps } },
 } satisfies Meta<typeof HStack>;
 

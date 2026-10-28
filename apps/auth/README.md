@@ -3,6 +3,7 @@ For the running of tests the following command has to be applied: <br/>
 Because auth service runs in nonroot image
 
 ### Roadmap:
+
 - [ ] Implement redis cache strategy for `/me` route
 - [ ] Implement event or message publishing in redis for the creation of default user organization and other default things
 - [ ] Add observability

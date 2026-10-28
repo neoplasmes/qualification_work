@@ -6,10 +6,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { getWritableOrgIds } from '@/shared/checkOrgMembership';
 
-export class RenameDashboardCommand implements Executable<
-    [string, string, OrgMembership[]],
-    Promise<void>
-> {
+export class RenameDashboardCommand
+    implements Executable<[string, string, OrgMembership[]], Promise<void>>
+{
     constructor(private readonly dashboardRepo: DashboardRepo) {}
 
     async execute(id: string, name: string, orgs: OrgMembership[]): Promise<void> {

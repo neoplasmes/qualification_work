@@ -1,55 +1,52 @@
 language: typescript
 layer: application
 tags:
-- node
-- css
+  - node
+  - css
 dependsOn:
-- primitive-server
-- types
-- eslint-plugin-fsd
-- design-system
+  - primitive-server
+  - types
+  - design-system
 fileGroups:
   src:
-  - '{src,server,vite}/**/*.{ts,tsx}'
-  - '!**/*.test.{ts,tsx}'
-  - '!src/test/**'
-  - '!src/**/test/**'
+    - "{src,server,vite}/**/*.{ts,tsx}"
+    - "!**/*.test.{ts,tsx}"
+    - "!src/test/**"
+    - "!src/**/test/**"
   test-unit:
-  - '{src,server}/**/*.test.{ts,tsx}'
-  - src/test/**/*.{ts,tsx}
-  - src/**/test/**/*.{ts,tsx}
+    - "{src,server}/**/*.test.{ts,tsx}"
+    - src/test/**/*.{ts,tsx}
+    - src/**/test/**/*.{ts,tsx}
   test-int: []
   cfg:
-  - package.json
-  - tsconfig.json
-  - tsup.config.ts
-  - vitest.config.ts
-  - oxlint.config.ts
-  - architecture.config.ts
-  - prettier.config.js
-  - vite.config.ts
-  - /stylelint.config.js
-  - /postcss.config.js
-  - /.browserslistrc
-  - /packages/design-system/src/theme/theme.css
+    - package.json
+    - tsconfig.json
+    - tsup.config.ts
+    - vitest.config.ts
+    - oxlint.config.ts
+    - architecture.config.ts
+    - vite.config.ts
+    - /stylelint.config.js
+    - /postcss.config.js
+    - /.browserslistrc
+    - /packages/design-system/src/theme/theme.css
   cfg-code:
-  - tsup.config.ts
-  - vitest.config.ts
-  - oxlint.config.ts
-  - architecture.config.ts
-  - prettier.config.js
-  - vite.config.ts
+    - tsup.config.ts
+    - vitest.config.ts
+    - oxlint.config.ts
+    - architecture.config.ts
+    - vite.config.ts
   cfg-lint:
-  - oxlint.config.ts
-  - architecture.config.ts
-  - /packages/microservice-config/oxlint.ts
+    - oxlint.config.ts
+    - architecture.config.ts
+    - /tools/microservice-config/oxlint.ts
   assets:
-  - index.html
-  - server/*.html
-  - public/**/*.{svg,png,jpg,ico,woff,woff2}
+    - index.html
+    - server/*.html
+    - public/**/*.{svg,png,jpg,ico,woff,woff2}
   css:
-  - src/**/*.scss
-  - src/**/*.css
+    - src/**/*.scss
+    - src/**/*.css
 tasks:
   lint:
     command: pnpm exec oxlint --config oxlint.config.ts --no-error-on-unmatched-pattern @files(src) @files(test-unit)
@@ -64,121 +61,123 @@ tasks:
       mergeArgs: replace
   typecheck:
     deps: &id003
-    - target: primitive-server:build
-      cacheStrategy: outputs
+      - target: primitive-server:build
+        cacheStrategy: outputs
     inputs:
-    - &id001
-      project: types
-      group: src
-    - &id002
-      project: eslint-plugin-fsd
-      group: src
-    - project: design-system
-      group: src
+      - &id001
+        project: types
+        group: src
+      - &id002 /tools/eslint-plugin-fsd/src/**/*.js
+      - project: design-system
+        group: src
   test-unit:
     command: pnpm exec vitest run --maxWorkers 2
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(cfg)'
-    - '@group(css)'
-    - *id001
-    - *id002
-    - project: design-system
-      group: src
-    - project: design-system
-      group: css
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(cfg)"
+      - "@group(css)"
+      - *id001
+      - *id002
+      - project: design-system
+        group: src
+      - project: design-system
+        group: css
     deps: *id003
   dev:
     command: pnpm exec tsx server/server.ts
     preset: server
     deps:
-    - primitive-server:build
-    - client:typecheck
+      - primitive-server:build
+      - client:typecheck
     options:
       envFile: .env
   build-host:
     command: pnpm exec tsup
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
-    - &id004
-      project: types
-      group: src
-    - &id005
-      project: eslint-plugin-fsd
-      group: src
+      - "@group(src)"
+      - "@group(cfg)"
+      - &id004
+        project: types
+        group: src
+      - &id005 /tools/eslint-plugin-fsd/src/**/*.js
     outputs:
-    - dist/server.js
-    - dist/server.js.map
+      - dist/server.js
+      - dist/server.js.map
     deps: *id003
     options:
       internal: true
   build-server:
     command: pnpm exec vite build --ssr src/main/server/entry.server.tsx --outDir dist/server
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
-    - '@group(css)'
-    - '@group(assets)'
-    - *id004
-    - *id005
-    - project: design-system
-      group: src
-    - project: design-system
-      group: css
+      - "@group(src)"
+      - "@group(cfg)"
+      - "@group(css)"
+      - "@group(assets)"
+      - *id004
+      - *id005
+      - project: design-system
+        group: src
+      - project: design-system
+        group: css
     outputs:
-    - dist/server
+      - dist/server
     deps:
-    - client:build-host
+      - client:build-host
     options:
       internal: true
   build-client:
     command: pnpm exec vite build
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
-    - '@group(css)'
-    - '@group(assets)'
-    - *id004
-    - *id005
-    - project: design-system
-      group: src
-    - project: design-system
-      group: css
+      - "@group(src)"
+      - "@group(cfg)"
+      - "@group(css)"
+      - "@group(assets)"
+      - *id004
+      - *id005
+      - project: design-system
+        group: src
+      - project: design-system
+        group: css
     outputs:
-    - dist/client
+      - dist/client
     deps:
-    - client:build-host
+      - client:build-host
     options:
       internal: true
   build-assets:
-    command: nu --no-config-file $workspaceRoot/tools/build-client/copy-assets.nu
+    command: nu --no-config-file scripts/copy-assets.nu
     inputs:
-    - '@group(assets)'
-    - /tools/build-client/copy-assets.nu
+      - "@group(assets)"
+      - scripts/copy-assets.nu
     outputs:
-    - dist/renderError.html
+      - dist/renderError.html
     deps:
-    - client:build-host
+      - client:build-host
     options:
       internal: true
   build:
     command: noop
     inputs: []
     deps:
-    - client:build-client
-    - client:build-server
-    - client:build-assets
+      - client:build-client
+      - client:build-server
+      - client:build-assets
   start:
     command: proto run node -- dist/server.js
     preset: server
     deps:
-    - client:build
+      - client:build
     env:
       NODE_ENV: production
     options:
       envFile: .env
+  image:
+    command: docker build -f apps/client/Dockerfile -t client:local .
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+      runInCI: false
   compose-up:
     command: docker compose -f docker-compose.dev.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
       300

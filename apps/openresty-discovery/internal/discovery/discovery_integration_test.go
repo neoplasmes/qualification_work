@@ -1,4 +1,6 @@
-package main
+//go:build integration
+
+package discovery_test
 
 import (
 	"context"
@@ -10,12 +12,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/tools/cache"
+
+	"openresty-discovery/internal/config"
+	"openresty-discovery/internal/discovery"
+	"openresty-discovery/internal/upstream"
 )
 
 func TestInformer_PicksUpEndpointSliceLifecycle(t *testing.T) {
-	state := newState(
-		[]Service{{Upstream: "server_backend", Service: "server", Port: 3001, Algo: "least_conn"}},
+	state := upstream.NewState(
+		[]config.Service{{Upstream: "server_backend", Service: "server", Port: 3001, Algo: "least_conn"}},
 		filepath.Join(t.TempDir(), "upstreams.conf"),
 		"/nonexistent-pid",
 	)
@@ -25,23 +30,7 @@ func TestInformer_PicksUpEndpointSliceLifecycle(t *testing.T) {
 		informers.WithNamespace("app"))
 
 	inf := factory.Discovery().V1().EndpointSlices().Informer()
-	_, handlerErr := inf.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(o any) {
-			if es, ok := o.(*discoveryv1.EndpointSlice); ok {
-				state.applySlice(es, false)
-			}
-		},
-		UpdateFunc: func(_, o any) {
-			if es, ok := o.(*discoveryv1.EndpointSlice); ok {
-				state.applySlice(es, false)
-			}
-		},
-		DeleteFunc: func(o any) {
-			if es := extractDeleted(o); es != nil {
-				state.applySlice(es, true)
-			}
-		},
-	})
+	handlerErr := discovery.Register(inf, state)
 
 	if handlerErr != nil {
 		t.Fatalf("register event handler: %v", handlerErr)
@@ -72,7 +61,7 @@ func TestInformer_PicksUpEndpointSliceLifecycle(t *testing.T) {
 	}
 
 	waitFor(t, 2*time.Second, func() bool {
-		ips := state.collectIPs("server")
+		ips := state.CollectIPs("server")
 
 		return len(ips) == 1 && ips[0] == "10.0.0.1"
 	}, "expected 1 IP after create")
@@ -87,7 +76,7 @@ func TestInformer_PicksUpEndpointSliceLifecycle(t *testing.T) {
 	}
 
 	waitFor(t, 2*time.Second, func() bool {
-		return len(state.collectIPs("server")) == 2
+		return len(state.CollectIPs("server")) == 2
 	}, "expected 2 IPs after update")
 
 	if _, err := eps.Create(ctx, &discoveryv1.EndpointSlice{
@@ -104,7 +93,7 @@ func TestInformer_PicksUpEndpointSliceLifecycle(t *testing.T) {
 	}
 
 	waitFor(t, 2*time.Second, func() bool {
-		return len(state.collectIPs("server")) == 3
+		return len(state.CollectIPs("server")) == 3
 	}, "expected 3 IPs after second slice create")
 
 	// DELETE первый slice
@@ -113,14 +102,14 @@ func TestInformer_PicksUpEndpointSliceLifecycle(t *testing.T) {
 	}
 
 	waitFor(t, 2*time.Second, func() bool {
-		ips := state.collectIPs("server")
+		ips := state.CollectIPs("server")
 		return len(ips) == 1 && ips[0] == "10.0.0.3"
 	}, "expected only IP from second slice after delete")
 }
 
 func TestInformer_FiltersUnknownServiceAndNotReady(t *testing.T) {
-	state := newState(
-		[]Service{{Upstream: "server_backend", Service: "server", Port: 3001}},
+	state := upstream.NewState(
+		[]config.Service{{Upstream: "server_backend", Service: "server", Port: 3001}},
 		filepath.Join(t.TempDir(), "upstreams.conf"),
 		"/nonexistent-pid",
 	)
@@ -129,9 +118,7 @@ func TestInformer_FiltersUnknownServiceAndNotReady(t *testing.T) {
 	factory := informers.NewSharedInformerFactoryWithOptions(cs, 0,
 		informers.WithNamespace("app"))
 	inf := factory.Discovery().V1().EndpointSlices().Informer()
-	_, handlerErr := inf.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(o any) { state.applySlice(o.(*discoveryv1.EndpointSlice), false) },
-	})
+	handlerErr := discovery.Register(inf, state)
 
 	if handlerErr != nil {
 		t.Fatalf("register event handler: %v", handlerErr)
@@ -172,11 +159,11 @@ func TestInformer_FiltersUnknownServiceAndNotReady(t *testing.T) {
 	}
 
 	waitFor(t, 2*time.Second, func() bool {
-		ips := state.collectIPs("server")
+		ips := state.CollectIPs("server")
 		return len(ips) == 1 && ips[0] == "10.0.0.1"
 	}, "expected only ready IP from our service")
 
-	if got := state.collectIPs("other"); len(got) != 0 {
+	if got := state.CollectIPs("other"); len(got) != 0 {
 		t.Fatalf("unknown service tracked: %v", got)
 	}
 }

@@ -18,11 +18,11 @@
 
 .link {
     padding: var(--space-12);
-}
 
-.link[aria-current='page'] {
-    color: var(--on-ink);
-    background: var(--ink);
+    &[aria-current='page'] {
+        color: var(--on-ink);
+        background: var(--ink);
+    }
 }
 
 .controls {

@@ -15,16 +15,16 @@
     gap: var(--space-20);
     padding-top: var(--space-24);
     border-top: 1px dashed var(--rule-dash);
-}
 
-.section-card > div:first-child {
-    flex-wrap: wrap;
-    gap: var(--space-16);
-}
+    & > div:first-child {
+        flex-wrap: wrap;
+        gap: var(--space-16);
+    }
 
-.section-card p {
-    color: var(--ink-3);
-    font-size: var(--font-size-body-sm);
+    & p {
+        color: var(--ink-3);
+        font-size: var(--font-size-body-sm);
+    }
 }
 
 .section-title {

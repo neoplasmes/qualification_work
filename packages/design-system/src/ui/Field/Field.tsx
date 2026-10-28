@@ -12,18 +12,65 @@ export type FieldProps = Omit<ComponentPropsWithRef<'div'>, 'children'> & {
     children: ReactNode;
 };
 
-export function Field({ id, label, description, error, children, className, ...props }: FieldProps) {
+export function Field({
+    id,
+    label,
+    description,
+    error,
+    children,
+    className,
+    ...props
+}: FieldProps) {
     const generatedId = useId();
-    const control = isValidElement<{ id?: string; inputProps?: { id?: string } }>(children) ? children.props : undefined;
+    const control = isValidElement<{ id?: string; inputProps?: { id?: string } }>(
+        children
+    )
+        ? children.props
+        : undefined;
     const controlId = control?.inputProps?.id ?? control?.id ?? id ?? generatedId;
-    const describedBy = [description ? `${controlId}-description` : '', error ? `${controlId}-error` : ''].filter(Boolean).join(' ') || undefined;
+    const describedBy =
+        [description ? `${controlId}-description` : '', error ? `${controlId}-error` : '']
+            .filter(Boolean)
+            .join(' ') || undefined;
 
-    return <fieldContext.Provider value={{ id: controlId, labelId: `${controlId}-label`, describedBy, invalid: Boolean(error) }}>
-        <VStack {...props} gap={4} className={`${styles.field}${className ? ` ${className}` : ''}`}>
-            <label id={`${controlId}-label`} htmlFor={controlId} className={styles.label}>{label}</label>
-            {children}
-            {description ? <Text id={`${controlId}-description`} variant="body-sm" tone="muted">{description}</Text> : null}
-            {error ? <Text id={`${controlId}-error`} variant="body-sm" tone="danger" role="alert">{error}</Text> : null}
-        </VStack>
-    </fieldContext.Provider>;
+    return (
+        <fieldContext.Provider
+            value={{
+                id: controlId,
+                labelId: `${controlId}-label`,
+                describedBy,
+                invalid: Boolean(error),
+            }}
+        >
+            <VStack
+                {...props}
+                gap={4}
+                className={`${styles.field}${className ? ` ${className}` : ''}`}
+            >
+                <label
+                    id={`${controlId}-label`}
+                    htmlFor={controlId}
+                    className={styles.label}
+                >
+                    {label}
+                </label>
+                {children}
+                {description ? (
+                    <Text id={`${controlId}-description`} variant="body-sm" tone="muted">
+                        {description}
+                    </Text>
+                ) : null}
+                {error ? (
+                    <Text
+                        id={`${controlId}-error`}
+                        variant="body-sm"
+                        tone="danger"
+                        role="alert"
+                    >
+                        {error}
+                    </Text>
+                ) : null}
+            </VStack>
+        </fieldContext.Provider>
+    );
 }

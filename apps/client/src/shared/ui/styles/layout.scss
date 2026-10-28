@@ -12,15 +12,15 @@ $spacing-map: (
 );
 
 :root {
-    @each $key, $value in $spacing-map {
-        --spacing-#{$key}: calc(#{$value} / 16 * 1rem);
-    }
-
     --radius-xs: 0;
     --radius-sm: 0;
     --radius-md: 0;
     --radius-lg: 0;
     --top-line-height: 52px;
+
+    @each $key, $value in $spacing-map {
+        --spacing-#{$key}: calc(#{$value} / 16 * 1rem);
+    }
 }
 
 @mixin top-line-block {

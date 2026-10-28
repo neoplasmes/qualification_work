@@ -3,8 +3,8 @@ dist
 bin
 
 .env
-k8s/**/secret.yml
-k8s/**/secret.yaml
+env/cluster/**/secret.yml
+env/cluster/**/secret.yaml
 # Postgres:
 # helm show values oci://registry-1.docker.io/bitnamicharts/postgresql 
 # --version 18.6.2 > values.example.yaml - to generate and look at acceptable values. (also they can be seen in artifact hub)
@@ -12,7 +12,7 @@ k8s/**/secret.yaml
 # Redis:
 # helm show values oci://registry-1.docker.io/bitnamicharts/redis 
 # --version 25.5.2 > values.example.yaml 
-k8s/**/values.example.yaml
+env/cluster/**/values.yaml
 
 userlist.txt
 
@@ -38,3 +38,6 @@ docs
 migration-plan
 
 .agents/skills/**/__pycache__/
+.secrets/
+.cache/
+.local/

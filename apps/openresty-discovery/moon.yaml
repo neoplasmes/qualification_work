@@ -1,25 +1,47 @@
 language: go
 layer: application
+dependsOn:
+  - root
 fileGroups:
   src:
-  - '*.go'
-  - '!*_test.go'
+    - "{cmd,internal}/**/*.go"
+    - "!**/*_test.go"
+  test-unit:
+    - "{cmd,internal}/**/*_test.go"
+    - "!**/*_integration_test.go"
   test-int:
-  - '*_test.go'
+    - "**/*_integration_test.go"
   cfg:
-  - go.mod
-  - go.sum
+    - go.mod
+    - go.sum
 tasks:
-  test-int:
+  test-unit:
     command: go test -count 1 ./...
     inputs:
-    - '@group(src)'
-    - '@group(test-int)'
-    - '@group(cfg)'
-  build:
-    command: go build -o bin/openresty-discovery .
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(cfg)"
+  test-int:
+    command: go test -tags integration -count 1 ./...
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
+      - "@group(src)"
+      - "@group(test-int)"
+      - "@group(cfg)"
+  dev:
+    command: go run ./cmd/openresty-discovery
+    preset: server
+    options:
+      envFile: .env
+  build:
+    command: go build -o bin/openresty-discovery ./cmd/openresty-discovery
+    inputs:
+      - "@group(src)"
+      - "@group(cfg)"
     outputs:
-    - bin/openresty-discovery
+      - bin/openresty-discovery
+  image:
+    command: docker build -f apps/openresty-discovery/Dockerfile -t openresty-discovery:local .
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+      runInCI: false

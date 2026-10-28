@@ -8,22 +8,22 @@
     text-align: left;
     background: transparent;
     overflow-wrap: anywhere;
-}
 
-.item:hover {
-    background: var(--marker);
-}
+    &:hover {
+        background: var(--marker);
+    }
 
-.item[aria-current] {
-    color: var(--on-ink);
-    background: var(--ink);
-}
+    &[aria-current] {
+        color: var(--on-ink);
+        background: var(--ink);
+    }
 
-.item:focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: -2px;
-}
+    &:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: -2px;
+    }
 
-.item[aria-current] span {
-    color: var(--on-ink);
+    &[aria-current] span {
+        color: var(--on-ink);
+    }
 }

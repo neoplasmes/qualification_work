@@ -15,10 +15,9 @@ import type { Executable, ExecutableIO } from '@/core/ports/driving';
 
 import { checkWritableOrgMembership } from '@/shared/checkOrgMembership';
 
-export class PatchActionCommand implements Executable<
-    [string, PatchActionPayload, OrgMembership[]],
-    Promise<void>
-> {
+export class PatchActionCommand
+    implements Executable<[string, PatchActionPayload, OrgMembership[]], Promise<void>>
+{
     constructor(private readonly actionRepo: ActionRepo) {}
 
     async execute(

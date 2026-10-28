@@ -1,47 +1,46 @@
 language: typescript
 layer: application
 tags:
-- node
+  - node
 dependsOn:
-- primitive-server
-- types
-- microservice-config
-- microservice-utils
-- root
+  - primitive-server
+  - types
+  - microservice-utils
+  - root
 fileGroups:
   src:
-  - src/**/*.ts
-  - '!**/*.test.{ts,tsx}'
-  - '!src/test/**'
+    - src/**/*.ts
+    - "!**/*.test.{ts,tsx}"
+    - "!**/*.test.int.ts"
+    - "!src/test/**"
   test-unit:
-  - src/**/*.test.ts
-  - '!src/test/**'
+    - src/**/*.test.ts
+    - "!src/test/**"
   test-int:
-  - src/test/**/*.ts
+    - src/**/*.test.int.ts
+    - src/test/**/*.ts
   cfg:
-  - package.json
-  - tsconfig.json
-  - tsup.config.ts
-  - vitest.config.ts
-  - oxlint.config.ts
-  - prettier.config.js
+    - package.json
+    - tsconfig.json
+    - tsup.config.ts
+    - vitest.config.ts
+    - oxlint.config.ts
   cfg-code:
-  - tsup.config.ts
-  - vitest.config.ts
-  - oxlint.config.ts
-  - prettier.config.js
+    - tsup.config.ts
+    - vitest.config.ts
+    - oxlint.config.ts
   cfg-lint:
-  - oxlint.config.ts
-  - /packages/microservice-config/oxlint.ts
+    - oxlint.config.ts
+    - /tools/microservice-config/oxlint.ts
   assets: []
   fixtures:
-  - src/test/**/*.csv
-  - src/test/**/*.xlsx
-  - test/**/*.{ini,pem,conf}
-  - docker-compose.test.yaml
-  - .env.test
-  - /infrastructure/**/*.{sql,ini,conf}
-  - Dockerfile
+    - src/test/**/*.csv
+    - src/test/**/*.xlsx
+    - test/**/*.{ini,pem,conf}
+    - docker-compose.test.yaml
+    - .env.test
+    - /env/database/**/*.{sql,ini,conf}
+    - Dockerfile
 # database startup moved from package scripts to the root compose task
 tasks:
   lint:
@@ -57,40 +56,38 @@ tasks:
       mergeArgs: replace
   typecheck:
     deps: &id004
-    - target: primitive-server:build
-      cacheStrategy: outputs
+      - target: primitive-server:build
+        cacheStrategy: outputs
     inputs:
-    - &id001
-      project: types
-      group: src
-    - &id002
-      project: microservice-config
-      group: src
-    - &id003
-      project: microservice-utils
-      group: src
+      - &id001
+        project: types
+        group: src
+      - &id002 /tools/microservice-config/*
+      - &id003
+        project: microservice-utils
+        group: src
   test-unit:
-    command: pnpm exec vitest run --exclude 'src/test/**'
+    command: pnpm exec vitest run --exclude '**/*.test.int.ts'
     inputs:
-    - '@group(src)'
-    - '@group(test-unit)'
-    - '@group(cfg)'
-    - *id001
-    - *id002
-    - *id003
+      - "@group(src)"
+      - "@group(test-unit)"
+      - "@group(cfg)"
+      - *id001
+      - *id002
+      - *id003
     deps: *id004
   test-int:
     command: nu --no-config-file $workspaceRoot/tools/compose-test/compose-test.nu docker-compose.test.yaml pnpm
-      exec vitest run src/test
+      exec vitest run .test.int
     inputs:
-    - '@group(src)'
-    - '@group(test-int)'
-    - '@group(cfg)'
-    - '@group(fixtures)'
-    - /tools/compose-test/compose-test.nu
-    - *id001
-    - *id002
-    - *id003
+      - "@group(src)"
+      - "@group(test-int)"
+      - "@group(cfg)"
+      - "@group(fixtures)"
+      - /tools/compose-test/compose-test.nu
+      - *id001
+      - *id002
+      - *id003
     deps: *id004
     options:
       envFile: .env.test
@@ -99,30 +96,36 @@ tasks:
     command: pnpm exec tsx watch src/index.ts
     preset: server
     deps:
-    - primitive-server:build
-    - root:compose-up
+      - primitive-server:build
+      - env:compose-up
     options:
       envFile: .env
   build:
     command: pnpm exec tsup
     inputs:
-    - '@group(src)'
-    - '@group(cfg)'
-    - *id001
-    - *id002
-    - *id003
+      - "@group(src)"
+      - "@group(cfg)"
+      - *id001
+      - *id002
+      - *id003
     outputs:
-    - dist
+      - dist
     deps: *id004
   start:
     command: proto run node -- dist/index.js
     preset: server
     deps:
-    - server:build
+      - server:build
     env:
       NODE_ENV: production
     options:
       envFile: .env
+  image:
+    command: docker build -f apps/server/Dockerfile -t server:local .
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+      runInCI: false
   compose-up:
     command: docker compose -f docker-compose.test.yaml up -d --renew-anon-volumes --build --wait --wait-timeout
       300

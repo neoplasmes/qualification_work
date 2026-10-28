@@ -142,13 +142,13 @@ export async function captureChartStates({
                     return {
                         readable: Boolean(
                             plotBounds &&
-                            plotBounds.width > 200 &&
-                            plotBounds.height > 140
+                                plotBounds.width > 200 &&
+                                plotBounds.height > 140
                         ),
                         separated: Boolean(
                             plotBounds &&
-                            summaryBounds &&
-                            plotBounds.y + plotBounds.height <= summaryBounds.y + 1
+                                summaryBounds &&
+                                plotBounds.y + plotBounds.height <= summaryBounds.y + 1
                         ),
                     };
                 })

@@ -1,0 +1,51 @@
+# environment operations: local compose stack, k3d cluster, registry delivery
+# tasks run from the workspace root (all.yaml), so paths start with env/
+language: unknown
+layer: configuration
+fileGroups:
+  scripts:
+    - scripts/*.nu
+  database:
+    - database/**/*.{sql,ini,conf}
+  cluster:
+    - cluster/**/*.{yaml,gotmpl,conf}
+tasks:
+  # k3d management for local testing of kubernetes (k3s) (not for weak machines)
+  # todo: as project grows, this set of commands should be reconsidered
+  cluster-create:
+    command: k3d cluster create local-development --config env/cluster/k3d.config.yaml
+    preset: utility
+  cluster-start:
+    command: k3d cluster start local-development
+    preset: utility
+  cluster-stop:
+    command: k3d cluster stop local-development
+    preset: utility
+  # todo: universality or delete
+  migrate:
+    command: nu --no-config-file env/scripts/apply-migration.nu env/cluster/postgres/migrations/init/job.yaml env/database/postgres/init
+    preset: utility
+  apply:
+    command: nu --no-config-file env/scripts/apply.nu
+    preset: utility
+  deploy:
+    command: nu --no-config-file env/scripts/deploy-image.nu apps/client apps/server apps/data-service apps/auth apps/openresty-discovery
+    preset: utility
+  destroy:
+    command: k3d cluster delete local-development
+    preset: utility
+  compose-up:
+    command: docker compose -f env/local/compose.yaml up -d --renew-anon-volumes --build --wait --wait-timeout 300
+    options:
+      cache: false
+      runInCI: false
+  compose-down:
+    command: docker compose -f env/local/compose.yaml down -v --rmi local
+    options:
+      cache: false
+      runInCI: false
+  compose-logs:
+    command: docker compose -f env/local/compose.yaml logs --tail=200
+    options:
+      cache: false
+      runInCI: false

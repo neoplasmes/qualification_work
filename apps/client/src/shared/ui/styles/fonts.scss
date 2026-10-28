@@ -1,9 +1,7 @@
 :root {
     --font-headline: var(--font-body);
-    --font-body:
-        -apple-system, blinkmacsystemfont, 'Geist', 'Golos Text', system-ui, sans-serif;
-    --font-label:
-        -apple-system, blinkmacsystemfont, 'Geist', 'Golos Text', system-ui, sans-serif;
+    --font-body: -apple-system, blinkmacsystemfont, 'Geist', 'Golos Text', system-ui, sans-serif;
+    --font-label: -apple-system, blinkmacsystemfont, 'Geist', 'Golos Text', system-ui, sans-serif;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-md: 1rem;

@@ -41,7 +41,6 @@
         border-top: var(--border-hair) dashed var(--rule-dash);
     }
 
-
     .marker {
         font-family: var(--font-mono);
         font-size: var(--font-size-typed);
@@ -56,5 +55,4 @@
         padding-bottom: var(--space-32);
         border-top: var(--border-hair) solid var(--ink);
     }
-
 }

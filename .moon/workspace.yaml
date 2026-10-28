@@ -9,6 +9,7 @@ projects:
   auth: "apps/auth"
   primitive-server: "packages/primitive-server"
   types: "packages/types"
+  contracts: "packages/contracts"
   design-system: "packages/design-system"
   microservice-utils: "packages/microservice-utils"
   openresty-discovery: "apps/openresty-discovery"

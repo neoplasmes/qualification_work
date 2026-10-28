@@ -4,6 +4,7 @@ import (
 	authHTTP "auth/internal/adapters/driving/http/auth"
 	gatewayHTTP "auth/internal/adapters/driving/http/gateway"
 	healthHTTP "auth/internal/adapters/driving/http/health"
+	orgsHTTP "auth/internal/adapters/driving/http/orgs"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 type HTTPHandlers struct {
 	Auth    authHTTP.Handlers
 	Gateway gatewayHTTP.Handlers
+	Orgs    orgsHTTP.Handlers
 	Ready   *healthHTTP.ReadyHandler
 }
 
@@ -36,6 +38,7 @@ func CreateApp(deps Deps) *gin.Engine {
 
 	authHTTP.Register(router.Group("/api/auth"), deps.Handlers.Auth)
 	gatewayHTTP.Register(router.Group("/gateway"), deps.Handlers.Gateway)
+	orgsHTTP.Register(router.Group("/api/orgs"), deps.Handlers.Orgs)
 
 	return router
 }

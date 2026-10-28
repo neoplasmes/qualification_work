@@ -22,19 +22,20 @@ func TestGateway(t *testing.T) {
 			step(t, "asking auth for internal JWT")
 			response := get(t, client, authBase+"/gateway/jwt")
 			defer response.Body.Close()
-			require.Equal(t, 202, response.StatusCode)
+			// the personal org is created at signup, so the user is never initializing
+			require.Equal(t, 204, response.StatusCode)
 
 			token := response.Header.Get("X-Internal-Auth")
 			step(t, "got jwt (len=%d)", len(token))
 			require.NotEmpty(t, token)
-			require.Equal(t, "1", response.Header.Get("X-User-Initializing"))
-			require.Equal(t, "no-store", response.Header.Get("Cache-Control"))
+			require.Empty(t, response.Header.Get("X-User-Initializing"))
 
 			step(t, "verifying signature with public key from test/integration/keys/jwt.pem")
 			privateKey := loadPrivateKey(t)
 			claims := verifyJWT(t, token, &privateKey.PublicKey)
 
 			require.NotEmpty(t, claims.Sub)
+			require.Len(t, claims.Orgs, 1, "jwt carries the personal org")
 			require.Equal(t, "qualification-auth-test", claims.Iss)
 			require.Equal(t, "internal", claims.Aud)
 			require.Greater(t, claims.Exp, time.Now().Unix(), "exp must be in the future")

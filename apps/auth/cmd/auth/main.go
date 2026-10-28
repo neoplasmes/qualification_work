@@ -17,9 +17,10 @@ import (
 	"auth/internal/config"
 	"auth/internal/core/commands"
 	"auth/internal/core/queries"
+	"auth/migrations"
 
 	logger "auth/internal/adapters/driven/repos/_logger"
-	eventsRepo "auth/internal/adapters/driven/repos/events"
+	"auth/internal/adapters/driven/repos/outbox"
 	orgRepo "auth/internal/adapters/driven/repos/org"
 	sessionRepo "auth/internal/adapters/driven/repos/session"
 	userRepo "auth/internal/adapters/driven/repos/user"
@@ -29,6 +30,7 @@ import (
 	authHTTP "auth/internal/adapters/driving/http/auth"
 	gatewayHTTP "auth/internal/adapters/driving/http/gateway"
 	healthHTTP "auth/internal/adapters/driving/http/health"
+	orgsHTTP "auth/internal/adapters/driving/http/orgs"
 
 	pgClient "auth/internal/infrastructure/pg"
 	redisClient "auth/internal/infrastructure/redis"
@@ -72,6 +74,21 @@ func run() error {
 	}
 	defer postgresPool.Close()
 
+	if err := pgClient.Migrate(ctx, postgresPool, migrations.Files); err != nil {
+		return fmt.Errorf("migrate: %w", err)
+	}
+
+	outboxRelay, err := outbox.NewRelay(postgresPool, appConfig.Kafka.Brokers)
+	if err != nil {
+		return fmt.Errorf("outbox: %w", err)
+	}
+	defer outboxRelay.Close()
+
+	if err := outboxRelay.EnsureTopic(ctx, appConfig.Kafka.Replicas); err != nil {
+		return fmt.Errorf("outbox topic: %w", err)
+	}
+	go outboxRelay.Run(ctx)
+
 	redisConnection, err := redisClient.Connect(ctx, appConfig.Redis)
 	if err != nil {
 		return fmt.Errorf("redis: %w", err)
@@ -94,15 +111,16 @@ func run() error {
 	pgUserRepo := userRepo.NewPg(postgresPool)
 	pgOrgRepo := orgRepo.NewPg(postgresPool)
 	redisSessionRepo := sessionRepo.NewRedis(redisConnection, tokenGeneratorTool, appConfig.Session.TTL)
-	redisEventsRepo := eventsRepo.NewRedis(redisConnection)
 
 	// ——————————————————————————————— HTTP handlers —————————————————————————————————
-	signUpHandler := commands.NewSignUp(pgUserRepo, redisEventsRepo, passwordHasher)
+	signUpHandler := commands.NewSignUp(pgUserRepo, passwordHasher)
 	signInHandler := commands.NewSignIn(pgUserRepo, redisSessionRepo, passwordHasher, commands.LockoutPolicy{
 		MaxFailedAttempts: appConfig.Lockout.MaxFailedAttempts,
 		Duration:          appConfig.Lockout.Duration,
 	})
 	logoutHandler := commands.NewLogout(redisSessionRepo)
+	createOrgHandler := commands.NewCreateOrg(redisSessionRepo, pgOrgRepo)
+	deleteOrgHandler := commands.NewDeleteOrg(redisSessionRepo, pgOrgRepo)
 	meHandler := queries.NewMe(redisSessionRepo, pgUserRepo, pgOrgRepo)
 	jwtHandler := queries.NewJWT(redisSessionRepo, pgUserRepo, pgOrgRepo, jwtIssuer, queries.JWTIssuerPolicy{
 		Issuer:   appConfig.InternalJWT.Issuer,
@@ -134,6 +152,10 @@ func run() error {
 			Gateway: gatewayHTTP.Handlers{
 				JWT:  gatewayHTTP.NewJWT(jwtHandler, cookieWriter),
 				JWKS: gatewayHTTP.NewJWKS(jwtIssuer),
+			},
+			Orgs: orgsHTTP.Handlers{
+				Create: orgsHTTP.NewCreate(createOrgHandler, cookieWriter),
+				Delete: orgsHTTP.NewDelete(deleteOrgHandler, cookieWriter),
 			},
 			Ready: readyHandler,
 		},

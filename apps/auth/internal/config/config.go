@@ -13,6 +13,12 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+// Kafka carries broker addresses for the outbox relay
+type Kafka struct {
+	Brokers  []string `envconfig:"KAFKA_BROKERS" required:"true"`
+	Replicas int16    `envconfig:"KAFKA_REPLICATION_FACTOR" default:"1"`
+}
+
 type Config struct {
 	Port        int    `envconfig:"AUTH_PORT" default:"3002"`
 	LogLevel    string `envconfig:"AUTH_LOG_LEVEL" default:"info"`
@@ -20,6 +26,7 @@ type Config struct {
 
 	DatabaseURL string `envconfig:"DATABASE_URL" required:"true"`
 	Redis       Redis
+	Kafka       Kafka
 
 	Pepper string `envconfig:"AUTH_PEPPER" required:"true"`
 

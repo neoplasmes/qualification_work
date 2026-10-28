@@ -1,4 +1,5 @@
-def main [composeFile: path, executable: string, ...arguments: string] {
+# wrapped so flags of the wrapped command are passed through untouched
+def --wrapped main [composeFile: path, executable: string, ...arguments: string] {
     let startup = do { ^docker compose -f $composeFile up -d --force-recreate --renew-anon-volumes --build --wait --wait-timeout 300 } | complete
     print --no-newline $startup.stdout
     print --stderr --no-newline $startup.stderr

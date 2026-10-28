@@ -11,7 +11,8 @@ type UserCreateParams struct {
 	PasswordHash   string
 	Name           string
 	Family         string
-	IsInitializing bool
+	// personal org created in the same transaction as the user
+	OrgDisplayName string
 }
 
 // UserCredentials is the projection used during sign-in.
@@ -39,7 +40,7 @@ type UserRepo interface {
 	FindCredentialsByEmail(ctx context.Context, email string) (*UserCredentials, error)
 	// FindProfileByID returns a public user profile by ID.
 	FindProfileByID(ctx context.Context, id string) (*UserProfile, error)
-	// Create inserts a user and returns its ID.
+	// Create inserts a user with a personal org and returns its ID.
 	Create(ctx context.Context, params UserCreateParams) (id string, err error)
 
 	// IncrementFailedAttempts increments failures and returns the new count.

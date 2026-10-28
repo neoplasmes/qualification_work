@@ -17,7 +17,7 @@ func TestAuth(t *testing.T) {
 		t.Run("creates a user with valid payload and returns 201 + id", func(t *testing.T) {
 			client := freshClient(t)
 			email := randEmail()
-			beforeEvents := redisStreamLen(t, "auth:user-events")
+			beforeEvents := orgEventCount(t, "OrgCreated")
 			step(t, "registering %s", email)
 
 			response := postJSON(t, client, authBase+"/api/auth/register", map[string]string{
@@ -34,14 +34,14 @@ func TestAuth(t *testing.T) {
 			require.NoError(t, json.Unmarshal([]byte(responseBody), &body))
 			step(t, "got user id=%s", body.ID)
 			require.NotEmpty(t, body.ID)
-			require.True(t, body.IsInitializing)
-			require.Equal(t, beforeEvents+1, redisStreamLen(t, "auth:user-events"))
+			require.False(t, body.IsInitializing)
+			require.Equal(t, beforeEvents+1, orgEventCount(t, "OrgCreated"))
 		})
 
 		t.Run("rejects duplicate email with 409", func(t *testing.T) {
 			client := freshClient(t)
 			email := signUpUser(t, client, "password123")
-			beforeEvents := redisStreamLen(t, "auth:user-events")
+			beforeEvents := orgEventCount(t, "OrgCreated")
 
 			step(t, "second register with same email must conflict")
 			response := postJSON(t, client, authBase+"/api/auth/register", map[string]string{
@@ -49,19 +49,19 @@ func TestAuth(t *testing.T) {
 			})
 			defer response.Body.Close()
 			require.Equal(t, 409, response.StatusCode)
-			require.Equal(t, beforeEvents, redisStreamLen(t, "auth:user-events"))
+			require.Equal(t, beforeEvents, orgEventCount(t, "OrgCreated"))
 		})
 
 		t.Run("rejects invalid payload with 400", func(t *testing.T) {
 			client := freshClient(t)
-			beforeEvents := redisStreamLen(t, "auth:user-events")
+			beforeEvents := orgEventCount(t, "OrgCreated")
 			step(t, "sending bad email + short password")
 			response := postJSON(t, client, authBase+"/api/auth/register", map[string]string{
 				"email": "not-an-email", "password": "short", "name": "", "family": "",
 			})
 			defer response.Body.Close()
 			require.Equal(t, 400, response.StatusCode)
-			require.Equal(t, beforeEvents, redisStreamLen(t, "auth:user-events"))
+			require.Equal(t, beforeEvents, orgEventCount(t, "OrgCreated"))
 		})
 	})
 
@@ -152,8 +152,8 @@ func TestAuth(t *testing.T) {
 			step(t, "got id=%s email=%s orgs=%d", body.ID, body.Email, len(body.Organizations))
 			require.Equal(t, email, body.Email)
 			require.NotEmpty(t, body.ID)
-			require.True(t, body.IsInitializing)
-			require.Empty(t, body.Organizations, "auth must return an empty list before server initializes orgs")
+			require.False(t, body.IsInitializing)
+			require.Len(t, body.Organizations, 1, "registration creates the personal org")
 		})
 
 		t.Run("logout clears cookie and subsequent /me returns 401", func(t *testing.T) {

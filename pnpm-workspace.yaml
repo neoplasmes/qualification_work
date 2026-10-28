@@ -5,6 +5,7 @@ packages:
   - "packages/microservice-utils"
   - "packages/primitive-server"
   - "packages/types"
+  - "packages/contracts"
   - "packages/design-system"
   - "e2e/backend"
   - "e2e/frontend"
@@ -33,6 +34,7 @@ catalogs:
     jsep: ^1.4.0
     redis: ^5.11.0
     zod: ^4.3.6
+    "@platformatic/kafka": 2.14.0
   devtools:
     dotenv: ^17.3.1
     dotenv-cli: ^11.0.0

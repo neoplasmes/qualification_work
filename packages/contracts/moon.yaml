@@ -1,0 +1,19 @@
+language: typescript
+layer: library
+tags:
+  - node
+fileGroups:
+  src:
+    - "**/*.ts"
+  test-unit: []
+  cfg:
+    - package.json
+    - tsconfig.json
+  cfg-code: []
+
+docker:
+  scaffold:
+    sourcesPhaseGlobs:
+      - "**/*.ts"
+      - package.json
+      - tsconfig.json

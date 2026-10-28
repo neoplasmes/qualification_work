@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"auth/internal/core/ports/driven/repos"
 	"auth/internal/core/ports/driven/tools"
@@ -26,19 +25,16 @@ type SignUpOutput struct {
 // SignUpHandler registers users
 type SignUpHandler struct {
 	users  repos.UserRepo
-	events repos.EventPublisher
 	hasher tools.HasherTool
 }
 
 // NewSignUp creates a SignUpHandler
 func NewSignUp(
 	users repos.UserRepo,
-	events repos.EventPublisher,
 	hasher tools.HasherTool,
 ) *SignUpHandler {
 	return &SignUpHandler{
 		users:  users,
-		events: events,
 		hasher: hasher,
 	}
 }
@@ -61,27 +57,20 @@ func (handler *SignUpHandler) Execute(ctx context.Context, input SignUpInput) (S
 		return emptyOutput, fmt.Errorf("signUp: hash: %w", err)
 	}
 
+	// the personal org is created in the same transaction, so the user is ready right away
 	userID, err := handler.users.Create(ctx, repos.UserCreateParams{
 		Email:          input.Email,
 		PasswordHash:   hash,
 		Name:           input.Name,
 		Family:         input.Family,
-		IsInitializing: true,
+		OrgDisplayName: input.Name + "'s organization",
 	})
 	if err != nil {
 		return emptyOutput, fmt.Errorf("signUp: create: %w", err)
 	}
 
-	if err := handler.events.PublishUserRegistered(ctx, repos.UserRegisteredEvent{
-		UserID:     userID,
-		Username:   input.Name,
-		OccurredAt: time.Now().UTC(),
-	}); err != nil {
-		fmt.Printf("signUp: publish user registered: %v\n", err)
-	}
-
 	return SignUpOutput{
 		ID:             userID,
-		IsInitializing: true,
+		IsInitializing: false,
 	}, nil
 }

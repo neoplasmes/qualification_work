@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"auth/internal/adapters/driven/repos/org"
 	"auth/internal/core/ports/driven/repos"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -85,17 +88,29 @@ func (repo *Repo) FindProfileByID(ctx context.Context, id string) (*repos.UserPr
 	return &profile, nil
 }
 
-// Create inserts a user in database and returns its ID
+// Create inserts a user with a personal org in one transaction and returns its ID
 func (repo *Repo) Create(ctx context.Context, params repos.UserCreateParams) (string, error) {
 	var userID string
 
-	err := repo.pool.QueryRow(
-		ctx,
-		`INSERT INTO auth.users (email, password_hash, name, family, is_initializing)
-		 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		params.Email, params.PasswordHash, params.Name, params.Family, params.IsInitializing,
-	).Scan(&userID)
+	err := pgx.BeginFunc(ctx, repo.pool, func(tx pgx.Tx) error {
+		if err := tx.QueryRow(
+			ctx,
+			`INSERT INTO auth.users (email, password_hash, name, family)
+			 VALUES ($1, $2, $3, $4) RETURNING id`,
+			params.Email, params.PasswordHash, params.Name, params.Family,
+		).Scan(&userID); err != nil {
+			return fmt.Errorf("insert user: %w", err)
+		}
 
+		// the slug is random, so a collision means a broken generator rather than a retry case
+		_, err := org.InsertWithOwner(ctx, tx, repos.OrgCreateParams{
+			Name:        strings.ReplaceAll(uuid.NewString(), "-", ""),
+			DisplayName: params.OrgDisplayName,
+			OwnerID:     userID,
+		})
+
+		return err
+	})
 	if err != nil {
 		return "", fmt.Errorf("pg.user.Create: %w", err)
 	}

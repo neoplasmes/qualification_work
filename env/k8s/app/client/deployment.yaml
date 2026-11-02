@@ -24,7 +24,7 @@ spec:
               cpu: "500m"
             limits:
               memory: "256Mi"
-              cpu: "500m"
+              cpu: "1000m"
           ports:
             - containerPort: 3000
           env:
@@ -33,15 +33,20 @@ spec:
                 configMapKeyRef:
                   name: app-env-config
                   key: CLIENT_PORT
+            # ssr calls the api through the in-cluster gateway, the browser keeps /api
+            - name: SSR_API_BASE_URL
+              value: "http://gateway/api"
           livenessProbe:
             httpGet:
               path: /
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5

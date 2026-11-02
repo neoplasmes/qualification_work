@@ -1,0 +1,39 @@
+# local k3d: app stack with in-cluster postgres and redis, images are imported by k3d,
+# built with --load-restrictor=LoadRestrictionsNone because init sql lives in env/postgres
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: app
+resources:
+  - ../app
+  - postgres.yaml
+  - redis.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: postgres-init-sql
+    files:
+      - ../../postgres/init/000_databases.sql
+patches:
+  # images come from k3d image import, never from the registry
+  - target:
+      kind: Deployment
+      name: auth|server|data-service|client|gateway
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      kind: Deployment
+      name: gateway
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/1/imagePullPolicy
+        value: IfNotPresent
+  # one node shares the cpu, so requests are lowered to let everything schedule
+  - target:
+      kind: Deployment
+      name: server|data-service|client
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 100m

@@ -40,6 +40,10 @@ spec:
               port: 3001
             initialDelaySeconds: 10
             periodSeconds: 10
+          env:
+            # every service owns its database, the url is built from the shared credentials
+            - name: DATABASE_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/dashboards?sslmode=disable"
           envFrom:
             - configMapRef:
                 name: app-env-config

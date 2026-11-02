@@ -3,8 +3,8 @@ kind: Simple
 
 # control plane amount
 servers: 1
-# "nodes" amount
-agents: 2
+# "nodes" amount, the server node also runs workloads, extra agents only cost memory locally
+agents: 0
 
 ports:
   - port: 80:80

@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - secret.yaml
+  - kafka
   - client
   - server
   - data-service

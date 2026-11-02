@@ -41,6 +41,9 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           env:
+            # every service owns its database, the url is built from the shared credentials
+            - name: DATABASE_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/auth?sslmode=disable"
             - name: AUTH_JWT_PRIVATE_KEY_PATH
               value: /etc/auth/jwt.private.pem
           envFrom:

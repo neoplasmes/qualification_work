@@ -20,6 +20,18 @@ import type { ReadOptions } from '@/app/ports/repos/readOptions';
 
 import { dashboardSchema } from './dashboard.schema';
 
+const metricResultsSchema = z.object({
+    results: z.record(
+        z.string(),
+        z.object({
+            value: z.number().nullable(),
+            trend: z
+                .array(z.object({ bucket: z.string(), value: z.number().nullable() }))
+                .nullable(),
+        })
+    ),
+});
+
 function mapDashboard(row: z.infer<typeof dashboardSchema>, orgId: string): Dashboard {
     if (row.orgId !== orgId) {
         throw new ContractViolationError('Unexpected dashboard scope');
@@ -65,6 +77,41 @@ export class HttpDashboardRepo implements DashboardRepo {
             throw new ContractViolationError('Unexpected dashboard id');
         }
 
+        // metric values are computed by data-service, which owns the rows
+        const metrics = [];
+        for (const item of row.items) {
+            if (item.kind === 'metric') {
+                metrics.push({
+                    id: item.id,
+                    datasetId: item.datasetId,
+                    expression: item.expression,
+                    showTrend: item.showTrend,
+                    timeColumn: item.timeColumn,
+                    timeBucket: item.timeBucket,
+                });
+            }
+        }
+
+        if (metrics.length > 0) {
+            const { results } = parseResponse(
+                metricResultsSchema,
+                await this.transport.request({
+                    path: '/data/metrics/evaluate',
+                    method: 'POST',
+                    body: { items: metrics },
+                    responseType: 'json',
+                    signal: options?.signal,
+                })
+            );
+
+            for (const item of row.items) {
+                if (item.kind === 'metric' && results[item.id]) {
+                    item.value = results[item.id].value;
+                    item.trend = results[item.id].trend;
+                }
+            }
+        }
+
         return mapDashboard(row, input.orgId);
     }
     async previewDashboardMetric(input: PreviewMetricInput, options?: ReadOptions) {
@@ -73,7 +120,7 @@ export class HttpDashboardRepo implements DashboardRepo {
         return parseResponse(
             z.object({ value: z.number().nullable() }),
             await this.transport.request({
-                path: '/dashboards/metrics/preview',
+                path: '/data/metrics/preview',
                 method: 'POST',
                 body,
                 responseType: 'json',

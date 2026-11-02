@@ -54,7 +54,7 @@ it('preserves empty aggregate null and excludes cache scope from preview', async
         { signal }
     );
     expect(metricPreview.value).toBeNull();
-    expect(fetch.mock.calls[0]![0]).toBe('/dashboards/metrics/preview');
+    expect(fetch.mock.calls[0]![0]).toBe('/data/metrics/preview');
     expect(fetch.mock.calls[0]![1]?.signal).toBe(signal);
     expect(JSON.parse(String(fetch.mock.calls[0]![1]?.body))).toEqual({
         datasetId: 'data1',
@@ -89,12 +89,12 @@ it('preserves metric configuration and absent summary enrichment', async () => {
     const fetch = vi
         .fn<typeof globalThis.fetch>()
         .mockResolvedValueOnce(Response.json([board]))
+        .mockResolvedValueOnce(Response.json(board))
         .mockResolvedValueOnce(
             Response.json({
-                ...board,
-                items: [
-                    { ...metric, value: null, trend: [{ bucket: '2026-01', value: 0 }] },
-                ],
+                results: {
+                    'i/1': { value: null, trend: [{ bucket: '2026-01', value: 0 }] },
+                },
             })
         );
     const repo = new HttpDashboardRepo(new HttpTransport({ baseUrl: '', fetch }));
@@ -109,6 +109,19 @@ it('preserves metric configuration and absent summary enrichment', async () => {
         trend: [{ bucket: '2026-01', value: 0 }],
     });
     expect(fetch.mock.calls[1]![0]).toBe('/dashboards/d%2F1');
+    expect(fetch.mock.calls[2]![0]).toBe('/data/metrics/evaluate');
+    expect(JSON.parse(String(fetch.mock.calls[2]![1]?.body))).toEqual({
+        items: [
+            {
+                id: 'i/1',
+                datasetId: 'data1',
+                expression: 'sum(amount)',
+                showTrend: true,
+                timeColumn: 'date',
+                timeBucket: 'month',
+            },
+        ],
+    });
 });
 
 it('sends metric format multiplier target direction and trend without cache scope', async () => {

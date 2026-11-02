@@ -1,29 +1,85 @@
-import { createRedisClient } from '@qualification-work/microservice-utils/redis';
+import { fileURLToPath } from 'node:url';
 
-import { InitUserCommand } from '@/core/commands';
+import {
+    analyticsChartEventSchema,
+    consumerGroups,
+    dataDatasetEventSchema,
+    dlqTopic,
+    identityOrgEventSchema,
+    topics,
+} from '@qualification-work/contracts';
+import {
+    EventConsumer,
+    ensureTopics,
+} from '@qualification-work/microservice-utils/kafka';
+import { runMigrations } from '@qualification-work/microservice-utils/postgres';
+import {
+    RedisCache,
+    createRedisClient,
+} from '@qualification-work/microservice-utils/redis';
 
 import { createApp } from '@/adapters/createApp';
-import { PgUserRepo } from '@/adapters/driven/repos';
-import { RedisUserEventsConsumer } from '@/adapters/driving/consumer';
+import {
+    createChartRefsHandler,
+    createDatasetRefsHandler,
+    createOrgCleanupHandler,
+} from '@/adapters/driving/consumer';
 
 import { loadConfig } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
 
 const config = loadConfig();
+
 const pool = await createPool(config.postgresConnectionString);
+await runMigrations(pool, fileURLToPath(new URL('../migrations', import.meta.url)));
+
 const redis = await createRedisClient(config.redis);
-const cacheRedis = await createRedisClient(config.redis);
+const cache = new RedisCache(redis, { namespace: 'server', defaultTtlMs: 60_000 });
 
-const initUserRepo = new PgUserRepo(pool);
-const initUserCommand = new InitUserCommand(initUserRepo);
-const userEventsConsumer = new RedisUserEventsConsumer(
-    redis,
-    initUserCommand,
-    initUserRepo
+await ensureTopics(
+    config.kafka.brokers,
+    [
+        topics.identityOrg,
+        topics.dataDataset,
+        topics.analyticsChart,
+        dlqTopic(topics.identityOrg.name),
+        dlqTopic(topics.dataDataset.name),
+        dlqTopic(topics.analyticsChart.name),
+    ],
+    config.kafka.replicationFactor
 );
-await userEventsConsumer.start();
 
-const app = createApp(pool, cacheRedis, config);
+const consumerBase = {
+    brokers: config.kafka.brokers,
+    clientId: 'server',
+    processedTable: 'dashboards.processed_events',
+};
+const consumers = [
+    new EventConsumer(pool, {
+        ...consumerBase,
+        groupId: consumerGroups.serverOrgCleanup,
+        topic: topics.identityOrg.name,
+        schema: identityOrgEventSchema,
+        handler: createOrgCleanupHandler(cache),
+    }),
+    new EventConsumer(pool, {
+        ...consumerBase,
+        groupId: consumerGroups.serverDatasetRefs,
+        topic: topics.dataDataset.name,
+        schema: dataDatasetEventSchema,
+        handler: createDatasetRefsHandler(cache),
+    }),
+    new EventConsumer(pool, {
+        ...consumerBase,
+        groupId: consumerGroups.serverChartRefs,
+        topic: topics.analyticsChart.name,
+        schema: analyticsChartEventSchema,
+        handler: createChartRefsHandler(cache),
+    }),
+];
+await Promise.all(consumers.map(consumer => consumer.start()));
+
+const app = createApp(pool, cache, config);
 
 const server = await app.listen({ port: config.port, host: '0.0.0.0' });
 console.log(`server runs on port ${config.port}`);
@@ -38,21 +94,12 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
     shuttingDown = true;
     console.log(`server received ${signal}, shutting down`);
 
-    await userEventsConsumer.stop();
+    await Promise.all(consumers.map(consumer => consumer.stop()));
     await redis.close();
-    await cacheRedis.close();
 
     await new Promise<void>((resolve, reject) => {
         server.closeAllConnections();
-        server.close(error => {
-            if (error) {
-                reject(error);
-
-                return;
-            }
-
-            resolve();
-        });
+        server.close(error => (error ? reject(error) : resolve()));
     });
 
     await pool.end();

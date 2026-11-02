@@ -1,1 +1,0 @@
-export { createOrgsRouter } from './router';

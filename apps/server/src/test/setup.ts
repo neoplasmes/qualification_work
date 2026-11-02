@@ -1,29 +1,27 @@
 import type { Server } from 'node:http';
+import { fileURLToPath } from 'node:url';
 import type { Pool } from 'pg';
 
 import {
     setInternalIdentity,
     type InternalIdentity,
 } from '@qualification-work/microservice-utils/auth';
+import { runMigrations } from '@qualification-work/microservice-utils/postgres';
 import {
+    RedisCache,
     createRedisClient,
     type RedisClient,
 } from '@qualification-work/microservice-utils/redis';
 import { mockInternalIdentity } from '@qualification-work/microservice-utils/test-utils';
 
-import { InitUserCommand } from '@/core/commands';
-
 import { createApp } from '@/adapters/createApp';
-import { PgUserRepo } from '@/adapters/driven/repos';
-import { RedisUserEventsConsumer } from '@/adapters/driving/consumer';
 
 import type { Config } from '@/infrastructure/config';
 import { createPool } from '@/infrastructure/postgres';
 
 let pool: Pool;
-let redis: RedisClient;
-let cacheRedis: RedisClient | undefined;
-let userEventsConsumer: RedisUserEventsConsumer | undefined;
+let redis: RedisClient | undefined;
+let cache: RedisCache;
 let baseUrl: string;
 let server: Server | undefined;
 let started = false;
@@ -43,8 +41,8 @@ export function getPool(): Pool {
     return pool;
 }
 
-export function getRedis(): RedisClient {
-    return redis;
+export function getCache(): RedisCache {
+    return cache;
 }
 
 export function getBaseUrl(): string {
@@ -61,6 +59,7 @@ const testConfig: Config = {
         password: process.env.REDIS_PASSWORD,
         db: Number(process.env.REDIS_DB ?? 0),
     },
+    kafka: { brokers: ['unused'], replicationFactor: 1 },
     auth: { jwksUrl: 'unused', jwtIssuer: 'unused', jwtAudience: 'unused' },
 };
 
@@ -75,9 +74,6 @@ const testAuthHook = async ({
 export async function truncate(): Promise<void> {
     if (redis?.isReady) {
         await redis.flushDb();
-    }
-    if (cacheRedis?.isReady && cacheRedis !== redis) {
-        await cacheRedis.flushDb();
     }
 
     const { rows } = await pool.query<{ schema_name: string }>(`
@@ -103,22 +99,16 @@ export async function startServer(): Promise<void> {
 
     try {
         pool = await createPool(testConfig.postgresConnectionString);
+        await runMigrations(
+            pool,
+            fileURLToPath(new URL('../../migrations', import.meta.url))
+        );
         redis = await createRedisClient(testConfig.redis);
-        cacheRedis = await createRedisClient(testConfig.redis);
+        cache = new RedisCache(redis, { namespace: 'server', defaultTtlMs: 60_000 });
 
         await truncate();
 
-        const initUserRepo = new PgUserRepo(pool);
-        const initUserCommand = new InitUserCommand(initUserRepo);
-        userEventsConsumer = new RedisUserEventsConsumer(
-            redis,
-            initUserCommand,
-            initUserRepo,
-            { blockTime: 100, reconcileIntervalTime: 200 }
-        );
-        await userEventsConsumer.start();
-
-        const app = createApp(pool, cacheRedis, testConfig, { authHook: testAuthHook });
+        const app = createApp(pool, cache, testConfig, { authHook: testAuthHook });
         server = await app.listen({ port: 0 });
 
         const addr = server.address();
@@ -145,8 +135,6 @@ export async function stopServer(): Promise<void> {
 
     started = false;
 
-    await userEventsConsumer?.stop();
-
     await new Promise<void>((resolve, reject) => {
         server?.closeAllConnections();
         server?.close(error => {
@@ -161,10 +149,8 @@ export async function stopServer(): Promise<void> {
     });
 
     await redis?.close();
-    await cacheRedis?.close();
     await pool?.end();
 
     server = undefined;
-    cacheRedis = undefined;
-    userEventsConsumer = undefined;
+    redis = undefined;
 }

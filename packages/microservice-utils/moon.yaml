@@ -2,6 +2,8 @@ language: typescript
 layer: library
 tags:
   - node
+dependsOn:
+  - contracts
 fileGroups:
   src:
     - src/**/*.ts

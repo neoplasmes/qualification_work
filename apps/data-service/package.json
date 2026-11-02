@@ -7,16 +7,17 @@
     ],
     "dependencies": {
         "@fastify/busboy": "^3.2.0",
+        "@platformatic/kafka": "catalog:backend",
+        "@qualification-work/contracts": "workspace:*",
         "@qualification-work/microservice-utils": "workspace:*",
         "@qualification-work/types": "workspace:*",
         "csv-parse": "^6.2.1",
         "exceljs": "^4.4.0",
         "fast-json-stringify": "^6.3.0",
-        "primitive-server": "workspace:*",
         "pg": "catalog:postgres",
+        "primitive-server": "workspace:*",
         "redis": "catalog:backend",
-        "zod": "catalog:backend",
-        "@qualification-work/contracts": "workspace:*"
+        "zod": "catalog:backend"
     },
     "devDependencies": {
         "@qualification-work/microservice-config": "workspace:*",

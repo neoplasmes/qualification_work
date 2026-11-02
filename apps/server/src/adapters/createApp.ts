@@ -6,31 +6,22 @@ import {
     BaseError,
     ValidationError,
 } from '@qualification-work/microservice-utils/errors';
-import {
-    RedisCache,
-    type RedisClient,
-} from '@qualification-work/microservice-utils/redis';
+import { JsepMetricExpressionTool } from '@qualification-work/microservice-utils/metricExpression';
+import type { RedisCache } from '@qualification-work/microservice-utils/redis';
 
 import {
     AddDashboardItemCommand,
     CreateDashboardCommand,
-    CreateOrgCommand,
     DeleteDashboardCommand,
     DeleteDashboardItemCommand,
-    DeleteOrgCommand,
     RenameDashboardCommand,
     UpdateDashboardItemCommand,
     UpdateDashboardLayoutCommand,
 } from '@/core/commands';
-import {
-    GetDashboardQuery,
-    ListDashboardsQuery,
-    PreviewDashboardMetricQuery,
-} from '@/core/queries';
+import { GetDashboardQuery, ListDashboardsQuery } from '@/core/queries';
 
-import { PgDashboardRepo, PgOrgRepo } from '@/adapters/driven/repos';
-import { JsepMetricExpressionTool } from '@qualification-work/microservice-utils/metricExpression';
-import { createDashboardsRouter, createOrgsRouter } from '@/adapters/driving/http';
+import { PgDashboardRepo } from '@/adapters/driven/repos';
+import { createDashboardsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
 import { getReadableOrgIds } from '@/shared/checkOrgMembership';
@@ -47,30 +38,23 @@ export type CreateAppOptions = {
     authHook?: AuthHook;
 };
 
-type PreviewDashboardMetricExecuteArgs = Parameters<
-    PreviewDashboardMetricQuery['execute']
->;
-
 /**
  * createApp function to reuse in tests
  *
  * @export
  * @param {Pool} pool
+ * @param {RedisCache} cache
  * @param {Config} config
  * @param {CreateAppOptions} [opts]
  * @returns {Application<AppState>}
  */
 export function createApp(
     pool: Pool,
-    redis: RedisClient,
+    cache: RedisCache,
     config: Config,
     opts: CreateAppOptions = {}
 ): Application<AppState> {
     const app = new Application<AppState>();
-    const cache = new RedisCache(redis, {
-        namespace: 'server',
-        defaultTtlMs: 60_000,
-    });
 
     // ——————————————————————————————— CORS ———————————————————————————————————
 
@@ -98,19 +82,6 @@ export function createApp(
     });
 
     // —————————————————————————————————————————————————————————————————————————————
-    // ——————————————————————————————————— Org —————————————————————————————————————
-    // —————————————————————————————————————————————————————————————————————————————
-
-    const orgRepo = new PgOrgRepo(pool);
-
-    const createOrg = new CreateOrgCommand(orgRepo);
-    const deleteOrg = new DeleteOrgCommand(orgRepo);
-
-    const orgsRouter = createOrgsRouter(createOrg, deleteOrg);
-
-    app.mount('/api', orgsRouter);
-
-    // —————————————————————————————————————————————————————————————————————————————
     // ———————————————————————————————— Dashboard ——————————————————————————————————
     // —————————————————————————————————————————————————————————————————————————————
 
@@ -126,7 +97,6 @@ export function createApp(
 
     const baseGetDashboard = new GetDashboardQuery(dashboardRepo);
     const baseListDashboards = new ListDashboardsQuery(dashboardRepo);
-    const basePreviewDashboardMetric = new PreviewDashboardMetricQuery(dashboardRepo);
 
     const createDashboard = {
         execute: async (...args: Parameters<CreateDashboardCommand['execute']>) => {
@@ -245,25 +215,6 @@ export function createApp(
         ],
         tags: (orgId: string) => [`org:${orgId}:dashboards`],
     }) as ListDashboardsQuery;
-    const previewDashboardMetric = {
-        execute: (
-            metric: PreviewDashboardMetricExecuteArgs[0],
-            orgs: PreviewDashboardMetricExecuteArgs[1]
-        ) =>
-            cache.rememberJson(
-                {
-                    key: [
-                        'dashboards',
-                        'metric-preview',
-                        metric.datasetId,
-                        metric.expression,
-                        accessFingerprint(orgs),
-                    ],
-                    ttlMs: 30_000,
-                },
-                () => basePreviewDashboardMetric.execute(metric, orgs)
-            ),
-    } as PreviewDashboardMetricQuery;
 
     const dashboardsRouter = createDashboardsRouter({
         createDashboard,
@@ -275,7 +226,6 @@ export function createApp(
         updateDashboardLayout,
         getDashboard,
         listDashboards,
-        previewDashboardMetric,
     });
     app.mount('/api', dashboardsRouter);
 

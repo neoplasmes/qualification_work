@@ -34,20 +34,6 @@ describe('POST /api/dashboards', () => {
         expect(typeof body.id).toBe('string');
     });
 
-    it('404 when org does not exist', async () => {
-        const fakeOrgId = randomUUID();
-        const stranger = mockInternalIdentity({
-            orgs: [{ id: fakeOrgId, role: 'owner' }],
-        });
-
-        const res = await apiAs(stranger, '/api/dashboards', {
-            method: 'POST',
-            body: JSON.stringify({ orgId: fakeOrgId, name: 'x' }),
-        });
-
-        expect(res.status).toBe(404);
-    });
-
     it('403 when orgId is not in membership', async () => {
         const stranger = mockInternalIdentity({
             orgs: [{ id: randomUUID(), role: 'owner' }],

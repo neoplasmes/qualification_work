@@ -3,8 +3,6 @@ import type {
     DashboardChartItem,
     DashboardItemLayoutInput,
     DashboardMetricItem,
-    PreviewDashboardMetricPayload,
-    PreviewDashboardMetricResponse,
 } from '@qualification-work/types';
 
 /**
@@ -68,18 +66,6 @@ export interface DashboardRepo {
      * @returns
      */
     listByOrg(orgId: string, userOrgIds: string[]): Promise<Dashboard[]>;
-
-    /**
-     * previews a metric expression against a readable dataset without saving it
-     *
-     * @param metric
-     * @param userOrgIds
-     * @returns computed value, or null if the dataset is not readable
-     */
-    previewMetric(
-        metric: PreviewDashboardMetricPayload,
-        userOrgIds: string[]
-    ): Promise<PreviewDashboardMetricResponse | null>;
 
     /**
      * adds a chart to dashboards

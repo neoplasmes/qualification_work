@@ -3,6 +3,7 @@ layer: application
 tags:
   - node
 dependsOn:
+  - contracts
   - primitive-server
   - types
   - microservice-utils

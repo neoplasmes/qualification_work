@@ -6,7 +6,7 @@ import { dashboardChartDefaultHeight, type Dashboard } from '@qualification-work
 import {
     api,
     apiAs,
-    dbQuery,
+    setDatasetColumns,
     resetTestIdentity,
     startServer,
     stopServer,
@@ -153,13 +153,7 @@ describe('POST /api/dashboards/:id/items', () => {
     it('400 when metric expression uses a disabled analysis column', async () => {
         const dashboardId = await createDashboard(orgId);
 
-        await dbQuery(
-            `INSERT INTO data.dataset_columns
-                (dataset_id, key, display_name, data_type, order_index, is_analyzable)
-             VALUES
-                ($1, 'amount', 'Amount', 'number', 0, false)`,
-            [datasetId]
-        );
+        await setDatasetColumns(datasetId, [{ key: 'amount', isAnalyzable: false }]);
 
         const res = await api(`/api/dashboards/${dashboardId}/items`, {
             method: 'POST',
@@ -178,14 +172,10 @@ describe('POST /api/dashboards/:id/items', () => {
     it('400 when a metric update switches to a disabled analysis column', async () => {
         const dashboardId = await createDashboard(orgId);
 
-        await dbQuery(
-            `INSERT INTO data.dataset_columns
-                (dataset_id, key, display_name, data_type, order_index, is_analyzable)
-             VALUES
-                ($1, 'amount', 'Amount', 'number', 0, true),
-                ($1, 'disabled_amount', 'Disabled Amount', 'number', 1, false)`,
-            [datasetId]
-        );
+        await setDatasetColumns(datasetId, [
+            { key: 'amount', isAnalyzable: true },
+            { key: 'disabled_amount', isAnalyzable: false },
+        ]);
 
         const create = await api(`/api/dashboards/${dashboardId}/items`, {
             method: 'POST',

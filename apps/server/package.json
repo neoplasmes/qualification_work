@@ -7,14 +7,16 @@
     "author": "",
     "license": "ISC",
     "files": [
-        "dist"
+        "dist",
+        "migrations"
     ],
     "dependencies": {
+        "@platformatic/kafka": "catalog:backend",
+        "@qualification-work/contracts": "workspace:*",
         "@qualification-work/microservice-utils": "workspace:*",
         "@qualification-work/types": "workspace:*",
         "es-toolkit": "catalog:common",
         "fast-json-stringify": "^6.3.0",
-        "jsep": "catalog:backend",
         "pg": "catalog:postgres",
         "primitive-server": "workspace:*",
         "redis": "catalog:backend",

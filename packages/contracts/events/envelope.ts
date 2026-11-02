@@ -7,7 +7,10 @@ import { z } from 'zod';
  * @param payload
  * @returns
  */
-export const envelopeSchema = <T extends string, P extends z.ZodType>(type: T, payload: P) =>
+export const envelopeSchema = <T extends string, P extends z.ZodType>(
+    type: T,
+    payload: P
+) =>
     z.object({
         eventId: z.uuid(),
         type: z.literal(type),

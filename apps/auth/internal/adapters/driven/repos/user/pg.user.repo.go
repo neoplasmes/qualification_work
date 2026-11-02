@@ -108,8 +108,11 @@ func (repo *Repo) Create(ctx context.Context, params repos.UserCreateParams) (st
 			DisplayName: params.OrgDisplayName,
 			OwnerID:     userID,
 		})
+		if err != nil {
+			return fmt.Errorf("insert personal org: %w", err)
+		}
 
-		return err
+		return nil
 	})
 	if err != nil {
 		return "", fmt.Errorf("pg.user.Create: %w", err)

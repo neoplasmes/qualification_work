@@ -7,7 +7,11 @@ export type TopicSpec = {
 export const topics = {
     identityOrg: { name: 'identity.org.v1', partitions: 3, cleanupPolicy: 'compact' },
     dataDataset: { name: 'data.dataset.v1', partitions: 6, cleanupPolicy: 'compact' },
-    analyticsChart: { name: 'analytics.chart.v1', partitions: 6, cleanupPolicy: 'compact' },
+    analyticsChart: {
+        name: 'analytics.chart.v1',
+        partitions: 6,
+        cleanupPolicy: 'compact',
+    },
 } as const satisfies Record<string, TopicSpec>;
 
 export const consumerGroups = {

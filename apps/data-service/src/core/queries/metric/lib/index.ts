@@ -1,0 +1,1 @@
+export { termsAreValid } from './termsAreValid';

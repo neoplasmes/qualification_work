@@ -12,6 +12,7 @@ export default defineConfig({
     noExternal: [
         /^@qualification-work\/microservice-utils/,
         /^@qualification-work\/types/,
+        /^@qualification-work\/contracts/,
     ],
     onSuccess: 'cp -R src/adapters/driven/repos/dashboard/pg/scripts dist/scripts',
 });

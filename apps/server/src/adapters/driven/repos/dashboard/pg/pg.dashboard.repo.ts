@@ -34,7 +34,7 @@ import type {
     MetricExpressionNode,
     MetricExpressionTool,
     MetricTermKey,
-} from '@/core/ports/driven/tools';
+} from '@qualification-work/microservice-utils/metricExpression';
 
 const dashboardGridX = 0;
 

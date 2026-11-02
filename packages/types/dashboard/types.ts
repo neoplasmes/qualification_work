@@ -120,6 +120,26 @@ export type PreviewDashboardMetricResponse = {
     value: number | null;
 };
 
+// metric definition data-service needs to compute a value, kept by server
+export type MetricEvaluationItem = Pick<
+    DashboardMetricItem,
+    'id' | 'datasetId' | 'expression' | 'showTrend' | 'timeColumn' | 'timeBucket'
+>;
+
+export type EvaluateMetricsPayload = {
+    items: MetricEvaluationItem[];
+};
+
+export type MetricEvaluationResult = {
+    value: number | null;
+    trend: MetricTrendPoint[] | null;
+};
+
+export type EvaluateMetricsResponse = {
+    // keyed by item id
+    results: Record<string, MetricEvaluationResult>;
+};
+
 export type DashboardItemLayoutInput = {
     itemId: string;
     posX: number;

@@ -15,7 +15,8 @@
         "primitive-server": "workspace:*",
         "pg": "catalog:postgres",
         "redis": "catalog:backend",
-        "zod": "catalog:backend"
+        "zod": "catalog:backend",
+        "@qualification-work/contracts": "workspace:*"
     },
     "devDependencies": {
         "@qualification-work/microservice-config": "workspace:*",
@@ -27,5 +28,9 @@
     },
     "author": "neoplasmes",
     "license": "ISC",
-    "packageManager": "pnpm@11.1.2"
+    "packageManager": "pnpm@11.1.2",
+    "files": [
+        "dist",
+        "migrations"
+    ]
 }

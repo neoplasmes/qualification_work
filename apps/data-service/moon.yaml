@@ -39,7 +39,8 @@ fileGroups:
     - test/**/*.{ini,pem,conf}
     - docker-compose.test.yaml
     - .env.test
-    - /env/database/**/*.{sql,ini,conf}
+    - /env/postgres/**/*.sql
+    - /env/pgbouncer/*.{ini,txt}
     - Dockerfile
 tasks:
   lint:
@@ -146,6 +147,7 @@ docker:
   scaffold:
     sourcesPhaseGlobs:
       - src/**/*
+      - migrations/**/*
       - package.json
       - tsconfig.json
       - tsup.config.ts

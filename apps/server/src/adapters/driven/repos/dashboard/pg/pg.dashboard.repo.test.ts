@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Dashboard } from '@qualification-work/types';
 
-import { JsepMetricExpressionTool } from '@/adapters/driven/tools';
+import { JsepMetricExpressionTool } from '@qualification-work/microservice-utils/metricExpression';
 
 import { PgDashboardRepo } from './pg.dashboard.repo';
 

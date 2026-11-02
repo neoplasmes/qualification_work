@@ -39,7 +39,8 @@ fileGroups:
     - test/**/*.{ini,pem,conf}
     - docker-compose.test.yaml
     - .env.test
-    - /env/database/**/*.{sql,ini,conf}
+    - /env/postgres/**/*.sql
+    - /env/pgbouncer/*.{ini,txt}
     - Dockerfile
 # database startup moved from package scripts to the root compose task
 tasks:
@@ -147,6 +148,7 @@ docker:
   scaffold:
     sourcesPhaseGlobs:
       - src/**/*
+      - migrations/**/*
       - package.json
       - tsconfig.json
       - tsup.config.ts

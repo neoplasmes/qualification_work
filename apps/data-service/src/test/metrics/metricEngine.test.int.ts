@@ -1,26 +1,34 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import type { Dashboard, DashboardMetricItem } from '@qualification-work/types';
+import type {
+    EvaluateMetricsResponse,
+    MetricEvaluationResult,
+} from '@qualification-work/types';
 
 import {
     api,
+    createTestUserWithOrg,
     dbQuery,
     resetTestIdentity,
     startServer,
     stopServer,
     truncate,
-} from '../lib';
-import { bootFixture, createDashboard, silenceErrors } from './lib';
+} from '../setup';
 
-let orgId: string;
 let datasetId: string;
 
 beforeAll(startServer);
 afterAll(stopServer);
 
 beforeEach(async () => {
-    ({ orgId, datasetId } = await bootFixture());
-    silenceErrors();
+    const { orgId } = await createTestUserWithOrg();
+    const [dataset] = await dbQuery<{ id: string }>(
+        `INSERT INTO data.datasets (org_id, name, source_type)
+        VALUES ($1, 'metrics', 'manual')
+        RETURNING id`,
+        [orgId]
+    );
+    datasetId = dataset.id;
 });
 
 afterEach(async () => {
@@ -28,23 +36,33 @@ afterEach(async () => {
     await truncate();
 });
 
-const addMetric = (dashboardId: string, body: Record<string, unknown>) =>
-    api(`/api/dashboards/${dashboardId}/items`, {
-        method: 'POST',
-        body: JSON.stringify({ kind: 'metric', datasetId, ...body }),
-    });
-
 const previewMetric = (body: Record<string, unknown>) =>
-    api('/api/dashboards/metrics/preview', {
+    api('/api/metrics/preview', {
         method: 'POST',
         body: JSON.stringify({ datasetId, ...body }),
     });
 
-const getMetric = async (dashboardId: string): Promise<DashboardMetricItem> => {
-    const res = await api(`/api/dashboards/${dashboardId}`);
-    const body = (await res.json()) as Dashboard;
+const evaluateMetric = async (
+    body: Record<string, unknown>
+): Promise<MetricEvaluationResult> => {
+    const res = await api('/api/metrics/evaluate', {
+        method: 'POST',
+        body: JSON.stringify({
+            items: [
+                {
+                    id: 'metric',
+                    datasetId,
+                    showTrend: false,
+                    timeColumn: null,
+                    timeBucket: null,
+                    ...body,
+                },
+            ],
+        }),
+    });
+    const result = (await res.json()) as EvaluateMetricsResponse;
 
-    return body.items.find(item => item.kind === 'metric') as DashboardMetricItem;
+    return result.results.metric;
 };
 
 describe('metric engine', () => {
@@ -111,8 +129,6 @@ describe('metric engine', () => {
     });
 
     it('evaluates an arithmetic ratio over aggregates', async () => {
-        const dashboardId = await createDashboard(orgId);
-
         await dbQuery(
             `INSERT INTO data.dataset_columns
                 (dataset_id, key, display_name, data_type, order_index)
@@ -129,19 +145,16 @@ describe('metric engine', () => {
             [datasetId]
         );
 
-        await addMetric(dashboardId, {
+        const metric = await evaluateMetric({
             name: 'Average check',
             expression: 'sum(revenue) / sum(orders)',
             format: '₽',
         });
 
-        const metric = await getMetric(dashboardId);
         expect(metric.value).toBe(30);
     });
 
     it('builds an ordered trend series from the auto date column', async () => {
-        const dashboardId = await createDashboard(orgId);
-
         await dbQuery(
             `INSERT INTO data.dataset_columns
                 (dataset_id, key, display_name, data_type, order_index)
@@ -159,7 +172,7 @@ describe('metric engine', () => {
             [datasetId]
         );
 
-        await addMetric(dashboardId, {
+        const metric = await evaluateMetric({
             name: 'Monthly revenue',
             expression: 'sum(amount)',
             format: '₽',
@@ -167,7 +180,6 @@ describe('metric engine', () => {
             timeBucket: 'month',
         });
 
-        const metric = await getMetric(dashboardId);
         expect(metric.trend).toHaveLength(2);
         expect(metric.trend?.map(point => point.value)).toEqual([15, 7]);
         const buckets = metric.trend?.map(point => point.bucket) ?? [];
@@ -175,8 +187,6 @@ describe('metric engine', () => {
     });
 
     it('builds a trend series from dotted dates and quoted column keys', async () => {
-        const dashboardId = await createDashboard(orgId);
-
         await dbQuery(
             `INSERT INTO data.dataset_columns
                 (dataset_id, key, display_name, data_type, order_index)
@@ -194,7 +204,7 @@ describe('metric engine', () => {
             [datasetId]
         );
 
-        await addMetric(dashboardId, {
+        const metric = await evaluateMetric({
             name: 'Average check',
             expression: 'avg("Средний чек")',
             format: '₽',
@@ -203,14 +213,11 @@ describe('metric engine', () => {
             timeBucket: 'month',
         });
 
-        const metric = await getMetric(dashboardId);
         expect(metric.trend).toHaveLength(2);
         expect(metric.trend?.map(point => point.value)).toEqual([10, 25]);
     });
 
     it('omits trend when no date column exists', async () => {
-        const dashboardId = await createDashboard(orgId);
-
         await dbQuery(
             `INSERT INTO data.dataset_columns
                 (dataset_id, key, display_name, data_type, order_index)
@@ -224,15 +231,22 @@ describe('metric engine', () => {
             [datasetId]
         );
 
-        await addMetric(dashboardId, {
+        const metric = await evaluateMetric({
             name: 'Revenue',
             expression: 'sum(amount)',
             format: '₽',
             showTrend: true,
         });
 
-        const metric = await getMetric(dashboardId);
         expect(metric.value).toBe(10);
         expect(metric.trend).toBeNull();
+    });
+
+    it('returns null for datasets outside the caller orgs', async () => {
+        await createTestUserWithOrg();
+
+        const metric = await evaluateMetric({ expression: 'count()' });
+
+        expect(metric).toEqual({ value: null, trend: null });
     });
 });

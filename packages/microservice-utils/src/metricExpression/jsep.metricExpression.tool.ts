@@ -1,6 +1,6 @@
 import jsep, { type Expression } from 'jsep';
 
-import { ValidationError } from '@qualification-work/microservice-utils/errors';
+import { ValidationError } from '../errors/index.ts';
 
 import type {
     MetricAggregate,
@@ -8,7 +8,7 @@ import type {
     MetricExpressionNode,
     MetricExpressionTool,
     MetricTermKey,
-} from '@/core/ports/driven/tools';
+} from './types.ts';
 
 const aggregates = new Set<MetricAggregate>([
     'sum',

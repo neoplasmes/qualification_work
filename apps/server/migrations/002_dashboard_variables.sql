@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS dashboards.dashboard_variables (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     dashboard_id            UUID NOT NULL REFERENCES dashboards.dashboards(id) ON DELETE CASCADE,
-    dataset_id              UUID NOT NULL REFERENCES data.datasets(id) ON DELETE CASCADE,
+    dataset_id              UUID NOT NULL REFERENCES dashboards.dataset_refs(id) ON DELETE CASCADE,
 
     name                    VARCHAR(255) NOT NULL,
     variable_type           dashboards.variable_type NOT NULL,

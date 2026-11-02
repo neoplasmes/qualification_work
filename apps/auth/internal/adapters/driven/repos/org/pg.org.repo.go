@@ -118,7 +118,11 @@ func (repo *Repo) Delete(ctx context.Context, orgID string) (bool, error) {
 
 		deleted = true
 
-		return outbox.WriteOrgEvent(ctx, tx, outbox.OrgDeleted, orgID, struct{}{})
+		if err := outbox.WriteOrgEvent(ctx, tx, outbox.OrgDeleted, orgID, struct{}{}); err != nil {
+			return fmt.Errorf("org deleted event: %w", err)
+		}
+
+		return nil
 	})
 	if err != nil {
 		return false, fmt.Errorf("pg.org.Delete: %w", err)
@@ -160,7 +164,7 @@ func InsertWithOwner(ctx context.Context, tx pgx.Tx, params repos.OrgCreateParam
 		DisplayName: params.DisplayName,
 		OwnerID:     params.OwnerID,
 	}); err != nil {
-		return "", err
+		return "", fmt.Errorf("org created event: %w", err)
 	}
 
 	return orgID, nil

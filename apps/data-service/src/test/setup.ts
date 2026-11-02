@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
+import { fileURLToPath } from 'node:url';
 import type { Pool, QueryResultRow } from 'pg';
 import type { FRequest } from 'primitive-server';
 
@@ -7,6 +8,7 @@ import {
     setInternalIdentity,
     type InternalIdentity,
 } from '@qualification-work/microservice-utils/auth';
+import { runMigrations } from '@qualification-work/microservice-utils/postgres';
 import {
     createRedisClient,
     type RedisClient,
@@ -63,43 +65,13 @@ export async function dbQuery<T extends QueryResultRow = QueryResultRow>(
     return result.rows;
 }
 
-export async function createTestUser(
-    data: { email?: string; name?: string; family?: string } = {}
-): Promise<{ id: string }> {
-    const email = data.email ?? `test-${randomUUID()}@example.com`;
-    const name = data.name ?? 'Test';
-    const family = data.family ?? 'User';
-
-    const [user] = await dbQuery<{ id: string }>(
-        `INSERT INTO auth.users (email, password_hash, name, family)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id`,
-        [email, 'not-used-by-data-service', name, family]
-    );
-
-    return user;
+// users and orgs live in auth, data-service only sees their ids through the jwt
+export async function createTestUser(): Promise<{ id: string }> {
+    return { id: randomUUID() };
 }
 
-export async function createTestOrg(
-    userId: string,
-    data: { name?: string } = {}
-): Promise<{ id: string }> {
-    const name = data.name ?? `Test Org ${randomUUID()}`;
-
-    const [organization] = await dbQuery<{ id: string }>(
-        `INSERT INTO orgs.organizations (name, display_name, owner_id)
-         VALUES ($1, $1, $2)
-         RETURNING id`,
-        [name, userId]
-    );
-
-    await dbQuery(
-        `INSERT INTO orgs.roles (org_id, user_id, role)
-         VALUES ($1, $2, 'owner')`,
-        [organization.id, userId]
-    );
-
-    return organization;
+export async function createTestOrg(_userId: string): Promise<{ id: string }> {
+    return { id: randomUUID() };
 }
 
 export async function createTestUserWithOrg(): Promise<{
@@ -153,6 +125,10 @@ export async function startServer(): Promise<void> {
     try {
         const config = loadConfig();
         pool = await createPool(config.postgresConnectionString);
+        await runMigrations(
+            pool,
+            fileURLToPath(new URL('../../migrations', import.meta.url))
+        );
         redis = await createRedisClient(config.redis);
 
         await truncate();
@@ -214,4 +190,8 @@ export function getTestRedis(): RedisClient {
     }
 
     return redis;
+}
+
+export function getPool(): Pool {
+    return pool;
 }

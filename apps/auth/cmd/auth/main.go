@@ -20,8 +20,8 @@ import (
 	"auth/migrations"
 
 	logger "auth/internal/adapters/driven/repos/_logger"
-	"auth/internal/adapters/driven/repos/outbox"
 	orgRepo "auth/internal/adapters/driven/repos/org"
+	"auth/internal/adapters/driven/repos/outbox"
 	sessionRepo "auth/internal/adapters/driven/repos/session"
 	userRepo "auth/internal/adapters/driven/repos/user"
 

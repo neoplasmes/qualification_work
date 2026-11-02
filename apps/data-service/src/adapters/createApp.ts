@@ -6,6 +6,7 @@ import {
     BaseError,
     ValidationError,
 } from '@qualification-work/microservice-utils/errors';
+import { JsepMetricExpressionTool } from '@qualification-work/microservice-utils/metricExpression';
 import {
     RedisCache,
     type RedisClient,
@@ -32,6 +33,7 @@ import {
     UploadDatasetCommand,
 } from '@/core/commands';
 import {
+    EvaluateMetricsQuery,
     GetActionByIdQuery,
     GetActionsByOrgIdQuery,
     GetChartByIdQuery,
@@ -42,6 +44,7 @@ import {
     GetDatasetsMetadataByOrgIdQuery,
     ListActionRunsQuery,
     PreviewChartDataQuery,
+    PreviewMetricQuery,
 } from '@/core/queries';
 import type { ListActionRunsInput } from '@/core/queries/action';
 
@@ -49,6 +52,7 @@ import {
     PgActionRepo,
     PgChartRepo,
     PgDatasetRepo,
+    PgMetricRepo,
     RedisMergeSessionRepo,
 } from '@/adapters/driven/repos';
 import {
@@ -61,6 +65,7 @@ import {
     createActionsRouter,
     createChartsRouter,
     createDatasetRouter,
+    createMetricsRouter,
 } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';
@@ -78,6 +83,8 @@ export type CreateAppOptions = {
 
 export type CreateAppResult = {
     app: Application<AppState>;
+    // shared with kafka consumers, so their invalidation hits the same namespace
+    cache: RedisCache;
     stop: () => void;
 };
 
@@ -544,10 +551,37 @@ export function createAppWithCleanup(
         listActionRunsHandler,
     });
 
+    // ----- metric -----
+    const expressionTool = new JsepMetricExpressionTool();
+    const metricRepo = new PgMetricRepo(pool, expressionTool);
+    const basePreviewMetricHandler = new PreviewMetricQuery(metricRepo, expressionTool);
+    // the builder fires a preview on every keystroke pause, a short ttl absorbs repeats
+    const previewMetricHandler = {
+        execute: (input: Parameters<PreviewMetricQuery['execute']>[0]) =>
+            cache.rememberJson(
+                {
+                    key: [
+                        'metrics',
+                        'preview',
+                        input.datasetId,
+                        input.expression,
+                        accessFingerprint(input.orgs),
+                    ],
+                    ttlMs: 30_000,
+                },
+                () => basePreviewMetricHandler.execute(input)
+            ),
+    } as PreviewMetricQuery;
+    const metricsRouter = createMetricsRouter(
+        new EvaluateMetricsQuery(metricRepo, expressionTool),
+        previewMetricHandler
+    );
+
     // gateway rewrites /api/data/* -> /api/* before forwarding here
     app.mount('/api', datasetRouter);
     app.mount('/api', chartsRouter);
     app.mount('/api', actionsRouter);
+    app.mount('/api', metricsRouter);
 
     const authHook =
         opts.authHook ??
@@ -566,7 +600,7 @@ export function createAppWithCleanup(
         });
     }
 
-    return { app, stop: stopCleanup };
+    return { app, cache, stop: stopCleanup };
 }
 
 function accessFingerprint(orgs: OrgMembership[]): string {

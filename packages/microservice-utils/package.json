@@ -9,12 +9,14 @@
         "./redis": "./src/redis/index.ts",
         "./test-utils": "./src/test-utils/index.ts",
         "./validation": "./src/validation/index.ts",
-        "./kafka": "./src/kafka/index.ts"
+        "./kafka": "./src/kafka/index.ts",
+        "./metricExpression": "./src/metricExpression/index.ts"
     },
     "dependencies": {
         "@platformatic/kafka": "catalog:backend",
         "jose": "^5.9.6",
-        "@qualification-work/contracts": "workspace:*"
+        "@qualification-work/contracts": "workspace:*",
+        "jsep": "catalog:backend"
     },
     "peerDependencies": {
         "pg": ">=8",

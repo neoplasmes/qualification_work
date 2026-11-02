@@ -29,7 +29,7 @@ import {
 } from '@/core/queries';
 
 import { PgDashboardRepo, PgOrgRepo } from '@/adapters/driven/repos';
-import { JsepMetricExpressionTool } from '@/adapters/driven/tools';
+import { JsepMetricExpressionTool } from '@qualification-work/microservice-utils/metricExpression';
 import { createDashboardsRouter, createOrgsRouter } from '@/adapters/driving/http';
 
 import type { AppState } from '@/shared/appState';

@@ -1,6 +1,6 @@
 import type { OrgRole } from '@qualification-work/microservice-utils/auth';
 
-import { api, dbQuery, setTestIdentity } from '../setup';
+import { api, setTestIdentity } from '../setup';
 
 export function setIdentity(
     userId: string,
@@ -11,19 +11,6 @@ export function setIdentity(
         userId,
         orgs: [{ id: orgId, role }],
     });
-}
-
-export async function addUserRole(
-    orgId: string,
-    userId: string,
-    role: OrgRole
-): Promise<void> {
-    await dbQuery(
-        `INSERT INTO orgs.roles (org_id, user_id, role)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (org_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
-        [orgId, userId, role]
-    );
 }
 
 export function buildInsertAction(orgId: string, datasetId: string) {

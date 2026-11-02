@@ -14,3 +14,4 @@ export {
     GetDatasetRowsQuery,
     GetDatasetsMetadataByOrgIdQuery,
 } from './dataset';
+export { EvaluateMetricsQuery, PreviewMetricQuery } from './metric';

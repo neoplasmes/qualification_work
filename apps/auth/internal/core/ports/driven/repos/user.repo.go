@@ -7,10 +7,10 @@ import (
 
 // UserCreateParams contains fields required to create a user.
 type UserCreateParams struct {
-	Email          string
-	PasswordHash   string
-	Name           string
-	Family         string
+	Email        string
+	PasswordHash string
+	Name         string
+	Family       string
 	// personal org created in the same transaction as the user
 	OrgDisplayName string
 }

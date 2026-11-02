@@ -8,7 +8,8 @@ END $$;
 CREATE TABLE IF NOT EXISTS actions.actions (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    org_id                  UUID NOT NULL REFERENCES orgs.organizations(id) ON DELETE CASCADE,
+    -- owned by auth, kept without a foreign key
+    org_id                  UUID NOT NULL,
 
     name                    VARCHAR(255) NOT NULL,
     description             TEXT DEFAULT NULL,
@@ -36,8 +37,10 @@ CREATE TABLE IF NOT EXISTS actions.action_runs (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     action_id               UUID NOT NULL REFERENCES actions.actions(id) ON DELETE CASCADE,
-    org_id                  UUID NOT NULL REFERENCES orgs.organizations(id) ON DELETE CASCADE,
-    user_id                 UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    -- owned by auth, kept without a foreign key
+    org_id                  UUID NOT NULL,
+    -- owned by auth, kept without a foreign key
+    user_id                 UUID NOT NULL,
 
     parameters              JSONB NOT NULL DEFAULT '{}'::jsonb,
     changes                 JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -48,7 +51,7 @@ CREATE TABLE IF NOT EXISTS actions.action_runs (
 );
 
 ALTER TABLE actions.action_runs
-    ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    ADD COLUMN IF NOT EXISTS user_id UUID,
     ADD COLUMN IF NOT EXISTS status actions.action_run_status NOT NULL DEFAULT 'success',
     ADD COLUMN IF NOT EXISTS error_message TEXT DEFAULT NULL;
 

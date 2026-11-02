@@ -19,7 +19,8 @@ END $$;
 CREATE TABLE IF NOT EXISTS data.datasets (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    org_id                  UUID NOT NULL REFERENCES orgs.organizations(id) ON DELETE CASCADE,
+    -- owned by auth, kept without a foreign key
+    org_id                  UUID NOT NULL,
 
     name                    VARCHAR(255) NOT NULL,
     source_type             data.source_type NOT NULL,

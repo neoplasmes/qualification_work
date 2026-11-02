@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS charts.charts (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     dataset_id              UUID NOT NULL REFERENCES data.datasets(id) ON DELETE CASCADE,
-    org_id                  UUID NOT NULL REFERENCES orgs.organizations(id) ON DELETE CASCADE,
+    -- owned by auth, kept without a foreign key
+    org_id                  UUID NOT NULL,
 
     name                    VARCHAR(255) NOT NULL,
     chart_type              charts.chart_type NOT NULL,

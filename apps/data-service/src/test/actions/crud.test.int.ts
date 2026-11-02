@@ -10,7 +10,7 @@ import {
     stopServer,
     truncate,
 } from '../setup';
-import { addUserRole, buildInsertAction, createAction, setIdentity } from './lib';
+import { buildInsertAction, createAction, setIdentity } from './lib';
 
 beforeAll(startServer);
 afterAll(stopServer);
@@ -107,7 +107,6 @@ describe('actions CRUD', () => {
         const actionId = await createAction(buildInsertAction(orgId, datasetId));
 
         const viewer = await createTestUser();
-        await addUserRole(orgId, viewer.id, 'viewer');
         setIdentity(viewer.id, orgId, 'viewer');
 
         expect((await api(`/api/actions?orgId=${orgId}`)).status).toBe(200);
@@ -131,7 +130,6 @@ describe('actions CRUD', () => {
         setIdentity(ownerId, orgId);
         const datasetId = await uploadDataset(orgId);
         const editor = await createTestUser();
-        await addUserRole(orgId, editor.id, 'editor');
         setIdentity(editor.id, orgId, 'editor');
 
         const res = await api('/api/actions', {

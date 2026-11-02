@@ -34,3 +34,9 @@ export type {
     MergeSessionFile,
     MergeSessionRepo,
 } from './mergeSession.repo';
+export type {
+    MetricColumnMeta,
+    MetricDataset,
+    MetricRepo,
+    MetricTrendBucket,
+} from './metric.repo';

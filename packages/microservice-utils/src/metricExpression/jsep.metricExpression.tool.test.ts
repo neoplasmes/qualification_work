@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { ValidationError } from '@qualification-work/microservice-utils/errors';
+import { ValidationError } from '../errors/index.ts';
 
-import type { MetricTermKey } from '@/core/ports/driven/tools';
+import type { MetricTermKey } from './types.ts';
 
-import { JsepMetricExpressionTool } from './jsep.metricExpression.tool';
+import { JsepMetricExpressionTool } from './jsep.metricExpression.tool.ts';
 
 const tool = new JsepMetricExpressionTool();
 

@@ -1,5 +1,26 @@
 CREATE SCHEMA IF NOT EXISTS dashboards;
 
+-- read models of datasets and charts owned by data-service, filled from kafka events
+CREATE TABLE IF NOT EXISTS dashboards.dataset_refs (
+    id                      UUID PRIMARY KEY,
+    org_id                  UUID NOT NULL,
+    name                    VARCHAR(255) NOT NULL,
+    -- [{ key, dataType, isAnalyzable }]
+    columns                 JSONB NOT NULL DEFAULT '[]'::jsonb,
+    data_version            BIGINT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS dataset_refs_org_id_idx ON dashboards.dataset_refs (org_id);
+
+CREATE TABLE IF NOT EXISTS dashboards.chart_refs (
+    id                      UUID PRIMARY KEY,
+    org_id                  UUID NOT NULL,
+    dataset_id              UUID NOT NULL,
+    name                    VARCHAR(255) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS chart_refs_org_id_idx ON dashboards.chart_refs (org_id);
+
 DO $$ BEGIN
     CREATE TYPE dashboards.item_type AS ENUM ('chart', 'metric');
 EXCEPTION WHEN duplicate_object THEN NULL;
@@ -10,7 +31,8 @@ END $$;
 CREATE TABLE IF NOT EXISTS dashboards.dashboards (
     id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    org_id                  UUID NOT NULL REFERENCES orgs.organizations(id) ON DELETE CASCADE,
+    -- owned by auth, kept without a foreign key
+    org_id                  UUID NOT NULL,
 
     name                    VARCHAR(255) NOT NULL,
 
@@ -47,7 +69,7 @@ CREATE INDEX IF NOT EXISTS dashboard_items_dashboard_id_idx ON dashboards.dashbo
 CREATE TABLE IF NOT EXISTS dashboards.item_charts (
     item_id                 UUID PRIMARY KEY REFERENCES dashboards.dashboard_items(id) ON DELETE CASCADE,
 
-    chart_id                UUID NOT NULL REFERENCES charts.charts(id) ON DELETE CASCADE
+    chart_id                UUID NOT NULL REFERENCES dashboards.chart_refs(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS item_charts_chart_id_idx ON dashboards.item_charts (chart_id);
@@ -57,7 +79,7 @@ CREATE INDEX IF NOT EXISTS item_charts_chart_id_idx ON dashboards.item_charts (c
 CREATE TABLE IF NOT EXISTS dashboards.item_metrics (
     item_id                 UUID PRIMARY KEY REFERENCES dashboards.dashboard_items(id) ON DELETE CASCADE,
 
-    dataset_id              UUID NOT NULL REFERENCES data.datasets(id) ON DELETE CASCADE,
+    dataset_id              UUID NOT NULL REFERENCES dashboards.dataset_refs(id) ON DELETE CASCADE,
 
     name                    VARCHAR(255) NOT NULL,
 

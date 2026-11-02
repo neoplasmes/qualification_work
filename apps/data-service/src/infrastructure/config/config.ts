@@ -9,6 +9,10 @@ const schema = z.object({
         port: z.coerce.number().int().positive(),
         password: z.string().optional(),
     }),
+    kafka: z.object({
+        brokers: z.array(z.string().min(1)).min(1),
+        replicationFactor: z.coerce.number().int().positive(),
+    }),
     auth: z.object({
         jwksUrl: z.url(),
         jwtIssuer: z.string().min(1),
@@ -44,6 +48,10 @@ export function loadConfig(): Config {
             port: env.REDIS_PORT,
             password: env.REDIS_PASSWORD,
         },
+        kafka: {
+            brokers: env.KAFKA_BROKERS?.split(',') ?? [],
+            replicationFactor: env.KAFKA_REPLICATION_FACTOR ?? '1',
+        },
         auth: {
             jwksUrl: env.AUTH_JWKS_URL,
             jwtIssuer: env.AUTH_JWT_ISSUER,
@@ -76,6 +84,7 @@ export function loadConfig(): Config {
             port: data.redis.port,
             password: data.redis.password,
         }),
+        kafka: Object.freeze(data.kafka),
         auth: Object.freeze({
             jwksUrl: data.auth.jwksUrl,
             jwtIssuer: data.auth.jwtIssuer,

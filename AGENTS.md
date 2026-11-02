@@ -6,6 +6,10 @@
 
 #### If NO TESTS WERE AFFECTED BY YOUR CHANGES - DO NOT RUN FUCKING TESTS AT ALL
 
+#### ALWAYS REMOVE TEST CONTAINERS AFTER A TEST RUN
+
+Test containers must never keep running or hold memory after tests. After every run, interrupted or failed ones included, remove them with `docker compose -f <compose file> down -v --rmi local` and check `docker ps -a` for leftovers.
+
 #### do not create functions, that are used only ONCE in other functions. Just make one big function.
 
 #### do not create functions whose body performs only ONE operation. Inline the operation at the call site.

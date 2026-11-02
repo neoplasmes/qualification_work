@@ -1,51 +1,124 @@
-# environment operations: local compose stack, k3d cluster, registry delivery
-# tasks run from the workspace root (all.yaml), so paths start with env/
+# environment operations run from the workspace root through all.yaml
 language: unknown
 layer: configuration
 fileGroups:
+  cfg:
+    - local/docker-compose.*.yaml
+    - pgbouncer/*.ini
+    - pgbouncer/userlist.example.txt
+    - postgres/init/*.sql
   scripts:
-    - scripts/*.nu
-  database:
-    - database/**/*.{sql,ini,conf}
-  cluster:
-    - cluster/**/*.{yaml,gotmpl,conf}
+    - local/*.nu
+    - docker/*.nu
+    - postgres/*.nu
+    - k8s/*.nu
+  k8s:
+    - k8s/**/*.{yaml,gotmpl,conf}
 tasks:
+  lint:
+    command: noop
+    deps:
+      - env:lint-compose
+      - env:lint-k8s
+    inputs:
+      - "@group(cfg)"
+      - "@group(k8s)"
+  lint-compose:
+    command: nu --no-config-file env/local/validate.nu
+    inputs:
+      - "@group(cfg)"
+      - local/validate.nu
+      - /apps/client/docker-compose.dev.yaml
+      - /apps/auth/docker-compose.test.yaml
+      - /apps/auth/test/integration/**/*.{conf,ini,pem}
+      - /e2e/docker-compose/**/*.{yaml,conf,ini,pem}
+      - /e2e/backend/docker-compose/**/*.{yaml,conf,ini,pem}
+    options:
+      cache: false
+  lint-k8s:
+    command: nu --no-config-file env/k8s/validate.nu
+    inputs:
+      - "@group(k8s)"
+      - postgres/init/*.sql
+      - k8s/validate.nu
+    options:
+      cache: false
   # k3d management for local testing of kubernetes (k3s) (not for weak machines)
   # todo: as project grows, this set of commands should be reconsidered
-  cluster-create:
-    command: k3d cluster create local-development --config env/cluster/k3d.config.yaml
+  cluster-up:
+    command: k3d cluster create local-development --config env/k8s/k3d.config.yaml
     preset: utility
+    options: &cluster-options
+      mutex: workspace-cluster
   cluster-start:
     command: k3d cluster start local-development
     preset: utility
+    options: *cluster-options
   cluster-stop:
     command: k3d cluster stop local-development
     preset: utility
+    options: *cluster-options
   # todo: universality or delete
   migrate:
-    command: nu --no-config-file env/scripts/apply-migration.nu env/cluster/postgres/migrations/init/job.yaml env/database/postgres/init
+    command: nu --no-config-file env/postgres/migrate.nu env/k8s/postgres/migrations/init/job.yaml env/postgres/init
     preset: utility
+    options: *cluster-options
   apply:
-    command: nu --no-config-file env/scripts/apply.nu
+    command: nu --no-config-file env/k8s/apply.nu
     preset: utility
+    options: *cluster-options
   deploy:
-    command: nu --no-config-file env/scripts/deploy-image.nu apps/client apps/server apps/data-service apps/auth apps/openresty-discovery
+    command: nu --no-config-file env/docker/deploy-image.nu apps/client apps/server apps/data-service apps/auth apps/openresty-discovery
     preset: utility
-  destroy:
+  cluster-down:
     command: k3d cluster delete local-development
     preset: utility
+    options: *cluster-options
   compose-up:
-    command: docker compose -f env/local/compose.yaml up -d --renew-anon-volumes --build --wait --wait-timeout 300
-    options:
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.broker.yaml up -d --wait --wait-timeout 300
+    inputs:
+      - "@group(cfg)"
+    options: &compose-options
       cache: false
       runInCI: false
+      mutex: workspace-compose
   compose-down:
-    command: docker compose -f env/local/compose.yaml down -v --rmi local
-    options:
-      cache: false
-      runInCI: false
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.broker.yaml down --remove-orphans
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
   compose-logs:
-    command: docker compose -f env/local/compose.yaml logs --tail=200
-    options:
-      cache: false
-      runInCI: false
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.broker.yaml logs --tail=200
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
+  compose-up-database:
+    command: docker compose -f env/local/docker-compose.database.yaml up -d --wait --wait-timeout 300
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
+  compose-down-database:
+    command: docker compose -f env/local/docker-compose.database.yaml down
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
+  compose-up-cache:
+    command: docker compose -f env/local/docker-compose.cache.yaml up -d --wait --wait-timeout 300
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
+  compose-down-cache:
+    command: docker compose -f env/local/docker-compose.cache.yaml down
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
+  compose-up-broker:
+    command: docker compose -f env/local/docker-compose.broker.yaml up -d --wait --wait-timeout 300
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options
+  compose-down-broker:
+    command: docker compose -f env/local/docker-compose.broker.yaml down
+    inputs:
+      - "@group(cfg)"
+    options: *compose-options

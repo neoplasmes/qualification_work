@@ -18,7 +18,7 @@ Environment and publishing tasks (`env:*`, `<app>:image`, `auth:start-swagger`) 
 
 ## Nushell
 
-Repository-wide scripts live in `tools/<purpose>/`; a script owned by one project lives in that project (`apps/client/scripts/`, `env/scripts/`). `root:lint-nu` parses all `.nu` files without executing their operations. Docker images can invoke Node build executables directly during image construction; host workflow commands remain Moon tasks.
+Repository-wide scripts live in `tools/<purpose>/`; a script owned by one project lives in that project (`apps/client/scripts/`, `env/docker/`, `env/postgres/`, `env/k8s/`). `root:lint-nu` parses all `.nu` files without executing their operations. Docker images can invoke Node build executables directly during image construction; host workflow commands remain Moon tasks.
 
 ## General convention
 
@@ -192,10 +192,11 @@ e2e/
     <suite-name>/            # tests that exercise several apps together
 env/
     moon.yaml                # env project: environment operations
-    local/                   # local stack (compose.yaml)
-    database/                # postgres init sql, pgbouncer config
-    cluster/                 # k3d config, helmfile, kubernetes manifests
-    scripts/                 # delivery and migration scripts
+    local/                   # compose files: database, cache, broker
+    postgres/                # database bootstrap sql and migration script
+    pgbouncer/               # connection pool configuration
+    k8s/                     # k3d, helmfile, manifests and cluster operations
+    docker/                  # image delivery script
 .agents/
     skills/
 AGENTS.md
@@ -275,7 +276,7 @@ configuration belongs in `tools/` or `env/`.
 - Runtime configuration comes from environment variables and mounted files, never
   baked in. Build-time settings that bind an image to one environment are
   documented.
-- The local stack lives in `env/local/compose.yaml`, started by `env:compose-up`.
+- The local infrastructure stack combines `env/local/docker-compose.{database,cache,broker}.yaml`, started by `env:compose-up`. Individual groups use `env:compose-up-database`, `env:compose-up-cache`, and `env:compose-up-broker`. Stop commands preserve named data volumes. `env:lint` validates Compose and renders Kubernetes manifests without starting containers or applying resources.
 
 ## Agents
 

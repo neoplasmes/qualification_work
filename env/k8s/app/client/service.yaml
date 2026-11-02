@@ -25,7 +25,7 @@ spec:
   # when we access DNS name. So it makes least_conn or iphash impossible to implement on our sevice gateway.
   # Thus, a service discovery has to be implemented. There are already a great implementation - Consul. But this would be definetly an overengineering for this project/
   # It would be NOT if I used nomad, but I use k8s (actually k3s), again, because it is a standart.
-  # So there is a custom tiny implementation (env/cluster/app/gateway) on go and I happy to use it.
+  # So there is a custom tiny implementation (env/k8s/app/gateway) on go and I happy to use it.
   #
   # :)
   clusterIP: None

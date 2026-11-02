@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ../../env/database/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ../../env/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d qualification"]
       interval: 2s
@@ -51,8 +51,8 @@ services:
   pgbouncer:
     image: edoburu/pgbouncer:v1.25.1-p0
     volumes:
-      - ../../env/database/pgbouncer/pgbouncer.dev.ini:/etc/pgbouncer/pgbouncer.ini:ro
-      - ../../env/database/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+      - ../../env/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ../../env/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     ports:
       - "6432:5432"
     depends_on:

@@ -18,7 +18,8 @@ fileGroups:
   stack:
     - /e2e/docker-compose/**/*.{yaml,conf,ini,pem,sql}
     - /apps/*/Dockerfile
-    - /env/database/**/*.{sql,ini,conf}
+    - /env/postgres/**/*.sql
+    - /env/pgbouncer/*.{ini,txt}
 tasks:
   test-e2e:
     command: nu --no-config-file $workspaceRoot/tools/compose-test/compose-test.nu $workspaceRoot/e2e/docker-compose/docker-compose.yaml

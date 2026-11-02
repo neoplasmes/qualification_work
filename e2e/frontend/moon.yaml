@@ -16,7 +16,8 @@ fileGroups:
   stack:
     - /e2e/docker-compose/**/*.{yaml,conf,ini,pem,sql}
     - /apps/*/Dockerfile
-    - /env/database/**/*.{sql,ini,conf}
+    - /env/postgres/**/*.sql
+    - /env/pgbouncer/*.{ini,txt}
 tasks:
   browser:
     command: pnpm exec playwright install chromium

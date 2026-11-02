@@ -25,8 +25,8 @@ deploy
 **/.env
 **/.env.*
 
-env/cluster/**/secret.yaml
-env/cluster/**/values.yaml
+env/k8s/**/secret.yaml
+env/k8s/**/values.yaml
 .secrets
 .cache
 .local
